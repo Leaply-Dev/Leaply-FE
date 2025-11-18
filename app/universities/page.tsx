@@ -1,26 +1,31 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Search, GraduationCap } from 'lucide-react';
-import { PageContainer } from '@/components/Layout';
-import { UniversityCard } from '@/components/UniversityCard';
-import { FilterBar } from '@/components/FilterBar';
-import { Select } from '@/components/ui/select';
+import { useEffect, useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { Search, Sparkles, Globe } from 'lucide-react';
+import { AIMatchCard } from '@/components/AIMatchCard';
+import { ExploreCard } from '@/components/ExploreCard';
+import { FilterQuestionnaire, FilterState } from '@/components/FilterQuestionnaire';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { useUniversitiesStore } from '@/lib/store/universitiesStore';
+import { useUserStore } from '@/lib/store/userStore';
 import { mockUniversities } from '@/lib/data/universities';
+import { calculateFitScore } from '@/lib/utils/fitScore';
 import { PageTransition, StaggerContainer, StaggerItem, SlideUp } from '@/components/PageTransition';
 
 export default function UniversitiesPage() {
-  const { universities, setUniversities, filters, setFilters, getFilteredUniversities } = useUniversitiesStore();
-  const [sortBy, setSortBy] = useState<'ranking' | 'tuition' | 'fit'>('fit');
+  const router = useRouter();
+  const { universities, setUniversities } = useUniversitiesStore();
+  const { profile, preferences } = useUserStore();
+  const [activeMode, setActiveMode] = useState<'ai-match' | 'explore-all'>('ai-match');
   const [searchInput, setSearchInput] = useState('');
-  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
-  const [selectedRankings, setSelectedRankings] = useState<string[]>([]);
-  const [selectedFields, setSelectedFields] = useState<string[]>([]);
-  const [tuitionRange, setTuitionRange] = useState({ min: 0, max: 100000 });
+  const [filterState, setFilterState] = useState<FilterState>({
+    regions: [],
+    majors: [],
+    tuitionRange: null,
+  });
 
   useEffect(() => {
     // Initialize universities on mount
@@ -29,68 +34,91 @@ export default function UniversitiesPage() {
     }
   }, [universities.length, setUniversities]);
 
-  // Apply filters
-  let filteredUniversities = universities;
-  
-  if (searchInput) {
-    filteredUniversities = filteredUniversities.filter(uni =>
-      uni.name.toLowerCase().includes(searchInput.toLowerCase()) ||
-      uni.city.toLowerCase().includes(searchInput.toLowerCase()) ||
-      uni.country.toLowerCase().includes(searchInput.toLowerCase())
-    );
-  }
-  
-  if (selectedCountries.length > 0) {
-    filteredUniversities = filteredUniversities.filter(uni =>
-      selectedCountries.includes(uni.country)
-    );
-  }
-  
-  if (selectedRankings.length > 0) {
-    filteredUniversities = filteredUniversities.filter(uni => {
-      return selectedRankings.some(range => {
-        if (range === '1-10') return uni.ranking <= 10;
-        if (range === '11-50') return uni.ranking >= 11 && uni.ranking <= 50;
-        if (range === '51-100') return uni.ranking >= 51 && uni.ranking <= 100;
-        return false;
-      });
-    });
-  }
-  
-  // Sort universities
-  const sortedUniversities = [...filteredUniversities].sort((a, b) => {
-    if (sortBy === 'ranking') {
-      return a.ranking - b.ranking;
-    } else if (sortBy === 'tuition') {
-      return a.averageTuition - b.averageTuition;
-    } else {
-      // Sort by fit score (mock)
-      return b.ranking - a.ranking;
-    }
-  });
+  // Get unique regions and majors for filter options
+  const availableRegions = useMemo(() => {
+    const regions = Array.from(new Set(mockUniversities.map(uni => uni.region)));
+    return regions.map(region => ({
+      value: region,
+      label: region,
+      count: mockUniversities.filter(uni => uni.region === region).length,
+    }));
+  }, []);
 
-  // Get unique countries for filter
-  const countries = Array.from(new Set(mockUniversities.map(uni => uni.country))).sort();
-  
-  const handleCountryToggle = (country: string) => {
-    setSelectedCountries(prev =>
-      prev.includes(country) ? prev.filter(c => c !== country) : [...prev, country]
-    );
+  const availableMajors = useMemo(() => {
+    return [
+      { value: 'Computer Science', label: 'Computer Science' },
+      { value: 'Engineering', label: 'Engineering' },
+      { value: 'Business', label: 'Business' },
+      { value: 'Medicine', label: 'Medicine' },
+      { value: 'Arts', label: 'Arts & Humanities' },
+      { value: 'Sciences', label: 'Natural Sciences' },
+      { value: 'Social Sciences', label: 'Social Sciences' },
+      { value: 'Law', label: 'Law' },
+    ];
+  }, []);
+
+  // Apply filters and search
+  const filteredUniversities = useMemo(() => {
+    let filtered = [...universities];
+
+    // Search filter
+    if (searchInput) {
+      const query = searchInput.toLowerCase();
+      filtered = filtered.filter(uni =>
+        uni.name.toLowerCase().includes(query) ||
+        uni.city.toLowerCase().includes(query) ||
+        uni.country.toLowerCase().includes(query) ||
+        uni.region.toLowerCase().includes(query)
+      );
+    }
+
+    // Region filter
+    if (filterState.regions.length > 0) {
+      filtered = filtered.filter(uni => filterState.regions.includes(uni.region));
+    }
+
+    // Tuition filter
+    if (filterState.tuitionRange) {
+      filtered = filtered.filter(uni =>
+        uni.averageTuition >= filterState.tuitionRange!.min &&
+        uni.averageTuition <= filterState.tuitionRange!.max
+      );
+    }
+
+    // Major filter (simplified - in production would match against actual programs)
+    // For now, we'll just keep all universities if major filter is active
+    // as we don't have detailed program data for all universities
+
+    return filtered;
+  }, [universities, searchInput, filterState]);
+
+  // For AI Match mode: filter and sort by fit score
+  const aiMatchedUniversities = useMemo(() => {
+    if (!profile) return [];
+    
+    const withScores = filteredUniversities.map(uni => ({
+      ...uni,
+      fitScore: calculateFitScore(uni, profile, preferences),
+    }));
+
+    // Only show universities with fit score > 40
+    return withScores
+      .filter(uni => uni.fitScore >= 40)
+      .sort((a, b) => b.fitScore - a.fitScore)
+      .slice(0, 12); // Show top 12 matches
+  }, [filteredUniversities, profile, preferences]);
+
+  // For Explore All mode: sort by ranking
+  const exploreAllUniversities = useMemo(() => {
+    return [...filteredUniversities].sort((a, b) => a.ranking - b.ranking);
+  }, [filteredUniversities]);
+
+  const handleAskAI = (universityId: string, universityName: string) => {
+    // Navigate to chatbot with pre-filled question
+    router.push(`/chatbot?question=${encodeURIComponent(`Tell me more about ${universityName}`)}`);
   };
-  
-  const handleRankingToggle = (range: string) => {
-    setSelectedRankings(prev =>
-      prev.includes(range) ? prev.filter(r => r !== range) : [...prev, range]
-    );
-  };
-  
-  const clearAllFilters = () => {
-    setSearchInput('');
-    setSelectedCountries([]);
-    setSelectedRankings([]);
-    setSelectedFields([]);
-    setTuitionRange({ min: 0, max: 100000 });
-  };
+
+  const displayUniversities = activeMode === 'ai-match' ? aiMatchedUniversities : exploreAllUniversities;
 
   return (
     <PageTransition>
@@ -103,7 +131,7 @@ export default function UniversitiesPage() {
                 Discover Your Perfect Match
               </h1>
               <p className="text-xl text-white/90">
-                Search from 1000+ universities worldwide
+                Personalized recommendations or explore 1000+ universities worldwide
               </p>
             </div>
 
@@ -119,27 +147,6 @@ export default function UniversitiesPage() {
                     className="border-0 focus-visible:ring-0 text-dark-grey"
                   />
                 </div>
-                <Button size="lg" className="px-8">
-                  Search
-                </Button>
-              </div>
-
-              {/* Quick Filters */}
-              <div className="flex flex-wrap gap-2 mt-4 justify-center">
-                <span className="text-sm text-white/80">Popular:</span>
-                {['USA', 'UK', 'Canada', 'Australia'].map((country) => (
-                  <button
-                    key={country}
-                    onClick={() => handleCountryToggle(country)}
-                    className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                      selectedCountries.includes(country)
-                        ? 'bg-white text-leaf-green font-medium'
-                        : 'bg-white/20 text-white hover:bg-white/30'
-                    }`}
-                  >
-                    {country}
-                  </button>
-                ))}
               </div>
             </div>
           </SlideUp>
@@ -148,130 +155,135 @@ export default function UniversitiesPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex gap-8">
-          {/* Sidebar Filters */}
-          <aside className="w-64 shrink-0">
-            <div className="sticky top-24 space-y-6">
-              {/* Filters Header */}
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-dark-grey">Filters</h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearAllFilters}
-                  className="text-xs"
-                >
-                  Clear All
-                </Button>
-              </div>
-
-              {/* Country Filter */}
-              <div>
-                <h4 className="font-medium text-dark-grey mb-3">Country</h4>
-                <div className="space-y-2">
-                  {countries.map((country) => (
-                    <label
-                      key={country}
-                      className="flex items-center gap-2 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedCountries.includes(country)}
-                        onChange={() => handleCountryToggle(country)}
-                        className="w-4 h-4 rounded-sm border-gray-300 text-leaf-green focus:ring-leaf-green"
-                      />
-                      <span className="text-sm text-mid-grey">{country}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Ranking Filter */}
-              <div>
-                <h4 className="font-medium text-dark-grey mb-3">Global Ranking</h4>
-                <div className="space-y-2">
-                  {[
-                    { label: 'Top 10', value: '1-10' },
-                    { label: 'Top 11-50', value: '11-50' },
-                    { label: 'Top 51-100', value: '51-100' },
-                  ].map((range) => (
-                    <label
-                      key={range.value}
-                      className="flex items-center gap-2 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedRankings.includes(range.value)}
-                        onChange={() => handleRankingToggle(range.value)}
-                        className="w-4 h-4 rounded-sm border-gray-300 text-leaf-green focus:ring-leaf-green"
-                      />
-                      <span className="text-sm text-mid-grey">{range.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </aside>
-
-          {/* Results Section */}
-          <main className="flex-1">
-            {/* Results Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-dark-grey">All Universities</h2>
-                <p className="text-sm text-mid-grey mt-1">
-                  Showing {sortedUniversities.length} results
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <label htmlFor="sortBy" className="text-sm text-mid-grey">
-                  Sort by:
-                </label>
-                <select
-                  id="sortBy"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                  className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-leaf-green focus:border-transparent"
-                >
-                  <option value="fit">Best Fit</option>
-                  <option value="ranking">Ranking</option>
-                  <option value="tuition">Tuition (Low to High)</option>
-                </select>
-              </div>
+        {/* Mode Switch Tabs */}
+        <div className="mb-8">
+          <Tabs value={activeMode} onValueChange={(value) => setActiveMode(value as any)} className="w-full">
+            <div className="flex justify-center mb-2">
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="ai-match" className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  AI Match
+                </TabsTrigger>
+                <TabsTrigger value="explore-all" className="flex items-center gap-2">
+                  <Globe className="w-4 h-4" />
+                  Explore All
+                </TabsTrigger>
+              </TabsList>
             </div>
 
-            {/* University Grid */}
-            <StaggerContainer>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {sortedUniversities.map((university) => (
-                  <StaggerItem key={university.id}>
-                    <UniversityCard
-                      id={university.id}
-                      name={university.name}
-                      country={university.country}
-                      city={university.city}
-                      ranking={university.ranking}
-                      logo={university.logo}
-                      averageTuition={university.averageTuition}
-                      overview={university.overview}
-                    />
-                  </StaggerItem>
-                ))}
-              </div>
-            </StaggerContainer>
+            <TabsContent value="ai-match" className="mt-0">
+              <div className="space-y-6">
+                {/* AI Match Description */}
+                <div className="text-center max-w-2xl mx-auto">
+                  <p className="text-mid-grey">
+                    {profile ? (
+                      <>Based on your profile, we've found <span className="font-semibold text-leaf-green">{aiMatchedUniversities.length} universities</span> that may be a great fit for you</>
+                    ) : (
+                      <>Complete your profile to see personalized AI recommendations</>
+                    )}
+                  </p>
+                </div>
 
-            {sortedUniversities.length === 0 && (
-              <div className="text-center py-16">
-                <Search className="w-16 h-16 text-mid-grey mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-dark-grey mb-2">
-                  No universities found
-                </h3>
-                <p className="text-mid-grey">
-                  Try adjusting your filters to see more results
-                </p>
+                {/* Results Grid - AI Match Cards */}
+                <StaggerContainer>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {aiMatchedUniversities.map((university) => (
+                      <StaggerItem key={university.id}>
+                        <AIMatchCard
+                          id={university.id}
+                          name={university.name}
+                          country={university.country}
+                          city={university.city}
+                          ranking={university.ranking}
+                          logo={university.logo}
+                          averageTuition={university.averageTuition}
+                          overview={university.overview}
+                          onAskAI={handleAskAI}
+                        />
+                      </StaggerItem>
+                    ))}
+                  </div>
+                </StaggerContainer>
+
+                {aiMatchedUniversities.length === 0 && (
+                  <div className="text-center py-16">
+                    <Sparkles className="w-16 h-16 text-mid-grey mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-dark-grey mb-2">
+                      {profile ? 'No matches found' : 'Complete your profile'}
+                    </h3>
+                    <p className="text-mid-grey mb-6">
+                      {profile 
+                        ? 'Try adjusting your search or preferences to see more results'
+                        : 'Complete your profile and preferences to see personalized university matches'}
+                    </p>
+                    {!profile && (
+                      <Button onClick={() => router.push('/onboarding')}>
+                        Complete Profile
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
-          </main>
+            </TabsContent>
+
+            <TabsContent value="explore-all" className="mt-0">
+              <div className="space-y-6">
+                {/* Filter Questionnaire */}
+                <FilterQuestionnaire
+                  availableRegions={availableRegions}
+                  availableMajors={availableMajors}
+                  filters={filterState}
+                  onFiltersChange={setFilterState}
+                />
+
+                {/* Results Header */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-dark-grey">All Universities</h2>
+                    <p className="text-sm text-mid-grey mt-1">
+                      Showing {exploreAllUniversities.length} results
+                    </p>
+                  </div>
+                </div>
+
+                {/* Results Grid - Explore Cards */}
+                <StaggerContainer>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {exploreAllUniversities.map((university) => (
+                      <StaggerItem key={university.id}>
+                        <ExploreCard
+                          id={university.id}
+                          name={university.name}
+                          country={university.country}
+                          region={university.region}
+                          city={university.city}
+                          ranking={university.ranking}
+                          logo={university.logo}
+                          averageTuition={university.averageTuition}
+                          overview={university.overview}
+                          type={university.type}
+                          acceptanceRate={university.acceptanceRate}
+                          onAskAI={handleAskAI}
+                        />
+                      </StaggerItem>
+                    ))}
+                  </div>
+                </StaggerContainer>
+
+                {exploreAllUniversities.length === 0 && (
+                  <div className="text-center py-16">
+                    <Search className="w-16 h-16 text-mid-grey mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-dark-grey mb-2">
+                      No universities found
+                    </h3>
+                    <p className="text-mid-grey">
+                      Try adjusting your filters or search query to see more results
+                    </p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </PageTransition>
