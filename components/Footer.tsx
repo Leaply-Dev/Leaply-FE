@@ -31,7 +31,7 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer className="bg-dark-grey text-white mt-auto">
+    <footer className="bg-foreground text-background mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
           {/* Logo and Description */}
@@ -55,7 +55,7 @@ export function Footer() {
                     key={social.label}
                     href={social.href}
                     aria-label={social.label}
-                    className="text-gray-400 hover:text-leaf-green transition-colors"
+                    className="text-gray-400 hover:text-primary transition-colors"
                   >
                     <Icon className="w-5 h-5" />
                   </a>
@@ -67,13 +67,13 @@ export function Footer() {
           {/* Footer Links */}
           {Object.entries(footerLinks).map(([category, links]) => (
             <div key={category}>
-              <h3 className="font-semibold text-white mb-4">{category}</h3>
+              <h3 className="font-semibold text-background mb-4">{category}</h3>
               <ul className="space-y-2">
                 {links.map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-gray-300 hover:text-leaf-green transition-colors"
+                      className="text-sm text-gray-300 hover:text-primary transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -94,7 +94,7 @@ export function Footer() {
               <Mail className="w-4 h-4" />
               <a
                 href="mailto:support@leaply.com"
-                className="hover:text-leaf-green transition-colors"
+                className="hover:text-primary transition-colors"
               >
                 support@leaply.com
               </a>

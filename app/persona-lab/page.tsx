@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Sparkles, Send, Loader2, Lightbulb, BookOpen, Target, Heart, MessageCircle } from 'lucide-react';
+import { Sparkles, Send, Loader2, } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +18,7 @@ const essayBlueprints = [
     description: 'The project that flopped. Plot twist: What you learned became your superpower.',
     prompt: 'What unexpected experience challenged your assumptions and led you to see the world differently?',
     tags: ['Growth', 'Resilience', 'Innovation'],
-    borderColor: 'border-leaf-green',
+    borderColor: 'border-primary',
     bgColor: 'bg-green-50',
     tagColor: 'bg-green-100 text-green-800',
   },
@@ -29,7 +29,7 @@ const essayBlueprints = [
     description: 'Between two worlds. How you became a bridge between cultures.',
     prompt: 'Describe how navigating different cultural worlds has shaped your identity and perspective.',
     tags: ['Diversity', 'Empathy', 'Perspective'],
-    borderColor: 'border-sky-blue',
+    borderColor: 'border-chart-2',
     bgColor: 'bg-blue-50',
     tagColor: 'bg-blue-100 text-blue-800',
   },
@@ -40,7 +40,7 @@ const essayBlueprints = [
     description: 'That weird hobby. How it revealed something profound about you.',
     prompt: 'What unusual interest or hobby taught you something deeper about yourself?',
     tags: ['Authenticity', 'Curiosity', 'Unique'],
-    borderColor: 'border-warning-orange',
+    borderColor: 'border-chart-4',
     bgColor: 'bg-orange-50',
     tagColor: 'bg-orange-100 text-orange-800',
   },
@@ -108,7 +108,7 @@ export default function PersonaLabPage() {
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages]);
+  }, []);
 
   const handleGenerateInsights = async () => {
     if (!userResponse.trim()) return;
@@ -173,11 +173,11 @@ export default function PersonaLabPage() {
     <PageTransition>
       <div className="min-h-screen bg-linear-to-br from-leaf-green via-light-green to-white">
         {/* Hero Section */}
-        <div className="bg-linear-to-r from-leaf-green to-light-green text-white py-16">
+        <div className="bg-linear-to-r from-primary to-accent text-white py-16">
           <PageContainer>
             <div className="text-center">
               <SlideUp>
-                <div className="inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-2 mb-4">
+                <div className="inline-flex items-center gap-2 bg-card/20 rounded-full px-4 py-2 mb-4">
                   <Sparkles className="w-5 h-5" />
                   <span className="text-sm font-medium">AI-Powered Essay Coach</span>
                 </div>
@@ -197,10 +197,10 @@ export default function PersonaLabPage() {
           <SlideUp>
             <div className="mb-8">
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-dark-grey mb-2">
+                <h2 className="text-2xl font-bold text-foreground mb-2">
                   🤖 Essay Blueprints
                 </h2>
-                <p className="text-mid-grey">
+                <p className="text-muted-foreground">
                   I've analyzed thousands of successful essays. Here are <strong>6 clever blueprints</strong> that make admissions officers stop and read:
                 </p>
               </div>
@@ -210,7 +210,7 @@ export default function PersonaLabPage() {
                   <button
                     key={blueprint.id}
                     onClick={() => setSelectedBlueprint(blueprint.id)}
-                    className={`text-left p-4 rounded-xl border-l-4 ${blueprint.borderColor} bg-white hover:shadow-lg transition-all duration-300 transform hover:-translate-x-1 ${
+                    className={`text-left p-4 rounded-xl border-l-4 ${blueprint.borderColor} bg-card hover:shadow-lg transition-all duration-300 transform hover:-translate-x-1 ${
                       selectedBlueprint === blueprint.id
                         ? 'shadow-lg ring-2 ring-leaf-green ring-opacity-50'
                         : 'shadow-sm'
@@ -219,10 +219,10 @@ export default function PersonaLabPage() {
                     <div className="flex items-start gap-3 mb-3">
                       <div className="text-3xl">{blueprint.emoji}</div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-dark-grey text-sm mb-2 leading-tight">
+                        <h4 className="font-semibold text-foreground text-sm mb-2 leading-tight">
                           {blueprint.title}
                         </h4>
-                        <p className="text-xs text-mid-grey leading-relaxed">
+                        <p className="text-xs text-muted-foreground leading-relaxed">
                           {blueprint.description}
                         </p>
                       </div>
@@ -255,7 +255,7 @@ export default function PersonaLabPage() {
                         : 'Start Your Reflection'}
                     </CardTitle>
                     {selectedBlueprint && (
-                      <p className="text-mid-grey text-sm">
+                      <p className="text-muted-foreground text-sm">
                         {essayBlueprints.find(b => b.id === selectedBlueprint)?.prompt}
                       </p>
                     )}
@@ -291,16 +291,16 @@ export default function PersonaLabPage() {
                     {/* AI Insights */}
                     {insights.length > 0 && (
                       <div className="space-y-3 mt-6">
-                        <h4 className="font-semibold text-dark-grey flex items-center gap-2">
-                          <Sparkles className="w-5 h-5 text-leaf-green" />
+                        <h4 className="font-semibold text-foreground flex items-center gap-2">
+                          <Sparkles className="w-5 h-5 text-primary" />
                           AI Insights & Suggestions
                         </h4>
                         {insights.map((insight, index) => (
                           <div
                             key={index}
-                            className="p-4 bg-leaf-green/5 border-l-4 border-leaf-green rounded-r-lg"
+                            className="p-4 bg-primary/5 border-l-4 border-primary rounded-r-lg"
                           >
-                            <p className="text-sm text-dark-grey">{insight}</p>
+                            <p className="text-sm text-foreground">{insight}</p>
                           </div>
                         ))}
                       </div>
@@ -316,7 +316,7 @@ export default function PersonaLabPage() {
                 <Card className="sticky top-24">
                   <CardHeader>
                     <CardTitle className="text-lg">Self-Discovery Questions</CardTitle>
-                    <p className="text-sm text-mid-grey">
+                    <p className="text-sm text-muted-foreground">
                       Reflect on these to uncover your story
                     </p>
                   </CardHeader>
@@ -325,10 +325,10 @@ export default function PersonaLabPage() {
                       {selfDiscoveryQuestions.map((question, index) => (
                         <button
                           key={index}
-                          onClick={() => setUserResponse(question + '\n\nMy response:\n')}
-                          className="w-full text-left p-3 rounded-lg border border-gray-200 hover:border-leaf-green hover:bg-leaf-green/5 transition-colors"
+                          onClick={() => setUserResponse(`${question}\n\nMy response:\n`)}
+                          className="w-full text-left p-3 rounded-lg border border-border hover:border-primary hover:bg-primary/5 transition-colors"
                         >
-                          <p className="text-sm text-dark-grey">{question}</p>
+                          <p className="text-sm text-foreground">{question}</p>
                         </button>
                       ))}
                     </div>
@@ -341,9 +341,9 @@ export default function PersonaLabPage() {
           {/* AI Chat Assistant */}
           <SlideUp delay={0.3}>
             <Card className="mt-8 overflow-hidden">
-              <CardHeader className="bg-linear-to-r from-leaf-green to-light-green text-white">
+              <CardHeader className="bg-linear-to-r from-primary to-accent text-white">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl">
+                  <div className="w-12 h-12 bg-card rounded-full flex items-center justify-center text-2xl">
                     🤖
                   </div>
                   <div>
@@ -354,11 +354,11 @@ export default function PersonaLabPage() {
               </CardHeader>
               <CardContent className="p-0">
                 {/* Chat Messages */}
-                <div className="h-96 overflow-y-auto bg-light-grey p-6 space-y-4">
+                <div className="h-96 overflow-y-auto bg-muted p-6 space-y-4">
                   {chatMessages.length === 0 ? (
                     <div className="text-center py-8">
                       <div className="text-4xl mb-4">💬</div>
-                      <p className="text-mid-grey mb-4">
+                      <p className="text-muted-foreground mb-4">
                         Start a conversation! Ask me about:
                       </p>
                       <div className="flex flex-wrap gap-2 justify-center">
@@ -371,7 +371,7 @@ export default function PersonaLabPage() {
                           <button
                             key={suggestion}
                             onClick={() => setChatInput(suggestion)}
-                            className="px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-full hover:border-leaf-green hover:bg-leaf-green/5 transition-colors"
+                            className="px-3 py-1.5 text-sm bg-card border border-border rounded-full hover:border-primary hover:bg-primary/5 transition-colors"
                           >
                             {suggestion}
                           </button>
@@ -388,21 +388,21 @@ export default function PersonaLabPage() {
                           }`}
                         >
                           {message.role === 'assistant' && (
-                            <div className="w-8 h-8 bg-linear-to-br from-leaf-green to-light-green rounded-full flex items-center justify-center text-white shrink-0">
+                            <div className="w-8 h-8 bg-linear-to-br from-primary to-accent rounded-full flex items-center justify-center text-white shrink-0">
                               🤖
                             </div>
                           )}
                           <div
                             className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                               message.role === 'user'
-                                ? 'bg-leaf-green text-white'
-                                : 'bg-white shadow-xs'
+                                ? 'bg-primary text-white'
+                                : 'bg-card shadow-xs'
                             }`}
                           >
                             <p className="text-sm leading-relaxed">{message.content}</p>
                           </div>
                           {message.role === 'user' && (
-                            <div className="w-8 h-8 bg-dark-grey rounded-full flex items-center justify-center text-white shrink-0">
+                            <div className="w-8 h-8 bg-foreground rounded-full flex items-center justify-center text-background shrink-0">
                               👤
                             </div>
                           )}
@@ -410,14 +410,14 @@ export default function PersonaLabPage() {
                       ))}
                       {isChatTyping && (
                         <div className="flex gap-3">
-                          <div className="w-8 h-8 bg-linear-to-br from-leaf-green to-light-green rounded-full flex items-center justify-center text-white">
+                          <div className="w-8 h-8 bg-linear-to-br from-primary to-accent rounded-full flex items-center justify-center text-primary-foreground">
                             🤖
                           </div>
-                          <div className="bg-white shadow-xs rounded-2xl px-4 py-3">
+                          <div className="bg-card shadow-xs rounded-2xl px-4 py-3">
                             <div className="flex gap-1">
-                              <div className="w-2 h-2 bg-mid-grey rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                              <div className="w-2 h-2 bg-mid-grey rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                              <div className="w-2 h-2 bg-mid-grey rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                              <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                              <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                              <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                             </div>
                           </div>
                         </div>
@@ -428,7 +428,7 @@ export default function PersonaLabPage() {
                 </div>
 
                 {/* Chat Input */}
-                <div className="p-4 bg-white border-t border-gray-200">
+                <div className="p-4 bg-card border-t border-border">
                   <div className="flex gap-2">
                     <Input
                       value={chatInput}
@@ -453,17 +453,17 @@ export default function PersonaLabPage() {
 
           {/* Info Section */}
           <SlideUp delay={0.4}>
-            <Card className="mt-8 bg-linear-to-r from-sky-blue/10 to-leaf-green/10 border-sky-blue/20">
+            <Card className="mt-8 bg-linear-to-r from-chart-2/10 to-primary/10 border-chart-2/20">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="p-3 bg-sky-blue/20 rounded-lg">
-                    <Sparkles className="w-6 h-6 text-sky-blue" />
+                  <div className="p-3 bg-chart-2/20 rounded-lg">
+                    <Sparkles className="w-6 h-6 text-chart-2" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-dark-grey mb-2">
+                    <h4 className="font-semibold text-foreground mb-2">
                       The Best Essays Aren't About Achievements
                     </h4>
-                    <p className="text-sm text-mid-grey mb-3">
+                    <p className="text-sm text-muted-foreground mb-3">
                       They're about <strong>authentic reflection</strong>. Our AI analyzes thousands of successful essays to help you discover your unique narrative. 
                       Choose a blueprint above, answer prompts honestly, and chat with LeapBot to refine your story into something admissions officers will remember.
                     </p>

@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { ProfileConfig } from './PersonaLabProfile';
+import type { ProfileConfig } from './PersonaLabProfile';
 
 interface Message {
   id: string;
@@ -53,7 +53,7 @@ export function ChatbotAdvisor({ profileContext }: ChatbotAdvisorProps) {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, []);
 
   useEffect(() => {
     if (profileContext) {
@@ -143,7 +143,7 @@ export function ChatbotAdvisor({ profileContext }: ChatbotAdvisorProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto bg-light-grey/50 p-4 sm:p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto bg-muted/50 p-4 sm:p-6 space-y-4">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -152,30 +152,30 @@ export function ChatbotAdvisor({ profileContext }: ChatbotAdvisorProps) {
             }`}
           >
             {message.role !== 'user' && (
-              <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-leaf-green to-light-green flex items-center justify-center shadow-sm">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="shrink-0 w-10 h-10 rounded-full bg-linear-to-br from-primary to-accent flex items-center justify-center shadow-sm">
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
               </div>
             )}
             
             <div
               className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3 ${
                 message.role === 'user'
-                  ? 'bg-leaf-green text-white'
+                  ? 'bg-primary text-primary-foreground'
                   : message.role === 'system'
-                  ? 'bg-sky-blue/10 border border-sky-blue/20'
-                  : 'bg-white shadow-sm'
+                  ? 'bg-chart-2/10 border border-chart-2/20'
+                  : 'bg-card shadow-sm'
               }`}
             >
               <p className={`text-sm whitespace-pre-wrap leading-relaxed ${
-                message.role === 'user' ? 'text-white' : 'text-dark-grey'
+                message.role === 'user' ? 'text-primary-foreground' : 'text-foreground'
               }`}>
                 {message.content}
               </p>
             </div>
             
             {message.role === 'user' && (
-              <div className="shrink-0 w-10 h-10 rounded-full bg-dark-grey flex items-center justify-center shadow-sm">
-                <UserIcon className="w-5 h-5 text-white" />
+              <div className="shrink-0 w-10 h-10 rounded-full bg-foreground flex items-center justify-center shadow-sm">
+                <UserIcon className="w-5 h-5 text-background" />
               </div>
             )}
           </div>
@@ -183,14 +183,14 @@ export function ChatbotAdvisor({ profileContext }: ChatbotAdvisorProps) {
 
         {isTyping && (
           <div className="flex gap-3 justify-start">
-            <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-leaf-green to-light-green flex items-center justify-center shadow-sm">
+            <div className="shrink-0 w-10 h-10 rounded-full bg-linear-to-br from-primary to-accent flex items-center justify-center shadow-sm">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <div className="bg-white shadow-sm rounded-2xl px-4 py-3">
+            <div className="bg-card shadow-sm rounded-2xl px-4 py-3">
               <div className="flex gap-1">
-                <div className="w-2 h-2 bg-mid-grey rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 bg-mid-grey rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 bg-mid-grey rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           </div>
@@ -201,8 +201,8 @@ export function ChatbotAdvisor({ profileContext }: ChatbotAdvisorProps) {
 
       {/* Quick Replies */}
       {messages.length <= 2 && (
-        <div className="px-4 sm:px-6 py-3 bg-white border-t border-gray-200">
-          <p className="text-xs text-mid-grey mb-2">Quick questions:</p>
+        <div className="px-4 sm:px-6 py-3 bg-card border-t border-border">
+          <p className="text-xs text-muted-foreground mb-2">Quick questions:</p>
           <div className="flex flex-wrap gap-2">
             {QUICK_REPLIES.map((reply) => (
               <Button
@@ -220,7 +220,7 @@ export function ChatbotAdvisor({ profileContext }: ChatbotAdvisorProps) {
       )}
 
       {/* Input Area */}
-      <div className="border-t border-gray-200 bg-white p-4 sm:p-6">
+      <div className="border-t border-border bg-card p-4 sm:p-6">
         <div className="flex gap-3">
           <Input
             value={input}
@@ -246,14 +246,14 @@ export function ChatbotAdvisor({ profileContext }: ChatbotAdvisorProps) {
 
         {/* Footer Actions */}
         <div className="flex items-center justify-between mt-3">
-          <p className="text-xs text-mid-grey">
+          <p className="text-xs text-muted-foreground">
             💡 AI-powered responses for informational purposes
           </p>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowHumanAdvisorDialog(true)}
-            className="text-xs text-leaf-green hover:text-leaf-green"
+            className="text-xs text-primary hover:text-primary"
           >
             <Phone className="w-3 h-3 mr-1" />
             Talk to a human advisor
@@ -274,23 +274,23 @@ export function ChatbotAdvisor({ profileContext }: ChatbotAdvisorProps) {
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-leaf-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Phone className="w-8 h-8 text-leaf-green" />
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Phone className="w-8 h-8 text-primary" />
                   </div>
-                  <h3 className="font-semibold text-dark-grey mb-2">
+                  <h3 className="font-semibold text-foreground mb-2">
                     Schedule a Free Consultation
                   </h3>
-                  <p className="text-sm text-mid-grey mb-4">
+                  <p className="text-sm text-muted-foreground mb-4">
                     Our expert advisors can provide personalized guidance on university selection, application strategy, and more.
                   </p>
                   <div className="space-y-2">
-                    <p className="text-sm text-dark-grey">
+                    <p className="text-sm text-foreground">
                       📧 Email: advisors@leaply.com
                     </p>
-                    <p className="text-sm text-dark-grey">
+                    <p className="text-sm text-foreground">
                       📞 Phone: +1 (555) 123-4567
                     </p>
-                    <p className="text-sm text-dark-grey">
+                    <p className="text-sm text-foreground">
                       🕒 Available: Mon-Fri, 9am-6pm EST
                     </p>
                   </div>

@@ -71,15 +71,15 @@ export function FilterQuestionnaire({
   const activeFilterCount = filters.regions.length + filters.majors.length + (filters.tuitionRange ? 1 : 0);
 
   return (
-    <div className={cn('bg-white rounded-xl border-2 border-gray-200 shadow-sm', className)}>
+    <div className={cn('bg-card rounded-xl border-2 border-border shadow-sm', className)}>
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Filter className="w-5 h-5 text-leaf-green" />
-            <h3 className="font-semibold text-dark-grey">Refine Your Search</h3>
+            <Filter className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold text-foreground">Refine Your Search</h3>
             {activeFilterCount > 0 && (
-              <Badge className="bg-leaf-green text-white">
+              <Badge className="bg-primary text-white">
                 {activeFilterCount}
               </Badge>
             )}
@@ -90,7 +90,7 @@ export function FilterQuestionnaire({
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFilters}
-                className="text-xs text-mid-grey hover:text-dark-grey"
+                className="text-xs text-muted-foreground hover:text-foreground"
               >
                 <RotateCcw className="w-3 h-3 mr-1" />
                 Reset
@@ -119,8 +119,8 @@ export function FilterQuestionnaire({
               className="w-full flex items-center justify-between text-left group"
             >
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-leaf-green" />
-                <span className="font-medium text-dark-grey group-hover:text-leaf-green transition-colors">
+                <MapPin className="w-4 h-4 text-primary" />
+                <span className="font-medium text-foreground group-hover:text-primary transition-colors">
                   Where would you like to study?
                 </span>
               </div>
@@ -141,8 +141,8 @@ export function FilterQuestionnaire({
                       className={cn(
                         'px-4 py-2 rounded-full text-sm font-medium transition-all',
                         filters.regions.includes(region.value)
-                          ? 'bg-leaf-green text-white shadow-md'
-                          : 'bg-light-grey text-mid-grey hover:bg-gray-200'
+                          ? 'bg-primary text-white shadow-md'
+                          : 'bg-muted text-muted-foreground hover:bg-gray-200'
                       )}
                     >
                       {region.label}
@@ -163,8 +163,8 @@ export function FilterQuestionnaire({
               className="w-full flex items-center justify-between text-left group"
             >
               <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-leaf-green" />
-                <span className="font-medium text-dark-grey group-hover:text-leaf-green transition-colors">
+                <DollarSign className="w-4 h-4 text-primary" />
+                <span className="font-medium text-foreground group-hover:text-primary transition-colors">
                   What's your annual budget?
                 </span>
               </div>
@@ -187,8 +187,8 @@ export function FilterQuestionnaire({
                         className={cn(
                           'px-4 py-3 rounded-lg text-sm font-medium transition-all border-2',
                           isSelected
-                            ? 'bg-leaf-green text-white border-leaf-green shadow-md'
-                            : 'bg-white text-mid-grey border-gray-200 hover:border-leaf-green'
+                            ? 'bg-primary text-white border-primary shadow-md'
+                            : 'bg-card text-muted-foreground border-border hover:border-primary'
                         )}
                       >
                         {range.label}
@@ -207,8 +207,8 @@ export function FilterQuestionnaire({
               className="w-full flex items-center justify-between text-left group"
             >
               <div className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-leaf-green" />
-                <span className="font-medium text-dark-grey group-hover:text-leaf-green transition-colors">
+                <BookOpen className="w-4 h-4 text-primary" />
+                <span className="font-medium text-foreground group-hover:text-primary transition-colors">
                   What do you want to study?
                 </span>
               </div>
@@ -229,8 +229,8 @@ export function FilterQuestionnaire({
                       className={cn(
                         'px-4 py-2 rounded-full text-sm font-medium transition-all',
                         filters.majors.includes(major.value)
-                          ? 'bg-leaf-green text-white shadow-md'
-                          : 'bg-light-grey text-mid-grey hover:bg-gray-200'
+                          ? 'bg-primary text-white shadow-md'
+                          : 'bg-muted text-muted-foreground hover:bg-gray-200'
                       )}
                     >
                       {major.label}
@@ -244,9 +244,9 @@ export function FilterQuestionnaire({
 
         {/* Active Filters Summary */}
         {hasActiveFilters && (
-          <div className="pt-4 border-t border-gray-200">
+          <div className="pt-4 border-t border-border">
             <div className="space-y-2">
-              <p className="text-xs font-medium text-mid-grey">Active filters:</p>
+              <p className="text-xs font-medium text-muted-foreground">Active filters:</p>
               <div className="flex flex-wrap gap-2">
                 {filters.regions.map((region) => (
                   <Badge key={region} variant="outline" className="gap-1">

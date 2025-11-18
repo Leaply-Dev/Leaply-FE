@@ -42,11 +42,11 @@ export default function DashboardPage() {
     <PageTransition>
       <PageContainer>
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-dark-grey mb-2">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Dashboard
           </h1>
-          <p className="text-lg text-mid-grey">
-            Welcome back! Here&apos;s your application progress at a glance.
+          <p className="text-lg text-muted-foreground">
+            Welcome back! Here's your application progress at a glance.
           </p>
         </div>
 
@@ -113,8 +113,8 @@ export default function DashboardPage() {
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <FileText className="w-12 h-12 text-mid-grey mx-auto mb-3" />
-                      <p className="text-mid-grey mb-4">No applications yet</p>
+                      <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                      <p className="text-muted-foreground mb-4">No applications yet</p>
                       <Button asChild>
                         <Link href="/universities">Browse Universities</Link>
                       </Button>
@@ -158,8 +158,8 @@ export default function DashboardPage() {
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <CheckSquare className="w-12 h-12 text-mid-grey mx-auto mb-3" />
-                      <p className="text-mid-grey">All caught up!</p>
+                      <CheckSquare className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                      <p className="text-muted-foreground">All caught up!</p>
                     </div>
                   )}
                 </CardContent>

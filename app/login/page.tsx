@@ -36,7 +36,7 @@ export default function LoginPage() {
 
   return (
     <PageTransition>
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-light-grey py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-muted py-12 px-4 sm:px-6 lg:px-8">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">
@@ -51,7 +51,7 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mid-grey" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
@@ -67,7 +67,7 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mid-grey" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
@@ -83,9 +83,9 @@ export default function LoginPage() {
               <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="rounded-sm" />
-                  <span className="text-mid-grey">Remember me</span>
+                  <span className="text-muted-foreground">Remember me</span>
                 </label>
-                <Link href="#" className="text-leaf-green hover:text-light-green">
+                <Link href="#" className="text-primary hover:text-accent">
                   Forgot password?
                 </Link>
               </div>
@@ -96,10 +96,10 @@ export default function LoginPage() {
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
+                  <div className="w-full border-t border-border"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-4 text-mid-grey">Or continue with</span>
+                  <span className="bg-card px-4 text-muted-foreground">Or continue with</span>
                 </div>
               </div>
 
@@ -113,9 +113,9 @@ export default function LoginPage() {
               </div>
             </form>
 
-            <p className="text-center text-sm text-mid-grey mt-6">
+            <p className="text-center text-sm text-muted-foreground mt-6">
               Don&apos;t have an account?{' '}
-              <Link href="/signup" className="text-leaf-green hover:text-light-green font-medium">
+              <Link href="/signup" className="text-primary hover:text-accent font-medium">
                 Sign up
               </Link>
             </p>

@@ -41,10 +41,10 @@ export default function TasksPage() {
       <PageContainer>
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-dark-grey mb-2">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
               Tasks
             </h1>
-            <p className="text-lg text-mid-grey">
+            <p className="text-lg text-muted-foreground">
               Manage your application tasks and deadlines
             </p>
           </div>
@@ -57,7 +57,7 @@ export default function TasksPage() {
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-4 mb-6">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-mid-grey">Show:</span>
+            <span className="text-sm text-muted-foreground">Show:</span>
             <Select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
@@ -70,7 +70,7 @@ export default function TasksPage() {
           </div>
           
           <div className="flex items-center gap-2">
-            <span className="text-sm text-mid-grey">Sort by:</span>
+            <span className="text-sm text-muted-foreground">Sort by:</span>
             <Select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
@@ -81,7 +81,7 @@ export default function TasksPage() {
             </Select>
           </div>
 
-          <span className="text-sm text-mid-grey ml-auto">
+          <span className="text-sm text-muted-foreground ml-auto">
             {sortedTasks.length} task{sortedTasks.length !== 1 ? 's' : ''}
           </span>
         </div>
@@ -104,10 +104,10 @@ export default function TasksPage() {
           </div>
         ) : (
           <div className="text-center py-16">
-            <h3 className="text-xl font-semibold text-dark-grey mb-2">
+            <h3 className="text-xl font-semibold text-foreground mb-2">
               No tasks found
             </h3>
-            <p className="text-mid-grey mb-6">
+            <p className="text-muted-foreground mb-6">
               {filter === 'completed' 
                 ? 'No completed tasks yet.'
                 : filter === 'pending'

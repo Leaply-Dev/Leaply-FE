@@ -36,7 +36,7 @@ export default function SignupPage() {
 
   return (
     <PageTransition>
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-light-grey py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-muted py-12 px-4 sm:px-6 lg:px-8">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">
@@ -51,7 +51,7 @@ export default function SignupPage() {
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mid-grey" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="fullName"
                     type="text"
@@ -67,7 +67,7 @@ export default function SignupPage() {
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mid-grey" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
@@ -83,7 +83,7 @@ export default function SignupPage() {
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mid-grey" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
@@ -94,7 +94,7 @@ export default function SignupPage() {
                     required
                   />
                 </div>
-                <p className="text-xs text-mid-grey">
+                <p className="text-xs text-muted-foreground">
                   Must be at least 8 characters
                 </p>
               </div>
@@ -106,13 +106,13 @@ export default function SignupPage() {
                   onChange={(e: any) => setAgreeToTerms(e.target.checked)}
                   required
                 />
-                <label htmlFor="terms" className="text-sm text-mid-grey">
+                <label htmlFor="terms" className="text-sm text-muted-foreground">
                   I agree to the{' '}
-                  <Link href="#" className="text-leaf-green hover:text-light-green">
+                  <Link href="#" className="text-primary hover:text-accent">
                     Terms of Service
                   </Link>{' '}
                   and{' '}
-                  <Link href="#" className="text-leaf-green hover:text-light-green">
+                  <Link href="#" className="text-primary hover:text-accent">
                     Privacy Policy
                   </Link>
                 </label>
@@ -124,10 +124,10 @@ export default function SignupPage() {
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
+                  <div className="w-full border-t border-border"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-4 text-mid-grey">Or continue with</span>
+                  <span className="bg-card px-4 text-muted-foreground">Or continue with</span>
                 </div>
               </div>
 
@@ -141,9 +141,9 @@ export default function SignupPage() {
               </div>
             </form>
 
-            <p className="text-center text-sm text-mid-grey mt-6">
+            <p className="text-center text-sm text-muted-foreground mt-6">
               Already have an account?{' '}
-              <Link href="/login" className="text-leaf-green hover:text-light-green font-medium">
+              <Link href="/login" className="text-primary hover:text-accent font-medium">
                 Sign in
               </Link>
             </p>

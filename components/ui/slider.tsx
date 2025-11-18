@@ -36,12 +36,12 @@ export const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
         {(label || showValue) && (
           <div className="flex items-center justify-between mb-2">
             {label && (
-              <label className="text-sm font-medium text-dark-grey">
+              <label className="text-sm font-medium text-foreground">
                 {label}
               </label>
             )}
             {showValue && (
-              <span className="text-sm font-semibold text-leaf-green">
+              <span className="text-sm font-semibold text-primary">
                 {formatValue ? formatValue(value) : value}
               </span>
             )}
@@ -57,10 +57,10 @@ export const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
             value={value}
             onChange={handleChange}
             className={cn(
-              "w-full h-2 bg-light-grey rounded-lg appearance-none cursor-pointer",
+              "w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer",
               "focus:outline-none focus:ring-2 focus:ring-leaf-green focus:ring-offset-2",
-              "[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-leaf-green [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110",
-              "[&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-leaf-green [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:transition-transform [&::-moz-range-thumb]:hover:scale-110"
+              "[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110",
+              "[&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:transition-transform [&::-moz-range-thumb]:hover:scale-110"
             )}
             style={{
               background: `linear-gradient(to right, #6CBE45 0%, #6CBE45 ${percentage}%, #F5F5F5 ${percentage}%, #F5F5F5 100%)`

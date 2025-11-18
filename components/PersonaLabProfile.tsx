@@ -203,10 +203,10 @@ export function PersonaLabProfile({ onAskLeafy }: PersonaLabProfileProps) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-leaf-green" />
+              <Target className="w-5 h-5 text-primary" />
               Adjust Your Profile
             </CardTitle>
-            <p className="text-sm text-mid-grey">
+            <p className="text-sm text-muted-foreground">
               Customize your academic profile to see matching universities
             </p>
           </CardHeader>
@@ -245,14 +245,14 @@ export function PersonaLabProfile({ onAskLeafy }: PersonaLabProfileProps) {
 
             {/* Region Select */}
             <div>
-              <label className="text-sm font-medium text-dark-grey block mb-2">
+              <label className="text-sm font-medium text-foreground block mb-2">
                 <Globe className="w-4 h-4 inline mr-1" />
                 Preferred Region
               </label>
               <select
                 value={profile.region}
                 onChange={(e) => updateProfile('region', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-leaf-green text-sm"
+                className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-leaf-green text-sm"
               >
                 {regions.map((region) => (
                   <option key={region} value={region}>
@@ -273,7 +273,7 @@ export function PersonaLabProfile({ onAskLeafy }: PersonaLabProfileProps) {
                 onChange={(value) => updateProfile('extracurriculars', value)}
                 formatValue={(v) => extracurricularLevels[v - 1]?.label || v.toString()}
               />
-              <p className="text-xs text-mid-grey mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Leadership, competitions, research, community service, etc.
               </p>
             </div>
@@ -298,7 +298,7 @@ export function PersonaLabProfile({ onAskLeafy }: PersonaLabProfileProps) {
 
             <Button
               onClick={handleAskLeafy}
-              className="w-full bg-gradient-to-r from-leaf-green to-light-green hover:opacity-90"
+              className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
               size="lg"
             >
               <MessageCircle className="w-4 h-4 mr-2" />
@@ -319,13 +319,13 @@ export function PersonaLabProfile({ onAskLeafy }: PersonaLabProfileProps) {
                   <button
                     key={index}
                     onClick={() => loadProfile(saved.config)}
-                    className="w-full p-3 text-left border border-gray-200 rounded-lg hover:border-leaf-green hover:bg-leaf-green/5 transition-colors"
+                    className="w-full p-3 text-left border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-colors"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-medium text-sm text-dark-grey">
+                      <span className="font-medium text-sm text-foreground">
                         {saved.name}
                       </span>
-                      <span className="text-xs text-mid-grey">
+                      <span className="text-xs text-muted-foreground">
                         GPA: {saved.config.gpa.toFixed(1)} | SAT: {saved.config.testScore}
                       </span>
                     </div>
@@ -342,16 +342,16 @@ export function PersonaLabProfile({ onAskLeafy }: PersonaLabProfileProps) {
         <Card className="sticky top-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-leaf-green" />
+              <Sparkles className="w-5 h-5 text-primary" />
               University Matches
             </CardTitle>
-            <p className="text-sm text-mid-grey">
+            <p className="text-sm text-muted-foreground">
               Based on your profile configuration
             </p>
           </CardHeader>
           <CardContent>
             {recommendations.length === 0 ? (
-              <div className="text-center py-8 text-mid-grey">
+              <div className="text-center py-8 text-muted-foreground">
                 <p>No universities match your current region filter.</p>
                 <p className="text-sm mt-2">Try selecting &quot;Any Region&quot;</p>
               </div>
@@ -360,26 +360,26 @@ export function PersonaLabProfile({ onAskLeafy }: PersonaLabProfileProps) {
                 {recommendations.map((uni, index) => (
                   <div
                     key={index}
-                    className="p-4 border border-gray-200 rounded-lg hover:border-leaf-green hover:shadow-sm transition-all"
+                    className="p-4 border border-border rounded-lg hover:border-primary hover:shadow-sm transition-all"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h4 className="font-semibold text-dark-grey">{uni.name}</h4>
-                        <p className="text-sm text-mid-grey">{uni.country} • {uni.rank}</p>
+                        <h4 className="font-semibold text-foreground">{uni.name}</h4>
+                        <p className="text-sm text-muted-foreground">{uni.country} • {uni.rank}</p>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-leaf-green">
+                        <div className="text-2xl font-bold text-primary">
                           {uni.fitScore}%
                         </div>
-                        <div className="text-xs text-mid-grey">Fit Score</div>
+                        <div className="text-xs text-muted-foreground">Fit Score</div>
                       </div>
                     </div>
                     
                     <div className="space-y-1 mt-3">
                       {uni.matchReasons.map((reason, idx) => (
                         <div key={idx} className="flex items-start gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-leaf-green mt-1.5 shrink-0" />
-                          <p className="text-xs text-mid-grey">{reason}</p>
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                          <p className="text-xs text-muted-foreground">{reason}</p>
                         </div>
                       ))}
                     </div>

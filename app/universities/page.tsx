@@ -123,28 +123,28 @@ export default function UniversitiesPage() {
   return (
     <PageTransition>
       {/* Hero Section */}
-      <section className="bg-linear-to-br from-leaf-green to-light-green text-white py-16">
+      <section className="bg-linear-to-br from-primary to-accent text-primary-foreground py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SlideUp>
             <div className="text-center mb-8">
               <h1 className="text-4xl md:text-5xl font-bold mb-4">
                 Discover Your Perfect Match
               </h1>
-              <p className="text-xl text-white/90">
+              <p className="text-xl text-primary-foreground/90">
                 Personalized recommendations or explore 1000+ universities worldwide
               </p>
             </div>
 
             {/* Search Bar */}
             <div className="max-w-3xl mx-auto">
-              <div className="flex gap-3 bg-white rounded-xl p-2 shadow-lg">
+              <div className="flex gap-3 bg-card rounded-xl p-2 shadow-lg">
                 <div className="flex-1 flex items-center gap-3 px-3">
-                  <Search className="w-5 h-5 text-mid-grey" />
+                  <Search className="w-5 h-5 text-muted-foreground" />
                   <Input
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     placeholder="Search universities, programs, or countries..."
-                    className="border-0 focus-visible:ring-0 text-dark-grey"
+                    className="border-0 focus-visible:ring-0 text-foreground"
                   />
                 </div>
               </div>
@@ -175,9 +175,9 @@ export default function UniversitiesPage() {
               <div className="space-y-6">
                 {/* AI Match Description */}
                 <div className="text-center max-w-2xl mx-auto">
-                  <p className="text-mid-grey">
+                  <p className="text-muted-foreground">
                     {profile ? (
-                      <>Based on your profile, we've found <span className="font-semibold text-leaf-green">{aiMatchedUniversities.length} universities</span> that may be a great fit for you</>
+                      <>Based on your profile, we've found <span className="font-semibold text-primary">{aiMatchedUniversities.length} universities</span> that may be a great fit for you</>
                     ) : (
                       <>Complete your profile to see personalized AI recommendations</>
                     )}
@@ -207,11 +207,11 @@ export default function UniversitiesPage() {
 
                 {aiMatchedUniversities.length === 0 && (
                   <div className="text-center py-16">
-                    <Sparkles className="w-16 h-16 text-mid-grey mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-dark-grey mb-2">
+                    <Sparkles className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-foreground mb-2">
                       {profile ? 'No matches found' : 'Complete your profile'}
                     </h3>
-                    <p className="text-mid-grey mb-6">
+                    <p className="text-muted-foreground mb-6">
                       {profile 
                         ? 'Try adjusting your search or preferences to see more results'
                         : 'Complete your profile and preferences to see personalized university matches'}
@@ -239,8 +239,8 @@ export default function UniversitiesPage() {
                 {/* Results Header */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold text-dark-grey">All Universities</h2>
-                    <p className="text-sm text-mid-grey mt-1">
+                    <h2 className="text-2xl font-bold text-foreground">All Universities</h2>
+                    <p className="text-sm text-muted-foreground mt-1">
                       Showing {exploreAllUniversities.length} results
                     </p>
                   </div>
@@ -272,11 +272,11 @@ export default function UniversitiesPage() {
 
                 {exploreAllUniversities.length === 0 && (
                   <div className="text-center py-16">
-                    <Search className="w-16 h-16 text-mid-grey mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-dark-grey mb-2">
+                    <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-foreground mb-2">
                       No universities found
                     </h3>
-                    <p className="text-mid-grey">
+                    <p className="text-muted-foreground">
                       Try adjusting your filters or search query to see more results
                     </p>
                   </div>

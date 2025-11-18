@@ -50,7 +50,7 @@ export default function OnboardingPage() {
 
   return (
     <PageTransition>
-      <div className="min-h-[calc(100vh-4rem)] bg-light-grey py-12">
+      <div className="min-h-[calc(100vh-4rem)] bg-muted py-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <OnboardingProgress
             steps={['Profile', 'Preferences', 'Summary']}
@@ -175,7 +175,7 @@ export default function OnboardingPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
+                <div className="flex justify-end gap-4 pt-6 border-t border-border">
                   <Button type="button" variant="outline" onClick={() => router.back()}>
                     Back
                   </Button>

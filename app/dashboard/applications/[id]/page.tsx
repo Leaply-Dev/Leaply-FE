@@ -30,7 +30,7 @@ export default function ApplicationDetailPage() {
     return (
       <PageContainer>
         <div className="text-center py-16">
-          <h1 className="text-2xl font-bold text-dark-grey mb-2">Application not found</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Application not found</h1>
           <Button onClick={() => router.push('/dashboard/applications')}>
             Back to Applications
           </Button>
@@ -69,7 +69,7 @@ export default function ApplicationDetailPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle className="text-2xl mb-2">{application.universityName}</CardTitle>
-                  <p className="text-lg text-mid-grey">{application.program}</p>
+                  <p className="text-lg text-muted-foreground">{application.program}</p>
                 </div>
                 <Badge variant={config.variant} className="text-sm">
                   {config.label}
@@ -80,23 +80,23 @@ export default function ApplicationDetailPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {application.submissionDate && (
                   <div>
-                    <p className="text-sm text-mid-grey mb-1">Submission Date</p>
-                    <p className="font-medium text-dark-grey">
+                    <p className="text-sm text-muted-foreground mb-1">Submission Date</p>
+                    <p className="font-medium text-foreground">
                       {new Date(application.submissionDate).toLocaleDateString()}
                     </p>
                   </div>
                 )}
                 {application.decisionDeadline && (
                   <div>
-                    <p className="text-sm text-mid-grey mb-1">Decision Deadline</p>
-                    <p className="font-medium text-dark-grey">
+                    <p className="text-sm text-muted-foreground mb-1">Decision Deadline</p>
+                    <p className="font-medium text-foreground">
                       {new Date(application.decisionDeadline).toLocaleDateString()}
                     </p>
                   </div>
                 )}
                 <div>
-                  <p className="text-sm text-mid-grey mb-1">Documents Uploaded</p>
-                  <p className="font-medium text-dark-grey">
+                  <p className="text-sm text-muted-foreground mb-1">Documents Uploaded</p>
+                  <p className="font-medium text-foreground">
                     {application.documents.length} file{application.documents.length !== 1 ? 's' : ''}
                   </p>
                 </div>
@@ -129,7 +129,7 @@ export default function ApplicationDetailPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-mid-grey text-center py-8">No tasks for this application</p>
+                    <p className="text-muted-foreground text-center py-8">No tasks for this application</p>
                   )}
                 </CardContent>
               </Card>
@@ -148,13 +148,13 @@ export default function ApplicationDetailPage() {
                   {application.documents.length > 0 ? (
                     <div className="space-y-3">
                       {application.documents.map(doc => (
-                        <div key={doc.id} className="flex items-center gap-3 p-3 bg-light-grey rounded-lg">
-                          <FileText className="w-5 h-5 text-leaf-green shrink-0" />
+                        <div key={doc.id} className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                          <FileText className="w-5 h-5 text-primary shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-dark-grey truncate">
+                            <p className="text-sm font-medium text-foreground truncate">
                               {doc.name}
                             </p>
-                            <p className="text-xs text-mid-grey">
+                            <p className="text-xs text-muted-foreground">
                               {new Date(doc.uploadDate).toLocaleDateString()}
                             </p>
                           </div>
@@ -162,7 +162,7 @@ export default function ApplicationDetailPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-mid-grey text-center py-4">No documents uploaded</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">No documents uploaded</p>
                   )}
                   <Button variant="outline" size="sm" className="w-full mt-4">
                     Upload Document
@@ -183,17 +183,17 @@ export default function ApplicationDetailPage() {
                       {application.timeline.map((event, index) => (
                         <div key={event.id} className="flex gap-3">
                           <div className="flex flex-col items-center">
-                            <div className="w-8 h-8 bg-leaf-green rounded-full flex items-center justify-center shrink-0">
+                            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center shrink-0">
                               <CheckCircle className="w-4 h-4 text-white" />
                             </div>
                             {index < application.timeline.length - 1 && (
-                              <div className="w-0.5 h-full bg-light-grey my-1" />
+                              <div className="w-0.5 h-full bg-muted my-1" />
                             )}
                           </div>
                           <div className="flex-1 pb-4">
-                            <p className="text-sm font-medium text-dark-grey">{event.event}</p>
-                            <p className="text-xs text-mid-grey mt-1">{event.description}</p>
-                            <p className="text-xs text-mid-grey mt-1">
+                            <p className="text-sm font-medium text-foreground">{event.event}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{event.description}</p>
+                            <p className="text-xs text-muted-foreground mt-1">
                               {new Date(event.date).toLocaleDateString()}
                             </p>
                           </div>
@@ -201,7 +201,7 @@ export default function ApplicationDetailPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-mid-grey text-center py-4">No timeline events</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">No timeline events</p>
                   )}
                 </CardContent>
               </Card>

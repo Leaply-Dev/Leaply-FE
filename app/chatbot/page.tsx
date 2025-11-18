@@ -77,12 +77,12 @@ export default function ChatbotPage() {
     <PageTransition>
       <div className="flex flex-col h-[calc(100vh-4rem)]">
         {/* Header */}
-        <div className="border-b border-gray-200 bg-white">
+        <div className="border-b border-border bg-card">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-dark-grey">AI Assistant</h1>
-                <p className="text-sm text-mid-grey">Ask me anything about studying abroad</p>
+                <h1 className="text-2xl font-bold text-foreground">AI Assistant</h1>
+                <p className="text-sm text-muted-foreground">Ask me anything about studying abroad</p>
               </div>
               <Button variant="outline" asChild>
                 <Link href="/chatbot/history">
@@ -95,19 +95,19 @@ export default function ChatbotPage() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto bg-light-grey">
+        <div className="flex-1 overflow-y-auto bg-muted">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             {messages.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-leaf-green rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                   </svg>
                 </div>
-                <h2 className="text-xl font-semibold text-dark-grey mb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-2">
                   Hi! I&apos;m your study abroad assistant
                 </h2>
-                <p className="text-mid-grey mb-6 max-w-md mx-auto">
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                   I can help you with university recommendations, application guidance, essay tips, and more. What would you like to know?
                 </p>
                 <div className="flex flex-wrap gap-2 justify-center">
@@ -151,7 +151,7 @@ export default function ChatbotPage() {
         </div>
 
         {/* Input */}
-        <div className="border-t border-gray-200 bg-white">
+        <div className="border-t border-border bg-card">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex gap-4">
               <Input
@@ -173,7 +173,7 @@ export default function ChatbotPage() {
                 )}
               </Button>
             </div>
-            <p className="text-xs text-mid-grey mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               This is a demo. Responses are simulated and not from a real AI.
             </p>
           </div>

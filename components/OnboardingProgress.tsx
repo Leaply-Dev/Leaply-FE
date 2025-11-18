@@ -26,9 +26,9 @@ export function OnboardingProgress({
                 <div
                   className={cn(
                     'w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors',
-                    isCompleted && 'bg-leaf-green text-white',
-                    isCurrent && 'bg-leaf-green text-white',
-                    !isCompleted && !isCurrent && 'bg-light-grey text-mid-grey'
+                    isCompleted && 'bg-primary text-primary-foreground',
+                    isCurrent && 'bg-primary text-primary-foreground',
+                    !isCompleted && !isCurrent && 'bg-muted text-muted-foreground'
                   )}
                 >
                   {isCompleted ? (
@@ -40,8 +40,8 @@ export function OnboardingProgress({
                 <span
                   className={cn(
                     'text-xs mt-2 text-center',
-                    (isCompleted || isCurrent) && 'text-dark-grey font-medium',
-                    !isCompleted && !isCurrent && 'text-mid-grey'
+                    (isCompleted || isCurrent) && 'text-foreground font-medium',
+                    !isCompleted && !isCurrent && 'text-muted-foreground'
                   )}
                 >
                   {step}
@@ -52,7 +52,7 @@ export function OnboardingProgress({
                 <div
                   className={cn(
                     'flex-1 h-0.5 mx-2 transition-colors',
-                    isCompleted ? 'bg-leaf-green' : 'bg-light-grey'
+                    isCompleted ? 'bg-primary' : 'bg-muted'
                   )}
                 />
               )}

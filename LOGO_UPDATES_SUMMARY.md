@@ -58,7 +58,7 @@ Logos now appear with real images in:
 ### Background Images
 
 **Current Implementation:**
-- **University detail pages**: Use gradient backgrounds (`bg-gradient-to-br from-leaf-green/20 to-light-green/10`)
+- **University detail pages**: Use gradient backgrounds (`bg-linear-to-br from-leaf-green/20 to-light-green/10`)
 - **Logo display**: Circular white frame with shadow
 - **No photo backgrounds**: Design uses clean gradients instead of photo banners
 

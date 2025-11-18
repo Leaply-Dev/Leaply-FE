@@ -41,7 +41,7 @@ export function ApplicationCard({
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-lg">{universityName}</CardTitle>
-            <p className="text-sm text-mid-grey mt-1">{program}</p>
+            <p className="text-sm text-muted-foreground mt-1">{program}</p>
           </div>
           <Badge variant={config.variant}>{config.label}</Badge>
         </div>
@@ -49,13 +49,13 @@ export function ApplicationCard({
       <CardContent>
         <div className="space-y-2 mb-4">
           {submissionDate && (
-            <div className="flex items-center gap-2 text-sm text-mid-grey">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <FileText className="w-4 h-4" />
               <span>Submitted: {new Date(submissionDate).toLocaleDateString()}</span>
             </div>
           )}
           {decisionDeadline && (
-            <div className="flex items-center gap-2 text-sm text-mid-grey">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Calendar className="w-4 h-4" />
               <span>Decision by: {new Date(decisionDeadline).toLocaleDateString()}</span>
             </div>

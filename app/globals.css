@@ -1,17 +1,167 @@
 @import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
 
 @plugin '@tailwindcss/forms';
 
-@theme {
-  --color-leaf-green: #95ca55;
-  --color-dark-grey: #3f3c3b;
-  --color-light-grey: #f5f5f5;
-  --color-mid-grey: #6d6866;
-  --color-light-green: #b9da7a;
-  --color-sky-blue: #4ca8d3;
-  --color-warning-orange: #e8a634;
+:root {
+  --background: oklch(0.9846 0.0017 247.8389);
+  --foreground: oklch(0.2781 0.0296 256.8480);
+  --card: oklch(1.0000 0 0);
+  --card-foreground: oklch(0.2781 0.0296 256.8480);
+  --popover: oklch(1.0000 0 0);
+  --popover-foreground: oklch(0.2781 0.0296 256.8480);
+  --primary: oklch(0.7776 0.1578 129.8379);
+  --primary-foreground: oklch(0.2491 0.0353 132.1366);
+  --secondary: oklch(0.9276 0.0058 264.5313);
+  --secondary-foreground: oklch(0.3729 0.0306 259.7328);
+  --muted: oklch(0.9670 0.0029 264.5419);
+  --muted-foreground: oklch(0.5510 0.0234 264.3637);
+  --accent: oklch(0.9676 0.0673 99.3210);
+  --accent-foreground: oklch(0.2781 0.0296 256.8480);
+  --destructive: oklch(0.6368 0.2078 25.3313);
+  --destructive-foreground: oklch(1.0000 0 0);
+  --border: oklch(0.8717 0.0093 258.3382);
+  --input: oklch(0.9276 0.0058 264.5313);
+  --ring: oklch(0.7776 0.1578 129.8379);
+  --chart-1: oklch(0.7776 0.1578 129.8379);
+  --chart-2: oklch(0.7137 0.1434 254.6240);
+  --chart-3: oklch(0.9052 0.1657 98.1108);
+  --chart-4: oklch(0.7576 0.1590 55.9344);
+  --chart-5: oklch(0.7090 0.1592 293.5412);
+  --sidebar: oklch(1.0000 0 0);
+  --sidebar-foreground: oklch(0.2781 0.0296 256.8480);
+  --sidebar-primary: oklch(0.7776 0.1578 129.8379);
+  --sidebar-primary-foreground: oklch(1.0000 0 0);
+  --sidebar-accent: oklch(0.8868 0.1822 95.3305);
+  --sidebar-accent-foreground: oklch(0.2781 0.0296 256.8480);
+  --sidebar-border: oklch(0.9276 0.0058 264.5313);
+  --sidebar-ring: oklch(0.7776 0.1578 129.8379);
+  --font-sans: Raleway, ui-sans-serif, sans-serif, system-ui;
+  --font-serif: 'Lora', serif;
+  --font-mono: 'Fira Code', monospace;
+  --radius: 0.5rem;
+  --shadow-x: 0rem;
+  --shadow-y: 0.25rem;
+  --shadow-blur: 1rem;
+  --shadow-spread: 0rem;
+  --shadow-opacity: 0.1;
+  --shadow-color: #95ca55;
+  --shadow-2xs: 0rem 0.25rem 1rem 0rem hsl(87.1795 52.4664% 56.2745% / 0.05);
+  --shadow-xs: 0rem 0.25rem 1rem 0rem hsl(87.1795 52.4664% 56.2745% / 0.05);
+  --shadow-sm: 0rem 0.25rem 1rem 0rem hsl(87.1795 52.4664% 56.2745% / 0.10), 0rem 1px 2px -1px hsl(87.1795 52.4664% 56.2745% / 0.10);
+  --shadow: 0rem 0.25rem 1rem 0rem hsl(87.1795 52.4664% 56.2745% / 0.10), 0rem 1px 2px -1px hsl(87.1795 52.4664% 56.2745% / 0.10);
+  --shadow-md: 0rem 0.25rem 1rem 0rem hsl(87.1795 52.4664% 56.2745% / 0.10), 0rem 2px 4px -1px hsl(87.1795 52.4664% 56.2745% / 0.10);
+  --shadow-lg: 0rem 0.25rem 1rem 0rem hsl(87.1795 52.4664% 56.2745% / 0.10), 0rem 4px 6px -1px hsl(87.1795 52.4664% 56.2745% / 0.10);
+  --shadow-xl: 0rem 0.25rem 1rem 0rem hsl(87.1795 52.4664% 56.2745% / 0.10), 0rem 8px 10px -1px hsl(87.1795 52.4664% 56.2745% / 0.10);
+  --shadow-2xl: 0rem 0.25rem 1rem 0rem hsl(87.1795 52.4664% 56.2745% / 0.25);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
 
-  --font-sans: Inter, system-ui, sans-serif;
+.dark {
+  --background: oklch(0.2077 0.0398 265.7549);
+  --foreground: oklch(0.9288 0.0126 255.5078);
+  --card: oklch(0.2433 0.0247 263.9506);
+  --card-foreground: oklch(0.9288 0.0126 255.5078);
+  --popover: oklch(0.2433 0.0247 263.9506);
+  --popover-foreground: oklch(0.9288 0.0126 255.5078);
+  --primary: oklch(0.7776 0.1578 129.8379);
+  --primary-foreground: oklch(0.2397 0.0376 133.0962);
+  --secondary: oklch(0.3351 0.0331 260.9120);
+  --secondary-foreground: oklch(0.9288 0.0126 255.5078);
+  --muted: oklch(0.2781 0.0296 256.8480);
+  --muted-foreground: oklch(0.7137 0.0192 261.3246);
+  --accent: oklch(0.9706 0.0623 99.5718);
+  --accent-foreground: oklch(0.2781 0.0296 256.8480);
+  --destructive: oklch(0.6368 0.2078 25.3313);
+  --destructive-foreground: oklch(1.0000 0 0);
+  --border: oklch(0.3729 0.0306 259.7328);
+  --input: oklch(0.3351 0.0331 260.9120);
+  --ring: oklch(0.7776 0.1578 129.8379);
+  --chart-1: oklch(0.7776 0.1578 129.8379);
+  --chart-2: oklch(0.7137 0.1434 254.6240);
+  --chart-3: oklch(0.9052 0.1657 98.1108);
+  --chart-4: oklch(0.7576 0.1590 55.9344);
+  --chart-5: oklch(0.7090 0.1592 293.5412);
+  --sidebar: oklch(0.2433 0.0247 263.9506);
+  --sidebar-foreground: oklch(0.9288 0.0126 255.5078);
+  --sidebar-primary: oklch(0.7776 0.1578 129.8379);
+  --sidebar-primary-foreground: oklch(1.0000 0 0);
+  --sidebar-accent: oklch(0.8868 0.1822 95.3305);
+  --sidebar-accent-foreground: oklch(0.2781 0.0296 256.8480);
+  --sidebar-border: oklch(0.3729 0.0306 259.7328);
+  --sidebar-ring: oklch(0.7776 0.1578 129.8379);
+  --font-sans: Raleway, ui-sans-serif, sans-serif, system-ui;
+  --font-serif: 'Lora', serif;
+  --font-mono: 'Fira Code', monospace;
+  --radius: 0.5rem;
+  --shadow-x: 0rem;
+  --shadow-y: 0.25rem;
+  --shadow-blur: 1rem;
+  --shadow-spread: 0rem;
+  --shadow-opacity: 0.2;
+  --shadow-color: #000000;
+  --shadow-2xs: 0rem 0.25rem 1rem 0rem hsl(0 0% 0% / 0.10);
+  --shadow-xs: 0rem 0.25rem 1rem 0rem hsl(0 0% 0% / 0.10);
+  --shadow-sm: 0rem 0.25rem 1rem 0rem hsl(0 0% 0% / 0.20), 0rem 1px 2px -1px hsl(0 0% 0% / 0.20);
+  --shadow: 0rem 0.25rem 1rem 0rem hsl(0 0% 0% / 0.20), 0rem 1px 2px -1px hsl(0 0% 0% / 0.20);
+  --shadow-md: 0rem 0.25rem 1rem 0rem hsl(0 0% 0% / 0.20), 0rem 2px 4px -1px hsl(0 0% 0% / 0.20);
+  --shadow-lg: 0rem 0.25rem 1rem 0rem hsl(0 0% 0% / 0.20), 0rem 4px 6px -1px hsl(0 0% 0% / 0.20);
+  --shadow-xl: 0rem 0.25rem 1rem 0rem hsl(0 0% 0% / 0.20), 0rem 8px 10px -1px hsl(0 0% 0% / 0.20);
+  --shadow-2xl: 0rem 0.25rem 1rem 0rem hsl(0 0% 0% / 0.50);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
 
   --animate-fade-in: fadeIn 0.3s ease-out;
   --animate-slide-up: slideUp 0.4s ease-out;
@@ -47,24 +197,6 @@
   }
 }
 
-/*
-  The default border color has changed to `currentcolor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentcolor);
-  }
-}
-
 @utility container-padding {
   @apply px-4 sm:px-6 lg:px-8;
 }
@@ -76,9 +208,5 @@
 @layer base {
   :root {
     --radius: 0.5rem;
-  }
-  
-  body {
-    @apply bg-light-grey text-dark-grey antialiased;
   }
 }

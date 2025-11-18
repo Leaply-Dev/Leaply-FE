@@ -25,8 +25,8 @@ export function ChatMessage({
       )}
     >
       {isAssistant && (
-        <div className="shrink-0 w-8 h-8 rounded-full bg-leaf-green flex items-center justify-center">
-          <Bot className="w-5 h-5 text-white" />
+        <div className="shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+          <Bot className="w-5 h-5 text-primary-foreground" />
         </div>
       )}
       
@@ -34,18 +34,18 @@ export function ChatMessage({
         className={cn(
           'max-w-[80%] rounded-lg px-4 py-3',
           isAssistant
-            ? 'bg-white border border-gray-200'
-            : 'bg-leaf-green text-white'
+            ? 'bg-card border border-border'
+            : 'bg-primary text-primary-foreground'
         )}
       >
-        <p className={cn('text-sm whitespace-pre-wrap', isAssistant ? 'text-dark-grey' : 'text-white')}>
+        <p className={cn('text-sm whitespace-pre-wrap', isAssistant ? 'text-foreground' : 'text-primary-foreground')}>
           {content}
         </p>
         {timestamp && (
           <p
             className={cn(
               'text-xs mt-1',
-              isAssistant ? 'text-mid-grey' : 'text-white/70'
+              isAssistant ? 'text-muted-foreground' : 'text-primary-foreground/70'
             )}
           >
             {new Date(timestamp).toLocaleTimeString()}
@@ -54,8 +54,8 @@ export function ChatMessage({
       </div>
       
       {!isAssistant && (
-        <div className="shrink-0 w-8 h-8 rounded-full bg-dark-grey flex items-center justify-center">
-          <User className="w-5 h-5 text-white" />
+        <div className="shrink-0 w-8 h-8 rounded-full bg-foreground flex items-center justify-center">
+          <User className="w-5 h-5 text-background" />
         </div>
       )}
     </div>

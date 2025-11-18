@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useApplicationsStore } from '@/lib/store/applicationsStore';
-import { mockEnhancedApplications, EnhancedApplication } from '@/lib/data/enhancedApplications';
+import { mockEnhancedApplications, type EnhancedApplication } from '@/lib/data/enhancedApplications';
 import { ApplicationSidebar } from '@/components/ApplicationSidebar';
 import { ApplicationDashboard } from '@/components/ApplicationDashboard';
 import { PageTransition } from '@/components/PageTransition';
@@ -40,7 +40,7 @@ export default function ApplicationsPage() {
     <PageTransition>
       <div className="flex min-h-[calc(100vh-16rem)]">
         {/* Sidebar - Fixed width on desktop, full width on mobile */}
-        <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 hidden lg:block h-[calc(100vh-5rem)] sticky top-0">
+        <div className="w-full lg:w-80 xl:w-96 shrink-0 hidden lg:block h-[calc(100vh-5rem)] sticky top-0">
           <ApplicationSidebar
             applications={enhancedApplications}
             selectedId={selectedApplicationId}
@@ -61,10 +61,10 @@ export default function ApplicationsPage() {
           ) : (
             <div className="flex flex-col">
               {/* Mobile back button */}
-              <div className="p-4 border-b border-gray-200 bg-white lg:hidden sticky top-0 z-10">
+              <div className="p-4 border-b border-border bg-card lg:hidden sticky top-0 z-10">
                 <button
                   onClick={() => setSelectedApplicationId(null)}
-                  className="flex items-center gap-2 text-sm text-leaf-green hover:text-dark-grey transition-colors"
+                  className="flex items-center gap-2 text-sm text-primary hover:text-foreground transition-colors"
                 >
                   <svg
                     className="w-4 h-4"

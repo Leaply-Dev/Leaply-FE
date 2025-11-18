@@ -39,7 +39,7 @@ export default function OnboardingSummaryPage() {
 
   return (
     <PageTransition>
-      <div className="min-h-[calc(100vh-4rem)] bg-light-grey py-12">
+      <div className="min-h-[calc(100vh-4rem)] bg-muted py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <OnboardingProgress
             steps={['Profile', 'Preferences', 'Summary']}
@@ -48,13 +48,13 @@ export default function OnboardingSummaryPage() {
           />
 
           <div className="text-center mb-12">
-            <div className="w-16 h-16 bg-leaf-green rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-dark-grey mb-2">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
               Profile Complete!
             </h1>
-            <p className="text-lg text-mid-grey">
+            <p className="text-lg text-muted-foreground">
               Based on your preferences, we&apos;ve found some great universities for you
             </p>
           </div>
@@ -62,44 +62,44 @@ export default function OnboardingSummaryPage() {
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-leaf-green" />
+                <Sparkles className="w-5 h-5 text-primary" />
                 Your Profile Summary
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="font-semibold text-dark-grey mb-3">Academic Background</h3>
+                  <h3 className="font-semibold text-foreground mb-3">Academic Background</h3>
                   <dl className="space-y-2 text-sm">
                     <div>
-                      <dt className="text-mid-grey">Education Level</dt>
+                      <dt className="text-muted-foreground">Education Level</dt>
                       <dd className="font-medium">{profile?.currentEducationLevel}</dd>
                     </div>
                     <div>
-                      <dt className="text-mid-grey">GPA</dt>
+                      <dt className="text-muted-foreground">GPA</dt>
                       <dd className="font-medium">{profile?.gpa}</dd>
                     </div>
                     <div>
-                      <dt className="text-mid-grey">Nationality</dt>
+                      <dt className="text-muted-foreground">Nationality</dt>
                       <dd className="font-medium">{profile?.nationality}</dd>
                     </div>
                   </dl>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-dark-grey mb-3">Study Preferences</h3>
+                  <h3 className="font-semibold text-foreground mb-3">Study Preferences</h3>
                   <dl className="space-y-2 text-sm">
                     <div>
-                      <dt className="text-mid-grey">Desired Major</dt>
+                      <dt className="text-muted-foreground">Desired Major</dt>
                       <dd className="font-medium">{preferences.desiredMajor}</dd>
                     </div>
                     <div>
-                      <dt className="text-mid-grey">Budget Range</dt>
+                      <dt className="text-muted-foreground">Budget Range</dt>
                       <dd className="font-medium">
                         ${preferences.budgetRange?.min.toLocaleString()} - ${preferences.budgetRange?.max.toLocaleString()}
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-mid-grey">Preferred Regions</dt>
+                      <dt className="text-muted-foreground">Preferred Regions</dt>
                       <dd className="flex flex-wrap gap-1 mt-1">
                         {preferences.preferredRegions?.map(region => (
                           <Badge key={region} variant="secondary">{region}</Badge>
@@ -113,8 +113,8 @@ export default function OnboardingSummaryPage() {
           </Card>
 
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-dark-grey mb-4 flex items-center gap-2">
-              <GraduationCap className="w-6 h-6 text-leaf-green" />
+            <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <GraduationCap className="w-6 h-6 text-primary" />
               Recommended Universities
             </h2>
             <StaggerContainer>
@@ -124,16 +124,16 @@ export default function OnboardingSummaryPage() {
                     <Card className="h-full hover:shadow-lg transition-shadow">
                       <CardContent className="p-6">
                         <div className="text-center mb-4">
-                          <div className="w-16 h-16 bg-light-grey rounded-full mx-auto mb-3" />
-                          <h3 className="font-semibold text-dark-grey mb-1">{uni.name}</h3>
-                          <div className="flex items-center justify-center gap-1 text-sm text-mid-grey mb-2">
+                          <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-3" />
+                          <h3 className="font-semibold text-foreground mb-1">{uni.name}</h3>
+                          <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mb-2">
                             <MapPin className="w-3 h-3" />
                             {uni.city}, {uni.country}
                           </div>
                           <Badge variant="outline">#{uni.ranking} Worldwide</Badge>
                         </div>
                         <div className="space-y-2 text-sm">
-                          <div className="flex items-center gap-2 text-mid-grey">
+                          <div className="flex items-center gap-2 text-muted-foreground">
                             <DollarSign className="w-4 h-4" />
                             ${uni.averageTuition.toLocaleString()}/year
                           </div>

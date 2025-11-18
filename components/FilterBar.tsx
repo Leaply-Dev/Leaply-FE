@@ -27,12 +27,12 @@ export function FilterBar({
   className,
 }: FilterBarProps) {
   return (
-    <div className={cn('bg-white p-4 rounded-lg border border-gray-200', className)}>
+    <div className={cn('bg-card p-4 rounded-lg border border-border', className)}>
       <div className="flex flex-col md:flex-row gap-4">
         {/* Search Input */}
         {onSearchChange && (
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mid-grey" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Search..."

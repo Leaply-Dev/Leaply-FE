@@ -50,10 +50,10 @@ export default function ProfilePage() {
     <PageTransition>
       <PageContainer>
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-dark-grey mb-2">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Profile
           </h1>
-          <p className="text-lg text-mid-grey">
+          <p className="text-lg text-muted-foreground">
             Manage your personal information and preferences
           </p>
         </div>
@@ -87,8 +87,8 @@ export default function ProfilePage() {
                           onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
                         />
                       ) : (
-                        <div className="flex items-center gap-2 p-3 bg-light-grey rounded-md">
-                          <User className="w-4 h-4 text-mid-grey" />
+                        <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                          <User className="w-4 h-4 text-muted-foreground" />
                           <span>{profile?.fullName || 'Not set'}</span>
                         </div>
                       )}
@@ -96,8 +96,8 @@ export default function ProfilePage() {
 
                     <div className="space-y-2">
                       <Label htmlFor="email">Email</Label>
-                      <div className="flex items-center gap-2 p-3 bg-light-grey rounded-md">
-                        <Mail className="w-4 h-4 text-mid-grey" />
+                      <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                        <Mail className="w-4 h-4 text-muted-foreground" />
                         <span>{profile?.email || 'Not set'}</span>
                       </div>
                     </div>
@@ -112,8 +112,8 @@ export default function ProfilePage() {
                           onChange={(e) => setFormData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
                         />
                       ) : (
-                        <div className="flex items-center gap-2 p-3 bg-light-grey rounded-md">
-                          <Calendar className="w-4 h-4 text-mid-grey" />
+                        <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                          <Calendar className="w-4 h-4 text-muted-foreground" />
                           <span>
                             {profile?.dateOfBirth 
                               ? new Date(profile.dateOfBirth).toLocaleDateString()
@@ -141,8 +141,8 @@ export default function ProfilePage() {
                           <option value="Other">Other</option>
                         </Select>
                       ) : (
-                        <div className="flex items-center gap-2 p-3 bg-light-grey rounded-md">
-                          <Globe className="w-4 h-4 text-mid-grey" />
+                        <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                          <Globe className="w-4 h-4 text-muted-foreground" />
                           <span>{profile?.nationality || 'Not set'}</span>
                         </div>
                       )}
@@ -162,8 +162,8 @@ export default function ProfilePage() {
                           <option value="Graduate">Graduate</option>
                         </Select>
                       ) : (
-                        <div className="flex items-center gap-2 p-3 bg-light-grey rounded-md">
-                          <GraduationCap className="w-4 h-4 text-mid-grey" />
+                        <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                          <GraduationCap className="w-4 h-4 text-muted-foreground" />
                           <span>{profile?.currentEducationLevel || 'Not set'}</span>
                         </div>
                       )}
@@ -182,7 +182,7 @@ export default function ProfilePage() {
                           onChange={(e) => setFormData(prev => ({ ...prev, gpa: e.target.value }))}
                         />
                       ) : (
-                        <div className="p-3 bg-light-grey rounded-md">
+                        <div className="p-3 bg-muted rounded-md">
                           <span>{profile?.gpa || 'Not set'}</span>
                         </div>
                       )}
@@ -203,14 +203,14 @@ export default function ProfilePage() {
                 {profile?.testScores && profile.testScores.length > 0 ? (
                   <div className="space-y-3">
                     {profile.testScores.map((score, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-light-grey rounded-md">
+                      <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-md">
                         <span className="font-medium">{score.type}</span>
-                        <span className="text-leaf-green font-semibold">{score.score}</span>
+                        <span className="text-primary font-semibold">{score.score}</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-mid-grey text-center py-4">No test scores added</p>
+                  <p className="text-muted-foreground text-center py-4">No test scores added</p>
                 )}
                 <Button variant="outline" className="w-full mt-4">
                   Add Test Score

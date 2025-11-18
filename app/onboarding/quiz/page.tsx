@@ -60,7 +60,7 @@ export default function OnboardingQuizPage() {
 
   return (
     <PageTransition>
-      <div className="min-h-[calc(100vh-4rem)] bg-light-grey py-12">
+      <div className="min-h-[calc(100vh-4rem)] bg-muted py-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <OnboardingProgress
             steps={['Profile', 'Preferences', 'Summary']}
@@ -108,7 +108,7 @@ export default function OnboardingQuizPage() {
                   <Label>Annual Budget Range (Tuition + Living Costs)</Label>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="budgetMin" className="text-xs text-mid-grey">Minimum</Label>
+                      <Label htmlFor="budgetMin" className="text-xs text-muted-foreground">Minimum</Label>
                       <Input
                         id="budgetMin"
                         type="number"
@@ -119,7 +119,7 @@ export default function OnboardingQuizPage() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="budgetMax" className="text-xs text-mid-grey">Maximum</Label>
+                      <Label htmlFor="budgetMax" className="text-xs text-muted-foreground">Maximum</Label>
                       <Input
                         id="budgetMax"
                         type="number"
@@ -130,7 +130,7 @@ export default function OnboardingQuizPage() {
                       />
                     </div>
                   </div>
-                  <p className="text-sm text-mid-grey">
+                  <p className="text-sm text-muted-foreground">
                     Current range: ${formData.budgetMin.toLocaleString()} - ${formData.budgetMax.toLocaleString()}
                   </p>
                 </div>
@@ -180,7 +180,7 @@ export default function OnboardingQuizPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-between gap-4 pt-6 border-t border-gray-200">
+                <div className="flex justify-between gap-4 pt-6 border-t border-border">
                   <Button type="button" variant="outline" onClick={() => router.back()}>
                     Back
                   </Button>

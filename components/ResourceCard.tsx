@@ -34,8 +34,8 @@ export function ResourceCard({
     <Card className={cn('hover:shadow-md transition-shadow', className)}>
       <CardHeader>
         <div className="flex items-start gap-3">
-          <div className="p-2 bg-leaf-green/10 rounded-lg">
-            <Icon className="w-5 h-5 text-leaf-green" />
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Icon className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1">
             <CardTitle className="text-lg mb-1">{title}</CardTitle>
@@ -46,7 +46,7 @@ export function ResourceCard({
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-mid-grey mb-4">{summary}</p>
+        <p className="text-sm text-muted-foreground mb-4">{summary}</p>
         
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
@@ -60,7 +60,7 @@ export function ResourceCard({
         
         <Link
           href={url}
-          className="inline-flex items-center gap-2 text-sm text-leaf-green hover:text-light-green font-medium"
+          className="inline-flex items-center gap-2 text-sm text-primary hover:text-accent font-medium"
         >
           Read More
           <ExternalLink className="w-4 h-4" />

@@ -141,7 +141,7 @@ className="border-b-0" // Last item
 className="w-full h-10"
 
 // Resource buttons (2-line content)
-className="justify-start h-[4.5rem]"
+className="justify-start h-18"
 ```
 
 **Status Card Metrics**:
@@ -150,7 +150,7 @@ className="justify-start h-[4.5rem]"
 className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
 
 // Individual metric cards
-className="bg-gradient-to-br from-leaf-green/10 to-light-green/10 rounded-lg p-4"
+className="bg-linear-to-br from-leaf-green/10 to-light-green/10 rounded-lg p-4"
 className="bg-sky-blue/10 rounded-lg p-4"
 className="bg-warning-orange/10 rounded-lg p-4"
 className="bg-purple-100 rounded-lg p-4"

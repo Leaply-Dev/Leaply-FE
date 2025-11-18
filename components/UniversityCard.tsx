@@ -62,14 +62,14 @@ export function UniversityCard({
             className="object-cover"
           />
           <div className="absolute top-4 right-4 flex gap-2">
-            <Badge className="bg-white text-dark-grey border border-gray-200">
-              <Star className="w-3 h-3 mr-1 fill-warning-orange text-warning-orange" />
+            <Badge className="bg-card text-foreground border border-border">
+              <Star className="w-3 h-3 mr-1 fill-warning-orange text-chart-4" />
               #{ranking}
             </Badge>
           </div>
           {fitScore !== null && fitScore > 0 && (
             <div className="absolute top-4 left-4">
-              <Badge className={cn('bg-white border-2 font-semibold', getFitScoreColor(fitScore))}>
+              <Badge className={cn('bg-card border-2 font-semibold', getFitScoreColor(fitScore))}>
                 <TrendingUp className="w-3 h-3 mr-1" />
                 {fitScore}% Match
               </Badge>
@@ -78,9 +78,9 @@ export function UniversityCard({
         </div>
         
         <div className="p-6">
-          <h3 className="text-xl font-semibold text-dark-grey mb-2">{name}</h3>
+          <h3 className="text-xl font-semibold text-foreground mb-2">{name}</h3>
           
-          <div className="flex items-center gap-4 text-sm text-mid-grey mb-3">
+          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
             <span className="flex items-center gap-1">
               <MapPin className="w-4 h-4" />
               {city}, {country}
@@ -91,7 +91,7 @@ export function UniversityCard({
             </span>
           </div>
           
-          <p className="text-sm text-mid-grey mb-4 line-clamp-2">{overview}</p>
+          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{overview}</p>
           
           <div className="flex gap-2">
             <Button asChild size="sm" className="flex-1">

@@ -40,23 +40,23 @@ export function ApplicationSidebar({
   // Get fit score color
   const getFitScoreColor = (score: number) => {
     if (score >= 85) return 'text-green-600 bg-green-50';
-    if (score >= 70) return 'text-sky-blue bg-sky-50';
-    if (score >= 50) return 'text-warning-orange bg-orange-50';
-    return 'text-mid-grey bg-light-grey';
+    if (score >= 70) return 'text-chart-2 bg-sky-50';
+    if (score >= 50) return 'text-chart-4 bg-orange-50';
+    return 'text-muted-foreground bg-muted';
   };
 
   return (
-    <div className="flex flex-col h-full bg-white border-r border-gray-200">
+    <div className="flex flex-col h-full bg-card border-r border-border">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 space-y-4">
+      <div className="p-4 border-b border-border space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-dark-grey">Applications</h2>
-          <span className="text-sm text-mid-grey">{applications.length}</span>
+          <h2 className="text-lg font-semibold text-foreground">Applications</h2>
+          <span className="text-sm text-muted-foreground">{applications.length}</span>
         </div>
         
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mid-grey" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search universities..."
@@ -80,7 +80,7 @@ export function ApplicationSidebar({
       {/* Applications List */}
       <div className="flex-1 overflow-y-auto pb-4">
         {filteredApplications.length === 0 ? (
-          <div className="p-4 text-center text-sm text-mid-grey">
+          <div className="p-4 text-center text-sm text-muted-foreground">
             No applications found
           </div>
         ) : (
@@ -90,14 +90,14 @@ export function ApplicationSidebar({
                 key={app.id}
                 onClick={() => onSelectApplication(app.id)}
                 className={cn(
-                  'w-full px-4 py-5 text-left hover:bg-light-grey/50 transition-colors border-b border-gray-100',
-                  selectedId === app.id && 'bg-leaf-green/5 border-l-4 border-leaf-green',
+                  'w-full px-4 py-5 text-left hover:bg-muted/50 transition-colors border-b border-border',
+                  selectedId === app.id && 'bg-primary/5 border-l-4 border-primary',
                   index === filteredApplications.length - 1 && 'border-b-0'
                 )}
               >
                 {/* University Header */}
                 <div className="flex items-start gap-3 mb-3.5">
-                  <Avatar className="h-12 w-12 flex-shrink-0">
+                  <Avatar className="h-12 w-12 shrink-0">
                     <AvatarImage 
                       src={app.universityLogo} 
                       alt={app.universityName}
@@ -108,10 +108,10 @@ export function ApplicationSidebar({
                   </Avatar>
                   
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-dark-grey text-sm truncate">
+                    <h3 className="font-semibold text-foreground text-sm truncate">
                       {app.universityName}
                     </h3>
-                    <p className="text-xs text-mid-grey truncate">
+                    <p className="text-xs text-muted-foreground truncate">
                       {app.program}
                     </p>
                     
@@ -130,8 +130,8 @@ export function ApplicationSidebar({
                 {/* Progress Bar */}
                 <div className="mb-2.5">
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs text-mid-grey">Progress</span>
-                    <span className="text-xs font-medium text-dark-grey">
+                    <span className="text-xs text-muted-foreground">Progress</span>
+                    <span className="text-xs font-medium text-foreground">
                       {app.completionPercentage}%
                     </span>
                   </div>

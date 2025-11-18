@@ -22,7 +22,7 @@ export function Navbar() {
   const { isAuthenticated, profile, logout } = useUserStore();
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-card border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -43,10 +43,10 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  'text-sm font-medium transition-colors hover:text-leaf-green',
+                  'text-sm font-medium transition-colors hover:text-primary',
                   pathname?.startsWith(link.href)
-                    ? 'text-leaf-green'
-                    : 'text-dark-grey'
+                    ? 'text-primary'
+                    : 'text-foreground'
                 )}
               >
                 {link.label}
@@ -60,7 +60,7 @@ export function Navbar() {
               <>
                 <Link
                   href="/dashboard/profile"
-                  className="flex items-center gap-2 text-sm font-medium text-dark-grey hover:text-leaf-green"
+                  className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary"
                 >
                   <User className="w-4 h-4" />
                   {profile?.fullName || 'Profile'}
@@ -84,7 +84,7 @@ export function Navbar() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 text-dark-grey"
+            className="md:hidden p-2 text-foreground"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? (
@@ -97,7 +97,7 @@ export function Navbar() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200">
+          <div className="md:hidden py-4 border-t border-border">
             <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
                 <Link
@@ -106,15 +106,15 @@ export function Navbar() {
                   className={cn(
                     'text-sm font-medium',
                     pathname?.startsWith(link.href)
-                      ? 'text-leaf-green'
-                      : 'text-dark-grey'
+                      ? 'text-primary'
+                      : 'text-foreground'
                   )}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.label}
                 </Link>
               ))}
-              <div className="pt-4 border-t border-gray-200 flex flex-col gap-2">
+              <div className="pt-4 border-t border-border flex flex-col gap-2">
                 {isAuthenticated ? (
                   <>
                     <Button variant="outline" size="sm" asChild>

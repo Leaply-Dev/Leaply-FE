@@ -17,8 +17,8 @@ interface TaskItemProps {
 }
 
 const priorityConfig = {
-  low: { color: 'text-sky-blue', bgColor: 'bg-sky-blue/10' },
-  medium: { color: 'text-warning-orange', bgColor: 'bg-warning-orange/10' },
+  low: { color: 'text-chart-2', bgColor: 'bg-chart-2/10' },
+  medium: { color: 'text-chart-4', bgColor: 'bg-chart-4/10' },
   high: { color: 'text-red-600', bgColor: 'bg-red-100' },
 };
 
@@ -38,7 +38,7 @@ export function TaskItem({
   return (
     <div
       className={cn(
-        'flex items-start gap-4 p-4 rounded-lg border border-gray-200 bg-white hover:bg-light-grey transition-colors',
+        'flex items-start gap-4 p-4 rounded-lg border border-border bg-card hover:bg-muted transition-colors',
         completed && 'opacity-60',
         className
       )}
@@ -53,7 +53,7 @@ export function TaskItem({
         <div className="flex items-center gap-2 mb-1">
           <h4
             className={cn(
-              'font-medium text-dark-grey',
+              'font-medium text-foreground',
               completed && 'line-through'
             )}
           >
@@ -69,9 +69,9 @@ export function TaskItem({
           )}
         </div>
         
-        <p className="text-sm text-mid-grey mb-2">{description}</p>
+        <p className="text-sm text-muted-foreground mb-2">{description}</p>
         
-        <div className="flex items-center gap-2 text-xs text-mid-grey">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Calendar className="w-3 h-3" />
           <span>Due: {new Date(dueDate).toLocaleDateString()}</span>
           {isOverdue && (
