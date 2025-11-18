@@ -119,33 +119,60 @@ function ScrollHighlightStep({
 
 function ParallaxVisual() {
   const [activeStep, setActiveStep] = React.useState(1);
-  
-  // Create refs for each step to detect which one is in view
-  const step1Ref = useRef<HTMLDivElement>(null);
-  const step2Ref = useRef<HTMLDivElement>(null);
-  const step3Ref = useRef<HTMLDivElement>(null);
-  const step4Ref = useRef<HTMLDivElement>(null);
-  
-  const step1InView = useInView(step1Ref, { margin: '-40% 0px -40% 0px' });
-  const step2InView = useInView(step2Ref, { margin: '-40% 0px -40% 0px' });
-  const step3InView = useInView(step3Ref, { margin: '-40% 0px -40% 0px' });
-  const step4InView = useInView(step4Ref, { margin: '-40% 0px -40% 0px' });
+  const [mounted, setMounted] = React.useState(false);
   
   React.useEffect(() => {
-    if (step4InView) setActiveStep(4);
-    else if (step3InView) setActiveStep(3);
-    else if (step2InView) setActiveStep(2);
-    else if (step1InView) setActiveStep(1);
-  }, [step1InView, step2InView, step3InView, step4InView]);
-  
-  // Place invisible markers to track scroll position
-  React.useEffect(() => {
-    const steps = document.querySelectorAll<HTMLDivElement>('[data-step]');
-    if (steps[0]) step1Ref.current = steps[0];
-    if (steps[1]) step2Ref.current = steps[1];
-    if (steps[2]) step3Ref.current = steps[2];
-    if (steps[3]) step4Ref.current = steps[3];
+    setMounted(true);
   }, []);
+  
+  React.useEffect(() => {
+    if (!mounted) return;
+    
+    // Use IntersectionObserver for more reliable detection
+    const observerOptions = {
+      root: null,
+      rootMargin: '-40% 0px -40% 0px',
+      threshold: 0,
+    };
+    
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const stepElement = entry.target as HTMLElement;
+          const stepNumber = stepElement.getAttribute('data-step');
+          if (stepNumber) {
+            setActiveStep(parseInt(stepNumber, 10));
+          }
+        }
+      });
+    };
+    
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+    
+    // Setup function to observe steps
+    const setupObserver = () => {
+      const steps = document.querySelectorAll<HTMLDivElement>('[data-step]');
+      if (steps.length > 0) {
+        steps.forEach((step) => observer.observe(step));
+        return true;
+      }
+      return false;
+    };
+    
+    // Try to setup immediately
+    if (!setupObserver()) {
+      // If no steps found, retry after a short delay
+      const timeoutId = setTimeout(setupObserver, 200);
+      return () => {
+        clearTimeout(timeoutId);
+        observer.disconnect();
+      };
+    }
+    
+    return () => {
+      observer.disconnect();
+    };
+  }, [mounted]);
   
   const stepVisuals: StepVisual[] = [
     {
