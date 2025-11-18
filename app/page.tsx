@@ -1,12 +1,13 @@
 'use client';
 
+import React, { useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { GraduationCap, Brain, Target, Globe, ArrowRight, Sparkles, Users, FileCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { StaggerContainer, StaggerItem, SlideUp } from '@/components/PageTransition';
 import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
 
 const features = [
   {
@@ -79,12 +80,18 @@ const howItWorksSteps = [
   },
 ];
 
+interface StepVisual {
+  step: number;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  color: string;
+  title: string;
+  imagePath: string;
+}
+
 function ScrollHighlightStep({ 
-  children, 
-  index 
+  children
 }: { 
-  children: React.ReactNode; 
-  index: number;
+  children: React.ReactNode;
 }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { 
@@ -106,6 +113,142 @@ function ScrollHighlightStep({
       className="relative"
     >
       {children}
+    </motion.div>
+  );
+}
+
+function ParallaxVisual() {
+  const [activeStep, setActiveStep] = React.useState(1);
+  
+  // Create refs for each step to detect which one is in view
+  const step1Ref = useRef<HTMLDivElement>(null);
+  const step2Ref = useRef<HTMLDivElement>(null);
+  const step3Ref = useRef<HTMLDivElement>(null);
+  const step4Ref = useRef<HTMLDivElement>(null);
+  
+  const step1InView = useInView(step1Ref, { margin: '-40% 0px -40% 0px' });
+  const step2InView = useInView(step2Ref, { margin: '-40% 0px -40% 0px' });
+  const step3InView = useInView(step3Ref, { margin: '-40% 0px -40% 0px' });
+  const step4InView = useInView(step4Ref, { margin: '-40% 0px -40% 0px' });
+  
+  React.useEffect(() => {
+    if (step4InView) setActiveStep(4);
+    else if (step3InView) setActiveStep(3);
+    else if (step2InView) setActiveStep(2);
+    else if (step1InView) setActiveStep(1);
+  }, [step1InView, step2InView, step3InView, step4InView]);
+  
+  // Place invisible markers to track scroll position
+  React.useEffect(() => {
+    const steps = document.querySelectorAll<HTMLDivElement>('[data-step]');
+    if (steps[0]) step1Ref.current = steps[0];
+    if (steps[1]) step2Ref.current = steps[1];
+    if (steps[2]) step3Ref.current = steps[2];
+    if (steps[3]) step4Ref.current = steps[3];
+  }, []);
+  
+  const stepVisuals: StepVisual[] = [
+    {
+      step: 1,
+      icon: Users,
+      color: '#95CA55',
+      title: 'Profile Setup',
+      imagePath: '/how-it-works/step-1.png',
+    },
+    {
+      step: 2,
+      icon: Brain,
+      color: '#4CA8D3',
+      title: 'AI Matching',
+      imagePath: '/how-it-works/step-2.png',
+    },
+    {
+      step: 3,
+      icon: FileCheck,
+      color: '#E8A634',
+      title: 'Application Tracking',
+      imagePath: '/how-it-works/step-3.png',
+    },
+    {
+      step: 4,
+      icon: Sparkles,
+      color: '#95CA55',
+      title: 'AI Enhancement',
+      imagePath: '/how-it-works/step-4.png',
+    },
+  ];
+  
+  const currentVisual = stepVisuals[activeStep - 1];
+  const Icon = currentVisual.icon;
+  
+  return (
+    <motion.div 
+      className="relative w-full h-full bg-white rounded-2xl shadow-2xl p-8 overflow-hidden"
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.4 }}
+    >
+      {/* Background gradient */}
+      <motion.div
+        className="absolute inset-0 opacity-5"
+        animate={{ 
+          background: `radial-gradient(circle at 50% 50%, ${currentVisual.color} 0%, transparent 70%)`
+        }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+      />
+      
+      {/* Header with icon */}
+      <motion.div 
+        className="relative flex items-center justify-between mb-8"
+        key={`header-${activeStep}`}
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="flex items-center gap-3">
+          <div 
+            className="w-12 h-12 rounded-xl flex items-center justify-center"
+            style={{ backgroundColor: `${currentVisual.color}20` }}
+          >
+            <Icon className="w-6 h-6" style={{ color: currentVisual.color }} />
+          </div>
+          <div>
+            <p className="text-sm text-mid-grey font-medium">Step {currentVisual.step}</p>
+            <p className="text-lg font-bold text-dark-grey">{currentVisual.title}</p>
+          </div>
+        </div>
+        
+        {/* Step indicator dots */}
+        <div className="flex gap-2">
+          {[1, 2, 3, 4].map((step) => (
+            <div
+              key={step}
+              className="w-2 h-2 rounded-full transition-all duration-300"
+              style={{
+                backgroundColor: step === activeStep ? currentVisual.color : '#E5E5E5',
+                width: step === activeStep ? '24px' : '8px',
+              }}
+            />
+          ))}
+        </div>
+      </motion.div>
+      
+      {/* Image Visual */}
+      <motion.div 
+        className="relative h-[450px] w-full rounded-xl overflow-hidden flex items-center justify-center"
+        key={`image-${activeStep}`}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
+        <Image
+          src={currentVisual.imagePath}
+          alt={currentVisual.title}
+          fill
+          className="object-contain p-4"
+          priority={activeStep === 1}
+        />
+      </motion.div>
     </motion.div>
   );
 }
@@ -257,7 +400,7 @@ export default function HomePage() {
 
       {/* How It Works Section */}
       <section className="py-20 bg-light-grey">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <SlideUp>
               <h2 className="text-3xl md:text-4xl font-bold text-dark-grey mb-4">
@@ -269,11 +412,63 @@ export default function HomePage() {
             </SlideUp>
           </div>
 
-          <div className="space-y-24">
-            {howItWorksSteps.map((item, index) => {
+          {/* Desktop: Two-column layout with sticky right side */}
+          <div className="lg:grid lg:grid-cols-2 lg:gap-12 lg:items-start hidden">
+            {/* Left: Scrolling Steps */}
+            <div className="space-y-32 py-12">
+              {howItWorksSteps.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <ScrollHighlightStep key={item.step}>
+                    <div className="relative" data-step={item.step}>
+                      {/* Step number badge */}
+                      <div className="flex items-start gap-6 mb-6">
+                        <div className="flex-shrink-0 w-16 h-16 bg-leaf-green text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg">
+                          {item.step}
+                        </div>
+                        <div className="flex-1 pt-2">
+                          <h3 className="text-2xl md:text-3xl font-bold text-dark-grey mb-4">
+                            {item.title}
+                          </h3>
+                        </div>
+                      </div>
+
+                      {/* User quote */}
+                      <div className="bg-white/80 backdrop-blur-sm border-l-4 border-leaf-green rounded-lg p-6 mb-6 shadow-sm">
+                        <p className="text-lg italic text-mid-grey">
+                          &quot;{item.quote}&quot;
+                        </p>
+                      </div>
+
+                      {/* Description */}
+                      <div className="bg-white rounded-xl p-8 shadow-md">
+                        <div className="flex items-start gap-4">
+                          <div className="flex-shrink-0 p-3 bg-leaf-green/10 rounded-lg">
+                            <Icon className="w-8 h-8 text-leaf-green" />
+                          </div>
+                          <p className="text-lg text-mid-grey leading-relaxed flex-1">
+                            {item.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </ScrollHighlightStep>
+                );
+              })}
+            </div>
+
+            {/* Right: Sticky Visual Skeleton */}
+            <div className="sticky top-24 h-[600px] flex items-center justify-center">
+              <ParallaxVisual />
+            </div>
+          </div>
+
+          {/* Mobile: Original stacked layout */}
+          <div className="lg:hidden space-y-24">
+            {howItWorksSteps.map((item) => {
               const Icon = item.icon;
               return (
-                <ScrollHighlightStep key={item.step} index={index}>
+                <ScrollHighlightStep key={item.step}>
                   <div className="relative">
                     {/* Step number badge */}
                     <div className="flex items-start gap-6 mb-6">
