@@ -71,15 +71,17 @@ export default function UniversityDetailPage() {
         <SlideUp>
           <Card className="mb-8">
             <CardContent className="p-0">
-              <div className="relative h-80 overflow-hidden">
+              <div className="relative w-full overflow-hidden">
                 {/* Background Image */}
-                <Image
-                  src={university.logo}
-                  alt={university.name}
-                  fill
-                  className="object-cover"
-                  priority
-                />
+                <div className="relative w-full h-0 pb-[56.25%]">
+                  <Image
+                    src={university.logo}
+                    alt={university.name}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                </div>
                 {/* Dark overlay for better text visibility */}
                 <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
                 
