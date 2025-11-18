@@ -71,54 +71,54 @@ export default function UniversityDetailPage() {
         <SlideUp>
           <Card className="mb-8">
             <CardContent className="p-0">
-              <div className="relative h-64 bg-linear-to-br from-leaf-green/20 to-light-green/10">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-32 h-32 bg-white rounded-full shadow-lg flex items-center justify-center overflow-hidden">
-                    <Image
-                      src={university.logo}
-                      alt={university.name}
-                      width={128}
-                      height={128}
-                      className="object-cover"
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="p-8">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
-                  <div>
-                    <h1 className="text-3xl font-bold text-dark-grey mb-2">
+              <div className="relative h-80 overflow-hidden">
+                {/* Background Image */}
+                <Image
+                  src={university.logo}
+                  alt={university.name}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+                {/* Dark overlay for better text visibility */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
+                
+                {/* University Name Overlay */}
+                <div className="absolute inset-0 flex items-end p-8">
+                  <div className="text-white">
+                    <h1 className="text-4xl md:text-5xl font-bold mb-2 drop-shadow-lg">
                       {university.name}
                     </h1>
-                    <div className="flex flex-wrap items-center gap-4 text-mid-grey">
-                      <span className="flex items-center gap-1">
+                    <div className="flex flex-wrap items-center gap-4">
+                      <span className="flex items-center gap-1 drop-shadow-md">
                         <MapPin className="w-4 h-4" />
                         {university.city}, {university.country}
                       </span>
                       {university.foundingYear && (
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1 drop-shadow-md">
                           <Calendar className="w-4 h-4" />
                           Founded {university.foundingYear}
                         </span>
                       )}
                       {university.type && (
-                        <Badge variant="secondary" className="capitalize">
+                        <Badge variant="secondary" className="capitalize bg-white/20 backdrop-blur-sm border-white/30 text-white">
                           {university.type}
                         </Badge>
                       )}
                     </div>
                   </div>
-                  
-                  <div className="flex gap-3">
-                    <Button
-                      variant={saved ? 'default' : 'outline'}
-                      onClick={toggleSave}
-                    >
-                      {saved ? 'Saved' : 'Save'}
-                    </Button>
-                    <Button>Apply Now</Button>
-                  </div>
+                </div>
+              </div>
+              
+              <div className="p-8">
+                <div className="flex justify-end gap-3 mb-6">
+                  <Button
+                    variant={saved ? 'default' : 'outline'}
+                    onClick={toggleSave}
+                  >
+                    {saved ? 'Saved' : 'Save'}
+                  </Button>
+                  <Button>Apply Now</Button>
                 </div>
 
                 {/* Key Stats */}
