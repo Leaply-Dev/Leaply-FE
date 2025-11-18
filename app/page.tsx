@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { GraduationCap, Brain, Target, Globe, ArrowRight, Sparkles, Users, FileCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { StaggerContainer, StaggerItem, SlideUp } from '@/components/PageTransition';
-import { motion, useInView } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const features = [
   {
@@ -93,28 +93,7 @@ function ScrollHighlightStep({
 }: { 
   children: React.ReactNode;
 }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { 
-    margin: '-40% 0px -40% 0px',
-    amount: 0.5
-  });
-
-  return (
-    <motion.div
-      ref={ref}
-      animate={{
-        opacity: isInView ? 1 : 0.3,
-        scale: isInView ? 1 : 0.95,
-      }}
-      transition={{
-        duration: 0.6,
-        ease: 'easeOut',
-      }}
-      className="relative"
-    >
-      {children}
-    </motion.div>
-  );
+  return <div className="relative">{children}</div>;
 }
 
 function ParallaxVisual() {
@@ -209,11 +188,8 @@ function ParallaxVisual() {
   const Icon = currentVisual.icon;
   
   return (
-    <motion.div 
+    <div 
       className="relative w-full h-full bg-white rounded-2xl shadow-2xl p-8 overflow-hidden"
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4 }}
     >
       {/* Background gradient */}
       <motion.div
@@ -225,12 +201,8 @@ function ParallaxVisual() {
       />
       
       {/* Header with icon */}
-      <motion.div 
+      <div 
         className="relative flex items-center justify-between mb-8"
-        key={`header-${activeStep}`}
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
       >
         <div className="flex items-center gap-3">
           <div 
@@ -258,15 +230,11 @@ function ParallaxVisual() {
             />
           ))}
         </div>
-      </motion.div>
+      </div>
       
       {/* Image Visual */}
-      <motion.div 
+      <div 
         className="relative h-[450px] w-full rounded-xl overflow-hidden flex items-center justify-center"
-        key={`image-${activeStep}`}
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         <Image
           src={currentVisual.imagePath}
@@ -275,8 +243,8 @@ function ParallaxVisual() {
           className="object-contain p-4"
           priority={activeStep === 1}
         />
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 
@@ -429,14 +397,12 @@ export default function HomePage() {
       <section className="py-20 bg-light-grey">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <SlideUp>
-              <h2 className="text-3xl md:text-4xl font-bold text-dark-grey mb-4">
-                How Leaply Works
-              </h2>
-              <p className="text-lg text-mid-grey max-w-2xl mx-auto">
-                Four simple steps to find and apply to your dream university
-              </p>
-            </SlideUp>
+            <h2 className="text-3xl md:text-4xl font-bold text-dark-grey mb-4">
+              How Leaply Works
+            </h2>
+            <p className="text-lg text-mid-grey max-w-2xl mx-auto">
+              Four simple steps to find and apply to your dream university
+            </p>
           </div>
 
           {/* Desktop: Two-column layout with sticky right side */}
