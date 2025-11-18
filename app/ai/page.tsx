@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { MessageCircle, Sparkles, Bot } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
@@ -20,24 +21,39 @@ export default function AIPage() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-linear-to-br from-light-grey via-white to-light-green/10">
+      <div className="min-h-screen bg-background">
         {/* Hero Header */}
-        <div className="bg-gradient-to-r from-leaf-green via-light-green to-sky-blue text-white py-12 sm:py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="relative bg-background py-12 sm:py-16 overflow-hidden">
+          {/* Background Image */}
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/hero.png"
+              alt="Hero background"
+              fill
+              className="object-cover opacity-20"
+              priority
+              quality={90}
+            />
+            {/* Overlay for better text readability */}
+            <div className="absolute inset-0" />
+          </div>
+          
+          {/* Content */}
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <div className="inline-flex items-center gap-2 bg-card/20 backdrop-blur-sm rounded-full px-4 py-2 mb-4">
-                <Bot className="w-5 h-5" />
-                <span className="text-sm font-medium">AI-Powered Tools</span>
+                <Bot className="w-5 h-5 text-foreground" />
+                <span className="text-sm font-medium text-foreground">AI-Powered Tools</span>
               </div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-foreground">
                 Your AI Study Abroad Assistant
               </h1>
-              <p className="text-lg sm:text-xl text-white/90 max-w-3xl mx-auto">
+              <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
                 Get personalized guidance with our AI chatbot advisor and discover your perfect university matches with Persona Lab
               </p>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -63,7 +79,7 @@ export default function AIPage() {
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Info Sidebar */}
                 <div className="lg:col-span-1 space-y-4">
-                  <Card className="p-6 bg-linear-to-br from-chart-2/10 to-primary/10 border-primary/20">
+                  <Card className="p-6 bg-gradient-to-br from-chart-2/10 to-primary/10 border-primary/20">
                     <div className="space-y-4">
                       <div>
                         <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-3">
@@ -154,9 +170,9 @@ export default function AIPage() {
             <TabsContent value="persona-lab" className="mt-0">
               <div className="space-y-6">
                 {/* Header Info */}
-                <Card className="p-6 bg-gradient-to-r from-purple-50 via-pink-50 to-orange-50 border-purple-200">
+                <Card className="p-6 bg-gradient-to-r from-chart-2/10 via-primary/10 to-chart-4/10 border-primary/20">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-linear-to-br from-primary to-accent rounded-xl flex items-center justify-center shrink-0">
+                    <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shrink-0">
                       <Sparkles className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1">
@@ -176,7 +192,7 @@ export default function AIPage() {
                         <Badge className="bg-chart-4 text-white">
                           Save Profiles
                         </Badge>
-                        <Badge className="bg-purple-500 text-white">
+                        <Badge className="bg-chart-3 text-white">
                           AI Analysis
                         </Badge>
                       </div>
@@ -217,7 +233,7 @@ export default function AIPage() {
                       </p>
                     </div>
                     <div className="text-center p-4">
-                      <div className="w-12 h-12 bg-purple-500/20 text-purple-500 rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold">
+                      <div className="w-12 h-12 bg-chart-3/20 text-chart-3 rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold">
                         3
                       </div>
                       <h4 className="font-semibold text-foreground mb-2 text-sm">

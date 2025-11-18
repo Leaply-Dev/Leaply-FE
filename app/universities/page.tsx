@@ -2,10 +2,11 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Search, Sparkles, Globe } from 'lucide-react';
 import { AIMatchCard } from '@/components/AIMatchCard';
 import { ExploreCard } from '@/components/ExploreCard';
-import { FilterQuestionnaire, FilterState } from '@/components/FilterQuestionnaire';
+import { FilterQuestionnaire, type FilterState } from '@/components/FilterQuestionnaire';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -123,14 +124,29 @@ export default function UniversitiesPage() {
   return (
     <PageTransition>
       {/* Hero Section */}
-      <section className="bg-linear-to-br from-primary to-accent text-primary-foreground py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-background py-16 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/hero.png"
+            alt="Hero background"
+            fill
+            className="object-cover opacity-20"
+            priority
+            quality={90}
+          />
+          {/* Overlay for better text readability */}
+          <div className="absolute inset-0" />
+        </div>
+        
+        {/* Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SlideUp>
             <div className="text-center mb-8">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
                 Discover Your Perfect Match
               </h1>
-              <p className="text-xl text-primary-foreground/90">
+              <p className="text-xl text-muted-foreground">
                 Personalized recommendations or explore 1000+ universities worldwide
               </p>
             </div>
@@ -179,7 +195,7 @@ export default function UniversitiesPage() {
                     {profile ? (
                       <>Based on your profile, we've found <span className="font-semibold text-primary">{aiMatchedUniversities.length} universities</span> that may be a great fit for you</>
                     ) : (
-                      <>Complete your profile to see personalized AI recommendations</>
+                      "Complete your profile to see personalized AI recommendations"
                     )}
                   </p>
                 </div>

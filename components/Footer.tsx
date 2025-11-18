@@ -96,7 +96,7 @@ export function Footer() {
                 href="mailto:support@leaply.com"
                 className="hover:text-primary transition-colors"
               >
-                support@leaply.com
+                support@leaply.ai.vn
               </a>
             </div>
           </div>
