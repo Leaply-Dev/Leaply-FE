@@ -99,7 +99,7 @@ export function UniversityCard({
             </Button>
             <Button
               size="sm"
-              variant={saved ? 'default' : 'outline-solid'}
+              variant={saved ? 'default' : 'outline'}
               onClick={toggleSave}
             >
               {saved ? '★' : '☆'}
