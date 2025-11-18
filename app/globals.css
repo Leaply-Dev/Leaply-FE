@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+  
+  body {
+    @apply bg-light-grey text-dark-grey antialiased;
+  }
+}
+
+@layer components {
+  .container-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+  
+  .page-container {
+    @apply max-w-7xl mx-auto container-padding py-8;
+  }
+}
