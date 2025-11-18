@@ -1,17 +1,16 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { initializeAppData } from '@/lib/initializeData';
+import { useEffect } from "react";
+import { initializeAppData } from "@/lib/initializeData";
 
 /**
  * Client component that initializes all app data on mount
  * This ensures mock data is loaded consistently across the app
  */
 export function DataInitializer() {
-  useEffect(() => {
-    initializeAppData();
-  }, []);
+	useEffect(() => {
+		initializeAppData();
+	}, []);
 
-  return null;
+	return null;
 }
-

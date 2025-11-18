@@ -1,102 +1,104 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 export interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: string;
+	id: string;
+	role: "user" | "assistant";
+	content: string;
+	timestamp: string;
 }
 
 export interface Conversation {
-  id: string;
-  title: string;
-  messages: ChatMessage[];
-  createdAt: string;
-  updatedAt: string;
+	id: string;
+	title: string;
+	messages: ChatMessage[];
+	createdAt: string;
+	updatedAt: string;
 }
 
 interface ChatState {
-  conversations: Conversation[];
-  currentConversationId: string | null;
-  isTyping: boolean;
+	conversations: Conversation[];
+	currentConversationId: string | null;
+	isTyping: boolean;
 
-  setConversations: (conversations: Conversation[]) => void;
-  createConversation: (title?: string) => string;
-  deleteConversation: (id: string) => void;
-  setCurrentConversation: (id: string | null) => void;
-  getCurrentConversation: () => Conversation | undefined;
-  
-  addMessage: (conversationId: string, message: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
-  setTyping: (isTyping: boolean) => void;
-  
-  updateConversationTitle: (id: string, title: string) => void;
+	setConversations: (conversations: Conversation[]) => void;
+	createConversation: (title?: string) => string;
+	deleteConversation: (id: string) => void;
+	setCurrentConversation: (id: string | null) => void;
+	getCurrentConversation: () => Conversation | undefined;
+
+	addMessage: (
+		conversationId: string,
+		message: Omit<ChatMessage, "id" | "timestamp">,
+	) => void;
+	setTyping: (isTyping: boolean) => void;
+
+	updateConversationTitle: (id: string, title: string) => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
-  conversations: [],
-  currentConversationId: null,
-  isTyping: false,
+	conversations: [],
+	currentConversationId: null,
+	isTyping: false,
 
-  setConversations: (conversations) => set({ conversations }),
+	setConversations: (conversations) => set({ conversations }),
 
-  createConversation: (title = 'New Conversation') => {
-    const newConversation: Conversation = {
-      id: `conv_${Date.now()}`,
-      title,
-      messages: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    
-    set((state) => ({
-      conversations: [newConversation, ...state.conversations],
-      currentConversationId: newConversation.id,
-    }));
-    
-    return newConversation.id;
-  },
+	createConversation: (title = "New Conversation") => {
+		const newConversation: Conversation = {
+			id: `conv_${Date.now()}`,
+			title,
+			messages: [],
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+		};
 
-  deleteConversation: (id) =>
-    set((state) => ({
-      conversations: state.conversations.filter((conv) => conv.id !== id),
-      currentConversationId:
-        state.currentConversationId === id ? null : state.currentConversationId,
-    })),
+		set((state) => ({
+			conversations: [newConversation, ...state.conversations],
+			currentConversationId: newConversation.id,
+		}));
 
-  setCurrentConversation: (id) => set({ currentConversationId: id }),
+		return newConversation.id;
+	},
 
-  getCurrentConversation: () => {
-    const { conversations, currentConversationId } = get();
-    return conversations.find((conv) => conv.id === currentConversationId);
-  },
+	deleteConversation: (id) =>
+		set((state) => ({
+			conversations: state.conversations.filter((conv) => conv.id !== id),
+			currentConversationId:
+				state.currentConversationId === id ? null : state.currentConversationId,
+		})),
 
-  addMessage: (conversationId, message) => {
-    const newMessage: ChatMessage = {
-      id: `msg_${Date.now()}_${Math.random()}`,
-      ...message,
-      timestamp: new Date().toISOString(),
-    };
+	setCurrentConversation: (id) => set({ currentConversationId: id }),
 
-    set((state) => ({
-      conversations: state.conversations.map((conv) =>
-        conv.id === conversationId
-          ? {
-              ...conv,
-              messages: [...conv.messages, newMessage],
-              updatedAt: new Date().toISOString(),
-            }
-          : conv
-      ),
-    }));
-  },
+	getCurrentConversation: () => {
+		const { conversations, currentConversationId } = get();
+		return conversations.find((conv) => conv.id === currentConversationId);
+	},
 
-  setTyping: (isTyping) => set({ isTyping }),
+	addMessage: (conversationId, message) => {
+		const newMessage: ChatMessage = {
+			id: `msg_${Date.now()}_${Math.random()}`,
+			...message,
+			timestamp: new Date().toISOString(),
+		};
 
-  updateConversationTitle: (id, title) =>
-    set((state) => ({
-      conversations: state.conversations.map((conv) =>
-        conv.id === id ? { ...conv, title } : conv
-      ),
-    })),
+		set((state) => ({
+			conversations: state.conversations.map((conv) =>
+				conv.id === conversationId
+					? {
+							...conv,
+							messages: [...conv.messages, newMessage],
+							updatedAt: new Date().toISOString(),
+						}
+					: conv,
+			),
+		}));
+	},
+
+	setTyping: (isTyping) => set({ isTyping }),
+
+	updateConversationTitle: (id, title) =>
+		set((state) => ({
+			conversations: state.conversations.map((conv) =>
+				conv.id === id ? { ...conv, title } : conv,
+			),
+		})),
 }));
-
