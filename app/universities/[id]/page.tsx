@@ -112,7 +112,7 @@ export default function UniversityDetailPage() {
                   
                   <div className="flex gap-3">
                     <Button
-                      variant={saved ? 'default' : 'outline-solid'}
+                      variant={saved ? 'default' : 'outline'}
                       onClick={toggleSave}
                     >
                       {saved ? 'Saved' : 'Save'}
