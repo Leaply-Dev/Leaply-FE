@@ -171,9 +171,9 @@ export default function PersonaLabPage() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-to-br from-leaf-green via-light-green to-white">
+      <div className="min-h-screen bg-linear-to-br from-leaf-green via-light-green to-white">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-leaf-green to-light-green text-white py-16">
+        <div className="bg-linear-to-r from-leaf-green to-light-green text-white py-16">
           <PageContainer>
             <div className="text-center">
               <SlideUp>
@@ -213,7 +213,7 @@ export default function PersonaLabPage() {
                     className={`text-left p-4 rounded-xl border-l-4 ${blueprint.borderColor} bg-white hover:shadow-lg transition-all duration-300 transform hover:-translate-x-1 ${
                       selectedBlueprint === blueprint.id
                         ? 'shadow-lg ring-2 ring-leaf-green ring-opacity-50'
-                        : 'shadow'
+                        : 'shadow-sm'
                     }`}
                   >
                     <div className="flex items-start gap-3 mb-3">
@@ -341,7 +341,7 @@ export default function PersonaLabPage() {
           {/* AI Chat Assistant */}
           <SlideUp delay={0.3}>
             <Card className="mt-8 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-leaf-green to-light-green text-white">
+              <CardHeader className="bg-linear-to-r from-leaf-green to-light-green text-white">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl">
                     🤖
@@ -388,7 +388,7 @@ export default function PersonaLabPage() {
                           }`}
                         >
                           {message.role === 'assistant' && (
-                            <div className="w-8 h-8 bg-gradient-to-br from-leaf-green to-light-green rounded-full flex items-center justify-center text-white flex-shrink-0">
+                            <div className="w-8 h-8 bg-linear-to-br from-leaf-green to-light-green rounded-full flex items-center justify-center text-white shrink-0">
                               🤖
                             </div>
                           )}
@@ -396,13 +396,13 @@ export default function PersonaLabPage() {
                             className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                               message.role === 'user'
                                 ? 'bg-leaf-green text-white'
-                                : 'bg-white shadow-sm'
+                                : 'bg-white shadow-xs'
                             }`}
                           >
                             <p className="text-sm leading-relaxed">{message.content}</p>
                           </div>
                           {message.role === 'user' && (
-                            <div className="w-8 h-8 bg-dark-grey rounded-full flex items-center justify-center text-white flex-shrink-0">
+                            <div className="w-8 h-8 bg-dark-grey rounded-full flex items-center justify-center text-white shrink-0">
                               👤
                             </div>
                           )}
@@ -410,10 +410,10 @@ export default function PersonaLabPage() {
                       ))}
                       {isChatTyping && (
                         <div className="flex gap-3">
-                          <div className="w-8 h-8 bg-gradient-to-br from-leaf-green to-light-green rounded-full flex items-center justify-center text-white">
+                          <div className="w-8 h-8 bg-linear-to-br from-leaf-green to-light-green rounded-full flex items-center justify-center text-white">
                             🤖
                           </div>
-                          <div className="bg-white shadow-sm rounded-2xl px-4 py-3">
+                          <div className="bg-white shadow-xs rounded-2xl px-4 py-3">
                             <div className="flex gap-1">
                               <div className="w-2 h-2 bg-mid-grey rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                               <div className="w-2 h-2 bg-mid-grey rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
@@ -453,7 +453,7 @@ export default function PersonaLabPage() {
 
           {/* Info Section */}
           <SlideUp delay={0.4}>
-            <Card className="mt-8 bg-gradient-to-r from-sky-blue/10 to-leaf-green/10 border-sky-blue/20">
+            <Card className="mt-8 bg-linear-to-r from-sky-blue/10 to-leaf-green/10 border-sky-blue/20">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="p-3 bg-sky-blue/20 rounded-lg">

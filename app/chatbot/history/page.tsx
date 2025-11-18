@@ -80,7 +80,7 @@ export default function ChatHistoryPage() {
                           variant="ghost"
                           size="sm"
                           onClick={(e) => handleDeleteConversation(conversation.id, e)}
-                          className="flex-shrink-0"
+                          className="shrink-0"
                         >
                           <Trash2 className="w-4 h-4 text-red-600" />
                         </Button>

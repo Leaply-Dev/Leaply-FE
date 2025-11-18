@@ -15,7 +15,7 @@ export function Hero({ title, subtitle, children, className }: HeroProps) {
   return (
     <section
       className={cn(
-        'relative bg-gradient-to-br from-leaf-green/10 via-light-green/5 to-white py-20 md:py-32',
+        'relative bg-linear-to-br from-leaf-green/10 via-light-green/5 to-white py-20 md:py-32',
         className
       )}
     >

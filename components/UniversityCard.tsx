@@ -54,7 +54,7 @@ export function UniversityCard({
   return (
     <Card className={cn('overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1', className)}>
       <CardContent className="p-0">
-        <div className="relative h-48 bg-gradient-to-br from-leaf-green/10 to-light-green/5">
+        <div className="relative h-48 bg-linear-to-br from-leaf-green/10 to-light-green/5">
           <Image
             src={logo}
             alt={name}
@@ -99,7 +99,7 @@ export function UniversityCard({
             </Button>
             <Button
               size="sm"
-              variant={saved ? 'default' : 'outline'}
+              variant={saved ? 'default' : 'outline-solid'}
               onClick={toggleSave}
             >
               {saved ? '★' : '☆'}

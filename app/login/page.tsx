@@ -82,7 +82,7 @@ export default function LoginPage() {
 
               <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center gap-2">
-                  <input type="checkbox" className="rounded" />
+                  <input type="checkbox" className="rounded-sm" />
                   <span className="text-mid-grey">Remember me</span>
                 </label>
                 <Link href="#" className="text-leaf-green hover:text-light-green">

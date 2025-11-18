@@ -95,7 +95,7 @@ export default function UniversitiesPage() {
   return (
     <PageTransition>
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-leaf-green to-light-green text-white py-16">
+      <section className="bg-linear-to-br from-leaf-green to-light-green text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SlideUp>
             <div className="text-center mb-8">
@@ -150,7 +150,7 @@ export default function UniversitiesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex gap-8">
           {/* Sidebar Filters */}
-          <aside className="w-64 flex-shrink-0">
+          <aside className="w-64 shrink-0">
             <div className="sticky top-24 space-y-6">
               {/* Filters Header */}
               <div className="flex items-center justify-between mb-4">
@@ -178,7 +178,7 @@ export default function UniversitiesPage() {
                         type="checkbox"
                         checked={selectedCountries.includes(country)}
                         onChange={() => handleCountryToggle(country)}
-                        className="w-4 h-4 rounded border-gray-300 text-leaf-green focus:ring-leaf-green"
+                        className="w-4 h-4 rounded-sm border-gray-300 text-leaf-green focus:ring-leaf-green"
                       />
                       <span className="text-sm text-mid-grey">{country}</span>
                     </label>
@@ -203,7 +203,7 @@ export default function UniversitiesPage() {
                         type="checkbox"
                         checked={selectedRankings.includes(range.value)}
                         onChange={() => handleRankingToggle(range.value)}
-                        className="w-4 h-4 rounded border-gray-300 text-leaf-green focus:ring-leaf-green"
+                        className="w-4 h-4 rounded-sm border-gray-300 text-leaf-green focus:ring-leaf-green"
                       />
                       <span className="text-sm text-mid-grey">{range.label}</span>
                     </label>

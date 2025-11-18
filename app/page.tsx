@@ -341,8 +341,8 @@ export default function HomePage() {
           </div>
 
           <div className="relative overflow-hidden">
-            <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-light-grey to-transparent pointer-events-none" />
-            <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-light-grey to-transparent pointer-events-none" />
+            <div className="absolute inset-y-0 left-0 w-16 bg-linear-to-r from-light-grey to-transparent pointer-events-none" />
+            <div className="absolute inset-y-0 right-0 w-16 bg-linear-to-l from-light-grey to-transparent pointer-events-none" />
 
             <div className="marquee-track flex items-center gap-10 py-6">
               {marqueeUniversities.map((university, index) => (
@@ -450,7 +450,7 @@ export default function HomePage() {
                     <div className="relative" data-step={item.step}>
                       {/* Step number badge */}
                       <div className="flex items-start gap-6 mb-6">
-                        <div className="flex-shrink-0 w-16 h-16 bg-leaf-green text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg">
+                        <div className="shrink-0 w-16 h-16 bg-leaf-green text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg">
                           {item.step}
                         </div>
                         <div className="flex-1 pt-2">
@@ -461,7 +461,7 @@ export default function HomePage() {
                       </div>
 
                       {/* User quote */}
-                      <div className="bg-white/80 backdrop-blur-sm border-l-4 border-leaf-green rounded-lg p-6 mb-6 shadow-sm">
+                      <div className="bg-white/80 backdrop-blur-xs border-l-4 border-leaf-green rounded-lg p-6 mb-6 shadow-xs">
                         <p className="text-lg italic text-mid-grey">
                           &quot;{item.quote}&quot;
                         </p>
@@ -470,7 +470,7 @@ export default function HomePage() {
                       {/* Description */}
                       <div className="bg-white rounded-xl p-8 shadow-md">
                         <div className="flex items-start gap-4">
-                          <div className="flex-shrink-0 p-3 bg-leaf-green/10 rounded-lg">
+                          <div className="shrink-0 p-3 bg-leaf-green/10 rounded-lg">
                             <Icon className="w-8 h-8 text-leaf-green" />
                           </div>
                           <p className="text-lg text-mid-grey leading-relaxed flex-1">
@@ -499,7 +499,7 @@ export default function HomePage() {
                   <div className="relative">
                     {/* Step number badge */}
                     <div className="flex items-start gap-6 mb-6">
-                      <div className="flex-shrink-0 w-16 h-16 bg-leaf-green text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg">
+                      <div className="shrink-0 w-16 h-16 bg-leaf-green text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg">
                         {item.step}
                       </div>
                       <div className="flex-1 pt-2">
@@ -510,7 +510,7 @@ export default function HomePage() {
                     </div>
 
                     {/* User quote */}
-                    <div className="bg-white/80 backdrop-blur-sm border-l-4 border-leaf-green rounded-lg p-6 mb-6 shadow-sm">
+                    <div className="bg-white/80 backdrop-blur-xs border-l-4 border-leaf-green rounded-lg p-6 mb-6 shadow-xs">
                       <p className="text-lg italic text-mid-grey">
                         &quot;{item.quote}&quot;
                       </p>
@@ -519,7 +519,7 @@ export default function HomePage() {
                     {/* Description */}
                     <div className="bg-white rounded-xl p-8 shadow-md">
                       <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 p-3 bg-leaf-green/10 rounded-lg">
+                        <div className="shrink-0 p-3 bg-leaf-green/10 rounded-lg">
                           <Icon className="w-8 h-8 text-leaf-green" />
                         </div>
                         <p className="text-lg text-mid-grey leading-relaxed flex-1">
@@ -536,7 +536,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-leaf-green to-light-green text-white">
+      <section className="py-20 bg-linear-to-br from-leaf-green to-light-green text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <SlideUp>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">

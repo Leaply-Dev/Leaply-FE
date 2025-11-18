@@ -149,7 +149,7 @@ export default function ApplicationDetailPage() {
                     <div className="space-y-3">
                       {application.documents.map(doc => (
                         <div key={doc.id} className="flex items-center gap-3 p-3 bg-light-grey rounded-lg">
-                          <FileText className="w-5 h-5 text-leaf-green flex-shrink-0" />
+                          <FileText className="w-5 h-5 text-leaf-green shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-dark-grey truncate">
                               {doc.name}
@@ -183,7 +183,7 @@ export default function ApplicationDetailPage() {
                       {application.timeline.map((event, index) => (
                         <div key={event.id} className="flex gap-3">
                           <div className="flex flex-col items-center">
-                            <div className="w-8 h-8 bg-leaf-green rounded-full flex items-center justify-center flex-shrink-0">
+                            <div className="w-8 h-8 bg-leaf-green rounded-full flex items-center justify-center shrink-0">
                               <CheckCircle className="w-4 h-4 text-white" />
                             </div>
                             {index < application.timeline.length - 1 && (

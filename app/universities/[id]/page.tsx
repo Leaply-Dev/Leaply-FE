@@ -71,7 +71,7 @@ export default function UniversityDetailPage() {
         <SlideUp>
           <Card className="mb-8">
             <CardContent className="p-0">
-              <div className="relative h-64 bg-gradient-to-br from-leaf-green/20 to-light-green/10">
+              <div className="relative h-64 bg-linear-to-br from-leaf-green/20 to-light-green/10">
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-32 h-32 bg-white rounded-full shadow-lg flex items-center justify-center overflow-hidden">
                     <Image
@@ -112,7 +112,7 @@ export default function UniversityDetailPage() {
                   
                   <div className="flex gap-3">
                     <Button
-                      variant={saved ? 'default' : 'outline'}
+                      variant={saved ? 'default' : 'outline-solid'}
                       onClick={toggleSave}
                     >
                       {saved ? 'Saved' : 'Save'}
@@ -283,7 +283,7 @@ export default function UniversityDetailPage() {
                     <div className="space-y-4">
                       {university.applicationRequirements.map((req, idx) => (
                         <div key={idx} className="flex gap-4">
-                          <div className="flex-shrink-0 w-8 h-8 bg-leaf-green/10 rounded-full flex items-center justify-center">
+                          <div className="shrink-0 w-8 h-8 bg-leaf-green/10 rounded-full flex items-center justify-center">
                             <BookOpen className="w-4 h-4 text-leaf-green" />
                           </div>
                           <div className="flex-1">
