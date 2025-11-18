@@ -1,0 +1,105 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { ResourceCard } from '@/components/ResourceCard';
+import { PageContainer } from '@/components/Layout';
+import { useApplicationsStore } from '@/lib/store/applicationsStore';
+import { mockResources } from '@/lib/data/resources';
+import { PageTransition, StaggerContainer, StaggerItem } from '@/components/PageTransition';
+
+export default function ResourcesPage() {
+  const { resources, setResources } = useApplicationsStore();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+
+  useEffect(() => {
+    if (resources.length === 0) {
+      setResources(mockResources);
+    }
+  }, [resources.length, setResources]);
+
+  const categories = Array.from(new Set(mockResources.map(r => r.category))).sort();
+
+  const filteredResources = resources.filter(resource => {
+    const matchesSearch = resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         resource.summary.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = categoryFilter === 'all' || resource.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
+  return (
+    <PageTransition>
+      <PageContainer>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-dark-grey mb-2">
+            Resources
+          </h1>
+          <p className="text-lg text-mid-grey">
+            Guides, articles, and tools to help you succeed in your applications
+          </p>
+        </div>
+
+        {/* Search and Filter */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mid-grey" />
+            <Input
+              type="text"
+              placeholder="Search resources..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="md:w-48"
+          >
+            <option value="all">All Categories</option>
+            {categories.map(category => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </Select>
+        </div>
+
+        {/* Results Count */}
+        <p className="text-sm text-mid-grey mb-6">
+          {filteredResources.length} resource{filteredResources.length !== 1 ? 's' : ''} found
+        </p>
+
+        {/* Resources Grid */}
+        <StaggerContainer>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredResources.map((resource) => (
+              <StaggerItem key={resource.id}>
+                <ResourceCard
+                  title={resource.title}
+                  summary={resource.summary}
+                  url={resource.url}
+                  type={resource.type}
+                  tags={resource.tags}
+                />
+              </StaggerItem>
+            ))}
+          </div>
+        </StaggerContainer>
+
+        {filteredResources.length === 0 && (
+          <div className="text-center py-16">
+            <Search className="w-16 h-16 text-mid-grey mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-dark-grey mb-2">
+              No resources found
+            </h3>
+            <p className="text-mid-grey">
+              Try adjusting your search or filters
+            </p>
+          </div>
+        )}
+      </PageContainer>
+    </PageTransition>
+  );
+}
