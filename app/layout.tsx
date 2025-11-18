@@ -6,6 +6,9 @@ import { DataInitializer } from '@/components/DataInitializer';
 export const metadata = {
   title: 'Leaply - Your AI-Powered Study Abroad Companion',
   description: 'Discover universities, manage applications, and get personalized guidance for studying abroad with Leaply.',
+  icons: {
+    icon: '/icon.ico',
+  },
 };
 
 export default function RootLayout({
