@@ -12,9 +12,9 @@ import { cn } from "@/lib/utils";
 
 // Before Login (Public)
 const publicNavLinks = [
-	{ href: "/#features", label: "Features" },
-	{ href: "/#how-it-works", label: "How it Works" },
-	{ href: "/#about", label: "About" },
+	{ href: "/", label: "Home" },
+	{ href: "/features", label: "Features" },
+	{ href: "/about", label: "About" },
 ];
 
 // After Login (Authenticated)
@@ -74,20 +74,23 @@ export function Navbar() {
 
 					{/* Desktop Navigation */}
 					<div className="hidden md:flex items-center gap-6">
-						{navLinks.map((link) => (
-							<Link
-								key={link.href}
-								href={link.href}
-								className={cn(
-									"text-sm font-medium transition-colors hover:text-primary",
-									pathname === link.href || (link.href !== "/" && pathname?.startsWith(link.href.split("#")[0]))
-										? "text-primary"
-										: "text-foreground",
-								)}
-							>
-								{link.label}
-							</Link>
-						))}
+						{navLinks.map((link) => {
+							const isActive = link.href === "/" 
+								? pathname === "/" 
+								: pathname === link.href || pathname?.startsWith(link.href);
+							return (
+								<Link
+									key={link.href}
+									href={link.href}
+									className={cn(
+										"text-sm font-medium transition-colors hover:text-primary",
+										isActive ? "text-primary" : "text-foreground",
+									)}
+								>
+									{link.label}
+								</Link>
+							);
+						})}
 					</div>
 
 					{/* Auth Buttons / Avatar */}
@@ -176,21 +179,24 @@ export function Navbar() {
 				{mobileMenuOpen && (
 					<div className="md:hidden py-4 border-t border-border">
 						<div className="flex flex-col gap-4">
-							{navLinks.map((link) => (
-								<Link
-									key={link.href}
-									href={link.href}
-									className={cn(
-										"text-sm font-medium",
-										pathname === link.href || (link.href !== "/" && pathname?.startsWith(link.href.split("#")[0]))
-											? "text-primary"
-											: "text-foreground",
-									)}
-									onClick={() => setMobileMenuOpen(false)}
-								>
-									{link.label}
-								</Link>
-							))}
+							{navLinks.map((link) => {
+								const isActive = link.href === "/" 
+									? pathname === "/" 
+									: pathname === link.href || pathname?.startsWith(link.href);
+								return (
+									<Link
+										key={link.href}
+										href={link.href}
+										className={cn(
+											"text-sm font-medium",
+											isActive ? "text-primary" : "text-foreground",
+										)}
+										onClick={() => setMobileMenuOpen(false)}
+									>
+										{link.label}
+									</Link>
+								);
+							})}
 							<div className="pt-4 border-t border-border flex flex-col gap-2">
 								{isAuthenticated ? (
 									<>

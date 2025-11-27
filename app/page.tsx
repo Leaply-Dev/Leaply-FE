@@ -14,6 +14,9 @@ import {
 	FileCheck,
 	Bot,
 	User,
+	School,
+	MapPin,
+	ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,34 +27,41 @@ import {
 } from "@/components/PageTransition";
 import { motion } from "framer-motion";
 
+// Social proof stats
+const stats = [
+	{ value: "2,000+", label: "Học sinh tin tưởng", icon: Users },
+	{ value: "1,500+", label: "Trường đại học", icon: School },
+	{ value: "50+", label: "Quốc gia", icon: MapPin },
+];
+
 const features = [
 	{
 		icon: Globe,
-		title: "Global University Search",
+		title: "Khám phá trường học",
 		description:
-			"Explore thousands of universities worldwide with detailed information on programs, rankings, and requirements.",
-		href: "/universities",
+			"Tìm kiếm hàng ngàn trường đại học trên toàn thế giới với thông tin chi tiết về chương trình, xếp hạng và yêu cầu.",
+		href: "/features",
 	},
 	{
 		icon: Brain,
-		title: "AI-Powered Matching",
+		title: "AI Matching thông minh",
 		description:
-			"Get personalized university recommendations based on your academic profile, preferences, and career goals.",
-		href: "/persona-lab",
+			"Nhận gợi ý trường phù hợp dựa trên profile học thuật, sở thích và mục tiêu nghề nghiệp của bạn.",
+		href: "/features",
 	},
 	{
 		icon: Target,
-		title: "Application Management",
+		title: "Quản lý hồ sơ",
 		description:
-			"Track deadlines, manage documents, and stay organized throughout your application journey.",
-		href: "/dashboard/applications",
+			"Theo dõi deadline, quản lý tài liệu và giữ mọi thứ ngăn nắp trong suốt hành trình apply.",
+		href: "/features",
 	},
 	{
-		icon: GraduationCap,
-		title: "24/7 AI Assistant",
+		icon: Sparkles,
+		title: "Persona Lab",
 		description:
-			"Get instant answers to your questions about applications, requirements, and studying abroad.",
-		href: "/dashboard",
+			"Khám phá điểm mạnh, viết essay ấn tượng với sự hỗ trợ của mentor AI 24/7.",
+		href: "/features",
 	},
 ];
 
@@ -168,37 +178,37 @@ const howItWorksSteps = [
 	{
 		step: 1,
 		icon: Users,
-		title: "Create Your Profile",
-		quote: "Where do I even start with my study abroad journey?",
+		title: "Tạo hồ sơ cá nhân",
+		quote: "Mình nên bắt đầu hành trình du học từ đâu?",
 		description:
-			"Begin by telling us about your academic background, interests, career goals, and preferences. Our intelligent form guides you through every detail we need to find your perfect university match.",
+			"Bắt đầu bằng việc chia sẻ về nền tảng học thuật, sở thích, mục tiêu nghề nghiệp và những điều bạn mong muốn. Form thông minh của chúng tôi sẽ hướng dẫn bạn qua từng bước.",
 		illustration: Users,
 	},
 	{
 		step: 2,
 		icon: Brain,
-		title: "Get Matched",
-		quote: "Which universities are actually right for me?",
+		title: "Nhận gợi ý phù hợp",
+		quote: "Trường nào thực sự phù hợp với mình?",
 		description:
-			"Our AI analyzes thousands of universities worldwide and recommends the ones that best fit your profile, budget, and aspirations. Get personalized match scores and detailed insights for each recommendation.",
+			"AI của chúng tôi phân tích hàng ngàn trường đại học và gợi ý những trường phù hợp nhất với profile, ngân sách và nguyện vọng của bạn. Nhận điểm match và insights chi tiết cho từng gợi ý.",
 		illustration: Brain,
 	},
 	{
 		step: 3,
 		icon: FileCheck,
-		title: "Apply with Confidence",
-		quote: "How do I manage multiple deadlines and requirements?",
+		title: "Apply tự tin",
+		quote: "Làm sao quản lý nhiều deadline và yêu cầu khác nhau?",
 		description:
-			"Track all your applications in one place. We help you stay organized with deadline reminders, document checklists, and step-by-step guidance through each university's unique requirements.",
+			"Theo dõi tất cả hồ sơ ở một nơi. Chúng tôi giúp bạn tổ chức với nhắc nhở deadline, checklist tài liệu và hướng dẫn từng bước cho yêu cầu của mỗi trường.",
 		illustration: FileCheck,
 	},
 	{
 		step: 4,
 		icon: Sparkles,
-		title: "Reinforce Your Profile with AI",
-		quote: "My essays feel generic... how can I stand out?",
+		title: "Tỏa sáng với AI",
+		quote: "Essay của mình có vẻ nhàm chán... làm sao để nổi bật?",
 		description:
-			"Use our AI assistant to craft compelling personal statements and essays. Get instant feedback, suggestions for improvement, and guidance to showcase your unique story that admissions officers will remember.",
+			"Sử dụng AI mentor để viết personal statement và essay ấn tượng. Nhận feedback ngay lập tức, gợi ý cải thiện và hướng dẫn thể hiện câu chuyện độc đáo mà admission sẽ nhớ mãi.",
 		illustration: Sparkles,
 	},
 ];
@@ -383,45 +393,66 @@ export default function HomePage() {
 	return (
 		<div className="min-h-screen">
 			{/* Hero Section */}
-			<section className="relative bg-background py-16 md:py-24 overflow-hidden">
-				{/* Background Image */}
+			<section className="relative bg-background py-20 md:py-32 overflow-hidden">
+				{/* Animated Background Pattern */}
 				<div className="absolute inset-0 z-0">
 					<Image
 						src="/hero.png"
 						alt="Hero background"
 						fill
-						className="object-cover opacity-20"
+						className="object-cover opacity-15"
 						priority
 						quality={90}
 					/>
-					{/* Overlay for better text readability */}
-					<div className="absolute inset-0" />
+					{/* Gradient overlay */}
+					<div className="absolute inset-0 bg-gradient-to-b from-background/50 via-transparent to-background" />
+				</div>
+
+				{/* Floating decorative elements */}
+				<div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+					<motion.div
+						className="absolute top-20 left-[10%] w-64 h-64 bg-primary/10 rounded-full blur-3xl"
+						animate={{ y: [0, 20, 0], opacity: [0.3, 0.5, 0.3] }}
+						transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+					/>
+					<motion.div
+						className="absolute bottom-20 right-[10%] w-80 h-80 bg-chart-2/10 rounded-full blur-3xl"
+						animate={{ y: [0, -20, 0], opacity: [0.2, 0.4, 0.2] }}
+						transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+					/>
 				</div>
 
 				{/* Content */}
-				<div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+				<div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
 					<div className="flex flex-col items-center gap-8">
 						<SlideUp>
-							<h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight">
-								Study abroad, simplified by
-								<span className="text-primary"> Leaply</span>
+							<div className="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-full px-4 py-2 text-sm font-medium mb-4">
+								<Sparkles className="w-4 h-4" />
+								Virtual Mentor cho hành trình du học của bạn
+							</div>
+						</SlideUp>
+						<SlideUp delay={0.05}>
+							<h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight">
+								Hành trình du học của bạn,
+								<br />
+								<span className="text-primary">có Leaply đồng hành</span>
 							</h1>
 						</SlideUp>
 						<SlideUp delay={0.1}>
-							<p className="text-xl md:text-2xl text-muted-foreground max-w-3xl">
-								Get personalized university matches, application tracking, and
-								intelligent essay guidance - all in one place.
+							<p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl">
+								Khám phá bản thân, tìm trường phù hợp, và chuẩn bị hồ sơ ấn tượng 
+								- tất cả trong một nền tảng thông minh.
 							</p>
 						</SlideUp>
-						<SlideUp delay={0.2}>
-							<div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center">
+						<SlideUp delay={0.15}>
+							<div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center mt-4">
 								<Button
 									size="lg"
-									className="text-lg px-8 py-6 sm:min-w-[220px]"
+									className="text-lg px-8 py-6 sm:min-w-[220px] shadow-lg shadow-primary/25"
 									asChild
 								>
 									<Link href="/signup">
-										Get Started Free
+										Bắt đầu miễn phí
 										<ArrowRight className="ml-2 w-5 h-5" />
 									</Link>
 								</Button>
@@ -431,8 +462,31 @@ export default function HomePage() {
 									className="text-lg px-8 py-6 sm:min-w-[220px]"
 									asChild
 								>
-									<Link href="/universities">Explore Universities</Link>
+									<Link href="#features">
+										Tìm hiểu thêm
+										<ChevronDown className="ml-2 w-5 h-5" />
+									</Link>
 								</Button>
+							</div>
+						</SlideUp>
+
+						{/* Social Proof Stats */}
+						<SlideUp delay={0.2}>
+							<div className="flex flex-wrap justify-center gap-8 md:gap-12 mt-12 pt-8 border-t border-border/50">
+								{stats.map((stat) => {
+									const Icon = stat.icon;
+									return (
+										<div key={stat.label} className="flex items-center gap-3">
+											<div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+												<Icon className="w-5 h-5 text-primary" />
+											</div>
+											<div className="text-left">
+												<p className="text-2xl font-bold text-foreground">{stat.value}</p>
+												<p className="text-sm text-muted-foreground">{stat.label}</p>
+											</div>
+										</div>
+									);
+								})}
 							</div>
 						</SlideUp>
 					</div>
@@ -445,10 +499,10 @@ export default function HomePage() {
 					<div className="text-center mb-12">
 						<SlideUp>
 							<h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-								Bringing top universities to you
+								Kết nối bạn với trường top thế giới
 							</h2>
 							<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-								Explore leading institutions welcoming Leaply students worldwide
+								Khám phá các trường đại học hàng đầu chào đón sinh viên Leaply
 							</p>
 						</SlideUp>
 					</div>
@@ -479,7 +533,7 @@ export default function HomePage() {
 			</section>
 
 			{/* Features Section */}
-			<section className="py-20 bg-background">
+			<section id="features" className="py-20 bg-background scroll-mt-16">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="mb-16">
 						<SlideUp>
@@ -487,32 +541,32 @@ export default function HomePage() {
 								<h2 className="text-3xl md:text-4xl font-bold text-foreground leading-tight max-w-xl">
 									<span className="relative inline-block">
 										<span className="absolute inset-x-0 bottom-1 h-3 bg-accent/60 rounded-md" />
-										<span className="relative lowercase">
-											everything you need
+										<span className="relative">
+											Mọi thứ bạn cần
 										</span>
 									</span>{" "}
-									to study abroad
+									cho hành trình du học
 								</h2>
 								<p className="text-lg text-muted-foreground max-w-2xl">
-									Powerful tools and personalized guidance to help you navigate
-									the complex world of international education.
+									Công cụ mạnh mẽ và hướng dẫn cá nhân hóa giúp bạn chinh phục
+									giáo dục quốc tế một cách tự tin.
 								</p>
 							</div>
 						</SlideUp>
 					</div>
 
 					<StaggerContainer>
-						<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
 							{features.map((feature) => {
 								const Icon = feature.icon;
 								return (
 									<StaggerItem key={feature.title}>
-										<Card className="h-full hover:shadow-lg transition-all duration-200">
+										<Card className="h-full hover:shadow-lg hover:border-primary/50 transition-all duration-200 group">
 											<CardContent className="p-6 flex flex-col h-full gap-4">
-												<div className="p-3 bg-primary/10 rounded-2xl w-fit">
+												<div className="p-3 bg-primary/10 rounded-2xl w-fit group-hover:bg-primary/20 transition-colors">
 													<Icon className="w-6 h-6 text-primary" />
 												</div>
-												<div>
+												<div className="flex-1">
 													<h3 className="text-lg font-semibold text-foreground mb-2">
 														{feature.title}
 													</h3>
@@ -520,20 +574,14 @@ export default function HomePage() {
 														{feature.description}
 													</p>
 												</div>
-												<div className="mt-auto">
-													<Button
-														variant="ghost"
-														size="icon"
-														className="h-11 w-11 rounded-full border border-border hover:border-foreground/60"
-														asChild
+												<div className="mt-auto pt-4">
+													<Link
+														href={feature.href}
+														className="inline-flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors"
 													>
-														<Link
-															href={feature.href}
-															aria-label={`Learn more about ${feature.title}`}
-														>
-															<ArrowRight className="w-5 h-5 text-foreground" />
-														</Link>
-													</Button>
+														Tìm hiểu thêm
+														<ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+													</Link>
 												</div>
 											</CardContent>
 										</Card>
@@ -546,15 +594,17 @@ export default function HomePage() {
 			</section>
 
 			{/* How It Works Section */}
-			<section className="py-20 bg-muted">
+			<section id="how-it-works" className="py-20 bg-muted scroll-mt-16">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="text-center mb-16">
-						<h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-							How Leaply Works
-						</h2>
-						<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-							Four simple steps to find and apply to your dream university
-						</p>
+						<SlideUp>
+							<h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+								Leaply hoạt động như thế nào
+							</h2>
+							<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+								Bốn bước đơn giản để tìm và apply vào trường đại học mơ ước
+							</p>
+						</SlideUp>
 					</div>
 
 					{/* Desktop: Two-column layout with sticky right side */}
@@ -668,37 +718,41 @@ export default function HomePage() {
 			</section>
 
 			{/* CTA Section */}
-			<section className="py-20 cta-pattern text-primary-foreground relative">
+			<section className="py-24 cta-pattern text-primary-foreground relative overflow-hidden">
 				{/* Dimming overlay for better text readability */}
 				<div className="absolute inset-0 bg-background/40 z-0" />
 				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
 					<SlideUp>
-						<h2 className="text-3xl md:text-4xl font-bold mb-4">
-							Ready to Start Your Journey?
+						<div className="inline-flex items-center gap-2 bg-primary-foreground/20 rounded-full px-4 py-2 text-sm font-medium mb-6">
+							<Sparkles className="w-4 h-4" />
+							Hoàn toàn miễn phí
+						</div>
+						<h2 className="text-3xl md:text-5xl font-bold mb-6">
+							Sẵn sàng bắt đầu hành trình?
 						</h2>
-						<p className="text-lg mb-8 text-primary-foreground/90">
-							Join Leaply today and take the first step towards your global
-							education
+						<p className="text-lg md:text-xl mb-10 text-primary-foreground/90 max-w-2xl mx-auto">
+							Tham gia Leaply ngay hôm nay và thực hiện bước đầu tiên 
+							hướng tới giáo dục toàn cầu
 						</p>
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
 							<Button
 								size="lg"
 								variant="secondary"
-								className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold"
+								className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold text-lg px-8 py-6"
 								asChild
 							>
 								<Link href="/signup">
-									Create Free Account
+									Tạo tài khoản miễn phí
 									<ArrowRight className="ml-2 w-5 h-5" />
 								</Link>
 							</Button>
 							<Button
 								size="lg"
 								variant="outline"
-								className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+								className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary text-lg px-8 py-6"
 								asChild
 							>
-								<Link href="/chatbot">Try AI Assistant</Link>
+								<Link href="/login">Đăng nhập</Link>
 							</Button>
 						</div>
 					</SlideUp>
