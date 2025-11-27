@@ -8,22 +8,9 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserStore } from "@/lib/store/userStore";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { cn } from "@/lib/utils";
-
-// Before Login (Public)
-const publicNavLinks = [
-	{ href: "/", label: "Home" },
-	{ href: "/features", label: "Features" },
-	{ href: "/about", label: "About" },
-];
-
-// After Login (Authenticated)
-const authNavLinks = [
-	{ href: "/home", label: "Home" },
-	{ href: "/universities", label: "Explore" },
-	{ href: "/dashboard/applications", label: "Applications" },
-	{ href: "/persona-lab", label: "Persona Lab" },
-];
 
 export function Navbar() {
 	const pathname = usePathname();
@@ -31,6 +18,21 @@ export function Navbar() {
 	const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 	const { isAuthenticated, profile, logout } = useUserStore();
+	const { t } = useTranslation();
+
+	// Nav links with translations
+	const publicNavLinks = [
+		{ href: "/", labelKey: "home" },
+		{ href: "/features", labelKey: "features" },
+		{ href: "/about", labelKey: "about" },
+	];
+
+	const authNavLinks = [
+		{ href: "/home", labelKey: "home" },
+		{ href: "/universities", labelKey: "explore" },
+		{ href: "/dashboard/applications", labelKey: "applications" },
+		{ href: "/persona-lab", labelKey: "personaLab" },
+	];
 
 	// Get nav links based on auth state
 	const navLinks = isAuthenticated ? authNavLinks : publicNavLinks;
@@ -87,14 +89,16 @@ export function Navbar() {
 										isActive ? "text-primary" : "text-foreground",
 									)}
 								>
-									{link.label}
+									{t("nav", link.labelKey)}
 								</Link>
 							);
 						})}
 					</div>
 
-					{/* Auth Buttons / Avatar */}
+					{/* Auth Buttons / Avatar + Language Switcher */}
 					<div className="hidden md:flex items-center gap-3">
+						<LanguageSwitcher />
+						
 						{isAuthenticated ? (
 							<div className="relative" ref={dropdownRef}>
 								<button
@@ -132,7 +136,7 @@ export function Navbar() {
 												onClick={() => setAvatarDropdownOpen(false)}
 											>
 												<User className="w-4 h-4" />
-												Profile
+												{t("nav", "profile")}
 											</Link>
 											<button
 												type="button"
@@ -143,7 +147,7 @@ export function Navbar() {
 												className="flex items-center gap-2 w-full px-4 py-2 text-sm text-destructive hover:bg-muted transition-colors"
 											>
 												<LogOut className="w-4 h-4" />
-												Logout
+												{t("nav", "logout")}
 											</button>
 										</div>
 									</div>
@@ -152,27 +156,30 @@ export function Navbar() {
 						) : (
 							<>
 								<Button variant="ghost" size="sm" asChild>
-									<Link href="/login">Login</Link>
+									<Link href="/login">{t("nav", "login")}</Link>
 								</Button>
 								<Button size="sm" asChild>
-									<Link href="/signup">Get Started</Link>
+									<Link href="/signup">{t("nav", "getStarted")}</Link>
 								</Button>
 							</>
 						)}
 					</div>
 
 					{/* Mobile Menu Button */}
-					<button
-						type="button"
-						className="md:hidden p-2 text-foreground"
-						onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-					>
-						{mobileMenuOpen ? (
-							<X className="w-6 h-6" />
-						) : (
-							<Menu className="w-6 h-6" />
-						)}
-					</button>
+					<div className="flex items-center gap-2 md:hidden">
+						<LanguageSwitcher />
+						<button
+							type="button"
+							className="p-2 text-foreground"
+							onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+						>
+							{mobileMenuOpen ? (
+								<X className="w-6 h-6" />
+							) : (
+								<Menu className="w-6 h-6" />
+							)}
+						</button>
+					</div>
 				</div>
 
 				{/* Mobile Menu */}
@@ -193,7 +200,7 @@ export function Navbar() {
 										)}
 										onClick={() => setMobileMenuOpen(false)}
 									>
-										{link.label}
+										{t("nav", link.labelKey)}
 									</Link>
 								);
 							})}
@@ -219,7 +226,7 @@ export function Navbar() {
 										<Button variant="outline" type="button" size="sm" asChild>
 											<Link href="/dashboard/profile" onClick={() => setMobileMenuOpen(false)}>
 												<User className="w-4 h-4 mr-2" />
-												Profile
+												{t("nav", "profile")}
 											</Link>
 										</Button>
 										<Button variant="ghost" size="sm" onClick={() => {
@@ -227,16 +234,20 @@ export function Navbar() {
 											setMobileMenuOpen(false);
 										}}>
 											<LogOut className="w-4 h-4 mr-2" />
-											Logout
+											{t("nav", "logout")}
 										</Button>
 									</>
 								) : (
 									<>
 										<Button variant="outline" size="sm" asChild>
-											<Link href="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
+											<Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+												{t("nav", "login")}
+											</Link>
 										</Button>
 										<Button size="sm" asChild>
-											<Link href="/signup" onClick={() => setMobileMenuOpen(false)}>Get Started</Link>
+											<Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
+												{t("nav", "getStarted")}
+											</Link>
 										</Button>
 									</>
 								)}

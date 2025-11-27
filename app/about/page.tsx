@@ -27,104 +27,51 @@ import {
 	StaggerItem,
 } from "@/components/PageTransition";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface TeamMember {
 	name: string;
 	role: string;
 	department: string;
 	school: string;
-	avatar?: string;
 }
 
 const teamMembers: TeamMember[] = [
-	{
-		name: "Phạm Phan Anh",
-		role: "Team Leader",
-		department: "R&D",
-		school: "HUST",
-	},
-	{
-		name: "Nguyễn Trường Sơn",
-		role: "Developer",
-		department: "R&D",
-		school: "HUST",
-	},
-	{
-		name: "Nguyễn Đăng Khánh",
-		role: "Developer",
-		department: "R&D",
-		school: "HUST",
-	},
-	{
-		name: "Hoàng Hà Hải Anh",
-		role: "Sales Lead",
-		department: "Sales & Marketing",
-		school: "FTU",
-	},
-	{
-		name: "Chu Nguyễn Xuân Mai",
-		role: "Finance Lead",
-		department: "Finance",
-		school: "AOF",
-	},
+	{ name: "Phạm Phan Anh", role: "Team Leader", department: "R&D", school: "HUST" },
+	{ name: "Nguyễn Trường Sơn", role: "Developer", department: "R&D", school: "HUST" },
+	{ name: "Nguyễn Đăng Khánh", role: "Developer", department: "R&D", school: "HUST" },
+	{ name: "Hoàng Hà Hải Anh", role: "Sales Lead", department: "Sales & Marketing", school: "FTU" },
+	{ name: "Chu Nguyễn Xuân Mai", role: "Finance Lead", department: "Finance", school: "AOF" },
 ];
 
-const values = [
-	{
-		icon: Heart,
-		title: "Đam mê giáo dục",
-		description:
-			"Chúng tôi tin rằng mọi học sinh đều xứng đáng có cơ hội tiếp cận giáo dục tốt nhất, bất kể họ đến từ đâu.",
-	},
-	{
-		icon: Rocket,
-		title: "Đổi mới công nghệ",
-		description:
-			"Sử dụng AI và công nghệ tiên tiến để giải quyết những thách thức thực tế trong hành trình du học.",
-	},
-	{
-		icon: Users,
-		title: "Lấy học sinh làm trung tâm",
-		description:
-			"Mọi tính năng đều được thiết kế dựa trên nhu cầu thực tế của học sinh Việt Nam.",
-	},
+const valueConfigs = [
+	{ icon: Heart, titleKey: "value1Title", descKey: "value1Desc" },
+	{ icon: Rocket, titleKey: "value2Title", descKey: "value2Desc" },
+	{ icon: Users, titleKey: "value3Title", descKey: "value3Desc" },
 ];
 
 function getInitials(name: string): string {
-	return name
-		.split(" ")
-		.map((n) => n[0])
-		.join("")
-		.toUpperCase()
-		.slice(0, 2);
+	return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 }
 
 function getDepartmentColor(department: string): string {
 	switch (department) {
-		case "R&D":
-			return "bg-blue-500";
-		case "Sales & Marketing":
-			return "bg-amber-500";
-		case "Finance":
-			return "bg-emerald-500";
-		default:
-			return "bg-primary";
+		case "R&D": return "bg-blue-500";
+		case "Sales & Marketing": return "bg-amber-500";
+		case "Finance": return "bg-emerald-500";
+		default: return "bg-primary";
 	}
 }
 
 export default function AboutPage() {
-	const [formData, setFormData] = useState({
-		name: "",
-		email: "",
-		message: "",
-	});
+	const { t } = useTranslation();
+	const [formData, setFormData] = useState({ name: "", email: "", message: "" });
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [submitted, setSubmitted] = useState(false);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setIsSubmitting(true);
-		// Simulate form submission
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 		setIsSubmitting(false);
 		setSubmitted(true);
@@ -136,7 +83,6 @@ export default function AboutPage() {
 			<div className="min-h-screen">
 				{/* Hero Section */}
 				<section className="relative bg-background py-20 md:py-28 overflow-hidden">
-					{/* Background decoration */}
 					<div className="absolute inset-0 pointer-events-none">
 						<div className="absolute top-1/4 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
 						<div className="absolute bottom-0 right-1/4 w-96 h-96 bg-chart-2/5 rounded-full blur-3xl" />
@@ -146,16 +92,15 @@ export default function AboutPage() {
 						<SlideUp>
 							<div className="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-full px-4 py-2 text-sm font-medium mb-6">
 								<Sparkles className="w-4 h-4" />
-								Về Leaply
+								{t("about", "badge")}
 							</div>
 							<h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6">
-								Đồng hành cùng thế hệ
+								{t("about", "heroTitle")}
 								<br />
-								<span className="text-primary">du học sinh Việt Nam</span>
+								<span className="text-primary">{t("about", "heroTitleHighlight")}</span>
 							</h1>
 							<p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-								Leaply ra đời từ mong muốn đơn giản: giúp mọi học sinh Việt Nam
-								có cơ hội tiếp cận giáo dục quốc tế một cách dễ dàng và tự tin hơn.
+								{t("about", "heroSubtitle")}
 							</p>
 						</SlideUp>
 					</div>
@@ -167,35 +112,30 @@ export default function AboutPage() {
 						<SlideUp>
 							<div className="max-w-3xl mx-auto text-center mb-16">
 								<h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-									Sứ mệnh của chúng tôi
+									{t("about", "missionTitle")}
 								</h2>
 								<p className="text-lg text-muted-foreground leading-relaxed">
-									Chúng tôi tin rằng việc du học không nên là một hành trình đơn độc 
-									và phức tạp. Với sự kết hợp giữa công nghệ AI tiên tiến và 
-									sự thấu hiểu sâu sắc về nhu cầu của học sinh Việt Nam, Leaply 
-									hướng đến việc trở thành người bạn đồng hành đáng tin cậy - 
-									từ bước đầu tiên khám phá bản thân đến khi bạn nhận được 
-									thư chấp nhận từ trường mơ ước.
+									{t("about", "missionText")}
 								</p>
 							</div>
 						</SlideUp>
 
 						<StaggerContainer>
 							<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-								{values.map((value) => {
+								{valueConfigs.map((value) => {
 									const Icon = value.icon;
 									return (
-										<StaggerItem key={value.title}>
+										<StaggerItem key={value.titleKey}>
 											<Card className="h-full hover:shadow-lg transition-shadow border-none bg-background">
 												<CardContent className="p-8 text-center">
 													<div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
 														<Icon className="w-8 h-8 text-primary" />
 													</div>
 													<h3 className="text-xl font-semibold text-foreground mb-3">
-														{value.title}
+														{t("about", value.titleKey)}
 													</h3>
 													<p className="text-muted-foreground">
-														{value.description}
+														{t("about", value.descKey)}
 													</p>
 												</CardContent>
 											</Card>
@@ -213,11 +153,10 @@ export default function AboutPage() {
 						<SlideUp>
 							<div className="text-center mb-16">
 								<h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-									Đội ngũ của chúng tôi
+									{t("about", "teamTitle")}
 								</h2>
 								<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-									Cross-functional team từ các trường đại học hàng đầu Việt Nam,
-									cùng chung đam mê về giáo dục và công nghệ.
+									{t("about", "teamSubtitle")}
 								</p>
 							</div>
 						</SlideUp>
@@ -228,31 +167,18 @@ export default function AboutPage() {
 									<StaggerItem key={member.name}>
 										<Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1 group">
 											<CardContent className="p-6 text-center">
-												{/* Avatar */}
 												<div className="relative mb-4">
 													<div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
 														<span className="text-xl font-bold text-primary">
 															{getInitials(member.name)}
 														</span>
 													</div>
-													{/* Department badge */}
-													<div
-														className={cn(
-															"absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[10px] font-medium text-white",
-															getDepartmentColor(member.department)
-														)}
-													>
+													<div className={cn("absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[10px] font-medium text-white", getDepartmentColor(member.department))}>
 														{member.department}
 													</div>
 												</div>
-
-												{/* Info */}
-												<h3 className="font-semibold text-foreground mb-1">
-													{member.name}
-												</h3>
-												<p className="text-sm text-primary font-medium mb-2">
-													{member.role}
-												</p>
+												<h3 className="font-semibold text-foreground mb-1">{member.name}</h3>
+												<p className="text-sm text-primary font-medium mb-2">{member.role}</p>
 												<div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
 													<GraduationCap className="w-3 h-3" />
 													{member.school}
@@ -274,11 +200,10 @@ export default function AboutPage() {
 							<SlideUp>
 								<div>
 									<h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-										Liên hệ với chúng tôi
+										{t("about", "contactTitle")}
 									</h2>
 									<p className="text-lg text-muted-foreground mb-8">
-										Bạn có câu hỏi hoặc muốn hợp tác? Hãy liên hệ với chúng tôi
-										- chúng tôi luôn sẵn lòng lắng nghe!
+										{t("about", "contactSubtitle")}
 									</p>
 
 									<div className="space-y-6">
@@ -287,13 +212,8 @@ export default function AboutPage() {
 												<Mail className="w-6 h-6 text-primary" />
 											</div>
 											<div>
-												<h3 className="font-semibold text-foreground mb-1">
-													Email
-												</h3>
-												<a
-													href="mailto:hello@leaply.ai.vn"
-													className="text-muted-foreground hover:text-primary transition-colors"
-												>
+												<h3 className="font-semibold text-foreground mb-1">{t("about", "email")}</h3>
+												<a href="mailto:hello@leaply.ai.vn" className="text-muted-foreground hover:text-primary transition-colors">
 													hello@leaply.ai.vn
 												</a>
 											</div>
@@ -304,21 +224,14 @@ export default function AboutPage() {
 												<MapPin className="w-6 h-6 text-primary" />
 											</div>
 											<div>
-												<h3 className="font-semibold text-foreground mb-1">
-													Địa chỉ
-												</h3>
-												<p className="text-muted-foreground">
-													Hà Nội, Việt Nam
-												</p>
+												<h3 className="font-semibold text-foreground mb-1">{t("about", "address")}</h3>
+												<p className="text-muted-foreground">{t("common", "hanoi")}</p>
 											</div>
 										</div>
 									</div>
 
-									{/* Social Links */}
 									<div className="mt-10">
-										<p className="text-sm font-medium text-foreground mb-4">
-											Theo dõi chúng tôi
-										</p>
+										<p className="text-sm font-medium text-foreground mb-4">{t("about", "followUs")}</p>
 										<div className="flex gap-3">
 											<a
 												href="https://linkedin.com"
@@ -351,78 +264,53 @@ export default function AboutPage() {
 													<Send className="w-8 h-8 text-primary" />
 												</div>
 												<h3 className="text-xl font-semibold text-foreground mb-2">
-													Cảm ơn bạn!
+													{t("about", "formThankYou")}
 												</h3>
 												<p className="text-muted-foreground mb-6">
-													Chúng tôi đã nhận được tin nhắn của bạn và sẽ phản hồi
-													sớm nhất có thể.
+													{t("about", "formSuccess")}
 												</p>
-												<Button
-													variant="outline"
-													onClick={() => setSubmitted(false)}
-												>
-													Gửi tin nhắn khác
+												<Button variant="outline" onClick={() => setSubmitted(false)}>
+													{t("about", "formSendAnother")}
 												</Button>
 											</div>
 										) : (
 											<form onSubmit={handleSubmit} className="space-y-6">
 												<div className="space-y-2">
-													<Label htmlFor="name">Họ và tên</Label>
+													<Label htmlFor="name">{t("about", "formName")}</Label>
 													<Input
 														id="name"
-														placeholder="Nhập họ và tên"
+														placeholder={t("about", "formNamePlaceholder")}
 														value={formData.name}
-														onChange={(e) =>
-															setFormData((prev) => ({
-																...prev,
-																name: e.target.value,
-															}))
-														}
+														onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
 														required
 													/>
 												</div>
 												<div className="space-y-2">
-													<Label htmlFor="email">Email</Label>
+													<Label htmlFor="email">{t("about", "formEmail")}</Label>
 													<Input
 														id="email"
 														type="email"
-														placeholder="Nhập email của bạn"
+														placeholder={t("about", "formEmailPlaceholder")}
 														value={formData.email}
-														onChange={(e) =>
-															setFormData((prev) => ({
-																...prev,
-																email: e.target.value,
-															}))
-														}
+														onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
 														required
 													/>
 												</div>
 												<div className="space-y-2">
-													<Label htmlFor="message">Tin nhắn</Label>
+													<Label htmlFor="message">{t("about", "formMessage")}</Label>
 													<Textarea
 														id="message"
-														placeholder="Bạn muốn chia sẻ điều gì?"
+														placeholder={t("about", "formMessagePlaceholder")}
 														rows={5}
 														value={formData.message}
-														onChange={(e) =>
-															setFormData((prev) => ({
-																...prev,
-																message: e.target.value,
-															}))
-														}
+														onChange={(e) => setFormData((prev) => ({ ...prev, message: e.target.value }))}
 														required
 													/>
 												</div>
-												<Button
-													type="submit"
-													className="w-full"
-													disabled={isSubmitting}
-												>
-													{isSubmitting ? (
-														"Đang gửi..."
-													) : (
+												<Button type="submit" className="w-full" disabled={isSubmitting}>
+													{isSubmitting ? t("about", "formSubmitting") : (
 														<>
-															Gửi tin nhắn
+															{t("about", "formSubmit")}
 															<Send className="ml-2 w-4 h-4" />
 														</>
 													)}
@@ -441,10 +329,10 @@ export default function AboutPage() {
 					<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
 						<SlideUp>
 							<h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
-								Cùng bắt đầu hành trình
+								{t("about", "ctaTitle")}
 							</h2>
 							<p className="text-lg text-primary-foreground/90 mb-8 max-w-xl mx-auto">
-								Hàng ngàn học sinh đã tin tưởng Leaply. Bạn sẽ là người tiếp theo?
+								{t("about", "ctaSubtitle")}
 							</p>
 							<Button
 								size="lg"
@@ -453,7 +341,7 @@ export default function AboutPage() {
 								asChild
 							>
 								<Link href="/signup">
-									Tạo tài khoản miễn phí
+									{t("about", "ctaButton")}
 									<ArrowRight className="ml-2 w-5 h-5" />
 								</Link>
 							</Button>
@@ -464,4 +352,3 @@ export default function AboutPage() {
 		</PageTransition>
 	);
 }
-
