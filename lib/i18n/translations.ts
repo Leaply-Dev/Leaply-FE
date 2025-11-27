@@ -3,346 +3,346 @@ export const translations = {
 	nav: {
 		home: { en: "Home", vi: "Trang chủ" },
 		features: { en: "Features", vi: "Tính năng" },
-		about: { en: "About", vi: "Về chúng tôi" },
+		about: { en: "About", vi: "Về chúng mình" },
 		explore: { en: "Explore", vi: "Khám phá" },
 		applications: { en: "Applications", vi: "Hồ sơ" },
 		personaLab: { en: "Persona Lab", vi: "Persona Lab" },
-		login: { en: "Login", vi: "Đăng nhập" },
+		login: { en: "Log in", vi: "Đăng nhập" },
 		getStarted: { en: "Get Started", vi: "Bắt đầu" },
-		profile: { en: "Profile", vi: "Hồ sơ cá nhân" },
-		logout: { en: "Logout", vi: "Đăng xuất" },
+		profile: { en: "Profile", vi: "Tài khoản" },
+		logout: { en: "Log out", vi: "Đăng xuất" },
 	},
 
 	// Landing Page
 	landing: {
 		badge: {
-			en: "Virtual Mentor for your study abroad journey",
-			vi: "Virtual Mentor cho hành trình du học của bạn",
+			en: "Your personal study abroad mentor",
+			vi: "Người bạn đồng hành du học của bạn",
 		},
 		heroTitle: {
-			en: "Your study abroad journey,",
-			vi: "Hành trình du học của bạn,",
+			en: "Study abroad,",
+			vi: "Du học thật đơn giản",
 		},
 		heroTitleHighlight: {
-			en: "with Leaply by your side",
-			vi: "có Leaply đồng hành",
+			en: "simplified by Leaply",
+			vi: "cùng Leaply",
 		},
 		heroSubtitle: {
-			en: "Discover yourself, find the right school, and prepare an impressive application - all in one smart platform.",
-			vi: "Khám phá bản thân, tìm trường phù hợp, và chuẩn bị hồ sơ ấn tượng - tất cả trong một nền tảng thông minh.",
+			en: "No more confusion. No more stress. Just you, your dreams, and a clear path to get there.",
+			vi: "Không còn hoang mang. Không còn áp lực. Chỉ có bạn, ước mơ của bạn, và con đường rõ ràng phía trước.",
 		},
-		ctaStart: { en: "Start for free", vi: "Bắt đầu miễn phí" },
-		ctaLearnMore: { en: "Learn more", vi: "Tìm hiểu thêm" },
+		ctaStart: { en: "Get started — it's free", vi: "Bắt đầu ngay — miễn phí" },
+		ctaLearnMore: { en: "See how it works", vi: "Xem cách hoạt động" },
 
 		// Stats
-		statsStudents: { en: "Students trust us", vi: "Học sinh tin tưởng" },
+		statsStudents: { en: "Happy students", vi: "Bạn trẻ tin dùng" },
 		statsUniversities: { en: "Universities", vi: "Trường đại học" },
 		statsCountries: { en: "Countries", vi: "Quốc gia" },
 
 		// Universities section
 		universitiesTitle: {
-			en: "Connecting you with top universities worldwide",
-			vi: "Kết nối bạn với trường top thế giới",
+			en: "Dream schools? We've got them all",
+			vi: "Trường trong mơ? Chúng mình có hết",
 		},
 		universitiesSubtitle: {
-			en: "Explore leading institutions welcoming Leaply students",
-			vi: "Khám phá các trường đại học hàng đầu chào đón sinh viên Leaply",
+			en: "From Ivy League to hidden gems — explore universities that match your vibe",
+			vi: "Từ Ivy League đến những viên ngọc ẩn — khám phá trường phù hợp với bạn",
 		},
 
 		// Features section
 		featuresTitle: {
 			en: "Everything you need",
-			vi: "Mọi thứ bạn cần",
+			vi: "Tất cả những gì bạn cần",
 		},
 		featuresTitleSuffix: {
-			en: "for your study abroad journey",
-			vi: "cho hành trình du học",
+			en: "in one place",
+			vi: "ở một nơi",
 		},
 		featuresSubtitle: {
-			en: "Powerful tools and personalized guidance to help you conquer international education with confidence.",
-			vi: "Công cụ mạnh mẽ và hướng dẫn cá nhân hóa giúp bạn chinh phục giáo dục quốc tế một cách tự tin.",
+			en: "We've been there. We know how overwhelming it can be. That's why we built tools that actually help.",
+			vi: "Chúng mình hiểu cảm giác đó. Du học có thể rất choáng ngợp. Đó là lý do chúng mình tạo ra những công cụ thực sự hữu ích.",
 		},
 		learnMore: { en: "Learn more", vi: "Tìm hiểu thêm" },
 
 		// Feature cards
-		feature1Title: { en: "Explore Schools", vi: "Khám phá trường học" },
+		feature1Title: { en: "Find Your Fit", vi: "Tìm trường hợp gu" },
 		feature1Desc: {
-			en: "Search thousands of universities worldwide with detailed information on programs, rankings, and requirements.",
-			vi: "Tìm kiếm hàng ngàn trường đại học trên toàn thế giới với thông tin chi tiết về chương trình, xếp hạng và yêu cầu.",
+			en: "Browse 1,500+ universities. Filter by what matters to you — budget, location, programs, vibes. Your perfect match is out there.",
+			vi: "Duyệt qua 1,500+ trường. Lọc theo những gì quan trọng với bạn — ngân sách, địa điểm, ngành học. Trường phù hợp đang chờ bạn.",
 		},
-		feature2Title: { en: "Smart AI Matching", vi: "AI Matching thông minh" },
+		feature2Title: { en: "Smart Recommendations", vi: "Gợi ý thông minh" },
 		feature2Desc: {
-			en: "Get personalized school recommendations based on your academic profile, interests, and career goals.",
-			vi: "Nhận gợi ý trường phù hợp dựa trên profile học thuật, sở thích và mục tiêu nghề nghiệp của bạn.",
+			en: "Tell us about yourself, and our AI will suggest schools that actually make sense for you. No more guessing games.",
+			vi: "Kể cho chúng mình nghe về bạn, AI sẽ gợi ý những trường thực sự phù hợp. Không còn phải đoán mò.",
 		},
-		feature3Title: { en: "Application Management", vi: "Quản lý hồ sơ" },
+		feature3Title: { en: "Stay on Track", vi: "Không lỡ deadline" },
 		feature3Desc: {
-			en: "Track deadlines, manage documents, and stay organized throughout your application journey.",
-			vi: "Theo dõi deadline, quản lý tài liệu và giữ mọi thứ ngăn nắp trong suốt hành trình apply.",
+			en: "Deadlines, documents, requirements — we keep track so you don't have to stress. Everything organized in one dashboard.",
+			vi: "Deadline, giấy tờ, yêu cầu — mình theo dõi hết để bạn không phải lo. Mọi thứ gọn gàng một chỗ.",
 		},
 		feature4Title: { en: "Persona Lab", vi: "Persona Lab" },
 		feature4Desc: {
-			en: "Discover your strengths, write impressive essays with 24/7 AI mentor support.",
-			vi: "Khám phá điểm mạnh, viết essay ấn tượng với sự hỗ trợ của mentor AI 24/7.",
+			en: "Discover what makes you unique. Write essays that actually sound like you. Our AI mentor is here 24/7.",
+			vi: "Khám phá điều làm bạn đặc biệt. Viết essay mang đậm dấu ấn cá nhân. Mentor AI luôn sẵn sàng 24/7.",
 		},
 
 		// How it works
-		howItWorksTitle: { en: "How Leaply Works", vi: "Leaply hoạt động như thế nào" },
+		howItWorksTitle: { en: "How it works", vi: "Cách Leaply hoạt động" },
 		howItWorksSubtitle: {
-			en: "Four simple steps to find and apply to your dream university",
-			vi: "Bốn bước đơn giản để tìm và apply vào trường đại học mơ ước",
+			en: "Four steps. That's all it takes to go from 'where do I start?' to 'I got this!'",
+			vi: "Bốn bước. Chỉ vậy thôi để đi từ 'bắt đầu từ đâu?' đến 'mình làm được!'",
 		},
 
-		step1Title: { en: "Create Your Profile", vi: "Tạo hồ sơ cá nhân" },
+		step1Title: { en: "Tell us about you", vi: "Kể về bản thân" },
 		step1Quote: {
-			en: "Where do I even start with my study abroad journey?",
-			vi: "Mình nên bắt đầu hành trình du học từ đâu?",
+			en: "I don't even know where to start...",
+			vi: "Mình không biết bắt đầu từ đâu luôn...",
 		},
 		step1Desc: {
-			en: "Begin by telling us about your academic background, interests, career goals, and preferences. Our intelligent form guides you through every step.",
-			vi: "Bắt đầu bằng việc chia sẻ về nền tảng học thuật, sở thích, mục tiêu nghề nghiệp và những điều bạn mong muốn. Form thông minh của chúng tôi sẽ hướng dẫn bạn qua từng bước.",
+			en: "No worries! Just answer a few questions about your background, interests, and dreams. We'll take it from there.",
+			vi: "Đừng lo! Chỉ cần trả lời vài câu hỏi về bản thân, sở thích và ước mơ của bạn. Chúng mình sẽ lo phần còn lại.",
 		},
 
-		step2Title: { en: "Get Matched", vi: "Nhận gợi ý phù hợp" },
+		step2Title: { en: "Get your matches", vi: "Nhận gợi ý phù hợp" },
 		step2Quote: {
-			en: "Which universities are actually right for me?",
-			vi: "Trường nào thực sự phù hợp với mình?",
+			en: "There are SO many schools... which one is right for me?",
+			vi: "Có QUÁ nhiều trường... trường nào mới phù hợp với mình?",
 		},
 		step2Desc: {
-			en: "Our AI analyzes thousands of universities and recommends the ones that best fit your profile, budget, and aspirations. Get personalized match scores and detailed insights.",
-			vi: "AI của chúng tôi phân tích hàng ngàn trường đại học và gợi ý những trường phù hợp nhất với profile, ngân sách và nguyện vọng của bạn. Nhận điểm match và insights chi tiết cho từng gợi ý.",
+			en: "Our AI crunches the numbers and finds schools that fit your profile, budget, and goals. Each recommendation comes with a match score and real insights.",
+			vi: "AI của chúng mình phân tích và tìm ra những trường phù hợp với profile, ngân sách và mục tiêu của bạn. Mỗi gợi ý đều có điểm match và insights thực tế.",
 		},
 
-		step3Title: { en: "Apply with Confidence", vi: "Apply tự tin" },
+		step3Title: { en: "Apply stress-free", vi: "Apply không stress" },
 		step3Quote: {
-			en: "How do I manage multiple deadlines and requirements?",
-			vi: "Làm sao quản lý nhiều deadline và yêu cầu khác nhau?",
+			en: "How do I keep track of all these deadlines?!",
+			vi: "Làm sao nhớ hết mấy cái deadline này?!",
 		},
 		step3Desc: {
-			en: "Track all your applications in one place. We help you stay organized with deadline reminders, document checklists, and step-by-step guidance.",
-			vi: "Theo dõi tất cả hồ sơ ở một nơi. Chúng tôi giúp bạn tổ chức với nhắc nhở deadline, checklist tài liệu và hướng dẫn từng bước cho yêu cầu của mỗi trường.",
+			en: "We've got your back. Deadline reminders, document checklists, progress tracking — all in one place. No more spreadsheet chaos.",
+			vi: "Chúng mình hỗ trợ bạn. Nhắc deadline, checklist giấy tờ, theo dõi tiến độ — tất cả một chỗ. Không còn hỗn loạn Excel.",
 		},
 
-		step4Title: { en: "Shine with AI", vi: "Tỏa sáng với AI" },
+		step4Title: { en: "Stand out", vi: "Tỏa sáng" },
 		step4Quote: {
-			en: "My essays feel generic... how can I stand out?",
-			vi: "Essay của mình có vẻ nhàm chán... làm sao để nổi bật?",
+			en: "My essay sounds so... boring. How do I make it special?",
+			vi: "Essay của mình nghe... nhàm quá. Làm sao để nổi bật?",
 		},
 		step4Desc: {
-			en: "Use our AI mentor to craft compelling personal statements and essays. Get instant feedback, improvement suggestions, and guidance to showcase your unique story.",
-			vi: "Sử dụng AI mentor để viết personal statement và essay ấn tượng. Nhận feedback ngay lập tức, gợi ý cải thiện và hướng dẫn thể hiện câu chuyện độc đáo mà admission sẽ nhớ mãi.",
+			en: "Your story is unique — let's make sure it shines. Our AI mentor helps you craft essays that are authentically YOU. The kind admissions officers remember.",
+			vi: "Câu chuyện của bạn là độc nhất — hãy để nó tỏa sáng. Mentor AI giúp bạn viết essay chính là BẠN. Loại essay mà admission sẽ nhớ mãi.",
 		},
 
 		// CTA section
-		ctaFree: { en: "Completely free", vi: "Hoàn toàn miễn phí" },
-		ctaTitle: { en: "Ready to start your journey?", vi: "Sẵn sàng bắt đầu hành trình?" },
+		ctaFree: { en: "100% free to start", vi: "Hoàn toàn miễn phí" },
+		ctaTitle: { en: "Your journey starts here", vi: "Hành trình của bạn bắt đầu từ đây" },
 		ctaSubtitle: {
-			en: "Join Leaply today and take the first step towards your global education",
-			vi: "Tham gia Leaply ngay hôm nay và thực hiện bước đầu tiên hướng tới giáo dục toàn cầu",
+			en: "Thousands of students have already taken the first step. Ready to join them?",
+			vi: "Hàng ngàn bạn trẻ đã bắt đầu hành trình. Bạn sẵn sàng chưa?",
 		},
 		ctaCreateAccount: { en: "Create free account", vi: "Tạo tài khoản miễn phí" },
 	},
 
 	// Features Page
 	features: {
-		heroTitle: { en: "Powerful features for", vi: "Tính năng mạnh mẽ cho" },
-		heroTitleHighlight: { en: "your study abroad journey", vi: "hành trình du học" },
+		heroTitle: { en: "Tools that actually", vi: "Công cụ thực sự" },
+		heroTitleHighlight: { en: "make a difference", vi: "tạo nên khác biệt" },
 		heroSubtitle: {
-			en: "Leaply provides all the tools you need - from finding schools, managing applications to writing impressive essays.",
-			vi: "Leaply cung cấp đầy đủ công cụ bạn cần - từ tìm trường, quản lý hồ sơ đến viết essay ấn tượng.",
+			en: "We built Leaply because we wished something like this existed when we were applying. Now it does.",
+			vi: "Chúng mình tạo ra Leaply vì ước gì có thứ này khi chúng mình apply. Giờ thì có rồi.",
 		},
 
 		// Explore feature
-		exploreTitle: { en: "Explore", vi: "Explore" },
+		exploreTitle: { en: "Explore", vi: "Khám phá" },
 		exploreTagline: {
-			en: "Find the right school for you",
-			vi: "Tìm trường phù hợp với bạn",
+			en: "Your dream school is out there. Let's find it.",
+			vi: "Trường trong mơ đang chờ bạn. Cùng tìm nhé.",
 		},
 		exploreDesc: {
-			en: "Explore over 1,500 universities worldwide with our smart search tools. Our AI analyzes your profile and recommends the most suitable schools.",
-			vi: "Khám phá hơn 1,500 trường đại học trên toàn thế giới với công cụ tìm kiếm thông minh. AI của chúng tôi phân tích profile của bạn và gợi ý những trường phù hợp nhất.",
+			en: "1,500+ universities at your fingertips. Search, filter, compare — and let our AI suggest schools you might not have even considered.",
+			vi: "1,500+ trường đại học trong tầm tay. Tìm kiếm, lọc, so sánh — và để AI gợi ý những trường bạn chưa từng nghĩ đến.",
 		},
-		exploreBenefit1Title: { en: "Smart Search", vi: "Tìm kiếm thông minh" },
+		exploreBenefit1Title: { en: "Search your way", vi: "Tìm theo cách của bạn" },
 		exploreBenefit1Desc: {
-			en: "Filter by country, major, tuition, ranking, and many other criteria",
-			vi: "Lọc theo quốc gia, ngành học, học phí, xếp hạng và nhiều tiêu chí khác",
+			en: "Budget tight? Want sunny weather? Need strong CS programs? Filter by what actually matters to you",
+			vi: "Ngân sách eo hẹp? Thích thời tiết đẹp? Cần ngành IT mạnh? Lọc theo những gì quan trọng với bạn",
 		},
-		exploreBenefit2Title: { en: "AI Matching", vi: "AI Matching" },
+		exploreBenefit2Title: { en: "AI that gets you", vi: "AI hiểu bạn" },
 		exploreBenefit2Desc: {
-			en: "Get personalized match scores based on your academic profile and interests",
-			vi: "Nhận điểm match cá nhân hóa dựa trên profile học thuật và sở thích của bạn",
+			en: "Our AI learns your preferences and finds schools that truly fit — not just random suggestions",
+			vi: "AI học từ sở thích của bạn và tìm trường thực sự phù hợp — không phải gợi ý ngẫu nhiên",
 		},
-		exploreBenefit3Title: { en: "Compare Schools", vi: "So sánh trường" },
+		exploreBenefit3Title: { en: "Compare side-by-side", vi: "So sánh trực quan" },
 		exploreBenefit3Desc: {
-			en: "Place schools side by side for detailed comparison of programs and requirements",
-			vi: "Đặt các trường cạnh nhau để so sánh chi tiết về chương trình và yêu cầu",
+			en: "Put your top choices next to each other. See tuition, rankings, requirements — all in one view",
+			vi: "Đặt những lựa chọn hàng đầu cạnh nhau. Xem học phí, xếp hạng, yêu cầu — tất cả trong một màn hình",
 		},
 
 		// Applications feature
-		applicationsTitle: { en: "Applications", vi: "Applications" },
+		applicationsTitle: { en: "Applications", vi: "Hồ sơ" },
 		applicationsTagline: {
-			en: "Manage applications, never miss deadlines",
-			vi: "Quản lý hồ sơ, không lo deadline",
+			en: "Goodbye spreadsheet chaos. Hello peace of mind.",
+			vi: "Tạm biệt Excel hỗn loạn. Xin chào sự yên tâm.",
 		},
 		applicationsDesc: {
-			en: "Track all your applications in one place. Get deadline reminders, manage documents, and stay organized throughout your journey.",
-			vi: "Theo dõi tất cả hồ sơ apply ở một nơi. Nhận nhắc nhở deadline, quản lý tài liệu và giữ mọi thứ ngăn nắp trong suốt hành trình.",
+			en: "Multiple schools, dozens of deadlines, endless documents. Sound familiar? We organize everything so you can focus on what matters — your applications.",
+			vi: "Nhiều trường, hàng tá deadline, vô số giấy tờ. Quen quá phải không? Chúng mình sắp xếp mọi thứ để bạn tập trung vào điều quan trọng — hồ sơ của bạn.",
 		},
-		applicationsBenefit1Title: { en: "Visual Timeline", vi: "Timeline trực quan" },
+		applicationsBenefit1Title: { en: "See everything at once", vi: "Nhìn tất cả một lần" },
 		applicationsBenefit1Desc: {
-			en: "View your entire application schedule with clear milestones",
-			vi: "Xem toàn bộ lịch trình apply với các mốc quan trọng rõ ràng",
+			en: "One dashboard. All your applications. Every deadline. No surprises",
+			vi: "Một dashboard. Tất cả hồ sơ. Mọi deadline. Không bất ngờ",
 		},
-		applicationsBenefit2Title: { en: "Smart Reminders", vi: "Nhắc nhở thông minh" },
+		applicationsBenefit2Title: { en: "Never miss a date", vi: "Không bỏ lỡ ngày nào" },
 		applicationsBenefit2Desc: {
-			en: "Never miss a deadline with automatic notifications before important dates",
-			vi: "Không bao giờ bỏ lỡ deadline với thông báo tự động trước các mốc quan trọng",
+			en: "We'll ping you before deadlines. Early enough to actually do something about it",
+			vi: "Chúng mình sẽ nhắc bạn trước deadline. Đủ sớm để bạn còn kịp làm gì đó",
 		},
-		applicationsBenefit3Title: { en: "Document Checklist", vi: "Checklist tài liệu" },
+		applicationsBenefit3Title: { en: "Check things off", vi: "Tick từng mục" },
 		applicationsBenefit3Desc: {
-			en: "Complete list of required documents for each school, track completion progress",
-			vi: "Danh sách đầy đủ các tài liệu cần thiết cho từng trường, theo dõi tiến độ hoàn thành",
+			en: "Each school has different requirements. We track what you need and what you've done",
+			vi: "Mỗi trường yêu cầu khác nhau. Chúng mình theo dõi bạn cần gì và đã làm gì",
 		},
 
 		// Persona Lab feature
 		personaLabTitle: { en: "Persona Lab", vi: "Persona Lab" },
 		personaLabTagline: {
-			en: "Discover yourself, write impressive essays",
-			vi: "Khám phá bản thân, viết essay ấn tượng",
+			en: "Your story is unique. Let's make it shine.",
+			vi: "Câu chuyện của bạn là độc nhất. Hãy để nó tỏa sáng.",
 		},
 		personaLabDesc: {
-			en: "A special workspace to help you discover your strengths, build your personal story, and write standout essays with AI mentor support.",
-			vi: "Workspace đặc biệt giúp bạn khám phá điểm mạnh, xây dựng câu chuyện cá nhân và viết essay nổi bật với sự hỗ trợ của AI mentor.",
+			en: "Essays are hard. We get it. That's why we built a space where you can discover what makes you YOU — and turn it into essays that admissions officers actually want to read.",
+			vi: "Viết essay khó lắm. Chúng mình hiểu. Đó là lý do chúng mình tạo ra không gian để bạn khám phá điều làm bạn là CHÍNH BẠN — và biến nó thành essay mà admission thực sự muốn đọc.",
 		},
-		personaLabBenefit1Title: { en: "Discovery Tracks", vi: "Discovery Tracks" },
+		personaLabBenefit1Title: { en: "Know yourself better", vi: "Hiểu bản thân hơn" },
 		personaLabBenefit1Desc: {
-			en: "4 self-discovery themes to help you understand your strengths and unique story",
-			vi: "4 chủ đề khám phá bản thân giúp bạn hiểu rõ điểm mạnh và câu chuyện độc đáo",
+			en: "4 guided tracks help you uncover strengths, values, and stories you didn't know you had",
+			vi: "4 chủ đề hướng dẫn giúp bạn khám phá điểm mạnh, giá trị và câu chuyện mà bạn không ngờ mình có",
 		},
-		personaLabBenefit2Title: { en: "Essay Workspace", vi: "Essay Workspace" },
+		personaLabBenefit2Title: { en: "Write with confidence", vi: "Viết tự tin" },
 		personaLabBenefit2Desc: {
-			en: "Write and edit essays with smart suggestions from AI, tailored for each school",
-			vi: "Viết và chỉnh sửa essay với gợi ý thông minh từ AI, phù hợp với từng trường",
+			en: "AI suggestions that sound like you, not like a robot. Edit, refine, make it yours",
+			vi: "Gợi ý AI nghe như bạn, không phải robot. Chỉnh sửa, hoàn thiện, biến nó thành của bạn",
 		},
-		personaLabBenefit3Title: { en: "Mentor Feedback", vi: "Mentor Feedback" },
+		personaLabBenefit3Title: { en: "Get real feedback", vi: "Nhận phản hồi thật" },
 		personaLabBenefit3Desc: {
-			en: "Receive detailed essay feedback with observations and specific improvement suggestions",
-			vi: "Nhận phản hồi chi tiết về essay với quan sát và gợi ý cải thiện cụ thể",
+			en: "Our AI mentor reads like a real person. Specific observations. Actionable suggestions. No fluff",
+			vi: "Mentor AI đọc như người thật. Nhận xét cụ thể. Gợi ý hành động được. Không nói suông",
 		},
 
 		// Additional benefits
-		additionalTitle: { en: "And much more", vi: "Và nhiều hơn nữa" },
+		additionalTitle: { en: "Plus, the basics done right", vi: "Và những điều cơ bản làm đúng" },
 		additionalSubtitle: {
-			en: "Leaply is built to support you comprehensively",
-			vi: "Leaply được xây dựng để hỗ trợ bạn toàn diện",
+			en: "Because the little things matter too",
+			vi: "Vì những điều nhỏ cũng quan trọng",
 		},
-		benefit1Title: { en: "Data Security", vi: "Bảo mật dữ liệu" },
+		benefit1Title: { en: "Your data, protected", vi: "Dữ liệu được bảo vệ" },
 		benefit1Desc: {
-			en: "Your information is encrypted and securely protected",
-			vi: "Thông tin của bạn được mã hóa và bảo vệ an toàn",
+			en: "We take privacy seriously. Your information stays yours",
+			vi: "Chúng mình coi trọng quyền riêng tư. Thông tin của bạn thuộc về bạn",
 		},
-		benefit2Title: { en: "Support Community", vi: "Cộng đồng hỗ trợ" },
+		benefit2Title: { en: "You're not alone", vi: "Bạn không đơn độc" },
 		benefit2Desc: {
-			en: "Connect with alumni and current international students",
-			vi: "Kết nối với alumni và học sinh đang du học",
+			en: "Connect with others who've been through it. Alumni, current students, fellow applicants",
+			vi: "Kết nối với những người đã trải qua. Alumni, sinh viên hiện tại, bạn bè cùng apply",
 		},
-		benefit3Title: { en: "Continuous Updates", vi: "Cập nhật liên tục" },
+		benefit3Title: { en: "Always fresh", vi: "Luôn cập nhật" },
 		benefit3Desc: {
-			en: "School data and requirements are always updated",
-			vi: "Dữ liệu trường và yêu cầu luôn được cập nhật mới nhất",
+			en: "Requirements change. Rankings update. We keep our data current so you don't have to worry",
+			vi: "Yêu cầu thay đổi. Xếp hạng cập nhật. Chúng mình giữ dữ liệu mới nhất để bạn không phải lo",
 		},
 
 		// CTA
-		ctaTitle: { en: "Ready to experience?", vi: "Sẵn sàng trải nghiệm?" },
+		ctaTitle: { en: "Ready to get started?", vi: "Sẵn sàng bắt đầu?" },
 		ctaSubtitle: {
-			en: "Create a free account and start exploring today",
-			vi: "Tạo tài khoản miễn phí và bắt đầu khám phá ngay hôm nay",
+			en: "Join thousands of students who chose the easier path. You deserve it too.",
+			vi: "Tham gia cùng hàng ngàn bạn trẻ đã chọn con đường dễ dàng hơn. Bạn cũng xứng đáng.",
 		},
-		startFree: { en: "Start for free", vi: "Bắt đầu miễn phí" },
-		aboutUs: { en: "About us", vi: "Về chúng tôi" },
-		startUsing: { en: "Start using", vi: "Bắt đầu sử dụng" },
+		startFree: { en: "Start free", vi: "Bắt đầu miễn phí" },
+		aboutUs: { en: "Meet the team", vi: "Gặp đội ngũ" },
+		startUsing: { en: "Try it now", vi: "Thử ngay" },
 	},
 
 	// About Page
 	about: {
-		badge: { en: "About Leaply", vi: "Về Leaply" },
-		heroTitle: { en: "Accompanying the generation of", vi: "Đồng hành cùng thế hệ" },
+		badge: { en: "Our Story", vi: "Câu chuyện của mình" },
+		heroTitle: { en: "We've been in", vi: "Chúng mình đã từng ở" },
 		heroTitleHighlight: {
-			en: "Vietnamese international students",
-			vi: "du học sinh Việt Nam",
+			en: "your shoes",
+			vi: "vị trí của bạn",
 		},
 		heroSubtitle: {
-			en: "Leaply was born from a simple desire: to help every Vietnamese student access international education easily and confidently.",
-			vi: "Leaply ra đời từ mong muốn đơn giản: giúp mọi học sinh Việt Nam có cơ hội tiếp cận giáo dục quốc tế một cách dễ dàng và tự tin hơn.",
+			en: "We're a team of Vietnamese students and recent grads who went through the study abroad process ourselves. We know how confusing it can be. That's why we built Leaply.",
+			vi: "Chúng mình là một nhóm sinh viên và cựu sinh viên Việt Nam đã tự trải qua quá trình du học. Mình biết nó có thể khó hiểu đến mức nào. Đó là lý do mình tạo ra Leaply.",
 		},
 
 		// Mission
-		missionTitle: { en: "Our Mission", vi: "Sứ mệnh của chúng tôi" },
+		missionTitle: { en: "Why we do this", vi: "Tại sao chúng mình làm điều này" },
 		missionText: {
-			en: "We believe that studying abroad should not be a lonely and complicated journey. With the combination of advanced AI technology and deep understanding of Vietnamese students' needs, Leaply aims to become a trusted companion - from the first step of self-discovery to when you receive your dream school's acceptance letter.",
-			vi: "Chúng tôi tin rằng việc du học không nên là một hành trình đơn độc và phức tạp. Với sự kết hợp giữa công nghệ AI tiên tiến và sự thấu hiểu sâu sắc về nhu cầu của học sinh Việt Nam, Leaply hướng đến việc trở thành người bạn đồng hành đáng tin cậy - từ bước đầu tiên khám phá bản thân đến khi bạn nhận được thư chấp nhận từ trường mơ ước.",
+			en: "Applying to study abroad shouldn't feel like navigating a maze blindfolded. We remember the late nights googling, the anxiety over deadlines, the essays we rewrote a hundred times. We built Leaply to be the friend we wished we had — someone who actually gets it and can help you figure things out.",
+			vi: "Apply du học không nên giống như đi trong mê cung bịt mắt. Chúng mình nhớ những đêm khuya google tìm thông tin, lo lắng về deadline, những essay viết đi viết lại cả trăm lần. Chúng mình xây Leaply để trở thành người bạn mà chúng mình ước gì mình có — một người thực sự hiểu và có thể giúp bạn tìm ra mọi thứ.",
 		},
 
 		// Values
-		value1Title: { en: "Passion for Education", vi: "Đam mê giáo dục" },
+		value1Title: { en: "We care. A lot.", vi: "Chúng mình quan tâm thật sự" },
 		value1Desc: {
-			en: "We believe every student deserves access to the best education, regardless of where they come from.",
-			vi: "Chúng tôi tin rằng mọi học sinh đều xứng đáng có cơ hội tiếp cận giáo dục tốt nhất, bất kể họ đến từ đâu.",
+			en: "This isn't just a product to us. Every student who uses Leaply is someone we genuinely want to see succeed.",
+			vi: "Đây không chỉ là sản phẩm với chúng mình. Mỗi bạn dùng Leaply là người chúng mình thực sự muốn thấy thành công.",
 		},
-		value2Title: { en: "Technology Innovation", vi: "Đổi mới công nghệ" },
+		value2Title: { en: "Tech with heart", vi: "Công nghệ có trái tim" },
 		value2Desc: {
-			en: "Using AI and advanced technology to solve real challenges in the study abroad journey.",
-			vi: "Sử dụng AI và công nghệ tiên tiến để giải quyết những thách thức thực tế trong hành trình du học.",
+			en: "AI is powerful, but only when it serves real human needs. We build tech that actually helps, not just impresses.",
+			vi: "AI rất mạnh, nhưng chỉ khi phục vụ nhu cầu thực của con người. Chúng mình xây công nghệ thực sự giúp ích, không chỉ để gây ấn tượng.",
 		},
-		value3Title: { en: "Student-Centered", vi: "Lấy học sinh làm trung tâm" },
+		value3Title: { en: "Built for you", vi: "Xây dựng cho bạn" },
 		value3Desc: {
-			en: "Every feature is designed based on the real needs of Vietnamese students.",
-			vi: "Mọi tính năng đều được thiết kế dựa trên nhu cầu thực tế của học sinh Việt Nam.",
+			en: "Vietnamese students have unique challenges. We build for those, not for some generic 'international student'.",
+			vi: "Học sinh Việt Nam có những thử thách riêng. Chúng mình xây dựng cho những thử thách đó, không phải cho 'du học sinh' chung chung.",
 		},
 
 		// Team
-		teamTitle: { en: "Our Team", vi: "Đội ngũ của chúng tôi" },
+		teamTitle: { en: "The humans behind Leaply", vi: "Những con người đằng sau Leaply" },
 		teamSubtitle: {
-			en: "Cross-functional team from top Vietnamese universities, sharing a passion for education and technology.",
-			vi: "Cross-functional team từ các trường đại học hàng đầu Việt Nam, cùng chung đam mê về giáo dục và công nghệ.",
+			en: "A small but mighty team of dreamers, builders, and former stressed-out applicants.",
+			vi: "Một đội ngũ nhỏ nhưng mạnh mẽ của những người mơ ước, những người xây dựng, và những cựu applicant từng stress nặng.",
 		},
 
 		// Contact
-		contactTitle: { en: "Contact Us", vi: "Liên hệ với chúng tôi" },
+		contactTitle: { en: "Say hi!", vi: "Chào mình nhé!" },
 		contactSubtitle: {
-			en: "Have questions or want to collaborate? Contact us - we're always happy to listen!",
-			vi: "Bạn có câu hỏi hoặc muốn hợp tác? Hãy liên hệ với chúng tôi - chúng tôi luôn sẵn lòng lắng nghe!",
+			en: "Got questions? Feedback? Just want to chat? We'd love to hear from you. Seriously, we read every message.",
+			vi: "Có câu hỏi? Góp ý? Hay chỉ muốn nói chuyện? Chúng mình rất muốn nghe từ bạn. Thật đấy, chúng mình đọc từng tin nhắn.",
 		},
 		email: { en: "Email", vi: "Email" },
-		address: { en: "Address", vi: "Địa chỉ" },
-		followUs: { en: "Follow us", vi: "Theo dõi chúng tôi" },
+		address: { en: "Where we are", vi: "Chúng mình ở đâu" },
+		followUs: { en: "Stay connected", vi: "Kết nối với mình" },
 
 		// Contact form
-		formName: { en: "Full name", vi: "Họ và tên" },
-		formNamePlaceholder: { en: "Enter your full name", vi: "Nhập họ và tên" },
+		formName: { en: "Your name", vi: "Tên bạn" },
+		formNamePlaceholder: { en: "What should we call you?", vi: "Chúng mình gọi bạn là gì?" },
 		formEmail: { en: "Email", vi: "Email" },
-		formEmailPlaceholder: { en: "Enter your email", vi: "Nhập email của bạn" },
-		formMessage: { en: "Message", vi: "Tin nhắn" },
+		formEmailPlaceholder: { en: "Where can we reach you?", vi: "Chúng mình liên lạc với bạn ở đâu?" },
+		formMessage: { en: "Your message", vi: "Lời nhắn" },
 		formMessagePlaceholder: {
-			en: "What would you like to share?",
-			vi: "Bạn muốn chia sẻ điều gì?",
+			en: "Whatever's on your mind...",
+			vi: "Bất cứ điều gì bạn muốn chia sẻ...",
 		},
-		formSubmit: { en: "Send message", vi: "Gửi tin nhắn" },
+		formSubmit: { en: "Send it!", vi: "Gửi đi!" },
 		formSubmitting: { en: "Sending...", vi: "Đang gửi..." },
-		formThankYou: { en: "Thank you!", vi: "Cảm ơn bạn!" },
+		formThankYou: { en: "Got it! 🎉", vi: "Nhận được rồi! 🎉" },
 		formSuccess: {
-			en: "We've received your message and will respond as soon as possible.",
-			vi: "Chúng tôi đã nhận được tin nhắn của bạn và sẽ phản hồi sớm nhất có thể.",
+			en: "Thanks for reaching out! We'll get back to you soon.",
+			vi: "Cảm ơn bạn đã liên hệ! Chúng mình sẽ phản hồi sớm nhé.",
 		},
-		formSendAnother: { en: "Send another message", vi: "Gửi tin nhắn khác" },
+		formSendAnother: { en: "Send another", vi: "Gửi tin khác" },
 
 		// CTA
-		ctaTitle: { en: "Start the journey together", vi: "Cùng bắt đầu hành trình" },
+		ctaTitle: { en: "Ready to start?", vi: "Sẵn sàng bắt đầu?" },
 		ctaSubtitle: {
-			en: "Thousands of students have trusted Leaply. Will you be next?",
-			vi: "Hàng ngàn học sinh đã tin tưởng Leaply. Bạn sẽ là người tiếp theo?",
+			en: "Your dream school is waiting. Let's make it happen together.",
+			vi: "Trường trong mơ đang chờ bạn. Cùng biến nó thành hiện thực nhé.",
 		},
-		ctaButton: { en: "Create free account", vi: "Tạo tài khoản miễn phí" },
+		ctaButton: { en: "Get started free", vi: "Bắt đầu miễn phí" },
 	},
 
 	// Common
