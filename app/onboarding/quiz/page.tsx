@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Heart, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
 	Card,
 	CardContent,
@@ -18,265 +20,301 @@ import { OnboardingProgress } from "@/components/OnboardingProgress";
 import { useUserStore } from "@/lib/store/userStore";
 import { PageTransition } from "@/components/PageTransition";
 
+const ONBOARDING_STEPS = [
+	"Basic Info",
+	"Academic",
+	"Interests",
+	"Goals",
+	"Journey",
+];
+
+const MAJOR_OPTIONS = [
+	"Computer Science",
+	"Data Science / AI",
+	"Software Engineering",
+	"Electrical Engineering",
+	"Mechanical Engineering",
+	"Civil Engineering",
+	"Business Administration",
+	"Finance",
+	"Marketing",
+	"Economics",
+	"Medicine",
+	"Nursing",
+	"Public Health",
+	"Psychology",
+	"Law",
+	"International Relations",
+	"Communications / Media",
+	"Arts & Design",
+	"Architecture",
+	"Education",
+	"Environmental Science",
+	"Biology",
+	"Chemistry",
+	"Physics",
+	"Mathematics",
+];
+
+const PRIORITY_OPTIONS = [
+	{ id: "research", label: "Research opportunities", description: "Access to labs, research projects, and faculty" },
+	{ id: "campus", label: "Campus life", description: "Student activities, clubs, and social experience" },
+	{ id: "career", label: "Career prospects", description: "Job placement, internships, and industry connections" },
+	{ id: "scholarship", label: "Scholarship availability", description: "Financial aid and scholarship programs" },
+	{ id: "location", label: "Location", description: "City, climate, and surrounding environment" },
+];
+
 export default function OnboardingQuizPage() {
 	const router = useRouter();
 	const { updatePreferences } = useUserStore();
 
 	const [formData, setFormData] = useState({
-		desiredMajor: "",
-		preferredRegions: [] as string[],
-		budgetMin: 10000,
-		budgetMax: 50000,
-		campusSetting: "",
-		languagesOfInstruction: [] as string[],
-		interests: [] as string[],
+		desiredMajors: [] as string[],
+		priorities: [] as string[],
+		selfDescription: "",
 	});
 
-	const regions = [
-		"North America",
-		"Europe",
-		"Asia",
-		"Oceania",
-		"South America",
-		"Africa",
-	];
-	const languages = [
-		"English",
-		"Spanish",
-		"French",
-		"German",
-		"Mandarin",
-		"Japanese",
-	];
-	const interests = [
-		"Research",
-		"Entrepreneurship",
-		"Sports",
-		"Arts",
-		"Community Service",
-		"Technology",
-	];
+	const [majorSearch, setMajorSearch] = useState("");
+
+	const filteredMajors = MAJOR_OPTIONS.filter(
+		(major) =>
+			major.toLowerCase().includes(majorSearch.toLowerCase()) &&
+			!formData.desiredMajors.includes(major)
+	);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
 		// Update user preferences
 		updatePreferences({
-			desiredMajor: formData.desiredMajor,
-			preferredRegions: formData.preferredRegions,
-			budgetRange: {
-				min: formData.budgetMin,
-				max: formData.budgetMax,
-			},
-			campusSetting: formData.campusSetting as "urban" | "suburban" | "rural",
-			languagesOfInstruction: formData.languagesOfInstruction,
-			interests: formData.interests,
+			desiredMajor: formData.desiredMajors[0] || "",
+			interests: formData.priorities,
 		});
 
-		router.push("/onboarding/summary");
+		// Store additional data
+		localStorage.setItem("onboarding_desiredMajors", JSON.stringify(formData.desiredMajors));
+		localStorage.setItem("onboarding_priorities", JSON.stringify(formData.priorities));
+		localStorage.setItem("onboarding_selfDescription", formData.selfDescription);
+
+		router.push("/onboarding/goals");
 	};
 
-	const toggleArrayItem = (
-		field: "preferredRegions" | "languagesOfInstruction" | "interests",
-		value: string,
-	) => {
+	const toggleMajor = (major: string) => {
 		setFormData((prev) => ({
 			...prev,
-			[field]: prev[field].includes(value)
-				? prev[field].filter((item) => item !== value)
-				: [...prev[field], value],
+			desiredMajors: prev.desiredMajors.includes(major)
+				? prev.desiredMajors.filter((m) => m !== major)
+				: [...prev.desiredMajors, major],
 		}));
 	};
+
+	const togglePriority = (priorityId: string) => {
+		setFormData((prev) => ({
+			...prev,
+			priorities: prev.priorities.includes(priorityId)
+				? prev.priorities.filter((p) => p !== priorityId)
+				: [...prev.priorities, priorityId],
+		}));
+	};
+
+	const addMajorFromSearch = (major: string) => {
+		if (!formData.desiredMajors.includes(major)) {
+			setFormData((prev) => ({
+				...prev,
+				desiredMajors: [...prev.desiredMajors, major],
+			}));
+		}
+		setMajorSearch("");
+	};
+
+	const removeMajor = (major: string) => {
+		setFormData((prev) => ({
+			...prev,
+			desiredMajors: prev.desiredMajors.filter((m) => m !== major),
+		}));
+	};
+
+	const isFormValid = formData.desiredMajors.length > 0 && formData.priorities.length > 0;
 
 	return (
 		<PageTransition>
 			<div className="min-h-[calc(100vh-4rem)] bg-muted py-12">
-				<div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+				<div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
 					<OnboardingProgress
-						steps={["Profile", "Preferences", "Summary"]}
-						currentStep={1}
+						steps={ONBOARDING_STEPS}
+						currentStep={2}
 						className="mb-12"
 					/>
 
-					<Card>
-						<CardHeader>
-							<CardTitle>Your Preferences</CardTitle>
-							<CardDescription>
-								Help us understand what you&apos;re looking for in a university
+					<Card className="shadow-lg">
+						<CardHeader className="text-center pb-2">
+							<div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+								<Heart className="w-8 h-8 text-primary" />
+							</div>
+							<CardTitle className="text-2xl">Hãy giúp Leaply hiểu bạn hơn</CardTitle>
+							<CardDescription className="text-base">
+								Cho chúng tôi biết về sở thích và điều quan trọng với bạn
 							</CardDescription>
 						</CardHeader>
-						<CardContent>
+						<CardContent className="pt-6">
 							<form onSubmit={handleSubmit} className="space-y-8">
-								<div className="space-y-2">
-									<Label htmlFor="major">Desired Major / Field of Study</Label>
-									<Input
-										id="major"
-										type="text"
-										placeholder="e.g., Computer Science"
-										value={formData.desiredMajor}
-										onChange={(e) =>
-											setFormData((prev) => ({
-												...prev,
-												desiredMajor: e.target.value,
-											}))
-										}
-										required
-									/>
-								</div>
-
+								{/* Desired Majors - Multi-select with search */}
 								<div className="space-y-3">
-									<Label>Preferred Study Regions (Select all that apply)</Label>
-									<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-										{regions.map((region) => (
-											<Label
-												htmlFor={region}
-												key={region}
-												className="flex items-center gap-2 cursor-pointer"
-											>
-												<Checkbox
-													id={region}
-													checked={formData.preferredRegions.includes(region)}
-													onChange={() =>
-														toggleArrayItem("preferredRegions", region)
-													}
-												/>
-												<Label htmlFor={region} className="text-sm">{region}</Label>
-											</Label>
-										))}
-									</div>
-								</div>
-
-								<div className="space-y-3">
-									<Label>Annual Budget Range (Tuition + Living Costs)</Label>
-									<div className="grid grid-cols-2 gap-4">
-										<div>
-											<Label
-												htmlFor="budgetMin"
-												className="text-xs text-muted-foreground"
-											>
-												Minimum
-											</Label>
-											<Input
-												id="budgetMin"
-												type="number"
-												step="1000"
-												value={formData.budgetMin}
-												onChange={(e) =>
-													setFormData((prev) => ({
-														...prev,
-														budgetMin: parseInt(e.target.value,10),
-													}))
-												}
-												required
-											/>
-										</div>
-										<div>
-											<Label
-												htmlFor="budgetMax"
-												className="text-xs text-muted-foreground"
-											>
-												Maximum
-											</Label>
-											<Input
-												id="budgetMax"
-												type="number"
-												step="1000"
-												value={formData.budgetMax}
-												onChange={(e) =>
-													setFormData((prev) => ({
-														...prev,
-														budgetMax: parseInt(e.target.value,10),
-													}))
-												}
-												required
-											/>
-										</div>
-									</div>
-									<p className="text-sm text-muted-foreground">
-										Current range: ${formData.budgetMin.toLocaleString()} - $
-										{formData.budgetMax.toLocaleString()}
-									</p>
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="campusSetting">
-										Campus Setting Preference
+									<Label className="text-base font-medium">
+										Ngành học mong muốn
+										<span className="text-sm font-normal text-muted-foreground ml-2">
+											(Chọn một hoặc nhiều)
+										</span>
 									</Label>
-									<Select
-										id="campusSetting"
-										value={formData.campusSetting}
+									
+									{/* Selected majors */}
+									{formData.desiredMajors.length > 0 && (
+										<div className="flex flex-wrap gap-2 mb-3">
+											{formData.desiredMajors.map((major) => (
+												<Badge
+													key={major}
+													variant="secondary"
+													className="bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1.5 text-sm"
+												>
+													{major}
+													<button
+														type="button"
+														onClick={() => removeMajor(major)}
+														className="ml-2 hover:text-destructive"
+													>
+														<X className="w-3 h-3" />
+													</button>
+												</Badge>
+											))}
+										</div>
+									)}
+
+									{/* Search input */}
+									<div className="relative">
+										<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+										<Input
+											type="text"
+											placeholder="Tìm kiếm ngành học..."
+											value={majorSearch}
+											onChange={(e) => setMajorSearch(e.target.value)}
+											className="pl-10"
+										/>
+									</div>
+
+									{/* Filtered suggestions */}
+									{majorSearch && (
+										<div className="border border-border rounded-lg max-h-48 overflow-y-auto">
+											{filteredMajors.length > 0 ? (
+												filteredMajors.slice(0, 8).map((major) => (
+													<button
+														key={major}
+														type="button"
+														onClick={() => addMajorFromSearch(major)}
+														className="w-full text-left px-4 py-2 hover:bg-muted transition-colors text-sm"
+													>
+														{major}
+													</button>
+												))
+											) : (
+												<p className="px-4 py-2 text-sm text-muted-foreground">
+													Không tìm thấy ngành phù hợp
+												</p>
+											)}
+										</div>
+									)}
+
+									{/* Quick select popular majors */}
+									{!majorSearch && formData.desiredMajors.length === 0 && (
+										<div className="flex flex-wrap gap-2">
+											{MAJOR_OPTIONS.slice(0, 6).map((major) => (
+												<button
+													key={major}
+													type="button"
+													onClick={() => toggleMajor(major)}
+													className="px-3 py-1.5 rounded-full border border-border text-sm hover:border-primary hover:text-primary transition-colors"
+												>
+													{major}
+												</button>
+											))}
+										</div>
+									)}
+								</div>
+
+								{/* Priorities */}
+								<div className="space-y-4">
+									<Label className="text-base font-medium">
+										Điều gì quan trọng với bạn?
+										<span className="text-sm font-normal text-muted-foreground ml-2">
+											(Chọn tất cả áp dụng)
+										</span>
+									</Label>
+									<div className="space-y-3">
+										{PRIORITY_OPTIONS.map((priority) => (
+											<label
+												key={priority.id}
+												htmlFor={priority.id}
+												className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-all ${
+													formData.priorities.includes(priority.id)
+														? "border-primary bg-primary/5"
+														: "border-border hover:border-primary/50"
+												}`}
+											>
+												<Checkbox
+													id={priority.id}
+													checked={formData.priorities.includes(priority.id)}
+													onChange={() => togglePriority(priority.id)}
+													className="mt-0.5"
+												/>
+												<div className="flex-1">
+													<span className="font-medium text-foreground">
+														{priority.label}
+													</span>
+													<p className="text-sm text-muted-foreground mt-0.5">
+														{priority.description}
+													</p>
+												</div>
+											</label>
+										))}
+									</div>
+								</div>
+
+								{/* Self Description */}
+								<div className="space-y-2">
+									<Label htmlFor="selfDescription" className="text-base font-medium">
+										Một câu mô tả bản thân
+										<span className="text-sm font-normal text-muted-foreground ml-2">
+											(Không bắt buộc)
+										</span>
+									</Label>
+									<Textarea
+										id="selfDescription"
+										placeholder="VD: Tôi thích giải quyết vấn đề thực tế bằng công nghệ"
+										value={formData.selfDescription}
 										onChange={(e) =>
 											setFormData((prev) => ({
 												...prev,
-												campusSetting: e.target.value,
+												selfDescription: e.target.value,
 											}))
 										}
-										required
-									>
-										<option value="">Select preference</option>
-										<option value="urban">Urban - City center location</option>
-										<option value="suburban">
-											Suburban - Near city but quieter
-										</option>
-										<option value="rural">Rural - Countryside setting</option>
-									</Select>
-								</div>
-
-								<div className="space-y-3">
-									<Label>Languages of Instruction</Label>
-									<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-										{languages.map((language) => (
-											<Label
-												htmlFor={language}
-												key={language}
-												className="flex items-center gap-2 cursor-pointer"
-											>
-												<Checkbox
-													id={language}
-													checked={formData.languagesOfInstruction.includes(
-														language,
-													)}
-													onChange={() =>
-														toggleArrayItem("languagesOfInstruction", language)
-													}
-												/>
-												<Label htmlFor={language} className="text-sm">{language}</Label>
-											</Label>
-										))}
-									</div>
-								</div>
-
-								<div className="space-y-3">
-									<Label>Areas of Interest</Label>
-									<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-										{interests.map((interest) => (
-											<Label
-												htmlFor={interest}
-												key={interest}
-												className="flex items-center gap-2 cursor-pointer"
-											>
-												<Checkbox
-													id={interest}
-													checked={formData.interests.includes(interest)}
-													onChange={() =>
-														toggleArrayItem("interests", interest)
-													}
-												/>
-												<Label htmlFor={interest} className="text-sm">{interest}</Label>
-											</Label>
-										))}
-									</div>
+										rows={3}
+										className="resize-none"
+									/>
+									<p className="text-xs text-muted-foreground">
+										Đây sẽ giúp chúng tôi hiểu bạn hơn để đưa ra gợi ý phù hợp
+									</p>
 								</div>
 
 								<div className="flex justify-between gap-4 pt-6 border-t border-border">
 									<Button
 										type="button"
 										variant="outline"
-										onClick={() => router.back()}
+										onClick={() => router.push("/onboarding/academic")}
 									>
-										Back
+										Quay lại
 									</Button>
-									<Button type="submit">Continue to Summary</Button>
+									<Button type="submit" disabled={!isFormValid}>
+										Tiếp tục
+									</Button>
 								</div>
 							</form>
 						</CardContent>

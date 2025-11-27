@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { User, GraduationCap, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,205 +18,149 @@ import { OnboardingProgress } from "@/components/OnboardingProgress";
 import { useUserStore } from "@/lib/store/userStore";
 import { PageTransition } from "@/components/PageTransition";
 
+const ONBOARDING_STEPS = [
+	"Basic Info",
+	"Academic",
+	"Interests",
+	"Goals",
+	"Journey",
+];
+
 export default function OnboardingPage() {
 	const router = useRouter();
-	const { updateProfile } = useUserStore();
+	const { profile, updateProfile } = useUserStore();
 
 	const [formData, setFormData] = useState({
-		dateOfBirth: "",
-		nationality: "",
+		fullName: profile?.fullName || "",
+		email: profile?.email || "",
 		currentEducationLevel: "",
-		gpa: "",
-		testScoreType: "",
-		testScore: "",
-		intendedStartYear: new Date().getFullYear() + 1,
+		targetDegree: "",
 	});
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
-		// Update user profile
+		// Update user profile with basic info
 		updateProfile({
-			dateOfBirth: formData.dateOfBirth,
-			nationality: formData.nationality,
+			fullName: formData.fullName,
+			email: formData.email,
 			currentEducationLevel: formData.currentEducationLevel,
-			gpa: parseFloat(formData.gpa) || 0,
-			testScores: formData.testScoreType
-				? [
-						{
-							type: formData.testScoreType,
-							score: formData.testScore,
-						},
-					]
-				: [],
-			intendedStartYear: formData.intendedStartYear,
 		});
 
-		router.push("/onboarding/quiz");
+		// Store target degree in localStorage for now (will be added to store later)
+		localStorage.setItem("onboarding_targetDegree", formData.targetDegree);
+
+		router.push("/onboarding/academic");
 	};
 
-	const updateField = (field: string, value: string | number) => {
+	const updateField = (field: string, value: string) => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
 	};
+
+	const isFormValid =
+		formData.fullName.trim() &&
+		formData.email.trim() &&
+		formData.currentEducationLevel &&
+		formData.targetDegree;
 
 	return (
 		<PageTransition>
 			<div className="min-h-[calc(100vh-4rem)] bg-muted py-12">
-				<div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+				<div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
 					<OnboardingProgress
-						steps={["Profile", "Preferences", "Summary"]}
+						steps={ONBOARDING_STEPS}
 						currentStep={0}
 						className="mb-12"
 					/>
 
-					<Card>
-						<CardHeader>
-							<CardTitle>Complete Your Profile</CardTitle>
-							<CardDescription>
-								Tell us about your academic background to get personalized
-								recommendations
+					<Card className="shadow-lg">
+						<CardHeader className="text-center pb-2">
+							<div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+								<User className="w-8 h-8 text-primary" />
+							</div>
+							<CardTitle className="text-2xl">Chào mừng bạn đến Leaply!</CardTitle>
+							<CardDescription className="text-base">
+								Hãy bắt đầu với một số thông tin cơ bản về bạn
 							</CardDescription>
 						</CardHeader>
-						<CardContent>
+						<CardContent className="pt-6">
 							<form onSubmit={handleSubmit} className="space-y-6">
+								{/* Name and Email */}
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 									<div className="space-y-2">
-										<Label htmlFor="dateOfBirth">Date of Birth</Label>
+										<Label htmlFor="fullName">Họ và tên</Label>
 										<Input
-											id="dateOfBirth"
-											type="date"
-											value={formData.dateOfBirth}
-											onChange={(e) =>
-												updateField("dateOfBirth", e.target.value)
-											}
-											required
-										/>
-									</div>
-
-									<div className="space-y-2">
-										<Label htmlFor="nationality">Nationality</Label>
-										<Select
-											id="nationality"
-											value={formData.nationality}
-											onChange={(e) =>
-												updateField("nationality", e.target.value)
-											}
-											required
-										>
-											<option value="">Select nationality</option>
-											<option value="United States">United States</option>
-											<option value="United Kingdom">United Kingdom</option>
-											<option value="Canada">Canada</option>
-											<option value="Australia">Australia</option>
-											<option value="India">India</option>
-											<option value="China">China</option>
-											<option value="Japan">Japan</option>
-											<option value="South Korea">South Korea</option>
-											<option value="Other">Other</option>
-										</Select>
-									</div>
-
-									<div className="space-y-2">
-										<Label htmlFor="educationLevel">
-											Current Education Level
-										</Label>
-										<Select
-											id="educationLevel"
-											value={formData.currentEducationLevel}
-											onChange={(e) =>
-												updateField("currentEducationLevel", e.target.value)
-											}
-											required
-										>
-											<option value="">Select level</option>
-											<option value="High School">High School</option>
-											<option value="Undergraduate">Undergraduate</option>
-											<option value="Graduate">Graduate</option>
-										</Select>
-									</div>
-
-									<div className="space-y-2">
-										<Label htmlFor="gpa">GPA / Average Grade</Label>
-										<Input
-											id="gpa"
-											type="number"
-											step="0.01"
-											min="0"
-											max="4"
-											placeholder="3.5"
-											value={formData.gpa}
-											onChange={(e) => updateField("gpa", e.target.value)}
-											required
-										/>
-									</div>
-
-									<div className="space-y-2">
-										<Label htmlFor="testScoreType">
-											Test Score Type (Optional)
-										</Label>
-										<Select
-											id="testScoreType"
-											value={formData.testScoreType}
-											onChange={(e) =>
-												updateField("testScoreType", e.target.value)
-											}
-										>
-											<option value="">Select test</option>
-											<option value="SAT">SAT</option>
-											<option value="ACT">ACT</option>
-											<option value="IELTS">IELTS</option>
-											<option value="TOEFL">TOEFL</option>
-											<option value="GRE">GRE</option>
-											<option value="GMAT">GMAT</option>
-										</Select>
-									</div>
-
-									<div className="space-y-2">
-										<Label htmlFor="testScore">Test Score (Optional)</Label>
-										<Input
-											id="testScore"
+											id="fullName"
 											type="text"
-											placeholder="1450"
-											value={formData.testScore}
-											onChange={(e) => updateField("testScore", e.target.value)}
-											disabled={!formData.testScoreType}
+											placeholder="Nguyễn Văn A"
+											value={formData.fullName}
+											onChange={(e) => updateField("fullName", e.target.value)}
+											required
 										/>
 									</div>
 
 									<div className="space-y-2">
-										<Label htmlFor="startYear">Intended Start Year</Label>
-										<Select
-											id="startYear"
-											value={formData.intendedStartYear.toString()}
-											onChange={(e) =>
-												updateField(
-													"intendedStartYear",
-													parseInt(e.target.value,10),
-												)
-											}
+										<Label htmlFor="email">Email</Label>
+										<Input
+											id="email"
+											type="email"
+											placeholder="email@example.com"
+											value={formData.email}
+											onChange={(e) => updateField("email", e.target.value)}
 											required
-										>
-											{[0, 1, 2, 3].map((offset) => {
-												const year = new Date().getFullYear() + offset;
-												return (
-													<option key={year} value={year}>
-														{year}
-													</option>
-												);
-											})}
-										</Select>
+										/>
 									</div>
+								</div>
+
+								{/* Education Level */}
+								<div className="space-y-2">
+									<Label htmlFor="educationLevel" className="flex items-center gap-2">
+										<GraduationCap className="w-4 h-4 text-muted-foreground" />
+										Trình độ học vấn hiện tại
+									</Label>
+									<Select
+										id="educationLevel"
+										value={formData.currentEducationLevel}
+										onChange={(e) => updateField("currentEducationLevel", e.target.value)}
+										required
+									>
+										<option value="">Chọn trình độ</option>
+										<option value="High School">Trung học phổ thông (High School)</option>
+										<option value="Undergraduate">Đại học (Undergraduate)</option>
+										<option value="Graduate">Sau đại học (Graduate)</option>
+									</Select>
+								</div>
+
+								{/* Target Degree */}
+								<div className="space-y-2">
+									<Label htmlFor="targetDegree" className="flex items-center gap-2">
+										<Target className="w-4 h-4 text-muted-foreground" />
+										Bằng cấp mục tiêu
+									</Label>
+									<Select
+										id="targetDegree"
+										value={formData.targetDegree}
+										onChange={(e) => updateField("targetDegree", e.target.value)}
+										required
+									>
+										<option value="">Chọn bằng cấp muốn đạt được</option>
+										<option value="Bachelor">Cử nhân (Bachelor's)</option>
+										<option value="Master">Thạc sĩ (Master's)</option>
+										<option value="PhD">Tiến sĩ (PhD)</option>
+									</Select>
 								</div>
 
 								<div className="flex justify-end gap-4 pt-6 border-t border-border">
 									<Button
 										type="button"
 										variant="outline"
-										onClick={() => router.back()}
+										onClick={() => router.push("/signup")}
 									>
-										Back
+										Quay lại
 									</Button>
-									<Button type="submit">Continue to Preferences</Button>
+									<Button type="submit" disabled={!isFormValid}>
+										Tiếp tục
+									</Button>
 								</div>
 							</form>
 						</CardContent>
