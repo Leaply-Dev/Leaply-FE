@@ -62,9 +62,9 @@ export function ProfileContextSidebar() {
 					<h3 className="font-bold text-lg text-foreground">
 						{profile?.fullName || t("personaLab", "noName")}
 					</h3>
-					<p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-						<MapPin className="w-3 h-3" /> Vietnam
-					</p>
+				<p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+					<MapPin className="w-3 h-3" /> {t("common", "vietnam")}
+				</p>
 				</div>
 			</div>
 

@@ -1,8 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { FileText, Video, BookOpen, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface ResourceCardProps {
 	title: string;
@@ -14,9 +17,9 @@ interface ResourceCardProps {
 }
 
 const typeConfig = {
-	article: { icon: FileText, label: "Article" },
-	video: { icon: Video, label: "Video" },
-	guide: { icon: BookOpen, label: "Guide" },
+	article: { icon: FileText, labelKey: "article" as const },
+	video: { icon: Video, labelKey: "video" as const },
+	guide: { icon: BookOpen, labelKey: "guide" as const },
 };
 
 export function ResourceCard({
@@ -27,6 +30,7 @@ export function ResourceCard({
 	tags,
 	className,
 }: ResourceCardProps) {
+	const { t } = useTranslation();
 	const config = typeConfig[type];
 	const Icon = config.icon;
 
@@ -39,9 +43,9 @@ export function ResourceCard({
 					</div>
 					<div className="flex-1">
 						<CardTitle className="text-lg mb-1">{title}</CardTitle>
-						<Badge variant="secondary" className="text-xs">
-							{config.label}
-						</Badge>
+					<Badge variant="secondary" className="text-xs">
+						{t("common", config.labelKey)}
+					</Badge>
 					</div>
 				</div>
 			</CardHeader>
@@ -58,13 +62,13 @@ export function ResourceCard({
 					</div>
 				)}
 
-				<Link
-					href={url}
-					className="inline-flex items-center gap-2 text-sm text-primary hover:text-accent font-medium"
-				>
-					Read More
-					<ExternalLink className="w-4 h-4" />
-				</Link>
+			<Link
+				href={url}
+				className="inline-flex items-center gap-2 text-sm text-primary hover:text-accent font-medium"
+			>
+				{t("common", "readMore")}
+				<ExternalLink className="w-4 h-4" />
+			</Link>
 			</CardContent>
 		</Card>
 	);

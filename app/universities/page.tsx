@@ -227,7 +227,7 @@ export default function UniversitiesPage() {
 									<p className="text-muted-foreground">
 										{profile ? (
 											<>
-												{t("universities", "basedOnProfile")}{" "}
+												{t("universities", "basedOnProfileFound")}{" "}
 												<span className="font-semibold text-primary">
 													{aiMatchedUniversities.length} {t("universities", "universitiesFit")}
 												</span>{" "}

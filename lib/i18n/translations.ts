@@ -613,6 +613,25 @@ export const translations = {
 	// Universities Page
 	universities: {
 		title: { en: "Discover Your Perfect Match", vi: "Tìm trường phù hợp với bạn" },
+		aiMatch: { en: "AI Match", vi: "AI gợi ý" },
+		match: { en: "Match", vi: "Phù hợp" },
+		why: { en: "Why?", vi: "Tại sao?" },
+		whySchool: { en: "Why this school?", vi: "Tại sao trường này?" },
+		whySchoolDesc: { en: "Here's why we think this university could be a great match for you", vi: "Đây là lý do chúng tôi nghĩ trường này có thể phù hợp với bạn" },
+		basedOnProfile: { en: "Based on your profile and preferences", vi: "Dựa trên hồ sơ và sở thích của bạn" },
+		matchReasons: { en: "Match Reasons", vi: "Lý do phù hợp" },
+		completeProfileForReasons: { en: "Complete your profile to see personalized match reasons!", vi: "Hoàn thiện hồ sơ để xem lý do phù hợp cá nhân!" },
+		viewDetails: { en: "View Details", vi: "Xem chi tiết" },
+		askAI: { en: "Ask AI", vi: "Hỏi AI" },
+		learnMore: { en: "Learn More", vi: "Tìm hiểu thêm" },
+		saved: { en: "Saved", vi: "Đã lưu" },
+		addToDreamList: { en: "Add to Dream List", vi: "Thêm vào danh sách" },
+		striveForIt: { en: "Strive for it!", vi: "Cố lên!" },
+		askAIAboutSchool: { en: "Ask AI about this school", vi: "Hỏi AI về trường này" },
+		acceptance: { en: "acceptance", vi: "tỷ lệ chấp nhận" },
+		public: { en: "Public", vi: "Công lập" },
+		private: { en: "Private", vi: "Tư thục" },
+		perYear: { en: "/year", vi: "/năm" },
 		subtitle: {
 			en: "Personalized recommendations or explore 1000+ universities worldwide",
 			vi: "Gợi ý cá nhân hóa hoặc khám phá 1000+ trường trên thế giới",
@@ -621,10 +640,9 @@ export const translations = {
 			en: "Search universities, programs, or countries...",
 			vi: "Tìm trường, chương trình, hoặc quốc gia...",
 		},
-		aiMatch: { en: "AI Match", vi: "AI gợi ý" },
 		exploreAll: { en: "Explore All", vi: "Khám phá tất cả" },
 		// AI Match mode
-		basedOnProfile: {
+		basedOnProfileFound: {
 			en: "Based on your profile, we've found",
 			vi: "Dựa trên hồ sơ của bạn, chúng mình tìm được",
 		},
@@ -833,6 +851,15 @@ export const translations = {
 		leaply: { en: "Leaply", vi: "Leaply" },
 		vietnam: { en: "Vietnam", vi: "Việt Nam" },
 		hanoi: { en: "Hanoi, Vietnam", vi: "Hà Nội, Việt Nam" },
+		due: { en: "Due", vi: "Hạn" },
+		overdue: { en: "Overdue", vi: "Quá hạn" },
+		readMore: { en: "Read More", vi: "Xem thêm" },
+		article: { en: "Article", vi: "Bài viết" },
+		video: { en: "Video", vi: "Video" },
+		guide: { en: "Guide", vi: "Hướng dẫn" },
+		low: { en: "low", vi: "thấp" },
+		medium: { en: "medium", vi: "trung bình" },
+		high: { en: "high", vi: "cao" },
 	},
 } as const;
 

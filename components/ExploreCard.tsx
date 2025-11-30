@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useUniversitiesStore } from "@/lib/store/universitiesStore";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface ExploreCardProps {
 	id: string;
@@ -47,6 +48,7 @@ export function ExploreCard({
 	className,
 	onAskAI,
 }: ExploreCardProps) {
+	const { t } = useTranslation();
 	const { saveUniversity, unsaveUniversity, isSaved } = useUniversitiesStore();
 	const saved = isSaved(id);
 
@@ -87,7 +89,7 @@ export function ExploreCard({
 					{type && (
 						<div className="absolute top-4 left-4">
 							<Badge className="bg-card/95 text-foreground border border-border capitalize">
-								{type}
+								{t("universities", type)}
 							</Badge>
 						</div>
 					)}
@@ -111,12 +113,12 @@ export function ExploreCard({
 						<div className="flex items-center justify-between text-sm">
 							<span className="flex items-center gap-1 text-muted-foreground">
 								<DollarSign className="w-4 h-4" />$
-								{averageTuition.toLocaleString()}/year
+								{averageTuition.toLocaleString()}{t("universities", "perYear")}
 							</span>
 							{acceptanceRate && (
 								<span className="flex items-center gap-1 text-xs text-muted-foreground">
 									<Award className="w-3 h-3" />
-									{acceptanceRate}% acceptance
+									{acceptanceRate}% {t("universities", "acceptance")}
 								</span>
 							)}
 						</div>
@@ -132,7 +134,7 @@ export function ExploreCard({
 							<Button asChild size="sm" className="flex-1">
 								<Link href={`/universities/${id}`}>
 									<ExternalLink className="w-4 h-4 mr-2" />
-									View Details
+									{t("universities", "viewDetails")}
 								</Link>
 							</Button>
 							<Button
@@ -144,7 +146,7 @@ export function ExploreCard({
 									saved && "bg-chart-4 hover:bg-chart-4/90",
 								)}
 							>
-								{saved ? "★" : "Strive for it!"}
+								{saved ? "★" : t("universities", "striveForIt")}
 							</Button>
 						</div>
 
@@ -157,7 +159,7 @@ export function ExploreCard({
 								className="w-full text-chart-2 hover:text-chart-2/80 hover:bg-chart-2/5"
 							>
 								<MessageCircle className="w-4 h-4 mr-2" />
-								Ask AI about this school
+								{t("universities", "askAIAboutSchool")}
 							</Button>
 						)}
 					</div>
