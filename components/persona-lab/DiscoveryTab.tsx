@@ -285,7 +285,11 @@ function DiscoveryFlow({ track, onBack, onComplete }: DiscoveryFlowProps) {
 	);
 }
 
-export function DiscoveryTab() {
+interface DiscoveryTabProps {
+	onComplete?: () => void;
+}
+
+export function DiscoveryTab({ onComplete }: DiscoveryTabProps) {
 	const { t } = useTranslation();
 	const { tracks, activeTrackId, startTrack, setActiveTrack } = usePersonaStore();
 	const [selectedTrackId, setSelectedTrackId] = useState<TrackId | null>(null);
@@ -307,9 +311,15 @@ export function DiscoveryTab() {
 		setActiveTrack(null);
 	};
 
-	const handleComplete = () => {
+	const handleTrackComplete = () => {
 		setSelectedTrackId(null);
 		setActiveTrack(null);
+		// Check if this was the first track completed, trigger transition to persona view
+		const newCompletedCount = tracks.filter((t) => t.status === "completed").length + 1;
+		if (newCompletedCount >= 1 && onComplete) {
+			// Small delay to allow state to update
+			setTimeout(onComplete, 100);
+		}
 	};
 
 	if (activeTrack) {
@@ -318,7 +328,7 @@ export function DiscoveryTab() {
 				<DiscoveryFlow
 					track={activeTrack}
 					onBack={handleBack}
-					onComplete={handleComplete}
+					onComplete={handleTrackComplete}
 				/>
 			</ScrollArea>
 		);

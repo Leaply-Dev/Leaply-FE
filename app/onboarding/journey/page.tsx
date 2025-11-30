@@ -18,11 +18,8 @@ import { PageTransition } from "@/components/PageTransition";
 import { cn } from "@/lib/utils";
 
 const ONBOARDING_STEPS = [
-	"Basic Info",
-	"Academic",
-	"Interests",
-	"Goals",
-	"Journey",
+	"Thông tin cơ bản",
+	"Hành trình",
 ];
 
 type JourneyType = "exploring" | "targeted" | null;
@@ -85,7 +82,7 @@ export default function JourneyTypePage() {
 				<div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 					<OnboardingProgress
 						steps={ONBOARDING_STEPS}
-						currentStep={4}
+						currentStep={1}
 						className="mb-12"
 					/>
 
@@ -223,7 +220,7 @@ export default function JourneyTypePage() {
 
 						<Button
 							variant="ghost"
-							onClick={() => router.push("/onboarding/goals")}
+							onClick={() => router.push("/onboarding")}
 							className="text-muted-foreground"
 						>
 							Quay lại

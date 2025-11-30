@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -15,15 +15,17 @@ import {
 	Clock,
 	School,
 	FileText,
+	FolderOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { PageTransition, SlideUp, StaggerContainer, StaggerItem } from "@/components/PageTransition";
 import { useUserStore } from "@/lib/store/userStore";
-import { useUniversitiesStore } from "@/lib/store/universitiesStore";
 import { useApplicationsStore } from "@/lib/store/applicationsStore";
+import { mockEnhancedApplications, type EnhancedApplication } from "@/lib/data/enhancedApplications";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 // Calculate profile completion percentage
@@ -49,8 +51,8 @@ export default function HomePage() {
 	const { t } = useTranslation();
 	const router = useRouter();
 	const { profile, preferences, journeyType, isAuthenticated, lastActivity } = useUserStore();
-	const { savedUniversities } = useUniversitiesStore();
-	const { applications } = useApplicationsStore();
+	const { applications, setApplications } = useApplicationsStore();
+	const [enhancedApplications, setEnhancedApplications] = useState<EnhancedApplication[]>([]);
 
 	// Redirect to login if not authenticated
 	useEffect(() => {
@@ -59,14 +61,24 @@ export default function HomePage() {
 		}
 	}, [isAuthenticated, router]);
 
+	// Initialize enhanced applications
+	useEffect(() => {
+		setEnhancedApplications(mockEnhancedApplications);
+		if (applications.length === 0) {
+			setApplications(mockEnhancedApplications);
+		}
+	}, [applications.length, setApplications]);
+
 	if (!isAuthenticated) {
 		return null;
 	}
 
 	const profileCompletion = calculateProfileCompletion(profile, preferences);
-	const upcomingDeadlines = applications.filter(
+	const upcomingDeadlines = enhancedApplications.filter(
 		(app) => app.decisionDeadline && new Date(app.decisionDeadline) > new Date()
 	).length;
+	const draftApplications = enhancedApplications.filter((app) => app.status === "draft").length;
+	const submittedApplications = enhancedApplications.filter((app) => app.status === "submitted" || app.status === "under_review").length;
 
 	// Get time of day for greeting
 	const getGreeting = () => {
@@ -206,17 +218,19 @@ export default function HomePage() {
 										<CardContent className="p-5">
 											<div className="flex items-center gap-3 mb-3">
 												<div className="w-10 h-10 bg-chart-2/10 rounded-lg flex items-center justify-center">
-													<GraduationCap className="w-5 h-5 text-chart-2" />
+													<FolderOpen className="w-5 h-5 text-chart-2" />
 												</div>
 												<span className="text-sm font-medium text-muted-foreground">
-													{t("home", "schoolsSaved")}
+													{t("home", "applications")}
 												</span>
 											</div>
 											<div className="flex items-baseline gap-2">
 												<span className="text-2xl font-bold text-foreground">
-													{savedUniversities.length}
+													{enhancedApplications.length}
 												</span>
-												<span className="text-sm text-muted-foreground">{t("home", "schools")}</span>
+												<span className="text-sm text-muted-foreground">
+													{submittedApplications} {t("home", "submitted")}
+												</span>
 											</div>
 										</CardContent>
 									</Card>
@@ -266,14 +280,14 @@ export default function HomePage() {
 					</SlideUp>
 
 					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-						{/* Your Schools */}
+						{/* Your Applications */}
 						<div className="lg:col-span-2">
 							<SlideUp delay={0.3}>
 								<Card>
 									<CardHeader className="flex flex-row items-center justify-between pb-2">
 										<CardTitle className="text-lg flex items-center gap-2">
 											<School className="w-5 h-5 text-muted-foreground" />
-											{t("home", "yourSchools")}
+											{t("home", "yourApplications")}
 										</CardTitle>
 										<Button variant="ghost" size="sm" asChild>
 											<Link href="/dashboard/applications">
@@ -283,23 +297,54 @@ export default function HomePage() {
 										</Button>
 									</CardHeader>
 									<CardContent>
-										{savedUniversities.length > 0 ? (
+										{enhancedApplications.length > 0 ? (
 											<div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
-												{savedUniversities.slice(0, 4).map((uni) => (
-													<Card
-														key={uni}
-														className="min-w-[200px] shrink-0 hover:shadow-md transition-shadow cursor-pointer"
+												{enhancedApplications.slice(0, 4).map((app) => (
+													<Link
+														key={app.id}
+														href="/dashboard/applications"
+														className="min-w-[220px] shrink-0"
 													>
-														<CardContent className="p-4">
-															<div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center mb-3">
-																<GraduationCap className="w-5 h-5 text-muted-foreground" />
-															</div>
-															<h4 className="font-medium text-sm text-foreground truncate">
-																University #{uni}
-															</h4>
-															<p className="text-xs text-muted-foreground">{t("home", "saved")}</p>
-														</CardContent>
-													</Card>
+														<Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+															<CardContent className="p-4">
+																<div className="flex items-start gap-3 mb-3">
+																	<Avatar className="h-10 w-10 shrink-0">
+																		<AvatarImage
+																			src={app.universityLogo}
+																			alt={app.universityName}
+																		/>
+																		<AvatarFallback className="text-xs">
+																			{app.universityName.substring(0, 2).toUpperCase()}
+																		</AvatarFallback>
+																	</Avatar>
+																	<div className="flex-1 min-w-0">
+																		<h4 className="font-medium text-sm text-foreground truncate">
+																			{app.universityName}
+																		</h4>
+																		<p className="text-xs text-muted-foreground truncate">
+																			{app.program}
+																		</p>
+																	</div>
+																</div>
+																<div className="space-y-2">
+																	<div className="flex items-center justify-between">
+																		<Badge
+																			variant={app.status === "submitted" || app.status === "under_review" ? "default" : "secondary"}
+																			className="text-xs"
+																		>
+																			{app.status === "submitted" ? t("home", "submitted") : 
+																			 app.status === "under_review" ? t("home", "underReview") :
+																			 app.status === "draft" ? t("home", "draft") : app.status}
+																		</Badge>
+																		<span className="text-xs font-medium text-foreground">
+																			{app.fitScore}% {t("home", "fit")}
+																		</span>
+																	</div>
+																	<Progress value={app.completionPercentage} className="h-1.5" />
+																</div>
+															</CardContent>
+														</Card>
+													</Link>
 												))}
 											</div>
 										) : (
@@ -308,7 +353,7 @@ export default function HomePage() {
 													<GraduationCap className="w-8 h-8 text-muted-foreground" />
 												</div>
 												<p className="text-muted-foreground mb-4">
-													{t("home", "noSchoolsSaved")}
+													{t("home", "noApplicationsYet")}
 												</p>
 												<Button variant="outline" size="sm" asChild>
 													<Link href="/universities">{t("home", "exploreSchools")}</Link>

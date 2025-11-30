@@ -75,15 +75,12 @@ const UNIVERSITIES = [
 	{ id: "northwestern", name: "Northwestern University" },
 ];
 
+// Essay types for higher education (graduate) applications
 const ESSAY_TYPES = [
 	"Personal Statement",
-	"Common App Essay",
 	"Why Us Essay",
-	"Supplemental Essay",
 	"Diversity Essay",
-	"Activity Essay",
-	"Short Answer",
-	"Other",
+	"Research Statement",
 ];
 
 function formatRelativeTime(timestamp: number, language: "en" | "vi" = "vi"): string {
@@ -297,13 +294,23 @@ function NewEssayDialog({ onAdd, initialData }: NewEssayDialogProps) {
 
 					<div className="space-y-2">
 						<Label htmlFor="wordLimit">{t("personaLab", "wordLimit")}</Label>
-						<Input
+						<Select
 							id="wordLimit"
-							type="number"
 							value={formData.wordLimit}
 							onChange={(e) => setFormData({ ...formData, wordLimit: e.target.value })}
-							placeholder={`${t("personaLab", "eg")}: 650`}
-						/>
+						>
+							<option value="">{t("personaLab", "selectWordLimit")}</option>
+							<option value="150">150 {t("personaLab", "words")}</option>
+							<option value="200">200 {t("personaLab", "words")}</option>
+							<option value="250">250 {t("personaLab", "words")}</option>
+							<option value="300">300 {t("personaLab", "words")}</option>
+							<option value="350">350 {t("personaLab", "words")}</option>
+							<option value="400">400 {t("personaLab", "words")}</option>
+							<option value="500">500 {t("personaLab", "words")}</option>
+							<option value="650">650 {t("personaLab", "words")}</option>
+							<option value="800">800 {t("personaLab", "words")}</option>
+							<option value="1000">1000 {t("personaLab", "words")}</option>
+						</Select>
 					</div>
 
 					<div className="flex justify-end gap-3 pt-4">

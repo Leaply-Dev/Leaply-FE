@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Heart, Search, X } from "lucide-react";
+import { Heart, Search, X, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -16,17 +16,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { OnboardingProgress } from "@/components/OnboardingProgress";
 import { useUserStore } from "@/lib/store/userStore";
 import { PageTransition } from "@/components/PageTransition";
-
-const ONBOARDING_STEPS = [
-	"Basic Info",
-	"Academic",
-	"Interests",
-	"Goals",
-	"Journey",
-];
 
 const MAJOR_OPTIONS = [
 	"Computer Science",
@@ -136,24 +127,25 @@ export default function OnboardingQuizPage() {
 
 	const isFormValid = formData.desiredMajors.length > 0 && formData.priorities.length > 0;
 
+	const handleSkip = () => {
+		router.push("/onboarding/goals");
+	};
+
 	return (
 		<PageTransition>
 			<div className="min-h-[calc(100vh-4rem)] bg-muted py-12">
 				<div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-					<OnboardingProgress
-						steps={ONBOARDING_STEPS}
-						currentStep={2}
-						className="mb-12"
-					/>
-
 					<Card className="shadow-lg">
 						<CardHeader className="text-center pb-2">
+							<Badge variant="secondary" className="w-fit mx-auto mb-4 text-xs">
+								Không bắt buộc
+							</Badge>
 							<div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
 								<Heart className="w-8 h-8 text-primary" />
 							</div>
 							<CardTitle className="text-2xl">Hãy giúp Leaply hiểu bạn hơn</CardTitle>
 							<CardDescription className="text-base">
-								Cho chúng tôi biết về sở thích và điều quan trọng với bạn
+								Cho chúng tôi biết về sở thích và điều quan trọng với bạn. Bạn có thể bỏ qua và điền sau.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="pt-6">
@@ -312,9 +304,20 @@ export default function OnboardingQuizPage() {
 									>
 										Quay lại
 									</Button>
-									<Button type="submit" disabled={!isFormValid}>
-										Tiếp tục
-									</Button>
+									<div className="flex gap-2">
+										<Button
+											type="button"
+											variant="ghost"
+											onClick={handleSkip}
+											className="text-muted-foreground"
+										>
+											<SkipForward className="w-4 h-4 mr-2" />
+											Bỏ qua
+										</Button>
+										<Button type="submit" disabled={!isFormValid}>
+											Tiếp tục
+										</Button>
+									</div>
 								</div>
 							</form>
 						</CardContent>

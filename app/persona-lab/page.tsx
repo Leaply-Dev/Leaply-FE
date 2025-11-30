@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import { Compass, User, FileText } from "lucide-react";
+import { User, FileText } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageTransition } from "@/components/PageTransition";
 import { ProfileContextSidebar } from "@/components/persona-lab/ProfileContextSidebar";
@@ -9,6 +9,7 @@ import { DiscoveryTab } from "@/components/persona-lab/DiscoveryTab";
 import { MyPersonaTab } from "@/components/persona-lab/MyPersonaTab";
 import { EssaysTab } from "@/components/persona-lab/EssaysTab";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { usePersonaStore } from "@/lib/store/personaStore";
 
 interface EssayFromAngleData {
 	title?: string;
@@ -18,18 +19,29 @@ interface EssayFromAngleData {
 
 export default function PersonaLabPage() {
 	const { t } = useTranslation();
-	const [activeTab, setActiveTab] = useState("discovery");
+	const { tracks } = usePersonaStore();
+	const [activeTab, setActiveTab] = useState("persona");
 	const [essayFromAngleData, setEssayFromAngleData] = useState<EssayFromAngleData | undefined>();
+	const [isRetakingQuiz, setIsRetakingQuiz] = useState(false);
+
+	// Check if user has completed at least one track
+	const hasCompletedTracks = tracks.some((track) => track.status === "completed");
 
 	const handleCreateEssayFromAngle = useCallback((title: string, description: string, suggestedTypes?: string[]) => {
 		setEssayFromAngleData({ title, description, suggestedTypes });
 		setActiveTab("essays");
 	}, []);
 
-	// Clear the essay data after it's used
-	const handleEssayDataUsed = useCallback(() => {
-		setEssayFromAngleData(undefined);
+	const handleRetakeQuiz = useCallback(() => {
+		setIsRetakingQuiz(true);
 	}, []);
+
+	const handleRetakeComplete = useCallback(() => {
+		setIsRetakingQuiz(false);
+	}, []);
+
+	// Determine what to show in persona tab
+	const showDiscovery = !hasCompletedTracks || isRetakingQuiz;
 
 	return (
 		<PageTransition>
@@ -55,14 +67,7 @@ export default function PersonaLabPage() {
 										{t("personaLab", "subtitle")}
 									</p>
 								</div>
-								<TabsList className="grid grid-cols-3 w-auto">
-									<TabsTrigger
-										value="discovery"
-										className="flex items-center gap-2 px-4"
-									>
-										<Compass className="w-4 h-4" />
-										<span className="hidden sm:inline">{t("personaLab", "discovery")}</span>
-									</TabsTrigger>
+								<TabsList className="grid grid-cols-2 w-auto">
 									<TabsTrigger
 										value="persona"
 										className="flex items-center gap-2 px-4"
@@ -83,11 +88,15 @@ export default function PersonaLabPage() {
 
 						{/* Tab Content */}
 						<div className="flex-1 overflow-hidden">
-							<TabsContent value="discovery" className="h-full m-0 data-[state=active]:flex data-[state=active]:flex-col">
-								<DiscoveryTab />
-							</TabsContent>
 							<TabsContent value="persona" className="h-full m-0 data-[state=active]:flex data-[state=active]:flex-col">
-								<MyPersonaTab onCreateEssayFromAngle={handleCreateEssayFromAngle} />
+								{showDiscovery ? (
+									<DiscoveryTab onComplete={handleRetakeComplete} />
+								) : (
+									<MyPersonaTab 
+										onCreateEssayFromAngle={handleCreateEssayFromAngle} 
+										onRetakeQuiz={handleRetakeQuiz}
+									/>
+								)}
 							</TabsContent>
 							<TabsContent value="essays" className="h-full m-0 data-[state=active]:flex data-[state=active]:flex-col">
 								<EssaysTab initialEssayData={essayFromAngleData} />

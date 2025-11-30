@@ -291,39 +291,39 @@ const initialTracks: DiscoveryTrack[] = [
 	},
 ];
 
-// Initial Essay Angles
+// Initial Essay Angles for Higher Education (Graduate) Applications
 const initialEssayAngles: EssayAngle[] = [
 	{
 		id: "angle-growth",
 		title: "Personal Growth Story",
-		description: "Kể về một trải nghiệm đã thay đổi bạn",
+		description: "Kể về một trải nghiệm đã thay đổi bạn và định hình mục tiêu học thuật",
 		relevantTracks: ["values", "academic"],
 		isPinned: false,
-		suggestedFor: ["Common App Essay", "Personal Statement"],
+		suggestedFor: ["Personal Statement"],
 	},
 	{
 		id: "angle-passion",
-		title: "Passion & Curiosity",
-		description: "Thể hiện niềm đam mê học thuật hoặc sở thích",
+		title: "Research Interest",
+		description: "Thể hiện niềm đam mê nghiên cứu và lĩnh vực bạn muốn theo đuổi",
 		relevantTracks: ["academic", "future"],
 		isPinned: false,
-		suggestedFor: ["Why Major Essay", "Supplemental Essays"],
+		suggestedFor: ["Research Statement", "Why Us Essay"],
 	},
 	{
 		id: "angle-impact",
-		title: "Community Impact",
-		description: "Tập trung vào cách bạn đã tạo ra sự thay đổi",
-		relevantTracks: ["activities", "values"],
+		title: "Academic & Professional Goals",
+		description: "Tập trung vào mục tiêu học thuật và nghề nghiệp sau khi tốt nghiệp",
+		relevantTracks: ["activities", "future"],
 		isPinned: false,
-		suggestedFor: ["Activity Essay", "Community Essay"],
+		suggestedFor: ["Personal Statement", "Why Us Essay"],
 	},
 	{
 		id: "angle-identity",
-		title: "Identity & Background",
-		description: "Chia sẻ về nền tảng và bản sắc độc đáo của bạn",
+		title: "Unique Perspective",
+		description: "Chia sẻ góc nhìn độc đáo bạn mang đến cho chương trình học",
 		relevantTracks: ["values"],
 		isPinned: false,
-		suggestedFor: ["Diversity Essay", "Background Essay"],
+		suggestedFor: ["Diversity Essay", "Personal Statement"],
 	},
 ];
 

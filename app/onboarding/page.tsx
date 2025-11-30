@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, GraduationCap, Target } from "lucide-react";
+import { User, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,11 +19,8 @@ import { useUserStore } from "@/lib/store/userStore";
 import { PageTransition } from "@/components/PageTransition";
 
 const ONBOARDING_STEPS = [
-	"Basic Info",
-	"Academic",
-	"Interests",
-	"Goals",
-	"Journey",
+	"Thông tin cơ bản",
+	"Hành trình",
 ];
 
 export default function OnboardingPage() {
@@ -34,7 +31,6 @@ export default function OnboardingPage() {
 		fullName: profile?.fullName || "",
 		email: profile?.email || "",
 		currentEducationLevel: "",
-		targetDegree: "",
 	});
 
 	const handleSubmit = (e: React.FormEvent) => {
@@ -47,10 +43,8 @@ export default function OnboardingPage() {
 			currentEducationLevel: formData.currentEducationLevel,
 		});
 
-		// Store target degree in localStorage for now (will be added to store later)
-		localStorage.setItem("onboarding_targetDegree", formData.targetDegree);
-
-		router.push("/onboarding/academic");
+		// Go directly to journey selection
+		router.push("/onboarding/journey");
 	};
 
 	const updateField = (field: string, value: string) => {
@@ -60,8 +54,7 @@ export default function OnboardingPage() {
 	const isFormValid =
 		formData.fullName.trim() &&
 		formData.email.trim() &&
-		formData.currentEducationLevel &&
-		formData.targetDegree;
+		formData.currentEducationLevel;
 
 	return (
 		<PageTransition>
@@ -128,25 +121,6 @@ export default function OnboardingPage() {
 										<option value="High School">Trung học phổ thông (High School)</option>
 										<option value="Undergraduate">Đại học (Undergraduate)</option>
 										<option value="Graduate">Sau đại học (Graduate)</option>
-									</Select>
-								</div>
-
-								{/* Target Degree */}
-								<div className="space-y-2">
-									<Label htmlFor="targetDegree" className="flex items-center gap-2">
-										<Target className="w-4 h-4 text-muted-foreground" />
-										Bằng cấp mục tiêu
-									</Label>
-									<Select
-										id="targetDegree"
-										value={formData.targetDegree}
-										onChange={(e) => updateField("targetDegree", e.target.value)}
-										required
-									>
-										<option value="">Chọn bằng cấp muốn đạt được</option>
-										<option value="Bachelor">Cử nhân (Bachelor's)</option>
-										<option value="Master">Thạc sĩ (Master's)</option>
-										<option value="PhD">Tiến sĩ (PhD)</option>
 									</Select>
 								</div>
 

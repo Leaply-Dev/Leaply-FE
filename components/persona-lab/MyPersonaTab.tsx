@@ -14,6 +14,7 @@ import {
 	Check,
 	Compass,
 	Sparkles,
+	RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -233,9 +234,10 @@ function EmptyState() {
 
 interface MyPersonaTabProps {
 	onCreateEssayFromAngle?: (angleTitle: string, angleDescription: string, suggestedTypes?: string[]) => void;
+	onRetakeQuiz?: () => void;
 }
 
-export function MyPersonaTab({ onCreateEssayFromAngle }: MyPersonaTabProps) {
+export function MyPersonaTab({ onCreateEssayFromAngle, onRetakeQuiz }: MyPersonaTabProps) {
 	const { t } = useTranslation();
 	const {
 		personalityTags,
@@ -289,13 +291,26 @@ export function MyPersonaTab({ onCreateEssayFromAngle }: MyPersonaTabProps) {
 		<ScrollArea className="flex-1">
 			<div className="p-6 max-w-5xl mx-auto space-y-8">
 				{/* Header */}
-				<div>
-					<h2 className="text-2xl font-bold text-foreground mb-2">
-						{t("personaLab", "myPersonaTitle")}
-					</h2>
-					<p className="text-muted-foreground">
-						{t("personaLab", "myPersonaSubtitle")}
-					</p>
+				<div className="flex items-start justify-between">
+					<div>
+						<h2 className="text-2xl font-bold text-foreground mb-2">
+							{t("personaLab", "myPersonaTitle")}
+						</h2>
+						<p className="text-muted-foreground">
+							{t("personaLab", "myPersonaSubtitle")}
+						</p>
+					</div>
+					{onRetakeQuiz && (
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={onRetakeQuiz}
+							className="shrink-0"
+						>
+							<RefreshCw className="w-4 h-4 mr-2" />
+							{t("personaLab", "retakeQuiz")}
+						</Button>
+					)}
 				</div>
 
 				{/* Personality Tags Section */}

@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Target, Globe, Wallet, Calendar } from "lucide-react";
+import { Target, Globe, Wallet, Calendar, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import {
 	Card,
 	CardContent,
@@ -13,18 +14,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { OnboardingProgress } from "@/components/OnboardingProgress";
 import { useUserStore } from "@/lib/store/userStore";
 import { PageTransition } from "@/components/PageTransition";
 import { cn } from "@/lib/utils";
-
-const ONBOARDING_STEPS = [
-	"Basic Info",
-	"Academic",
-	"Interests",
-	"Goals",
-	"Journey",
-];
 
 const COUNTRY_OPTIONS = [
 	{ id: "US", label: "United States", flag: "🇺🇸" },
@@ -99,7 +91,7 @@ export default function GoalsPage() {
 		localStorage.setItem("onboarding_timeline", formData.timeline);
 		localStorage.setItem("onboarding_budgetRange", formData.budgetRange);
 
-		router.push("/onboarding/journey");
+		router.push("/home");
 	};
 
 	const toggleCountry = (countryId: string) => {
@@ -116,24 +108,25 @@ export default function GoalsPage() {
 		formData.budgetRange &&
 		formData.timeline;
 
+	const handleSkip = () => {
+		router.push("/home");
+	};
+
 	return (
 		<PageTransition>
 			<div className="min-h-[calc(100vh-4rem)] bg-muted py-12">
 				<div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-					<OnboardingProgress
-						steps={ONBOARDING_STEPS}
-						currentStep={3}
-						className="mb-12"
-					/>
-
 					<Card className="shadow-lg">
 						<CardHeader className="text-center pb-2">
+							<Badge variant="secondary" className="w-fit mx-auto mb-4 text-xs">
+								Không bắt buộc
+							</Badge>
 							<div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
 								<Target className="w-8 h-8 text-primary" />
 							</div>
 							<CardTitle className="text-2xl">Mục tiêu du học của bạn</CardTitle>
 							<CardDescription className="text-base">
-								Cho chúng tôi biết bạn muốn đi đâu và khi nào
+								Cho chúng tôi biết bạn muốn đi đâu và khi nào. Bạn có thể bỏ qua và điền sau.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="pt-6">
@@ -237,9 +230,20 @@ export default function GoalsPage() {
 									>
 										Quay lại
 									</Button>
-									<Button type="submit" disabled={!isFormValid}>
-										Tiếp tục
-									</Button>
+									<div className="flex gap-2">
+										<Button
+											type="button"
+											variant="ghost"
+											onClick={handleSkip}
+											className="text-muted-foreground"
+										>
+											<SkipForward className="w-4 h-4 mr-2" />
+											Bỏ qua
+										</Button>
+										<Button type="submit" disabled={!isFormValid}>
+											Hoàn thành
+										</Button>
+									</div>
 								</div>
 							</form>
 						</CardContent>
