@@ -14,7 +14,7 @@ export default function PersonaLabPage() {
 
 	return (
 		<PageTransition>
-			<div className="flex h-[calc(100vh-4rem)] w-full bg-background overflow-hidden">
+			<div className="flex flex-1 min-h-0 w-full bg-background overflow-hidden">
 				{/* Left Sidebar - Profile Context */}
 				<aside className="w-80 min-w-[280px] border-r border-border bg-card/50 backdrop-blur-sm hidden lg:block overflow-y-auto">
 					<ProfileContextSidebar />
