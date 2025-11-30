@@ -24,6 +24,7 @@ import { PageTransition, SlideUp, StaggerContainer, StaggerItem } from "@/compon
 import { useUserStore } from "@/lib/store/userStore";
 import { useUniversitiesStore } from "@/lib/store/universitiesStore";
 import { useApplicationsStore } from "@/lib/store/applicationsStore";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 // Calculate profile completion percentage
 function calculateProfileCompletion(profile: ReturnType<typeof useUserStore.getState>["profile"], preferences: ReturnType<typeof useUserStore.getState>["preferences"]): number {
@@ -45,6 +46,7 @@ function calculateProfileCompletion(profile: ReturnType<typeof useUserStore.getS
 }
 
 export default function HomePage() {
+	const { t } = useTranslation();
 	const router = useRouter();
 	const { profile, preferences, journeyType, isAuthenticated, lastActivity } = useUserStore();
 	const { savedUniversities } = useUniversitiesStore();
@@ -69,9 +71,9 @@ export default function HomePage() {
 	// Get time of day for greeting
 	const getGreeting = () => {
 		const hour = new Date().getHours();
-		if (hour < 12) return "Chào buổi sáng";
-		if (hour < 18) return "Chào buổi chiều";
-		return "Chào buổi tối";
+		if (hour < 12) return t("home", "greeting.morning");
+		if (hour < 18) return t("home", "greeting.afternoon");
+		return t("home", "greeting.evening");
 	};
 
 	// Format last activity time
@@ -82,10 +84,10 @@ export default function HomePage() {
 		const hours = Math.floor(minutes / 60);
 		const days = Math.floor(hours / 24);
 
-		if (days > 0) return `${days} ngày trước`;
-		if (hours > 0) return `${hours} giờ trước`;
-		if (minutes > 0) return `${minutes} phút trước`;
-		return "Vừa xong";
+		if (days > 0) return `${days} ${t("home", "daysAgo")}`;
+		if (hours > 0) return `${hours} ${t("home", "hoursAgo")}`;
+		if (minutes > 0) return `${minutes} ${t("home", "minutesAgo")}`;
+		return t("home", "justNow");
 	};
 
 	return (
@@ -96,10 +98,10 @@ export default function HomePage() {
 					<SlideUp>
 						<div className="mb-8">
 							<h1 className="text-3xl font-bold text-foreground mb-2">
-								{getGreeting()}, {profile?.fullName?.split(" ")[0] || "bạn"}!
+								{getGreeting()}, {profile?.fullName?.split(" ")[0] || t("home", "you")}!
 							</h1>
 							<p className="text-lg text-muted-foreground">
-								Đây là hành trình của bạn
+								{t("home", "subtitle")}
 							</p>
 						</div>
 					</SlideUp>
@@ -121,18 +123,17 @@ export default function HomePage() {
 											</div>
 											<div className="flex-1">
 												<Badge className="bg-primary/10 text-primary mb-2 hover:bg-primary/20">
-													Gợi ý cho bạn
+													{t("home", "suggestedForYou")}
 												</Badge>
 												<h3 className="text-xl font-semibold text-foreground mb-2">
-													Bắt đầu khám phá bản thân
+													{t("home", "startDiscovery")}
 												</h3>
 												<p className="text-muted-foreground mb-4">
-													Hiểu rõ điểm mạnh và câu chuyện của bạn trước khi chọn trường phù hợp.
-													Persona Lab sẽ giúp bạn khám phá những điều tuyệt vời về bản thân.
+													{t("home", "startDiscoveryDesc")}
 												</p>
 												<Button asChild>
 													<Link href="/persona-lab">
-														Vào Persona Lab
+														{t("home", "goToPersonaLab")}
 														<ArrowRight className="w-4 h-4 ml-2" />
 													</Link>
 												</Button>
@@ -150,18 +151,17 @@ export default function HomePage() {
 											</div>
 											<div className="flex-1">
 												<Badge className="bg-chart-2/10 text-chart-2 mb-2 hover:bg-chart-2/20">
-													Gợi ý cho bạn
+													{t("home", "suggestedForYou")}
 												</Badge>
 												<h3 className="text-xl font-semibold text-foreground mb-2">
-													Thêm trường mục tiêu đầu tiên
+													{t("home", "addFirstTarget")}
 												</h3>
 												<p className="text-muted-foreground mb-4">
-													Khám phá các trường phù hợp với profile của bạn và bắt đầu xây dựng
-													danh sách trường mục tiêu.
+													{t("home", "addFirstTargetDesc")}
 												</p>
 												<Button asChild className="bg-chart-2 hover:bg-chart-2/90">
 													<Link href="/universities">
-														Khám phá trường
+														{t("home", "exploreSchools")}
 														<ArrowRight className="w-4 h-4 ml-2" />
 													</Link>
 												</Button>
@@ -185,7 +185,7 @@ export default function HomePage() {
 													<User className="w-5 h-5 text-primary" />
 												</div>
 												<span className="text-sm font-medium text-muted-foreground">
-													Profile
+													{t("home", "profile")}
 												</span>
 											</div>
 											<div className="space-y-2">
@@ -193,7 +193,7 @@ export default function HomePage() {
 													<span className="text-2xl font-bold text-foreground">
 														{profileCompletion}%
 													</span>
-													<span className="text-xs text-muted-foreground">hoàn thành</span>
+													<span className="text-xs text-muted-foreground">{t("home", "completed")}</span>
 												</div>
 												<Progress value={profileCompletion} className="h-2" />
 											</div>
@@ -209,14 +209,14 @@ export default function HomePage() {
 													<GraduationCap className="w-5 h-5 text-chart-2" />
 												</div>
 												<span className="text-sm font-medium text-muted-foreground">
-													Trường đã lưu
+													{t("home", "schoolsSaved")}
 												</span>
 											</div>
 											<div className="flex items-baseline gap-2">
 												<span className="text-2xl font-bold text-foreground">
 													{savedUniversities.length}
 												</span>
-												<span className="text-sm text-muted-foreground">trường</span>
+												<span className="text-sm text-muted-foreground">{t("home", "schools")}</span>
 											</div>
 										</CardContent>
 									</Card>
@@ -230,14 +230,14 @@ export default function HomePage() {
 													<Calendar className="w-5 h-5 text-chart-4" />
 												</div>
 												<span className="text-sm font-medium text-muted-foreground">
-													Deadline sắp tới
+													{t("home", "upcomingDeadlines")}
 												</span>
 											</div>
 											<div className="flex items-baseline gap-2">
 												<span className="text-2xl font-bold text-foreground">
 													{upcomingDeadlines}
 												</span>
-												<span className="text-sm text-muted-foreground">deadline</span>
+												<span className="text-sm text-muted-foreground">{t("home", "deadlines")}</span>
 											</div>
 										</CardContent>
 									</Card>
@@ -251,12 +251,12 @@ export default function HomePage() {
 													<Compass className="w-5 h-5 text-chart-3" />
 												</div>
 												<span className="text-sm font-medium text-muted-foreground">
-													Discovery
+													{t("home", "discovery")}
 												</span>
 											</div>
 											<div className="flex items-baseline gap-2">
 												<span className="text-2xl font-bold text-foreground">0</span>
-												<span className="text-sm text-muted-foreground">/ 4 tracks</span>
+												<span className="text-sm text-muted-foreground">/ 4 {t("home", "tracks")}</span>
 											</div>
 										</CardContent>
 									</Card>
@@ -273,11 +273,11 @@ export default function HomePage() {
 									<CardHeader className="flex flex-row items-center justify-between pb-2">
 										<CardTitle className="text-lg flex items-center gap-2">
 											<School className="w-5 h-5 text-muted-foreground" />
-											Trường của bạn
+											{t("home", "yourSchools")}
 										</CardTitle>
 										<Button variant="ghost" size="sm" asChild>
 											<Link href="/dashboard/applications">
-												Xem tất cả
+												{t("home", "viewAll")}
 												<ArrowRight className="w-4 h-4 ml-1" />
 											</Link>
 										</Button>
@@ -297,7 +297,7 @@ export default function HomePage() {
 															<h4 className="font-medium text-sm text-foreground truncate">
 																University #{uni}
 															</h4>
-															<p className="text-xs text-muted-foreground">Đã lưu</p>
+															<p className="text-xs text-muted-foreground">{t("home", "saved")}</p>
 														</CardContent>
 													</Card>
 												))}
@@ -308,10 +308,10 @@ export default function HomePage() {
 													<GraduationCap className="w-8 h-8 text-muted-foreground" />
 												</div>
 												<p className="text-muted-foreground mb-4">
-													Chưa có trường nào được lưu
+													{t("home", "noSchoolsSaved")}
 												</p>
 												<Button variant="outline" size="sm" asChild>
-													<Link href="/universities">Khám phá trường</Link>
+													<Link href="/universities">{t("home", "exploreSchools")}</Link>
 												</Button>
 											</div>
 										)}
@@ -327,7 +327,7 @@ export default function HomePage() {
 									<CardHeader className="pb-2">
 										<CardTitle className="text-lg flex items-center gap-2">
 											<Clock className="w-5 h-5 text-muted-foreground" />
-											Tiếp tục
+											{t("home", "continueWhereYouLeft")}
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
@@ -347,7 +347,7 @@ export default function HomePage() {
 												</div>
 												<Button className="w-full" asChild>
 													<Link href={lastActivity.path}>
-														Tiếp tục
+														{t("home", "continueWhereYouLeft")}
 														<ArrowRight className="w-4 h-4 ml-2" />
 													</Link>
 												</Button>
@@ -358,7 +358,7 @@ export default function HomePage() {
 													<FileText className="w-6 h-6 text-muted-foreground" />
 												</div>
 												<p className="text-sm text-muted-foreground">
-													Bắt đầu hành trình của bạn
+													{t("home", "startYourJourney")}
 												</p>
 											</div>
 										)}
@@ -370,7 +370,7 @@ export default function HomePage() {
 							<SlideUp delay={0.5}>
 								<Card className="mt-6">
 									<CardHeader className="pb-2">
-										<CardTitle className="text-lg">Hành động nhanh</CardTitle>
+										<CardTitle className="text-lg">{t("home", "quickActions")}</CardTitle>
 									</CardHeader>
 									<CardContent className="space-y-2">
 										<Button
@@ -390,7 +390,7 @@ export default function HomePage() {
 										>
 											<Link href="/universities">
 												<GraduationCap className="w-4 h-4 mr-2 text-chart-2" />
-												Khám phá trường
+												{t("home", "exploreSchools")}
 											</Link>
 										</Button>
 										<Button
@@ -400,7 +400,7 @@ export default function HomePage() {
 										>
 											<Link href="/dashboard/profile">
 												<User className="w-4 h-4 mr-2 text-chart-4" />
-												Cập nhật profile
+												{t("home", "updateProfile")}
 											</Link>
 										</Button>
 									</CardContent>

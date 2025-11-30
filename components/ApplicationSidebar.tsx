@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import type { EnhancedApplication } from "@/lib/data/enhancedApplications";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface ApplicationSidebarProps {
 	applications: EnhancedApplication[];
@@ -23,6 +24,7 @@ export function ApplicationSidebar({
 	onSelectApplication,
 	onNewApplication,
 }: ApplicationSidebarProps) {
+	const { t } = useTranslation();
 	const [searchQuery, setSearchQuery] = useState("");
 
 	// Filter applications based on search
@@ -52,7 +54,7 @@ export function ApplicationSidebar({
 			<div className="p-4 border-b border-border space-y-4">
 				<div className="flex items-center justify-between">
 					<h2 className="text-lg font-semibold text-foreground">
-						Applications
+						{t("applications", "title")}
 					</h2>
 					<span className="text-sm text-muted-foreground">
 						{applications.length}
@@ -64,7 +66,7 @@ export function ApplicationSidebar({
 					<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
 					<Input
 						type="text"
-						placeholder="Search universities..."
+						placeholder={t("applications", "searchUniversities")}
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
 						className="pl-9"
@@ -74,7 +76,7 @@ export function ApplicationSidebar({
 				{/* New Application Button */}
 				<Button onClick={onNewApplication} className="w-full" size="sm">
 					<Plus className="w-4 h-4 mr-2" />
-					New Application
+					{t("applications", "newApplication")}
 				</Button>
 			</div>
 
@@ -82,7 +84,7 @@ export function ApplicationSidebar({
 			<div className="flex-1 overflow-y-auto pb-4">
 				{filteredApplications.length === 0 ? (
 					<div className="p-4 text-center text-sm text-muted-foreground">
-						No applications found
+						{t("applications", "noApplicationsFound")}
 					</div>
 				) : (
 					<div>
@@ -121,13 +123,13 @@ export function ApplicationSidebar({
 										{/* Fit Score Badge */}
 										<div className="mt-1">
 											<span
-												className={cn(
-													"inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold",
-													getFitScoreColor(app.fitScore),
-												)}
-											>
-												{app.fitScore}% Match
-											</span>
+											className={cn(
+												"inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold",
+												getFitScoreColor(app.fitScore),
+											)}
+										>
+											{app.fitScore}% {t("applications", "match")}
+										</span>
 										</div>
 									</div>
 								</div>
@@ -136,7 +138,7 @@ export function ApplicationSidebar({
 								<div className="mb-2.5">
 									<div className="flex items-center justify-between mb-1.5">
 										<span className="text-xs text-muted-foreground">
-											Progress
+											{t("applications", "progress")}
 										</span>
 										<span className="text-xs font-medium text-foreground">
 											{app.completionPercentage}%

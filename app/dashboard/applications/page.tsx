@@ -9,8 +9,10 @@ import {
 import { ApplicationSidebar } from "@/components/ApplicationSidebar";
 import { ApplicationDashboard } from "@/components/ApplicationDashboard";
 import { PageTransition } from "@/components/PageTransition";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function ApplicationsPage() {
+	const { t } = useTranslation();
 	const { applications, setApplications } = useApplicationsStore();
 	const [selectedApplicationId, setSelectedApplicationId] = useState<
 		string | null
@@ -89,7 +91,7 @@ export default function ApplicationsPage() {
 											d="M15 19l-7-7 7-7"
 										/>
 									</svg>
-									Back to Applications
+									{t("applications", "backToApplications")}
 								</button>
 							</div>
 							<ApplicationDashboard application={selectedApplication} />

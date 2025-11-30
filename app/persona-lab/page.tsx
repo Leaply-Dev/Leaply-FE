@@ -8,6 +8,7 @@ import { ProfileContextSidebar } from "@/components/persona-lab/ProfileContextSi
 import { DiscoveryTab } from "@/components/persona-lab/DiscoveryTab";
 import { MyPersonaTab } from "@/components/persona-lab/MyPersonaTab";
 import { EssaysTab } from "@/components/persona-lab/EssaysTab";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface EssayFromAngleData {
 	title?: string;
@@ -16,6 +17,7 @@ interface EssayFromAngleData {
 }
 
 export default function PersonaLabPage() {
+	const { t } = useTranslation();
 	const [activeTab, setActiveTab] = useState("discovery");
 	const [essayFromAngleData, setEssayFromAngleData] = useState<EssayFromAngleData | undefined>();
 
@@ -48,9 +50,9 @@ export default function PersonaLabPage() {
 						<div className="border-b border-border bg-card/80 backdrop-blur-sm px-6 py-4">
 							<div className="flex items-center justify-between">
 								<div>
-									<h1 className="text-2xl font-bold text-foreground">Persona Lab</h1>
+									<h1 className="text-2xl font-bold text-foreground">{t("personaLab", "title")}</h1>
 									<p className="text-sm text-muted-foreground">
-										Khám phá bản thân và chuẩn bị essay
+										{t("personaLab", "subtitle")}
 									</p>
 								</div>
 								<TabsList className="grid grid-cols-3 w-auto">
@@ -59,21 +61,21 @@ export default function PersonaLabPage() {
 										className="flex items-center gap-2 px-4"
 									>
 										<Compass className="w-4 h-4" />
-										<span className="hidden sm:inline">Discovery</span>
+										<span className="hidden sm:inline">{t("personaLab", "discovery")}</span>
 									</TabsTrigger>
 									<TabsTrigger
 										value="persona"
 										className="flex items-center gap-2 px-4"
 									>
 										<User className="w-4 h-4" />
-										<span className="hidden sm:inline">My Persona</span>
+										<span className="hidden sm:inline">{t("personaLab", "myPersona")}</span>
 									</TabsTrigger>
 									<TabsTrigger
 										value="essays"
 										className="flex items-center gap-2 px-4"
 									>
 										<FileText className="w-4 h-4" />
-										<span className="hidden sm:inline">Essays</span>
+										<span className="hidden sm:inline">{t("personaLab", "essays")}</span>
 									</TabsTrigger>
 								</TabsList>
 							</div>

@@ -12,13 +12,29 @@ export function useTranslation() {
 		section: keyof typeof translations,
 		key: string
 	): string => {
-		const sectionData = translations[section] as Record<string, TranslationValue>;
-		const translation = sectionData?.[key];
-		if (!translation) {
-			console.warn(`Translation not found: ${section}.${key}`);
-			return key;
+		const sectionData = translations[section];
+		
+		// Support nested keys with dot notation (e.g., "greeting.morning")
+		const keys = key.split(".");
+		let translation: unknown = sectionData;
+		
+		for (const k of keys) {
+			if (translation && typeof translation === "object" && k in translation) {
+				translation = (translation as Record<string, unknown>)[k];
+			} else {
+				console.warn(`Translation not found: ${section}.${key}`);
+				return key;
+			}
 		}
-		return translation[language] || translation.en || key;
+		
+		// Check if we have a valid translation object with en/vi
+		if (translation && typeof translation === "object" && "en" in translation) {
+			const translationObj = translation as TranslationValue;
+			return translationObj[language] || translationObj.en || key;
+		}
+		
+		console.warn(`Translation not found: ${section}.${key}`);
+		return key;
 	};
 
 	return { t, language };

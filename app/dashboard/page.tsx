@@ -20,8 +20,10 @@ import { useApplicationsStore } from "@/lib/store/applicationsStore";
 import { mockApplications, mockTasks } from "@/lib/data/applications";
 import { mockUniversities } from "@/lib/data/universities";
 import { PageTransition, SlideUp } from "@/components/PageTransition";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function DashboardPage() {
+	const { t } = useTranslation();
 	const { universities, setUniversities, savedUniversities } =
 		useUniversitiesStore();
 	const { applications, tasks, setApplications, setTasks, toggleTaskComplete } =
@@ -61,9 +63,9 @@ export default function DashboardPage() {
 		<PageTransition>
 			<PageContainer>
 				<div className="mb-8">
-					<h1 className="text-3xl font-bold text-foreground mb-2">Dashboard</h1>
+					<h1 className="text-3xl font-bold text-foreground mb-2">{t("dashboard", "title")}</h1>
 					<p className="text-lg text-muted-foreground">
-						Welcome back! Here's your application progress at a glance.
+						{t("dashboard", "subtitle")}
 					</p>
 				</div>
 
@@ -71,28 +73,28 @@ export default function DashboardPage() {
 				<SlideUp>
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 						<StatCard
-							title="Saved Universities"
+							title={t("dashboard", "stats.savedUniversities")}
 							value={savedUniversities.length}
 							icon={GraduationCap}
-							description="Universities in your shortlist"
+							description={t("dashboard", "stats.savedUniversitiesDesc")}
 						/>
 						<StatCard
-							title="Active Applications"
+							title={t("dashboard", "stats.activeApplications")}
 							value={activeApplications.length}
 							icon={FileText}
-							description="In progress or submitted"
+							description={t("dashboard", "stats.activeApplicationsDesc")}
 						/>
 						<StatCard
-							title="Pending Tasks"
+							title={t("dashboard", "stats.pendingTasks")}
 							value={tasks.filter((t) => !t.completed).length}
 							icon={CheckSquare}
-							description="Tasks to complete"
+							description={t("dashboard", "stats.pendingTasksDesc")}
 						/>
 						<StatCard
-							title="Resources"
+							title={t("dashboard", "stats.resources")}
 							value={10}
 							icon={BookOpen}
-							description="Guides and articles"
+							description={t("dashboard", "stats.resourcesDesc")}
 						/>
 					</div>
 				</SlideUp>
@@ -104,10 +106,10 @@ export default function DashboardPage() {
 							<Card>
 								<CardHeader>
 									<div className="flex items-center justify-between">
-										<CardTitle>Recent Applications</CardTitle>
+										<CardTitle>{t("dashboard", "recentApplications")}</CardTitle>
 										<Button variant="ghost" size="sm" asChild>
 											<Link href="/dashboard/applications">
-												View All
+												{t("dashboard", "viewAll")}
 												<ArrowRight className="w-4 h-4 ml-2" />
 											</Link>
 										</Button>
@@ -132,10 +134,10 @@ export default function DashboardPage() {
 										<div className="text-center py-8">
 											<FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
 											<p className="text-muted-foreground mb-4">
-												No applications yet
+												{t("dashboard", "noApplications")}
 											</p>
 											<Button asChild>
-												<Link href="/universities">Browse Universities</Link>
+												<Link href="/universities">{t("dashboard", "browseUniversities")}</Link>
 											</Button>
 										</div>
 									)}
@@ -150,10 +152,10 @@ export default function DashboardPage() {
 							<Card>
 								<CardHeader>
 									<div className="flex items-center justify-between">
-										<CardTitle>Upcoming Tasks</CardTitle>
+										<CardTitle>{t("dashboard", "upcomingTasks")}</CardTitle>
 										<Button variant="ghost" size="sm" asChild>
 											<Link href="/dashboard/tasks">
-												View All
+												{t("dashboard", "viewAll")}
 												<ArrowRight className="w-4 h-4 ml-2" />
 											</Link>
 										</Button>
@@ -178,7 +180,7 @@ export default function DashboardPage() {
 									) : (
 										<div className="text-center py-8">
 											<CheckSquare className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-											<p className="text-muted-foreground">All caught up!</p>
+											<p className="text-muted-foreground">{t("dashboard", "allCaughtUp")}</p>
 										</div>
 									)}
 								</CardContent>
@@ -191,7 +193,7 @@ export default function DashboardPage() {
 				<SlideUp delay={0.3}>
 					<Card className="mt-8">
 						<CardHeader>
-							<CardTitle>Quick Actions</CardTitle>
+							<CardTitle>{t("dashboard", "quickActions")}</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -202,7 +204,7 @@ export default function DashboardPage() {
 								>
 									<Link href="/universities">
 										<GraduationCap className="w-8 h-8" />
-										<span>Explore Universities</span>
+										<span>{t("dashboard", "exploreUniversities")}</span>
 									</Link>
 								</Button>
 								<Button
@@ -212,7 +214,7 @@ export default function DashboardPage() {
 								>
 									<Link href="/chatbot">
 										<BookOpen className="w-8 h-8" />
-										<span>Ask AI Assistant</span>
+										<span>{t("dashboard", "askAIAssistant")}</span>
 									</Link>
 								</Button>
 								<Button
@@ -222,7 +224,7 @@ export default function DashboardPage() {
 								>
 									<Link href="/dashboard/resources">
 										<FileText className="w-8 h-8" />
-										<span>Browse Resources</span>
+										<span>{t("dashboard", "browseResources")}</span>
 									</Link>
 								</Button>
 							</div>

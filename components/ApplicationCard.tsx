@@ -1,9 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { Calendar, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface ApplicationCardProps {
 	id: string;
@@ -39,7 +42,9 @@ export function ApplicationCard({
 	decisionDeadline,
 	className,
 }: ApplicationCardProps) {
-	const config = statusConfig[status];
+	const { t } = useTranslation();
+	const statusLabel = t("applications", `status.${status}`);
+	const config = { ...statusConfig[status], label: statusLabel };
 
 	return (
 		<Card className={cn("hover:shadow-md transition-shadow", className)}>
@@ -58,7 +63,7 @@ export function ApplicationCard({
 						<div className="flex items-center gap-2 text-sm text-muted-foreground">
 							<FileText className="w-4 h-4" />
 							<span>
-								Submitted: {new Date(submissionDate).toLocaleDateString()}
+								{t("applications", "submitted")}: {new Date(submissionDate).toLocaleDateString()}
 							</span>
 						</div>
 					)}
@@ -66,13 +71,13 @@ export function ApplicationCard({
 						<div className="flex items-center gap-2 text-sm text-muted-foreground">
 							<Calendar className="w-4 h-4" />
 							<span>
-								Decision by: {new Date(decisionDeadline).toLocaleDateString()}
+								{t("applications", "decisionBy")}: {new Date(decisionDeadline).toLocaleDateString()}
 							</span>
 						</div>
 					)}
 				</div>
 				<Button asChild size="sm" variant="outline" className="w-full">
-					<Link href={`/dashboard/applications/${id}`}>View Application</Link>
+					<Link href={`/dashboard/applications/${id}`}>{t("applications", "viewApplication")}</Link>
 				</Button>
 			</CardContent>
 		</Card>

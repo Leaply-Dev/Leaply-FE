@@ -27,6 +27,7 @@ import {
 	type EssayAngle,
 } from "@/lib/store/personaStore";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface EditableTagProps {
 	tag: PersonalityTag;
@@ -148,6 +149,8 @@ interface EssayAngleCardProps {
 }
 
 function EssayAngleCard({ angle, onTogglePin, onCreateEssay }: EssayAngleCardProps) {
+	const { t } = useTranslation();
+	
 	return (
 		<Card className={cn(
 			"transition-all hover:shadow-md",
@@ -191,7 +194,7 @@ function EssayAngleCard({ angle, onTogglePin, onCreateEssay }: EssayAngleCardPro
 					onClick={onCreateEssay}
 				>
 					<Plus className="w-3 h-3 mr-1" />
-					Tạo essay từ ý tưởng này
+					{t("personaLab", "createEssayFromIdea")}
 				</Button>
 			</CardContent>
 		</Card>
@@ -199,6 +202,8 @@ function EssayAngleCard({ angle, onTogglePin, onCreateEssay }: EssayAngleCardPro
 }
 
 function EmptyState() {
+	const { t } = useTranslation();
+	
 	return (
 		<div className="flex-1 flex items-center justify-center p-8">
 			<div className="text-center max-w-md">
@@ -206,11 +211,10 @@ function EmptyState() {
 					<Compass className="w-10 h-10 text-muted-foreground" />
 				</div>
 				<h3 className="text-xl font-semibold text-foreground mb-2">
-					Chưa có dữ liệu persona
+					{t("personaLab", "noPersonaData")}
 				</h3>
 				<p className="text-muted-foreground mb-6">
-					Hoàn thành ít nhất 1 track trong Discovery để xem persona của bạn.
-					Leaply sẽ phân tích câu trả lời và tạo insights cho bạn.
+					{t("personaLab", "completeOneTrack")}
 				</p>
 				<Button variant="outline" asChild>
 					<a href="#" onClick={() => {
@@ -219,7 +223,7 @@ function EmptyState() {
 						if (discoveryTab) (discoveryTab as HTMLElement).click();
 					}}>
 						<Sparkles className="w-4 h-4 mr-2" />
-						Bắt đầu Discovery
+						{t("personaLab", "startDiscovery")}
 					</a>
 				</Button>
 			</div>
@@ -232,6 +236,7 @@ interface MyPersonaTabProps {
 }
 
 export function MyPersonaTab({ onCreateEssayFromAngle }: MyPersonaTabProps) {
+	const { t } = useTranslation();
 	const {
 		personalityTags,
 		keyStories,
@@ -286,10 +291,10 @@ export function MyPersonaTab({ onCreateEssayFromAngle }: MyPersonaTabProps) {
 				{/* Header */}
 				<div>
 					<h2 className="text-2xl font-bold text-foreground mb-2">
-						My Persona
+						{t("personaLab", "myPersonaTitle")}
 					</h2>
 					<p className="text-muted-foreground">
-						Những insights về bạn được Leaply phân tích từ Discovery
+						{t("personaLab", "myPersonaSubtitle")}
 					</p>
 				</div>
 
@@ -298,7 +303,7 @@ export function MyPersonaTab({ onCreateEssayFromAngle }: MyPersonaTabProps) {
 					<div className="flex items-center justify-between">
 						<h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
 							<Tag className="w-5 h-5 text-primary" />
-							Personality Tags
+							{t("personaLab", "personalityTags")}
 						</h3>
 					</div>
 
@@ -329,7 +334,7 @@ export function MyPersonaTab({ onCreateEssayFromAngle }: MyPersonaTabProps) {
 											onBlur={() => {
 												if (!newTagInput.trim()) setIsAddingTag(false);
 											}}
-											placeholder="Nhập tag..."
+											placeholder={t("personaLab", "enterTag")}
 											className="h-8 w-32 text-sm"
 											autoFocus
 										/>
@@ -350,14 +355,14 @@ export function MyPersonaTab({ onCreateEssayFromAngle }: MyPersonaTabProps) {
 										onClick={() => setIsAddingTag(true)}
 									>
 										<Plus className="w-3 h-3 mr-1" />
-										Thêm tag
+										{t("personaLab", "addTag")}
 									</Button>
 								)}
 							</div>
 
 							{personalityTags.length === 0 && (
 								<p className="text-sm text-muted-foreground text-center py-4">
-									Hoàn thành Discovery để Leaply tạo personality tags cho bạn
+									{t("personaLab", "completeDiscoveryForTags")}
 								</p>
 							)}
 						</CardContent>
@@ -368,7 +373,7 @@ export function MyPersonaTab({ onCreateEssayFromAngle }: MyPersonaTabProps) {
 				<section className="space-y-4">
 					<h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
 						<BookOpen className="w-5 h-5 text-chart-4" />
-						Key Stories
+						{t("personaLab", "keyStories")}
 					</h3>
 
 					{keyStories.length > 0 ? (
@@ -376,7 +381,7 @@ export function MyPersonaTab({ onCreateEssayFromAngle }: MyPersonaTabProps) {
 							{pinnedStories.length > 0 && (
 								<div className="space-y-3">
 									<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-										Đã ghim
+										{t("personaLab", "pinned")}
 									</p>
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 										{pinnedStories.map((story) => (
@@ -394,7 +399,7 @@ export function MyPersonaTab({ onCreateEssayFromAngle }: MyPersonaTabProps) {
 								<div className="space-y-3">
 									{pinnedStories.length > 0 && (
 										<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-											Khác
+											{t("personaLab", "other")}
 										</p>
 									)}
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -414,7 +419,7 @@ export function MyPersonaTab({ onCreateEssayFromAngle }: MyPersonaTabProps) {
 							<CardContent className="p-8 text-center">
 								<BookOpen className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
 								<p className="text-muted-foreground">
-									Câu chuyện của bạn sẽ xuất hiện ở đây sau khi hoàn thành Discovery
+									{t("personaLab", "storiesAppear")}
 								</p>
 							</CardContent>
 						</Card>
@@ -425,14 +430,14 @@ export function MyPersonaTab({ onCreateEssayFromAngle }: MyPersonaTabProps) {
 				<section className="space-y-4">
 					<h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
 						<Lightbulb className="w-5 h-5 text-chart-2" />
-						Essay Angles
+						{t("personaLab", "essayAngles")}
 					</h3>
 
 					<div className="space-y-4">
 						{pinnedAngles.length > 0 && (
 							<div className="space-y-3">
 								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-									Đã ghim
+									{t("personaLab", "pinned")}
 								</p>
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 									{pinnedAngles.map((angle) => (
@@ -451,7 +456,7 @@ export function MyPersonaTab({ onCreateEssayFromAngle }: MyPersonaTabProps) {
 							<div className="space-y-3">
 								{pinnedAngles.length > 0 && (
 									<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-										Gợi ý
+										{t("personaLab", "suggested")}
 									</p>
 								)}
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">

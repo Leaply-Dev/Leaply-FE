@@ -10,8 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageContainer } from "@/components/Layout";
 import { useUserStore } from "@/lib/store/userStore";
 import { PageTransition, SlideUp } from "@/components/PageTransition";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function ProfilePage() {
+	const { t } = useTranslation();
 	const { profile, updateProfile } = useUserStore();
 	const [isEditing, setIsEditing] = useState(false);
 	const [formData, setFormData] = useState({
@@ -50,9 +52,9 @@ export default function ProfilePage() {
 		<PageTransition>
 			<PageContainer>
 				<div className="mb-8">
-					<h1 className="text-3xl font-bold text-foreground mb-2">Profile</h1>
+					<h1 className="text-3xl font-bold text-foreground mb-2">{t("profile", "title")}</h1>
 					<p className="text-lg text-muted-foreground">
-						Manage your personal information and preferences
+						{t("profile", "subtitle")}
 					</p>
 				</div>
 
@@ -62,17 +64,17 @@ export default function ProfilePage() {
 						<Card className="mb-6">
 							<CardHeader>
 								<div className="flex items-center justify-between">
-									<CardTitle>Personal Information</CardTitle>
+									<CardTitle>{t("profile", "personalInformation")}</CardTitle>
 									{!isEditing ? (
 										<Button onClick={() => setIsEditing(true)}>
-											Edit Profile
+											{t("profile", "editProfile")}
 										</Button>
 									) : (
 										<div className="flex gap-2">
 											<Button variant="outline" onClick={handleCancel}>
-												Cancel
+												{t("profile", "cancel")}
 											</Button>
-											<Button onClick={handleSave}>Save Changes</Button>
+											<Button onClick={handleSave}>{t("profile", "saveChanges")}</Button>
 										</div>
 									)}
 								</div>
@@ -81,7 +83,7 @@ export default function ProfilePage() {
 								<div className="space-y-6">
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 										<div className="space-y-2">
-											<Label htmlFor="fullName">Full Name</Label>
+											<Label htmlFor="fullName">{t("profile", "fullName")}</Label>
 											{isEditing ? (
 												<Input
 													id="fullName"
@@ -96,21 +98,21 @@ export default function ProfilePage() {
 											) : (
 												<div className="flex items-center gap-2 p-3 bg-muted rounded-md">
 													<User className="w-4 h-4 text-muted-foreground" />
-													<span>{profile?.fullName || "Not set"}</span>
+													<span>{profile?.fullName || t("profile", "notSet")}</span>
 												</div>
 											)}
 										</div>
 
 										<div className="space-y-2">
-											<Label htmlFor="email">Email</Label>
+											<Label htmlFor="email">{t("profile", "email")}</Label>
 											<div className="flex items-center gap-2 p-3 bg-muted rounded-md">
 												<Mail className="w-4 h-4 text-muted-foreground" />
-												<span>{profile?.email || "Not set"}</span>
+												<span>{profile?.email || t("profile", "notSet")}</span>
 											</div>
 										</div>
 
 										<div className="space-y-2">
-											<Label htmlFor="dateOfBirth">Date of Birth</Label>
+											<Label htmlFor="dateOfBirth">{t("profile", "dateOfBirth")}</Label>
 											{isEditing ? (
 												<Input
 													id="dateOfBirth"
@@ -131,14 +133,14 @@ export default function ProfilePage() {
 															? new Date(
 																	profile.dateOfBirth,
 																).toLocaleDateString()
-															: "Not set"}
+															: t("profile", "notSet")}
 													</span>
 												</div>
 											)}
 										</div>
 
 										<div className="space-y-2">
-											<Label htmlFor="nationality">Nationality</Label>
+											<Label htmlFor="nationality">{t("profile", "nationality")}</Label>
 											{isEditing ? (
 												<Select
 													id="nationality"
@@ -150,25 +152,25 @@ export default function ProfilePage() {
 														}))
 													}
 												>
-													<option value="">Select nationality</option>
-													<option value="United States">United States</option>
-													<option value="United Kingdom">United Kingdom</option>
-													<option value="Canada">Canada</option>
-													<option value="Australia">Australia</option>
-													<option value="India">India</option>
-													<option value="China">China</option>
-													<option value="Other">Other</option>
+													<option value="">{t("profile", "selectNationality")}</option>
+													<option value="United States">{t("profile", "unitedStates")}</option>
+													<option value="United Kingdom">{t("profile", "unitedKingdom")}</option>
+													<option value="Canada">{t("profile", "canada")}</option>
+													<option value="Australia">{t("profile", "australia")}</option>
+													<option value="India">{t("profile", "india")}</option>
+													<option value="China">{t("profile", "china")}</option>
+													<option value="Other">{t("profile", "other")}</option>
 												</Select>
 											) : (
 												<div className="flex items-center gap-2 p-3 bg-muted rounded-md">
 													<Globe className="w-4 h-4 text-muted-foreground" />
-													<span>{profile?.nationality || "Not set"}</span>
+													<span>{profile?.nationality || t("profile", "notSet")}</span>
 												</div>
 											)}
 										</div>
 
 										<div className="space-y-2">
-											<Label htmlFor="educationLevel">Education Level</Label>
+											<Label htmlFor="educationLevel">{t("profile", "educationLevel")}</Label>
 											{isEditing ? (
 												<Select
 													id="educationLevel"
@@ -180,23 +182,23 @@ export default function ProfilePage() {
 														}))
 													}
 												>
-													<option value="">Select level</option>
-													<option value="High School">High School</option>
-													<option value="Undergraduate">Undergraduate</option>
-													<option value="Graduate">Graduate</option>
+													<option value="">{t("profile", "selectLevel")}</option>
+													<option value="High School">{t("profile", "highSchool")}</option>
+													<option value="Undergraduate">{t("profile", "undergraduate")}</option>
+													<option value="Graduate">{t("profile", "graduate")}</option>
 												</Select>
 											) : (
 												<div className="flex items-center gap-2 p-3 bg-muted rounded-md">
 													<GraduationCap className="w-4 h-4 text-muted-foreground" />
 													<span>
-														{profile?.currentEducationLevel || "Not set"}
+														{profile?.currentEducationLevel || t("profile", "notSet")}
 													</span>
 												</div>
 											)}
 										</div>
 
 										<div className="space-y-2">
-											<Label htmlFor="gpa">GPA</Label>
+											<Label htmlFor="gpa">{t("profile", "gpa")}</Label>
 											{isEditing ? (
 												<Input
 													id="gpa"
@@ -214,7 +216,7 @@ export default function ProfilePage() {
 												/>
 											) : (
 												<div className="p-3 bg-muted rounded-md">
-													<span>{profile?.gpa || "Not set"}</span>
+													<span>{profile?.gpa || t("profile", "notSet")}</span>
 												</div>
 											)}
 										</div>
@@ -228,7 +230,7 @@ export default function ProfilePage() {
 					<SlideUp delay={0.1}>
 						<Card>
 							<CardHeader>
-								<CardTitle>Test Scores</CardTitle>
+								<CardTitle>{t("profile", "testScores")}</CardTitle>
 							</CardHeader>
 							<CardContent>
 								{profile?.testScores && profile.testScores.length > 0 ? (
@@ -247,11 +249,11 @@ export default function ProfilePage() {
 									</div>
 								) : (
 									<p className="text-muted-foreground text-center py-4">
-										No test scores added
+										{t("profile", "noTestScores")}
 									</p>
 								)}
 								<Button variant="outline" className="w-full mt-4">
-									Add Test Score
+									{t("profile", "addTestScore")}
 								</Button>
 							</CardContent>
 						</Card>

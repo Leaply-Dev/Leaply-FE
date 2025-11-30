@@ -9,8 +9,10 @@ import { GraduationCap, MapPin, School, Trophy, Target, Compass, Award, Sparkles
 import { useUserStore } from "@/lib/store/userStore";
 import { useUniversitiesStore } from "@/lib/store/universitiesStore";
 import { usePersonaStore } from "@/lib/store/personaStore";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function ProfileContextSidebar() {
+	const { t } = useTranslation();
 	const { profile, preferences } = useUserStore();
 	const { savedUniversities } = useUniversitiesStore();
 	const { tracks, personalityTags, keyStories } = usePersonaStore();
@@ -58,7 +60,7 @@ export function ProfileContextSidebar() {
 				</div>
 				<div>
 					<h3 className="font-bold text-lg text-foreground">
-						{profile?.fullName || "Chưa có tên"}
+						{profile?.fullName || t("personaLab", "noName")}
 					</h3>
 					<p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
 						<MapPin className="w-3 h-3" /> Vietnam
@@ -73,14 +75,14 @@ export function ProfileContextSidebar() {
 						<div className="flex items-center gap-2 mb-2">
 							<Star className="w-4 h-4 text-primary fill-primary" />
 							<span className="text-xs font-semibold text-primary uppercase tracking-wider">
-								Top Trait
+								{t("personaLab", "topTrait")}
 							</span>
 						</div>
 						<p className="text-lg font-bold text-foreground">
 							{topPersonalityTrait.label}
 						</p>
 						<p className="text-xs text-muted-foreground mt-1">
-							Từ {topPersonalityTrait.source} discovery
+							{t("personaLab", "from")} {topPersonalityTrait.source} {t("personaLab", "discoveryWord")}
 						</p>
 					</CardContent>
 				</Card>
@@ -93,7 +95,7 @@ export function ProfileContextSidebar() {
 						<div className="flex items-center gap-2 mb-2">
 							<Award className="w-4 h-4 text-amber-600" />
 							<span className="text-xs font-semibold text-amber-700 dark:text-amber-500 uppercase tracking-wider">
-								Highlighted Achievement
+								{t("personaLab", "highlightedAchievement")}
 							</span>
 						</div>
 						<p className="font-semibold text-foreground line-clamp-1">
@@ -133,11 +135,11 @@ export function ProfileContextSidebar() {
 			{/* Discovery Progress */}
 			<div className="space-y-3">
 				<h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-					<Compass className="w-4 h-4" /> Discovery Progress
+					<Compass className="w-4 h-4" /> {t("personaLab", "discoveryProgress")}
 				</h4>
 				<div className="space-y-2">
 					<div className="flex justify-between text-sm">
-						<span className="text-muted-foreground">Tracks hoàn thành</span>
+						<span className="text-muted-foreground">{t("personaLab", "tracksCompleted")}</span>
 						<span className="font-medium">{completedTracks}/{tracks.length}</span>
 					</div>
 					<Progress value={discoveryProgress} className="h-2" />
@@ -148,7 +150,7 @@ export function ProfileContextSidebar() {
 			{preferences?.targetCountries && preferences.targetCountries.length > 0 && (
 				<div className="space-y-3">
 					<h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-						<Target className="w-4 h-4" /> Target Countries
+						<Target className="w-4 h-4" /> {t("personaLab", "targetCountries")}
 					</h4>
 					<div className="flex flex-wrap gap-2">
 						{preferences.targetCountries.map((country) => (
@@ -168,7 +170,7 @@ export function ProfileContextSidebar() {
 			{savedUniversities.length > 0 && (
 				<div className="space-y-3">
 					<h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-						<School className="w-4 h-4" /> Trường đã lưu
+						<School className="w-4 h-4" /> {t("personaLab", "savedSchools")}
 					</h4>
 					<div className="space-y-2">
 						{savedUniversities.slice(0, 3).map((uniId, i) => (
@@ -183,7 +185,7 @@ export function ProfileContextSidebar() {
 						))}
 						{savedUniversities.length > 3 && (
 							<p className="text-xs text-muted-foreground text-center">
-								+{savedUniversities.length - 3} trường khác
+								+{savedUniversities.length - 3} {t("personaLab", "moreSchools")}
 							</p>
 						)}
 					</div>
@@ -194,7 +196,7 @@ export function ProfileContextSidebar() {
 			{preferences?.desiredMajors && preferences.desiredMajors.length > 0 && (
 				<div className="space-y-3">
 					<h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-						<GraduationCap className="w-4 h-4" /> Ngành mong muốn
+						<GraduationCap className="w-4 h-4" /> {t("personaLab", "intendedMajor")}
 					</h4>
 					<div className="flex flex-wrap gap-2">
 						{preferences.desiredMajors.slice(0, 2).map((major) => (
@@ -219,7 +221,7 @@ export function ProfileContextSidebar() {
 			{personalityTags.length > 1 && (
 				<div className="space-y-3">
 					<h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-						<Sparkles className="w-4 h-4" /> Other Traits
+						<Sparkles className="w-4 h-4" /> {t("personaLab", "otherTraits")}
 					</h4>
 					<div className="flex flex-wrap gap-2">
 						{personalityTags.slice(1, 5).map((tag) => (

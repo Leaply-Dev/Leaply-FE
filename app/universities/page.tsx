@@ -23,8 +23,10 @@ import {
 	StaggerItem,
 	SlideUp,
 } from "@/components/PageTransition";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function UniversitiesPage() {
+	const { t } = useTranslation();
 	const router = useRouter();
 	const { universities, setUniversities } = useUniversitiesStore();
 	const { profile, preferences } = useUserStore();
@@ -163,11 +165,10 @@ export default function UniversitiesPage() {
 					<SlideUp>
 						<div className="text-center mb-8">
 							<h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-								Discover Your Perfect Match
+								{t("universities", "title")}
 							</h1>
 							<p className="text-xl text-muted-foreground">
-								Personalized recommendations or explore 1000+ universities
-								worldwide
+								{t("universities", "subtitle")}
 							</p>
 						</div>
 
@@ -179,7 +180,7 @@ export default function UniversitiesPage() {
 									<Input
 										value={searchInput}
 										onChange={(e) => setSearchInput(e.target.value)}
-										placeholder="Search universities, programs, or countries..."
+										placeholder={t("universities", "searchPlaceholder")}
 										className="border-0 focus-visible:ring-0 text-foreground"
 									/>
 								</div>
@@ -206,7 +207,7 @@ export default function UniversitiesPage() {
 									className="flex items-center gap-2"
 								>
 									<Sparkles className="w-4 h-4" />
-									AI Match
+									{t("universities", "aiMatch")}
 								</TabsTrigger>
 								<TabsTrigger
 									type="button"
@@ -214,7 +215,7 @@ export default function UniversitiesPage() {
 									className="flex items-center gap-2"
 								>
 									<Globe className="w-4 h-4" />
-									Explore All
+									{t("universities", "exploreAll")}
 								</TabsTrigger>
 							</TabsList>
 						</div>
@@ -226,14 +227,13 @@ export default function UniversitiesPage() {
 									<p className="text-muted-foreground">
 										{profile ? (
 											<>
-												Based on your profile, we've found{" "}
+												{t("universities", "basedOnProfile")}{" "}
 												<span className="font-semibold text-primary">
-													{aiMatchedUniversities.length} universities
+													{aiMatchedUniversities.length} {t("universities", "universitiesFit")}
 												</span>{" "}
-												that may be a great fit for you
 											</>
 										) : (
-											"Complete your profile to see personalized AI recommendations"
+											t("universities", "completeProfileForRecommendations")
 										)}
 									</p>
 								</div>
@@ -263,16 +263,16 @@ export default function UniversitiesPage() {
 									<div className="text-center py-16">
 										<Sparkles className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
 										<h3 className="text-xl font-semibold text-foreground mb-2">
-											{profile ? "No matches found" : "Complete your profile"}
+											{profile ? t("universities", "noMatchesFound") : t("universities", "completeProfile")}
 										</h3>
 										<p className="text-muted-foreground mb-6">
 											{profile
-												? "Try adjusting your search or preferences to see more results"
-												: "Complete your profile and preferences to see personalized university matches"}
+												? t("universities", "tryAdjusting")
+												: t("universities", "completeProfileToSeeMatches")}
 										</p>
 										{!profile && (
 											<Button onClick={() => router.push("/onboarding")}>
-												Complete Profile
+												{t("universities", "completeProfileButton")}
 											</Button>
 										)}
 									</div>
@@ -294,10 +294,10 @@ export default function UniversitiesPage() {
 								<div className="flex items-center justify-between">
 									<div>
 										<h2 className="text-2xl font-bold text-foreground">
-											All Universities
+											{t("universities", "allUniversities")}
 										</h2>
 										<p className="text-sm text-muted-foreground mt-1">
-											Showing {exploreAllUniversities.length} results
+											{t("universities", "showing")} {exploreAllUniversities.length} {t("universities", "results")}
 										</p>
 									</div>
 								</div>
@@ -330,11 +330,10 @@ export default function UniversitiesPage() {
 									<div className="text-center py-16">
 										<Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
 										<h3 className="text-xl font-semibold text-foreground mb-2">
-											No universities found
+											{t("universities", "noUniversitiesFound")}
 										</h3>
 										<p className="text-muted-foreground">
-											Try adjusting your filters or search query to see more
-											results
+											{t("universities", "tryAdjustingFilters")}
 										</p>
 									</div>
 								)}

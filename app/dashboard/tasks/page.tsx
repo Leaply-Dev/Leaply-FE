@@ -9,8 +9,10 @@ import { PageContainer } from "@/components/Layout";
 import { useApplicationsStore } from "@/lib/store/applicationsStore";
 import { mockTasks } from "@/lib/data/applications";
 import { PageTransition } from "@/components/PageTransition";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function TasksPage() {
+	const { t } = useTranslation();
 	const { tasks, setTasks, toggleTaskComplete } = useApplicationsStore();
 	const [filter, setFilter] = useState<"all" | "pending" | "completed">("all");
 	const [sortBy, setSortBy] = useState<"dueDate" | "priority">("dueDate");
@@ -44,46 +46,46 @@ export default function TasksPage() {
 			<PageContainer>
 				<div className="flex items-center justify-between mb-8">
 					<div>
-						<h1 className="text-3xl font-bold text-foreground mb-2">Tasks</h1>
+						<h1 className="text-3xl font-bold text-foreground mb-2">{t("tasks", "title")}</h1>
 						<p className="text-lg text-muted-foreground">
-							Manage your application tasks and deadlines
+							{t("tasks", "subtitle")}
 						</p>
 					</div>
 					<Button>
 						<Plus className="w-4 h-4 mr-2" />
-						Add Task
+						{t("tasks", "addTask")}
 					</Button>
 				</div>
 
 				{/* Filters */}
 				<div className="flex flex-wrap items-center gap-4 mb-6">
 					<div className="flex items-center gap-2">
-						<span className="text-sm text-muted-foreground">Show:</span>
+						<span className="text-sm text-muted-foreground">{t("tasks", "show")}</span>
 						<Select
 							value={filter}
 							onChange={(e) => setFilter(e.target.value as "all" | "pending" | "completed")}
 							className="w-40"
 						>
-							<option value="all">All Tasks</option>
-							<option value="pending">Pending</option>
-							<option value="completed">Completed</option>
+							<option value="all">{t("tasks", "allTasks")}</option>
+							<option value="pending">{t("tasks", "pending")}</option>
+							<option value="completed">{t("tasks", "completed")}</option>
 						</Select>
 					</div>
 
 					<div className="flex items-center gap-2">
-						<span className="text-sm text-muted-foreground">Sort by:</span>
+						<span className="text-sm text-muted-foreground">{t("tasks", "sortBy")}</span>
 						<Select
 							value={sortBy}
 							onChange={(e) => setSortBy(e.target.value as "dueDate" | "priority")}
 							className="w-40"
 						>
-							<option value="dueDate">Due Date</option>
-							<option value="priority">Priority</option>
+							<option value="dueDate">{t("tasks", "dueDate")}</option>
+							<option value="priority">{t("tasks", "priority")}</option>
 						</Select>
 					</div>
 
 					<span className="text-sm text-muted-foreground ml-auto">
-						{sortedTasks.length} task{sortedTasks.length !== 1 ? "s" : ""}
+						{sortedTasks.length} {sortedTasks.length !== 1 ? t("tasks", "taskPlural") : t("tasks", "task")}
 					</span>
 				</div>
 
@@ -106,19 +108,19 @@ export default function TasksPage() {
 				) : (
 					<div className="text-center py-16">
 						<h3 className="text-xl font-semibold text-foreground mb-2">
-							No tasks found
+							{t("tasks", "noTasksFound")}
 						</h3>
 						<p className="text-muted-foreground mb-6">
 							{filter === "completed"
-								? "No completed tasks yet."
+								? t("tasks", "noCompletedTasks")
 								: filter === "pending"
-									? "All caught up! No pending tasks."
-									: "Start by adding your first task."}
+									? t("tasks", "noPendingTasks")
+									: t("tasks", "startByAdding")}
 						</p>
 						{filter === "all" && (
 							<Button>
 								<Plus className="w-4 h-4 mr-2" />
-								Add Your First Task
+								{t("tasks", "addYourFirstTask")}
 							</Button>
 						)}
 					</div>

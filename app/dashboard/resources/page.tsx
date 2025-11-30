@@ -13,8 +13,10 @@ import {
 	StaggerContainer,
 	StaggerItem,
 } from "@/components/PageTransition";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function ResourcesPage() {
+	const { t } = useTranslation();
 	const { resources, setResources } = useApplicationsStore();
 	const [searchQuery, setSearchQuery] = useState("");
 	const [categoryFilter, setCategoryFilter] = useState("all");
@@ -42,9 +44,9 @@ export default function ResourcesPage() {
 		<PageTransition>
 			<PageContainer>
 				<div className="mb-8">
-					<h1 className="text-3xl font-bold text-foreground mb-2">Resources</h1>
+					<h1 className="text-3xl font-bold text-foreground mb-2">{t("resources", "title")}</h1>
 					<p className="text-lg text-muted-foreground">
-						Guides, articles, and tools to help you succeed in your applications
+						{t("resources", "subtitle")}
 					</p>
 				</div>
 
@@ -54,7 +56,7 @@ export default function ResourcesPage() {
 						<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
 						<Input
 							type="text"
-							placeholder="Search resources..."
+							placeholder={t("resources", "searchResources")}
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
 							className="pl-10"
@@ -65,7 +67,7 @@ export default function ResourcesPage() {
 						onChange={(e) => setCategoryFilter(e.target.value)}
 						className="md:w-48"
 					>
-						<option value="all">All Categories</option>
+						<option value="all">{t("resources", "allCategories")}</option>
 						{categories.map((category) => (
 							<option key={category} value={category}>
 								{category}
@@ -76,8 +78,7 @@ export default function ResourcesPage() {
 
 				{/* Results Count */}
 				<p className="text-sm text-muted-foreground mb-6">
-					{filteredResources.length} resource
-					{filteredResources.length !== 1 ? "s" : ""} found
+					{filteredResources.length} {filteredResources.length !== 1 ? t("resources", "resourcePlural") : t("resources", "resource")} {t("resources", "found")}
 				</p>
 
 				{/* Resources Grid */}
@@ -101,10 +102,10 @@ export default function ResourcesPage() {
 					<div className="text-center py-16">
 						<Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
 						<h3 className="text-xl font-semibold text-foreground mb-2">
-							No resources found
+							{t("resources", "noResourcesFound")}
 						</h3>
 						<p className="text-muted-foreground">
-							Try adjusting your search or filters
+							{t("resources", "tryAdjustingFilters")}
 						</p>
 					</div>
 				)}

@@ -41,6 +41,7 @@ import {
 	type EssayFeedback,
 } from "@/lib/store/personaStore";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const STATUS_CONFIG: Record<EssayStatus, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
 	draft: {
@@ -85,16 +86,23 @@ const ESSAY_TYPES = [
 	"Other",
 ];
 
-function formatRelativeTime(timestamp: number): string {
+function formatRelativeTime(timestamp: number, language: "en" | "vi" = "vi"): string {
 	const diff = Date.now() - timestamp;
 	const minutes = Math.floor(diff / 60000);
 	const hours = Math.floor(minutes / 60);
 	const days = Math.floor(hours / 24);
 
-	if (days > 0) return `${days}d ago`;
-	if (hours > 0) return `${hours}h ago`;
-	if (minutes > 0) return `${minutes}m ago`;
-	return "Just now";
+	if (language === "vi") {
+		if (days > 0) return `${days} ngày trước`;
+		if (hours > 0) return `${hours} giờ trước`;
+		if (minutes > 0) return `${minutes} phút trước`;
+		return "Vừa xong";
+	} else {
+		if (days > 0) return `${days}d ago`;
+		if (hours > 0) return `${hours}h ago`;
+		if (minutes > 0) return `${minutes}m ago`;
+		return "Just now";
+	}
 }
 
 interface EssaySidebarItemProps {
@@ -104,7 +112,27 @@ interface EssaySidebarItemProps {
 }
 
 function EssaySidebarItem({ essay, isActive, onClick }: EssaySidebarItemProps) {
-	const status = STATUS_CONFIG[essay.status];
+	const { language } = useTranslation();
+	const { t } = useTranslation();
+	const statusLabel = t("personaLab", `status${essay.status.charAt(0).toUpperCase() + essay.status.slice(1)}`);
+	const STATUS_CONFIG_TRANSLATED = {
+		draft: {
+			label: statusLabel,
+			color: "bg-muted text-muted-foreground",
+			icon: Edit,
+		},
+		submitted: {
+			label: statusLabel,
+			color: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400",
+			icon: Clock,
+		},
+		reviewed: {
+			label: statusLabel,
+			color: "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400",
+			icon: CheckCircle,
+		},
+	};
+	const status = STATUS_CONFIG_TRANSLATED[essay.status];
 
 	return (
 		<button
@@ -134,7 +162,7 @@ function EssaySidebarItem({ essay, isActive, onClick }: EssaySidebarItemProps) {
 					</p>
 					<div className="flex items-center gap-2 mt-1">
 						<span className="text-xs text-muted-foreground">
-							{formatRelativeTime(essay.updatedAt)}
+							{formatRelativeTime(essay.updatedAt, language)}
 						</span>
 						{essay.feedback.length > 0 && (
 							<Badge variant="secondary" className="h-4 px-1 text-[10px]">
@@ -163,6 +191,7 @@ interface NewEssayDialogProps {
 }
 
 function NewEssayDialog({ onAdd, initialData }: NewEssayDialogProps) {
+	const { t } = useTranslation();
 	const [open, setOpen] = useState(false);
 	const [formData, setFormData] = useState({
 		schoolName: "",
@@ -206,19 +235,19 @@ function NewEssayDialog({ onAdd, initialData }: NewEssayDialogProps) {
 			<DialogTrigger asChild>
 				<Button size="sm" className="w-full">
 					<Plus className="w-4 h-4 mr-2" />
-					Essay mới
+					{t("personaLab", "newEssay")}
 				</Button>
 			</DialogTrigger>
 			<DialogContent className="max-w-lg">
 				<DialogHeader>
-					<DialogTitle>Tạo essay mới</DialogTitle>
+					<DialogTitle>{t("personaLab", "createNewEssay")}</DialogTitle>
 					<DialogDescription>
-						Chọn trường và loại essay để bắt đầu viết
+						{t("personaLab", "selectSchoolAndType")}
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit} className="space-y-4">
 					<div className="space-y-2">
-						<Label htmlFor="schoolId">Trường đại học</Label>
+						<Label htmlFor="schoolId">{t("personaLab", "university")}</Label>
 						<Select
 							id="schoolId"
 							value={formData.schoolId}
@@ -232,7 +261,7 @@ function NewEssayDialog({ onAdd, initialData }: NewEssayDialogProps) {
 							}}
 							required
 						>
-							<option value="">Chọn trường</option>
+							<option value="">{t("personaLab", "selectSchool")}</option>
 							{UNIVERSITIES.map(uni => (
 								<option key={uni.id} value={uni.id}>{uni.name}</option>
 							))}
@@ -240,14 +269,14 @@ function NewEssayDialog({ onAdd, initialData }: NewEssayDialogProps) {
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor="essayType">Loại essay</Label>
+						<Label htmlFor="essayType">{t("personaLab", "essayType")}</Label>
 						<Select
 							id="essayType"
 							value={formData.essayType}
 							onChange={(e) => setFormData({ ...formData, essayType: e.target.value })}
 							required
 						>
-							<option value="">Chọn loại</option>
+							<option value="">{t("personaLab", "selectType")}</option>
 							{ESSAY_TYPES.map(type => (
 								<option key={type} value={type}>{type}</option>
 							))}
@@ -255,34 +284,34 @@ function NewEssayDialog({ onAdd, initialData }: NewEssayDialogProps) {
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor="prompt">Essay prompt</Label>
+						<Label htmlFor="prompt">{t("personaLab", "essayPrompt")}</Label>
 						<Textarea
 							id="prompt"
 							value={formData.prompt}
 							onChange={(e) => setFormData({ ...formData, prompt: e.target.value })}
-							placeholder="Nhập câu hỏi / prompt của essay..."
+							placeholder={t("personaLab", "enterPrompt")}
 							rows={3}
 							required
 						/>
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor="wordLimit">Giới hạn từ (không bắt buộc)</Label>
+						<Label htmlFor="wordLimit">{t("personaLab", "wordLimit")}</Label>
 						<Input
 							id="wordLimit"
 							type="number"
 							value={formData.wordLimit}
 							onChange={(e) => setFormData({ ...formData, wordLimit: e.target.value })}
-							placeholder="VD: 650"
+							placeholder={`${t("personaLab", "eg")}: 650`}
 						/>
 					</div>
 
 					<div className="flex justify-end gap-3 pt-4">
 						<Button type="button" variant="outline" onClick={() => setOpen(false)}>
-							Hủy
+							{t("personaLab", "cancel")}
 						</Button>
 						<Button type="submit" disabled={!formData.schoolId || !formData.essayType || !formData.prompt}>
-							Tạo essay
+							{t("personaLab", "createEssay")}
 						</Button>
 					</div>
 				</form>
@@ -298,12 +327,31 @@ interface EssayEditorProps {
 }
 
 function EssayEditor({ essay, onUpdate, onDelete }: EssayEditorProps) {
+	const { t, language } = useTranslation();
 	const [content, setContent] = useState(essay.content);
 	const [isSaving, setIsSaving] = useState(false);
 	const [hasChanges, setHasChanges] = useState(false);
 
 	const wordCount = content.split(/\s+/).filter(Boolean).length;
-	const status = STATUS_CONFIG[essay.status];
+	const statusLabel = t("personaLab", `status${essay.status.charAt(0).toUpperCase() + essay.status.slice(1)}`);
+	const STATUS_CONFIG_TRANSLATED = {
+		draft: {
+			label: statusLabel,
+			color: "bg-muted text-muted-foreground",
+			icon: Edit,
+		},
+		submitted: {
+			label: statusLabel,
+			color: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400",
+			icon: Clock,
+		},
+		reviewed: {
+			label: statusLabel,
+			color: "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400",
+			icon: CheckCircle,
+		},
+	};
+	const status = STATUS_CONFIG_TRANSLATED[essay.status];
 	const StatusIcon = status.icon;
 
 	useEffect(() => {
@@ -362,7 +410,7 @@ function EssayEditor({ essay, onUpdate, onDelete }: EssayEditorProps) {
 
 				{/* Prompt */}
 				<div className="bg-muted/50 rounded-lg p-3">
-					<p className="text-sm text-muted-foreground font-medium mb-1">Prompt:</p>
+					<p className="text-sm text-muted-foreground font-medium mb-1">{t("personaLab", "prompt")}:</p>
 					<p className="text-sm text-foreground">{essay.prompt}</p>
 				</div>
 			</div>
@@ -375,9 +423,7 @@ function EssayEditor({ essay, onUpdate, onDelete }: EssayEditorProps) {
 							<Textarea
 								value={content}
 								onChange={(e) => handleContentChange(e.target.value)}
-								placeholder="Bắt đầu viết essay của bạn...
-
-Tip: Hãy viết theo ý của bạn trước, Leaply sẽ giúp bạn cải thiện sau. Đừng lo lắng về sự hoàn hảo ngay từ đầu."
+								placeholder={t("personaLab", "startWriting")}
 								className="min-h-[400px] text-base leading-relaxed resize-none border-0 focus-visible:ring-0 p-0 shadow-none"
 							/>
 						</div>
@@ -388,12 +434,12 @@ Tip: Hãy viết theo ý của bạn trước, Leaply sẽ giúp bạn cải thi
 						<div className="flex items-center justify-between">
 							<div className="flex items-center gap-4 text-sm text-muted-foreground">
 								<span>
-									{wordCount}{essay.wordLimit ? ` / ${essay.wordLimit}` : ""} từ
+									{wordCount}{essay.wordLimit ? ` / ${essay.wordLimit}` : ""} {t("personaLab", "words")}
 								</span>
 								{hasChanges && (
 									<span className="text-amber-600 flex items-center gap-1">
 										<Edit className="w-3 h-3" />
-										Chưa lưu
+										{t("personaLab", "unsaved")}
 									</span>
 								)}
 							</div>
@@ -405,7 +451,7 @@ Tip: Hãy viết theo ý của bạn trước, Leaply sẽ giúp bạn cải thi
 									disabled={!hasChanges || isSaving}
 								>
 									<Save className="w-4 h-4 mr-1" />
-									{isSaving ? "Đang lưu..." : "Lưu"}
+									{isSaving ? t("personaLab", "saving") : t("personaLab", "save")}
 								</Button>
 								{essay.status === "draft" && content && (
 									<Button
@@ -413,7 +459,7 @@ Tip: Hãy viết theo ý của bạn trước, Leaply sẽ giúp bạn cải thi
 										onClick={handleSubmit}
 									>
 										<Send className="w-4 h-4 mr-1" />
-										Gửi để review
+										{t("personaLab", "submitForReview")}
 									</Button>
 								)}
 							</div>
@@ -426,10 +472,10 @@ Tip: Hãy viết theo ý của bạn trước, Leaply sẽ giúp bạn cải thi
 					<div className="border-b border-border p-4">
 						<h3 className="font-semibold text-foreground flex items-center gap-2">
 							<MessageSquare className="w-4 h-4 text-chart-2" />
-							Feedback
+							{t("personaLab", "feedback")}
 						</h3>
 						<p className="text-xs text-muted-foreground mt-1">
-							Góp ý từ Leaply mentor
+							{t("personaLab", "feedbackFromMentor")}
 						</p>
 					</div>
 
@@ -444,10 +490,10 @@ Tip: Hãy viết theo ý của bạn trước, Leaply sẽ giúp bạn cải thi
 							<div className="text-center py-8">
 								<MessageSquare className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
 								<p className="text-muted-foreground text-sm mb-2">
-									Chưa có feedback
+									{t("personaLab", "noFeedback")}
 								</p>
 								<p className="text-xs text-muted-foreground">
-									Gửi essay để nhận góp ý
+									{t("personaLab", "submitToGetFeedback")}
 								</p>
 							</div>
 						)}
@@ -463,25 +509,27 @@ interface FeedbackCardProps {
 }
 
 function FeedbackCard({ feedback }: FeedbackCardProps) {
+	const { t, language } = useTranslation();
+	
 	return (
 		<Card className="bg-card">
 			<CardContent className="p-3 space-y-2">
 				<div>
 					<p className="text-xs font-medium text-amber-600 flex items-center gap-1 mb-1">
 						<AlertCircle className="w-3 h-3" />
-						Quan sát
+						{t("personaLab", "observation")}
 					</p>
 					<p className="text-sm text-muted-foreground">{feedback.observation}</p>
 				</div>
 				<div>
 					<p className="text-xs font-medium text-green-600 flex items-center gap-1 mb-1">
 						<CheckCircle className="w-3 h-3" />
-						Gợi ý
+						{t("personaLab", "recommendation")}
 					</p>
 					<p className="text-sm text-muted-foreground">{feedback.recommendation}</p>
 				</div>
 				<p className="text-[10px] text-muted-foreground pt-1">
-					{formatRelativeTime(feedback.timestamp)}
+					{formatRelativeTime(feedback.timestamp, language)}
 				</p>
 			</CardContent>
 		</Card>
@@ -489,6 +537,8 @@ function FeedbackCard({ feedback }: FeedbackCardProps) {
 }
 
 function EmptyState() {
+	const { t } = useTranslation();
+	
 	return (
 		<div className="flex-1 flex items-center justify-center p-8">
 			<div className="text-center max-w-sm">
@@ -496,10 +546,10 @@ function EmptyState() {
 					<FileText className="w-8 h-8 text-muted-foreground" />
 				</div>
 				<h3 className="text-lg font-semibold text-foreground mb-2">
-					Chọn essay để bắt đầu
+					{t("personaLab", "selectEssayToStart")}
 				</h3>
 				<p className="text-muted-foreground text-sm">
-					Chọn một essay từ danh sách bên trái hoặc tạo essay mới
+					{t("personaLab", "selectFromList")}
 				</p>
 			</div>
 		</div>
@@ -515,6 +565,7 @@ interface EssaysTabProps {
 }
 
 export function EssaysTab({ initialEssayData }: EssaysTabProps) {
+	const { t } = useTranslation();
 	const {
 		essays,
 		selectedEssayId,
@@ -561,7 +612,7 @@ export function EssaysTab({ initialEssayData }: EssaysTabProps) {
 							<Input
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
-								placeholder="Tìm essay..."
+								placeholder={t("personaLab", "searchEssay")}
 								className="pl-9 h-9"
 							/>
 						</div>
@@ -575,14 +626,14 @@ export function EssaysTab({ initialEssayData }: EssaysTabProps) {
 							<div className="text-center py-8 px-4">
 								<FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
 								<p className="text-sm text-muted-foreground">
-									Chưa có essay nào
+									{t("personaLab", "noEssays")}
 								</p>
 							</div>
 						) : filteredEssays.length === 0 ? (
 							<div className="text-center py-8 px-4">
 								<Search className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
 								<p className="text-sm text-muted-foreground">
-									Không tìm thấy essay
+									{t("personaLab", "noEssayFound")}
 								</p>
 							</div>
 						) : (
@@ -616,19 +667,19 @@ export function EssaysTab({ initialEssayData }: EssaysTabProps) {
 						<div className="grid grid-cols-3 gap-2 text-center">
 							<div>
 								<p className="text-lg font-bold text-foreground">{essays.length}</p>
-								<p className="text-[10px] text-muted-foreground">Tổng</p>
+								<p className="text-[10px] text-muted-foreground">{t("personaLab", "total")}</p>
 							</div>
 							<div>
 								<p className="text-lg font-bold text-green-600">
 									{essays.filter((e) => e.status === "reviewed").length}
 								</p>
-								<p className="text-[10px] text-muted-foreground">Reviewed</p>
+								<p className="text-[10px] text-muted-foreground">{t("personaLab", "reviewed")}</p>
 							</div>
 							<div>
 								<p className="text-lg font-bold text-amber-600">
 									{essays.filter((e) => e.status === "submitted").length}
 								</p>
-								<p className="text-[10px] text-muted-foreground">Đang chờ</p>
+								<p className="text-[10px] text-muted-foreground">{t("personaLab", "pending")}</p>
 							</div>
 						</div>
 					</div>
