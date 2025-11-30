@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { GraduationCap, MapPin, School, Trophy, Target, Compass } from "lucide-react";
+import { GraduationCap, MapPin, School, Trophy, Target, Compass, Award, Sparkles, Star } from "lucide-react";
 import { useUserStore } from "@/lib/store/userStore";
 import { useUniversitiesStore } from "@/lib/store/universitiesStore";
 import { usePersonaStore } from "@/lib/store/personaStore";
@@ -13,7 +13,7 @@ import { usePersonaStore } from "@/lib/store/personaStore";
 export function ProfileContextSidebar() {
 	const { profile, preferences } = useUserStore();
 	const { savedUniversities } = useUniversitiesStore();
-	const { tracks, personalityTags } = usePersonaStore();
+	const { tracks, personalityTags, keyStories } = usePersonaStore();
 
 	// Get initials from name
 	const getInitials = (name?: string) => {
@@ -34,6 +34,12 @@ export function ProfileContextSidebar() {
 	// Calculate discovery progress
 	const completedTracks = tracks.filter((t) => t.status === "completed").length;
 	const discoveryProgress = (completedTracks / tracks.length) * 100;
+
+	// Get top personality trait (first one or pinned)
+	const topPersonalityTrait = personalityTags[0];
+
+	// Get highlighted achievement (first pinned story or first story)
+	const highlightedAchievement = keyStories.find((s) => s.isPinned) || keyStories[0];
 
 	return (
 		<div className="p-6 space-y-6 sticky top-0">
@@ -59,6 +65,46 @@ export function ProfileContextSidebar() {
 					</p>
 				</div>
 			</div>
+
+			{/* Top Personality Trait - Featured */}
+			{topPersonalityTrait && (
+				<Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+					<CardContent className="p-4">
+						<div className="flex items-center gap-2 mb-2">
+							<Star className="w-4 h-4 text-primary fill-primary" />
+							<span className="text-xs font-semibold text-primary uppercase tracking-wider">
+								Top Trait
+							</span>
+						</div>
+						<p className="text-lg font-bold text-foreground">
+							{topPersonalityTrait.label}
+						</p>
+						<p className="text-xs text-muted-foreground mt-1">
+							Từ {topPersonalityTrait.source} discovery
+						</p>
+					</CardContent>
+				</Card>
+			)}
+
+			{/* Highlighted Achievement */}
+			{highlightedAchievement && (
+				<Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-amber-200/50">
+					<CardContent className="p-4">
+						<div className="flex items-center gap-2 mb-2">
+							<Award className="w-4 h-4 text-amber-600" />
+							<span className="text-xs font-semibold text-amber-700 dark:text-amber-500 uppercase tracking-wider">
+								Highlighted Achievement
+							</span>
+						</div>
+						<p className="font-semibold text-foreground line-clamp-1">
+							{highlightedAchievement.title}
+						</p>
+						<p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+							{highlightedAchievement.summary}
+						</p>
+					</CardContent>
+				</Card>
+			)}
 
 			{/* Key Stats */}
 			<div className="grid grid-cols-2 gap-3">
@@ -170,17 +216,17 @@ export function ProfileContextSidebar() {
 			)}
 
 			{/* Personality Tags */}
-			{personalityTags.length > 0 && (
+			{personalityTags.length > 1 && (
 				<div className="space-y-3">
 					<h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-						<Trophy className="w-4 h-4" /> Personality
+						<Sparkles className="w-4 h-4" /> Other Traits
 					</h4>
 					<div className="flex flex-wrap gap-2">
-						{personalityTags.slice(0, 4).map((tag) => (
+						{personalityTags.slice(1, 5).map((tag) => (
 							<Badge
 								key={tag.id}
 								variant="secondary"
-								className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100 text-xs"
+								className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100 text-xs dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-900"
 							>
 								{tag.label}
 							</Badge>

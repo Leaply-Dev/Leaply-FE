@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Compass, User, FileText } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageTransition } from "@/components/PageTransition";
@@ -9,8 +9,25 @@ import { DiscoveryTab } from "@/components/persona-lab/DiscoveryTab";
 import { MyPersonaTab } from "@/components/persona-lab/MyPersonaTab";
 import { EssaysTab } from "@/components/persona-lab/EssaysTab";
 
+interface EssayFromAngleData {
+	title?: string;
+	description?: string;
+	suggestedTypes?: string[];
+}
+
 export default function PersonaLabPage() {
 	const [activeTab, setActiveTab] = useState("discovery");
+	const [essayFromAngleData, setEssayFromAngleData] = useState<EssayFromAngleData | undefined>();
+
+	const handleCreateEssayFromAngle = useCallback((title: string, description: string, suggestedTypes?: string[]) => {
+		setEssayFromAngleData({ title, description, suggestedTypes });
+		setActiveTab("essays");
+	}, []);
+
+	// Clear the essay data after it's used
+	const handleEssayDataUsed = useCallback(() => {
+		setEssayFromAngleData(undefined);
+	}, []);
 
 	return (
 		<PageTransition>
@@ -68,10 +85,10 @@ export default function PersonaLabPage() {
 								<DiscoveryTab />
 							</TabsContent>
 							<TabsContent value="persona" className="h-full m-0 data-[state=active]:flex data-[state=active]:flex-col">
-								<MyPersonaTab />
+								<MyPersonaTab onCreateEssayFromAngle={handleCreateEssayFromAngle} />
 							</TabsContent>
 							<TabsContent value="essays" className="h-full m-0 data-[state=active]:flex data-[state=active]:flex-col">
-								<EssaysTab />
+								<EssaysTab initialEssayData={essayFromAngleData} />
 							</TabsContent>
 						</div>
 					</Tabs>

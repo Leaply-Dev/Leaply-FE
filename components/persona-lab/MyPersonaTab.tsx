@@ -144,9 +144,10 @@ function StoryCard({ story, onTogglePin }: StoryCardProps) {
 interface EssayAngleCardProps {
 	angle: EssayAngle;
 	onTogglePin: () => void;
+	onCreateEssay: () => void;
 }
 
-function EssayAngleCard({ angle, onTogglePin }: EssayAngleCardProps) {
+function EssayAngleCard({ angle, onTogglePin, onCreateEssay }: EssayAngleCardProps) {
 	return (
 		<Card className={cn(
 			"transition-all hover:shadow-md",
@@ -175,7 +176,7 @@ function EssayAngleCard({ angle, onTogglePin }: EssayAngleCardProps) {
 					{angle.description}
 				</p>
 				{angle.suggestedFor && angle.suggestedFor.length > 0 && (
-					<div className="flex flex-wrap gap-1">
+					<div className="flex flex-wrap gap-1 mb-3">
 						{angle.suggestedFor.map((type) => (
 							<Badge key={type} variant="secondary" className="text-xs">
 								{type}
@@ -183,6 +184,15 @@ function EssayAngleCard({ angle, onTogglePin }: EssayAngleCardProps) {
 						))}
 					</div>
 				)}
+				<Button
+					variant="outline"
+					size="sm"
+					className="w-full mt-2 border-chart-2/30 text-chart-2 hover:bg-chart-2/10 hover:text-chart-2"
+					onClick={onCreateEssay}
+				>
+					<Plus className="w-3 h-3 mr-1" />
+					Tạo essay từ ý tưởng này
+				</Button>
 			</CardContent>
 		</Card>
 	);
@@ -217,7 +227,11 @@ function EmptyState() {
 	);
 }
 
-export function MyPersonaTab() {
+interface MyPersonaTabProps {
+	onCreateEssayFromAngle?: (angleTitle: string, angleDescription: string, suggestedTypes?: string[]) => void;
+}
+
+export function MyPersonaTab({ onCreateEssayFromAngle }: MyPersonaTabProps) {
 	const {
 		personalityTags,
 		keyStories,
@@ -426,6 +440,7 @@ export function MyPersonaTab() {
 											key={angle.id}
 											angle={angle}
 											onTogglePin={() => toggleAnglePin(angle.id)}
+											onCreateEssay={() => onCreateEssayFromAngle?.(angle.title, angle.description, angle.suggestedFor)}
 										/>
 									))}
 								</div>
@@ -445,6 +460,7 @@ export function MyPersonaTab() {
 											key={angle.id}
 											angle={angle}
 											onTogglePin={() => toggleAnglePin(angle.id)}
+											onCreateEssay={() => onCreateEssayFromAngle?.(angle.title, angle.description, angle.suggestedFor)}
 										/>
 									))}
 								</div>

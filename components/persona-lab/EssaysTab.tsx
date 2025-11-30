@@ -1,12 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
 	FileText,
 	Plus,
-	ArrowLeft,
-	Upload,
 	Clock,
 	MessageSquare,
 	CheckCircle,
@@ -15,9 +13,13 @@ import {
 	Trash2,
 	School,
 	ChevronRight,
+	Save,
+	Send,
+	Search,
+	GraduationCap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,23 +50,40 @@ const STATUS_CONFIG: Record<EssayStatus, { label: string; color: string; icon: R
 	},
 	submitted: {
 		label: "Đã gửi",
-		color: "bg-amber-100 text-amber-700",
+		color: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400",
 		icon: Clock,
 	},
 	reviewed: {
 		label: "Đã review",
-		color: "bg-green-100 text-green-700",
+		color: "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400",
 		icon: CheckCircle,
 	},
 };
 
-function formatDate(timestamp: number): string {
-	return new Date(timestamp).toLocaleDateString("vi-VN", {
-		day: "2-digit",
-		month: "2-digit",
-		year: "numeric",
-	});
-}
+// Mock universities for demo
+const UNIVERSITIES = [
+	{ id: "stanford", name: "Stanford University" },
+	{ id: "mit", name: "MIT" },
+	{ id: "harvard", name: "Harvard University" },
+	{ id: "yale", name: "Yale University" },
+	{ id: "princeton", name: "Princeton University" },
+	{ id: "columbia", name: "Columbia University" },
+	{ id: "upenn", name: "University of Pennsylvania" },
+	{ id: "caltech", name: "California Institute of Technology" },
+	{ id: "duke", name: "Duke University" },
+	{ id: "northwestern", name: "Northwestern University" },
+];
+
+const ESSAY_TYPES = [
+	"Personal Statement",
+	"Common App Essay",
+	"Why Us Essay",
+	"Supplemental Essay",
+	"Diversity Essay",
+	"Activity Essay",
+	"Short Answer",
+	"Other",
+];
 
 function formatRelativeTime(timestamp: number): string {
 	const diff = Date.now() - timestamp;
@@ -72,89 +91,105 @@ function formatRelativeTime(timestamp: number): string {
 	const hours = Math.floor(minutes / 60);
 	const days = Math.floor(hours / 24);
 
-	if (days > 0) return `${days} ngày trước`;
-	if (hours > 0) return `${hours} giờ trước`;
-	if (minutes > 0) return `${minutes} phút trước`;
-	return "Vừa xong";
+	if (days > 0) return `${days}d ago`;
+	if (hours > 0) return `${hours}h ago`;
+	if (minutes > 0) return `${minutes}m ago`;
+	return "Just now";
 }
 
-interface EssayCardProps {
+interface EssaySidebarItemProps {
 	essay: Essay;
+	isActive: boolean;
 	onClick: () => void;
 }
 
-function EssayCard({ essay, onClick }: EssayCardProps) {
+function EssaySidebarItem({ essay, isActive, onClick }: EssaySidebarItemProps) {
 	const status = STATUS_CONFIG[essay.status];
-	const StatusIcon = status.icon;
 
 	return (
-		<Card
-			className="cursor-pointer transition-all hover:shadow-md hover:border-primary/50 group"
+		<button
 			onClick={onClick}
+			className={cn(
+				"w-full text-left p-3 rounded-lg transition-all group",
+				"hover:bg-muted/80",
+				isActive && "bg-primary/10 border border-primary/20"
+			)}
 		>
-			<CardContent className="p-4">
-				<div className="flex items-start justify-between mb-3">
-					<div className="flex items-center gap-3">
-						<div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-							<School className="w-5 h-5 text-primary" />
-						</div>
-						<div>
-							<h4 className="font-medium text-foreground">{essay.schoolName}</h4>
-							<p className="text-sm text-muted-foreground">{essay.essayType}</p>
-						</div>
-					</div>
-					<Badge className={cn("text-xs", status.color)}>
-						<StatusIcon className="w-3 h-3 mr-1" />
-						{status.label}
-					</Badge>
+			<div className="flex items-start gap-3">
+				<div className={cn(
+					"w-8 h-8 rounded-md flex items-center justify-center shrink-0",
+					isActive ? "bg-primary/20" : "bg-muted"
+				)}>
+					<School className={cn("w-4 h-4", isActive ? "text-primary" : "text-muted-foreground")} />
 				</div>
-
-				<p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-					{essay.prompt}
-				</p>
-
-				<div className="flex items-center justify-between text-xs text-muted-foreground">
-					<div className="flex items-center gap-4">
-						<span className="flex items-center gap-1">
-							<Clock className="w-3 h-3" />
+				<div className="flex-1 min-w-0">
+					<p className={cn(
+						"font-medium text-sm truncate",
+						isActive ? "text-primary" : "text-foreground"
+					)}>
+						{essay.schoolName}
+					</p>
+					<p className="text-xs text-muted-foreground truncate">
+						{essay.essayType}
+					</p>
+					<div className="flex items-center gap-2 mt-1">
+						<span className="text-xs text-muted-foreground">
 							{formatRelativeTime(essay.updatedAt)}
 						</span>
-						<span>
-							{essay.wordCount}{essay.wordLimit ? ` / ${essay.wordLimit}` : ""} từ
-						</span>
+						{essay.feedback.length > 0 && (
+							<Badge variant="secondary" className="h-4 px-1 text-[10px]">
+								<MessageSquare className="w-2.5 h-2.5 mr-0.5" />
+								{essay.feedback.length}
+							</Badge>
+						)}
 					</div>
-					{essay.feedback.length > 0 && (
-						<span className="flex items-center gap-1 text-chart-2">
-							<MessageSquare className="w-3 h-3" />
-							{essay.feedback.length} feedback
-						</span>
-					)}
 				</div>
-
-				<ChevronRight className="w-4 h-4 text-muted-foreground absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
-			</CardContent>
-		</Card>
+				<ChevronRight className={cn(
+					"w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity shrink-0",
+					isActive && "opacity-100 text-primary"
+				)} />
+			</div>
+		</button>
 	);
 }
 
 interface NewEssayDialogProps {
 	onAdd: (essay: Omit<Essay, "id" | "createdAt" | "updatedAt" | "wordCount">) => void;
+	initialData?: {
+		title?: string;
+		description?: string;
+		suggestedTypes?: string[];
+	};
 }
 
-function NewEssayDialog({ onAdd }: NewEssayDialogProps) {
+function NewEssayDialog({ onAdd, initialData }: NewEssayDialogProps) {
 	const [open, setOpen] = useState(false);
 	const [formData, setFormData] = useState({
 		schoolName: "",
-		essayType: "",
-		prompt: "",
+		schoolId: "",
+		essayType: initialData?.suggestedTypes?.[0] || "",
+		prompt: initialData?.description || "",
 		content: "",
 		wordLimit: "",
 	});
+
+	// Update form when initialData changes
+	useEffect(() => {
+		if (initialData) {
+			setFormData(prev => ({
+				...prev,
+				essayType: initialData.suggestedTypes?.[0] || prev.essayType,
+				prompt: initialData.description || prev.prompt,
+			}));
+			setOpen(true);
+		}
+	}, [initialData]);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		onAdd({
 			schoolName: formData.schoolName,
+			schoolId: formData.schoolId || undefined,
 			essayType: formData.essayType,
 			prompt: formData.prompt,
 			content: formData.content,
@@ -162,55 +197,61 @@ function NewEssayDialog({ onAdd }: NewEssayDialogProps) {
 			status: "draft",
 			feedback: [],
 		});
-		setFormData({ schoolName: "", essayType: "", prompt: "", content: "", wordLimit: "" });
+		setFormData({ schoolName: "", schoolId: "", essayType: "", prompt: "", content: "", wordLimit: "" });
 		setOpen(false);
 	};
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button>
+				<Button size="sm" className="w-full">
 					<Plus className="w-4 h-4 mr-2" />
-					Thêm essay
+					Essay mới
 				</Button>
 			</DialogTrigger>
 			<DialogContent className="max-w-lg">
 				<DialogHeader>
-					<DialogTitle>Thêm essay mới</DialogTitle>
+					<DialogTitle>Tạo essay mới</DialogTitle>
 					<DialogDescription>
-						Thêm essay để nhận feedback từ Leaply mentor
+						Chọn trường và loại essay để bắt đầu viết
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit} className="space-y-4">
-					<div className="grid grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<Label htmlFor="schoolName">Trường</Label>
-							<Input
-								id="schoolName"
-								value={formData.schoolName}
-								onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
-								placeholder="VD: Stanford University"
-								required
-							/>
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="essayType">Loại essay</Label>
-							<Select
-								id="essayType"
-								value={formData.essayType}
-								onChange={(e) => setFormData({ ...formData, essayType: e.target.value })}
-								required
-							>
-								<option value="">Chọn loại</option>
-								<option value="Personal Statement">Personal Statement</option>
-								<option value="Common App Essay">Common App Essay</option>
-								<option value="Why Us Essay">Why Us Essay</option>
-								<option value="Supplemental Essay">Supplemental Essay</option>
-								<option value="Diversity Essay">Diversity Essay</option>
-								<option value="Activity Essay">Activity Essay</option>
-								<option value="Other">Khác</option>
-							</Select>
-						</div>
+					<div className="space-y-2">
+						<Label htmlFor="schoolId">Trường đại học</Label>
+						<Select
+							id="schoolId"
+							value={formData.schoolId}
+							onChange={(e) => {
+								const selected = UNIVERSITIES.find(u => u.id === e.target.value);
+								setFormData({ 
+									...formData, 
+									schoolId: e.target.value,
+									schoolName: selected?.name || ""
+								});
+							}}
+							required
+						>
+							<option value="">Chọn trường</option>
+							{UNIVERSITIES.map(uni => (
+								<option key={uni.id} value={uni.id}>{uni.name}</option>
+							))}
+						</Select>
+					</div>
+
+					<div className="space-y-2">
+						<Label htmlFor="essayType">Loại essay</Label>
+						<Select
+							id="essayType"
+							value={formData.essayType}
+							onChange={(e) => setFormData({ ...formData, essayType: e.target.value })}
+							required
+						>
+							<option value="">Chọn loại</option>
+							{ESSAY_TYPES.map(type => (
+								<option key={type} value={type}>{type}</option>
+							))}
+						</Select>
 					</div>
 
 					<div className="space-y-2">
@@ -220,24 +261,8 @@ function NewEssayDialog({ onAdd }: NewEssayDialogProps) {
 							value={formData.prompt}
 							onChange={(e) => setFormData({ ...formData, prompt: e.target.value })}
 							placeholder="Nhập câu hỏi / prompt của essay..."
-							rows={2}
+							rows={3}
 							required
-						/>
-					</div>
-
-					<div className="space-y-2">
-						<div className="flex items-center justify-between">
-							<Label htmlFor="content">Nội dung essay</Label>
-							<span className="text-xs text-muted-foreground">
-								{formData.wordLimit && `Giới hạn: ${formData.wordLimit} từ`}
-							</span>
-						</div>
-						<Textarea
-							id="content"
-							value={formData.content}
-							onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-							placeholder="Paste nội dung essay của bạn ở đây..."
-							rows={6}
 						/>
 					</div>
 
@@ -256,8 +281,8 @@ function NewEssayDialog({ onAdd }: NewEssayDialogProps) {
 						<Button type="button" variant="outline" onClick={() => setOpen(false)}>
 							Hủy
 						</Button>
-						<Button type="submit" disabled={!formData.schoolName || !formData.essayType || !formData.prompt}>
-							Thêm essay
+						<Button type="submit" disabled={!formData.schoolId || !formData.essayType || !formData.prompt}>
+							Tạo essay
 						</Button>
 					</div>
 				</form>
@@ -266,191 +291,168 @@ function NewEssayDialog({ onAdd }: NewEssayDialogProps) {
 	);
 }
 
-interface EssayDetailViewProps {
+interface EssayEditorProps {
 	essay: Essay;
-	onBack: () => void;
 	onUpdate: (updates: Partial<Essay>) => void;
 	onDelete: () => void;
 }
 
-function EssayDetailView({ essay, onBack, onUpdate, onDelete }: EssayDetailViewProps) {
-	const [isEditing, setIsEditing] = useState(false);
-	const [editedContent, setEditedContent] = useState(essay.content);
+function EssayEditor({ essay, onUpdate, onDelete }: EssayEditorProps) {
+	const [content, setContent] = useState(essay.content);
+	const [isSaving, setIsSaving] = useState(false);
+	const [hasChanges, setHasChanges] = useState(false);
 
-	const handleSave = () => {
-		onUpdate({ content: editedContent });
-		setIsEditing(false);
-	};
-
+	const wordCount = content.split(/\s+/).filter(Boolean).length;
 	const status = STATUS_CONFIG[essay.status];
 	const StatusIcon = status.icon;
 
-	return (
-		<div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-			{/* Left Panel - Essay Content */}
-			<div className="flex-1 flex flex-col border-r border-border">
-				{/* Header */}
-				<div className="border-b border-border p-4 bg-card/50">
-					<div className="flex items-center justify-between mb-3">
-						<button
-							onClick={onBack}
-							className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-						>
-							<ArrowLeft className="w-4 h-4" />
-							Quay lại
-						</button>
-						<div className="flex items-center gap-2">
-							<Badge className={cn("text-xs", status.color)}>
-								<StatusIcon className="w-3 h-3 mr-1" />
-								{status.label}
-							</Badge>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="h-8 w-8 text-destructive hover:text-destructive"
-								onClick={onDelete}
-							>
-								<Trash2 className="w-4 h-4" />
-							</Button>
-						</div>
-					</div>
+	useEffect(() => {
+		setContent(essay.content);
+		setHasChanges(false);
+	}, [essay.id, essay.content]);
 
+	const handleContentChange = (value: string) => {
+		setContent(value);
+		setHasChanges(value !== essay.content);
+	};
+
+	const handleSave = () => {
+		setIsSaving(true);
+		setTimeout(() => {
+			onUpdate({ content });
+			setHasChanges(false);
+			setIsSaving(false);
+		}, 300);
+	};
+
+	const handleSubmit = () => {
+		onUpdate({ content, status: "submitted" });
+		setHasChanges(false);
+	};
+
+	return (
+		<div className="flex-1 flex flex-col h-full">
+			{/* Header */}
+			<div className="border-b border-border p-4 bg-card/50 shrink-0">
+				<div className="flex items-center justify-between mb-3">
 					<div className="flex items-center gap-3">
-						<div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-							<School className="w-6 h-6 text-primary" />
+						<div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+							<GraduationCap className="w-5 h-5 text-primary" />
 						</div>
 						<div>
-							<h2 className="text-lg font-semibold text-foreground">{essay.schoolName}</h2>
+							<h2 className="font-semibold text-foreground">{essay.schoolName}</h2>
 							<p className="text-sm text-muted-foreground">{essay.essayType}</p>
 						</div>
 					</div>
-				</div>
-
-				{/* Essay Content */}
-				<ScrollArea className="flex-1 p-6">
-					<div className="max-w-2xl mx-auto space-y-6">
-						<div className="bg-muted/50 rounded-lg p-4">
-							<h3 className="text-sm font-medium text-foreground mb-2">Prompt</h3>
-							<p className="text-muted-foreground">{essay.prompt}</p>
-						</div>
-
-						<div className="space-y-3">
-							<div className="flex items-center justify-between">
-								<h3 className="text-sm font-medium text-foreground">Nội dung</h3>
-								<div className="flex items-center gap-2">
-									<span className="text-xs text-muted-foreground">
-										{essay.wordCount}{essay.wordLimit ? ` / ${essay.wordLimit}` : ""} từ
-									</span>
-									{!isEditing ? (
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() => setIsEditing(true)}
-										>
-											<Edit className="w-3 h-3 mr-1" />
-											Chỉnh sửa
-										</Button>
-									) : (
-										<div className="flex gap-2">
-											<Button
-												variant="outline"
-												size="sm"
-												onClick={() => {
-													setEditedContent(essay.content);
-													setIsEditing(false);
-												}}
-											>
-												Hủy
-											</Button>
-											<Button size="sm" onClick={handleSave}>
-												Lưu
-											</Button>
-										</div>
-									)}
-								</div>
-							</div>
-
-							{isEditing ? (
-								<Textarea
-									value={editedContent}
-									onChange={(e) => setEditedContent(e.target.value)}
-									className="min-h-[400px] text-base leading-relaxed"
-								/>
-							) : (
-								<div className="prose prose-sm max-w-none">
-									{essay.content ? (
-										<p className="whitespace-pre-wrap text-foreground leading-relaxed">
-											{essay.content}
-										</p>
-									) : (
-										<div className="text-center py-12 text-muted-foreground">
-											<FileText className="w-10 h-10 mx-auto mb-3" />
-											<p>Chưa có nội dung essay</p>
-											<Button
-												variant="outline"
-												size="sm"
-												className="mt-4"
-												onClick={() => setIsEditing(true)}
-											>
-												<Upload className="w-3 h-3 mr-1" />
-												Thêm nội dung
-											</Button>
-										</div>
-									)}
-								</div>
-							)}
-						</div>
-
-						<div className="text-xs text-muted-foreground pt-4 border-t border-border">
-							Cập nhật lần cuối: {formatDate(essay.updatedAt)}
-						</div>
-					</div>
-				</ScrollArea>
-			</div>
-
-			{/* Right Panel - Feedback */}
-			<div className="w-full lg:w-96 flex flex-col bg-card/30">
-				<div className="border-b border-border p-4">
-					<h3 className="font-semibold text-foreground flex items-center gap-2">
-						<MessageSquare className="w-4 h-4 text-chart-2" />
-						Mentor Feedback
-					</h3>
-					<p className="text-xs text-muted-foreground mt-1">
-						Góp ý từ Leaply mentor
-					</p>
-				</div>
-
-				<ScrollArea className="flex-1 p-4">
-					{essay.feedback.length > 0 ? (
-						<div className="space-y-4">
-							{essay.feedback.map((fb) => (
-								<FeedbackCard key={fb.id} feedback={fb} />
-							))}
-						</div>
-					) : (
-						<div className="text-center py-12">
-							<MessageSquare className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-							<p className="text-muted-foreground text-sm mb-4">
-								Chưa có feedback
-							</p>
-							<p className="text-xs text-muted-foreground">
-								Submit essay để nhận góp ý từ Leaply mentor
-							</p>
-						</div>
-					)}
-				</ScrollArea>
-
-				{essay.status === "draft" && essay.content && (
-					<div className="border-t border-border p-4">
-						<Button
-							className="w-full"
-							onClick={() => onUpdate({ status: "submitted" })}
+					<div className="flex items-center gap-2">
+						<Badge className={cn("text-xs", status.color)}>
+							<StatusIcon className="w-3 h-3 mr-1" />
+							{status.label}
+						</Badge>
+						<Button 
+							variant="ghost" 
+							size="icon" 
+							className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+							onClick={onDelete}
 						>
-							<Upload className="w-4 h-4 mr-2" />
-							Gửi để nhận feedback
+							<Trash2 className="w-4 h-4" />
 						</Button>
 					</div>
-				)}
+				</div>
+
+				{/* Prompt */}
+				<div className="bg-muted/50 rounded-lg p-3">
+					<p className="text-sm text-muted-foreground font-medium mb-1">Prompt:</p>
+					<p className="text-sm text-foreground">{essay.prompt}</p>
+				</div>
+			</div>
+
+			{/* Editor */}
+			<div className="flex-1 flex overflow-hidden">
+				<div className="flex-1 flex flex-col min-w-0">
+					<ScrollArea className="flex-1">
+						<div className="p-6">
+							<Textarea
+								value={content}
+								onChange={(e) => handleContentChange(e.target.value)}
+								placeholder="Bắt đầu viết essay của bạn...
+
+Tip: Hãy viết theo ý của bạn trước, Leaply sẽ giúp bạn cải thiện sau. Đừng lo lắng về sự hoàn hảo ngay từ đầu."
+								className="min-h-[400px] text-base leading-relaxed resize-none border-0 focus-visible:ring-0 p-0 shadow-none"
+							/>
+						</div>
+					</ScrollArea>
+
+					{/* Footer */}
+					<div className="border-t border-border p-4 bg-card/50 shrink-0">
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-4 text-sm text-muted-foreground">
+								<span>
+									{wordCount}{essay.wordLimit ? ` / ${essay.wordLimit}` : ""} từ
+								</span>
+								{hasChanges && (
+									<span className="text-amber-600 flex items-center gap-1">
+										<Edit className="w-3 h-3" />
+										Chưa lưu
+									</span>
+								)}
+							</div>
+							<div className="flex items-center gap-2">
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={handleSave}
+									disabled={!hasChanges || isSaving}
+								>
+									<Save className="w-4 h-4 mr-1" />
+									{isSaving ? "Đang lưu..." : "Lưu"}
+								</Button>
+								{essay.status === "draft" && content && (
+									<Button
+										size="sm"
+										onClick={handleSubmit}
+									>
+										<Send className="w-4 h-4 mr-1" />
+										Gửi để review
+									</Button>
+								)}
+							</div>
+						</div>
+					</div>
+				</div>
+
+				{/* Feedback Panel */}
+				<div className="w-80 border-l border-border bg-card/30 hidden lg:flex flex-col shrink-0">
+					<div className="border-b border-border p-4">
+						<h3 className="font-semibold text-foreground flex items-center gap-2">
+							<MessageSquare className="w-4 h-4 text-chart-2" />
+							Feedback
+						</h3>
+						<p className="text-xs text-muted-foreground mt-1">
+							Góp ý từ Leaply mentor
+						</p>
+					</div>
+
+					<ScrollArea className="flex-1 p-4">
+						{essay.feedback.length > 0 ? (
+							<div className="space-y-4">
+								{essay.feedback.map((fb) => (
+									<FeedbackCard key={fb.id} feedback={fb} />
+								))}
+							</div>
+						) : (
+							<div className="text-center py-8">
+								<MessageSquare className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+								<p className="text-muted-foreground text-sm mb-2">
+									Chưa có feedback
+								</p>
+								<p className="text-xs text-muted-foreground">
+									Gửi essay để nhận góp ý
+								</p>
+							</div>
+						)}
+					</ScrollArea>
+				</div>
 			</div>
 		</div>
 	);
@@ -462,53 +464,57 @@ interface FeedbackCardProps {
 
 function FeedbackCard({ feedback }: FeedbackCardProps) {
 	return (
-		<Card>
-			<CardContent className="p-4 space-y-3">
+		<Card className="bg-card">
+			<CardContent className="p-3 space-y-2">
 				<div>
-					<h4 className="text-sm font-medium text-foreground flex items-center gap-2">
-						<AlertCircle className="w-4 h-4 text-amber-500" />
+					<p className="text-xs font-medium text-amber-600 flex items-center gap-1 mb-1">
+						<AlertCircle className="w-3 h-3" />
 						Quan sát
-					</h4>
-					<p className="text-sm text-muted-foreground mt-1">{feedback.observation}</p>
+					</p>
+					<p className="text-sm text-muted-foreground">{feedback.observation}</p>
 				</div>
 				<div>
-					<h4 className="text-sm font-medium text-foreground flex items-center gap-2">
-						<CheckCircle className="w-4 h-4 text-green-500" />
+					<p className="text-xs font-medium text-green-600 flex items-center gap-1 mb-1">
+						<CheckCircle className="w-3 h-3" />
 						Gợi ý
-					</h4>
-					<p className="text-sm text-muted-foreground mt-1">{feedback.recommendation}</p>
+					</p>
+					<p className="text-sm text-muted-foreground">{feedback.recommendation}</p>
 				</div>
-				<div className="text-xs text-muted-foreground pt-2 border-t border-border">
+				<p className="text-[10px] text-muted-foreground pt-1">
 					{formatRelativeTime(feedback.timestamp)}
-				</div>
+				</p>
 			</CardContent>
 		</Card>
 	);
 }
 
-function EmptyState({ onAdd }: { onAdd: () => void }) {
+function EmptyState() {
 	return (
 		<div className="flex-1 flex items-center justify-center p-8">
-			<div className="text-center max-w-md">
-				<div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-					<FileText className="w-10 h-10 text-muted-foreground" />
+			<div className="text-center max-w-sm">
+				<div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+					<FileText className="w-8 h-8 text-muted-foreground" />
 				</div>
-				<h3 className="text-xl font-semibold text-foreground mb-2">
-					Chưa có essay nào
+				<h3 className="text-lg font-semibold text-foreground mb-2">
+					Chọn essay để bắt đầu
 				</h3>
-				<p className="text-muted-foreground mb-6">
-					Thêm essay của bạn để nhận feedback và góp ý từ Leaply mentor.
-					Chúng tôi sẽ giúp bạn cải thiện và hoàn thiện essay.
+				<p className="text-muted-foreground text-sm">
+					Chọn một essay từ danh sách bên trái hoặc tạo essay mới
 				</p>
-				<NewEssayDialog onAdd={(essay) => {
-					// This will be handled by the parent
-				}} />
 			</div>
 		</div>
 	);
 }
 
-export function EssaysTab() {
+interface EssaysTabProps {
+	initialEssayData?: {
+		title?: string;
+		description?: string;
+		suggestedTypes?: string[];
+	};
+}
+
+export function EssaysTab({ initialEssayData }: EssaysTabProps) {
 	const {
 		essays,
 		selectedEssayId,
@@ -518,48 +524,18 @@ export function EssaysTab() {
 		setSelectedEssay,
 	} = usePersonaStore();
 
+	const [searchQuery, setSearchQuery] = useState("");
+
 	const selectedEssay = essays.find((e) => e.id === selectedEssayId);
 
-	const handleAddEssay = (essay: Omit<Essay, "id" | "createdAt" | "updatedAt" | "wordCount">) => {
-		addEssay(essay);
-	};
-
-	if (selectedEssay) {
-		return (
-			<EssayDetailView
-				essay={selectedEssay}
-				onBack={() => setSelectedEssay(null)}
-				onUpdate={(updates) => updateEssay(selectedEssay.id, updates)}
-				onDelete={() => {
-					deleteEssay(selectedEssay.id);
-					setSelectedEssay(null);
-				}}
-			/>
-		);
-	}
-
-	if (essays.length === 0) {
-		return (
-			<div className="flex-1 flex items-center justify-center p-8">
-				<div className="text-center max-w-md">
-					<div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-						<FileText className="w-10 h-10 text-muted-foreground" />
-					</div>
-					<h3 className="text-xl font-semibold text-foreground mb-2">
-						Chưa có essay nào
-					</h3>
-					<p className="text-muted-foreground mb-6">
-						Thêm essay của bạn để nhận feedback và góp ý từ Leaply mentor.
-						Chúng tôi sẽ giúp bạn cải thiện và hoàn thiện essay.
-					</p>
-					<NewEssayDialog onAdd={handleAddEssay} />
-				</div>
-			</div>
-		);
-	}
+	// Filter essays by search
+	const filteredEssays = essays.filter(essay =>
+		essay.schoolName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+		essay.essayType.toLowerCase().includes(searchQuery.toLowerCase())
+	);
 
 	// Group essays by school
-	const essaysBySchool = essays.reduce((acc, essay) => {
+	const essaysBySchool = filteredEssays.reduce((acc, essay) => {
 		if (!acc[essay.schoolName]) {
 			acc[essay.schoolName] = [];
 		}
@@ -567,73 +543,111 @@ export function EssaysTab() {
 		return acc;
 	}, {} as Record<string, Essay[]>);
 
+	const handleAddEssay = (essay: Omit<Essay, "id" | "createdAt" | "updatedAt" | "wordCount">) => {
+		addEssay(essay);
+	};
+
 	return (
-		<ScrollArea className="flex-1">
-			<div className="p-6 max-w-5xl mx-auto">
-				{/* Header */}
-				<div className="flex items-center justify-between mb-6">
-					<div>
-						<h2 className="text-2xl font-bold text-foreground mb-2">
-							Essays
-						</h2>
-						<p className="text-muted-foreground">
-							Quản lý và nhận feedback cho essay của bạn
-						</p>
-					</div>
-					<NewEssayDialog onAdd={handleAddEssay} />
+		<div className="flex-1 flex overflow-hidden">
+			{/* Sidebar - Essay List */}
+			<div className="w-72 border-r border-border bg-card/30 flex flex-col shrink-0">
+				{/* Sidebar Header */}
+				<div className="p-4 border-b border-border space-y-3">
+					<NewEssayDialog onAdd={handleAddEssay} initialData={initialEssayData} />
+					
+					{essays.length > 0 && (
+						<div className="relative">
+							<Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+							<Input
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								placeholder="Tìm essay..."
+								className="pl-9 h-9"
+							/>
+						</div>
+					)}
 				</div>
 
-				{/* Stats */}
-				<div className="grid grid-cols-3 gap-4 mb-8">
-					<Card>
-						<CardContent className="p-4 text-center">
-							<p className="text-2xl font-bold text-foreground">{essays.length}</p>
-							<p className="text-sm text-muted-foreground">Tổng essays</p>
-						</CardContent>
-					</Card>
-					<Card>
-						<CardContent className="p-4 text-center">
-							<p className="text-2xl font-bold text-chart-2">
-								{essays.filter((e) => e.status === "reviewed").length}
-							</p>
-							<p className="text-sm text-muted-foreground">Đã review</p>
-						</CardContent>
-					</Card>
-					<Card>
-						<CardContent className="p-4 text-center">
-							<p className="text-2xl font-bold text-amber-600">
-								{essays.filter((e) => e.status === "submitted").length}
-							</p>
-							<p className="text-sm text-muted-foreground">Đang chờ</p>
-						</CardContent>
-					</Card>
-				</div>
-
-				{/* Essays by School */}
-				<div className="space-y-8">
-					{Object.entries(essaysBySchool).map(([schoolName, schoolEssays]) => (
-						<div key={schoolName}>
-							<h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-								<School className="w-5 h-5 text-primary" />
-								{schoolName}
-								<Badge variant="secondary" className="ml-2">
-									{schoolEssays.length}
-								</Badge>
-							</h3>
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								{schoolEssays.map((essay) => (
-									<EssayCard
-										key={essay.id}
-										essay={essay}
-										onClick={() => setSelectedEssay(essay.id)}
-									/>
+				{/* Essay List */}
+				<ScrollArea className="flex-1">
+					<div className="p-2">
+						{essays.length === 0 ? (
+							<div className="text-center py-8 px-4">
+								<FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+								<p className="text-sm text-muted-foreground">
+									Chưa có essay nào
+								</p>
+							</div>
+						) : filteredEssays.length === 0 ? (
+							<div className="text-center py-8 px-4">
+								<Search className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+								<p className="text-sm text-muted-foreground">
+									Không tìm thấy essay
+								</p>
+							</div>
+						) : (
+							<div className="space-y-4">
+								{Object.entries(essaysBySchool).map(([schoolName, schoolEssays]) => (
+									<div key={schoolName}>
+										<p className="text-xs font-medium text-muted-foreground px-3 mb-2 flex items-center gap-1">
+											<School className="w-3 h-3" />
+											{schoolName}
+										</p>
+										<div className="space-y-1">
+											{schoolEssays.map((essay) => (
+												<EssaySidebarItem
+													key={essay.id}
+													essay={essay}
+													isActive={essay.id === selectedEssayId}
+													onClick={() => setSelectedEssay(essay.id)}
+												/>
+											))}
+										</div>
+									</div>
 								))}
 							</div>
+						)}
+					</div>
+				</ScrollArea>
+
+				{/* Stats */}
+				{essays.length > 0 && (
+					<div className="border-t border-border p-4">
+						<div className="grid grid-cols-3 gap-2 text-center">
+							<div>
+								<p className="text-lg font-bold text-foreground">{essays.length}</p>
+								<p className="text-[10px] text-muted-foreground">Tổng</p>
+							</div>
+							<div>
+								<p className="text-lg font-bold text-green-600">
+									{essays.filter((e) => e.status === "reviewed").length}
+								</p>
+								<p className="text-[10px] text-muted-foreground">Reviewed</p>
+							</div>
+							<div>
+								<p className="text-lg font-bold text-amber-600">
+									{essays.filter((e) => e.status === "submitted").length}
+								</p>
+								<p className="text-[10px] text-muted-foreground">Đang chờ</p>
+							</div>
 						</div>
-					))}
-				</div>
+					</div>
+				)}
 			</div>
-		</ScrollArea>
+
+			{/* Main Content - Essay Editor */}
+			{selectedEssay ? (
+				<EssayEditor
+					essay={selectedEssay}
+					onUpdate={(updates) => updateEssay(selectedEssay.id, updates)}
+					onDelete={() => {
+						deleteEssay(selectedEssay.id);
+						setSelectedEssay(null);
+					}}
+				/>
+			) : (
+				<EmptyState />
+			)}
+		</div>
 	);
 }
-
