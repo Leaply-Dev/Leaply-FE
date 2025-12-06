@@ -19,7 +19,7 @@ interface EssayFromAngleData {
 
 export default function PersonaLabPage() {
 	const { t } = useTranslation();
-	const { tracks } = usePersonaStore();
+	const { tracks, resetPersona } = usePersonaStore();
 	const [activeTab, setActiveTab] = useState("persona");
 	const [essayFromAngleData, setEssayFromAngleData] = useState<EssayFromAngleData | undefined>();
 	const [isRetakingQuiz, setIsRetakingQuiz] = useState(false);
@@ -33,8 +33,9 @@ export default function PersonaLabPage() {
 	}, []);
 
 	const handleRetakeQuiz = useCallback(() => {
-		setIsRetakingQuiz(true);
-	}, []);
+		resetPersona(); // Reset to demo data with all placeholder stories
+		// Don't set isRetakingQuiz - we want to stay on MyPersona tab to show the demo data
+	}, [resetPersona]);
 
 	const handleRetakeComplete = useCallback(() => {
 		setIsRetakingQuiz(false);

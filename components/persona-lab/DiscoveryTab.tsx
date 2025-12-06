@@ -312,14 +312,19 @@ export function DiscoveryTab({ onComplete }: DiscoveryTabProps) {
 	};
 
 	const handleTrackComplete = () => {
+		// Check if ALL tracks are now completed (including the one just finished)
+		const newCompletedCount = tracks.filter((t) => t.status === "completed").length + 1;
+		const allTracksCompleted = newCompletedCount >= tracks.length;
+		
 		setSelectedTrackId(null);
 		setActiveTrack(null);
-		// Check if this was the first track completed, trigger transition to persona view
-		const newCompletedCount = tracks.filter((t) => t.status === "completed").length + 1;
-		if (newCompletedCount >= 1 && onComplete) {
+		
+		// Only navigate to persona view when ALL tracks are completed
+		if (allTracksCompleted && onComplete) {
 			// Small delay to allow state to update
 			setTimeout(onComplete, 100);
 		}
+		// Otherwise, user stays on discovery tab to continue with other tracks
 	};
 
 	if (activeTrack) {
