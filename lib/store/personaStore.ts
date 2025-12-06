@@ -465,6 +465,47 @@ const demoEssayAngles: EssayAngle[] = [
 	},
 ];
 
+// Demo essay data for showcase
+const demoEssays: Essay[] = [
+	{
+		id: "demo-essay-1",
+		schoolName: "Stanford University",
+		schoolId: "stanford",
+		essayType: "Personal Statement",
+		prompt: "The Stanford community is deeply curious and driven to learn in and out of the classroom. Reflect on an idea or experience that makes you genuinely excited about learning.",
+		content: `Growing up in Ho Chi Minh City, I never expected that my grandmother's small bamboo weaving workshop would become my greatest classroom. Every summer, I watched her transform simple bamboo strips into intricate patterns, her weathered hands moving with a precision that no machine could replicate.
+
+When I was fifteen, I noticed fewer young people visiting her shop. "Traditional crafts are dying," she told me one evening, her voice carrying both acceptance and sadness. That night, I couldn't sleep. How could something so beautiful, so culturally significant, simply fade away?
+
+I started with a simple question: Could technology save tradition? Using my basic coding skills, I built a small e-commerce website for her products. But more importantly, I documented each weaving technique through video tutorials, creating a digital archive of knowledge that had been passed down for generations.
+
+The project grew beyond what I imagined. Local artisans began reaching out, asking to be featured. I learned about supply chain management, digital marketing, and the delicate balance between modernization and authenticity. When a Hong Kong design studio discovered our platform and commissioned a collaboration collection, I realized that innovation doesn't mean abandoning the past—it means finding new ways to carry it forward.
+
+This experience fundamentally changed how I approach learning. I no longer see subjects as isolated disciplines. When I study economics, I think about sustainable livelihoods. When I code, I imagine preserving cultural heritage. When I research environmental science, I remember my grandmother teaching me that every bamboo grove must be harvested thoughtfully to ensure future growth.
+
+Stanford's interdisciplinary approach excites me because it mirrors this philosophy. I want to explore how technology can amplify rather than replace human creativity, how business models can sustain cultural practices, and how environmental sustainability connects to community resilience.`,
+		status: "reviewed",
+		wordCount: 298,
+		wordLimit: 650,
+		feedback: [
+			{
+				id: "fb-1",
+				observation: "Your opening with the grandmother's workshop is compelling, but the transition to the e-commerce solution feels a bit rushed. The reader wants to see more of your emotional journey.",
+				recommendation: "Consider adding a paragraph about your initial failed attempts or doubts. Showing vulnerability makes your eventual success more impactful.",
+				timestamp: Date.now() - 86400000 * 2,
+			},
+			{
+				id: "fb-2",
+				observation: "The connection to Stanford is clear but could be more specific. 'Interdisciplinary approach' is generic.",
+				recommendation: "Name specific Stanford programs, professors, or initiatives that align with your interests. For example, mention the d.school's design thinking methodology or specific courses that bridge technology and cultural preservation.",
+				timestamp: Date.now() - 86400000 * 1,
+			},
+		],
+		createdAt: Date.now() - 86400000 * 7,
+		updatedAt: Date.now() - 86400000 * 1,
+	},
+];
+
 // Demo tracks with completed status for demo
 const demoTracks: DiscoveryTrack[] = [
 	{
@@ -526,8 +567,8 @@ export const usePersonaStore = create<PersonaState>()(
 			personalityTags: demoPersonalityTags,
 			keyStories: demoKeyStories,
 			essayAngles: demoEssayAngles,
-			essays: [],
-			selectedEssayId: null,
+			essays: demoEssays,
+			selectedEssayId: "demo-essay-1",
 
 			// Discovery Actions
 			startTrack: (trackId) =>
@@ -719,8 +760,8 @@ export const usePersonaStore = create<PersonaState>()(
 					personalityTags: demoPersonalityTags,
 					keyStories: demoKeyStories,
 					essayAngles: demoEssayAngles,
-					essays: [],
-					selectedEssayId: null,
+					essays: demoEssays,
+					selectedEssayId: "demo-essay-1",
 				}),
 		}),
 		{

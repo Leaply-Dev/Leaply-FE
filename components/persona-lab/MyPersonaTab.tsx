@@ -84,7 +84,7 @@ function EditableTag({ tag, onUpdate, onRemove }: EditableTagProps) {
 			variant="secondary"
 			className={cn(
 				"bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1.5 text-sm cursor-default group",
-				tag.isEditable && "cursor-pointer"
+				tag.isEditable && "cursor-pointer",
 			)}
 		>
 			{tag.label}
@@ -112,10 +112,12 @@ interface StoryCardProps {
 
 function StoryCard({ story, onTogglePin }: StoryCardProps) {
 	return (
-		<Card className={cn(
-			"transition-all hover:shadow-md",
-			story.isPinned && "ring-1 ring-primary/30 bg-primary/5"
-		)}>
+		<Card
+			className={cn(
+				"transition-all hover:shadow-md",
+				story.isPinned && "ring-1 ring-primary/30 bg-primary/5",
+			)}
+		>
 			<CardContent className="p-4">
 				<div className="flex items-start justify-between mb-2">
 					<h4 className="font-medium text-foreground">{story.title}</h4>
@@ -149,14 +151,20 @@ interface EssayAngleCardProps {
 	onCreateEssay: () => void;
 }
 
-function EssayAngleCard({ angle, onTogglePin, onCreateEssay }: EssayAngleCardProps) {
+function EssayAngleCard({
+	angle,
+	onTogglePin,
+	onCreateEssay,
+}: EssayAngleCardProps) {
 	const { t } = useTranslation();
-	
+
 	return (
-		<Card className={cn(
-			"transition-all hover:shadow-md",
-			angle.isPinned && "ring-1 ring-chart-2/30 bg-chart-2/5"
-		)}>
+		<Card
+			className={cn(
+				"transition-all hover:shadow-md",
+				angle.isPinned && "ring-1 ring-chart-2/30 bg-chart-2/5",
+			)}
+		>
 			<CardContent className="p-4">
 				<div className="flex items-start justify-between mb-2">
 					<div className="flex items-center gap-2">
@@ -204,7 +212,7 @@ function EssayAngleCard({ angle, onTogglePin, onCreateEssay }: EssayAngleCardPro
 
 function EmptyState() {
 	const { t } = useTranslation();
-	
+
 	return (
 		<div className="flex-1 flex items-center justify-center p-8">
 			<div className="text-center max-w-md">
@@ -218,11 +226,16 @@ function EmptyState() {
 					{t("personaLab", "completeOneTrack")}
 				</p>
 				<Button variant="outline" asChild>
-					<a href="#" onClick={() => {
-						// Switch to discovery tab
-						const discoveryTab = document.querySelector('[value="discovery"]');
-						if (discoveryTab) (discoveryTab as HTMLElement).click();
-					}}>
+					<a
+						href="#"
+						onClick={() => {
+							// Switch to discovery tab
+							const discoveryTab = document.querySelector(
+								'[value="discovery"]',
+							);
+							if (discoveryTab) (discoveryTab as HTMLElement).click();
+						}}
+					>
 						<Sparkles className="w-4 h-4 mr-2" />
 						{t("personaLab", "startDiscovery")}
 					</a>
@@ -233,11 +246,18 @@ function EmptyState() {
 }
 
 interface MyPersonaTabProps {
-	onCreateEssayFromAngle?: (angleTitle: string, angleDescription: string, suggestedTypes?: string[]) => void;
+	onCreateEssayFromAngle?: (
+		angleTitle: string,
+		angleDescription: string,
+		suggestedTypes?: string[],
+	) => void;
 	onRetakeQuiz?: () => void;
 }
 
-export function MyPersonaTab({ onCreateEssayFromAngle, onRetakeQuiz }: MyPersonaTabProps) {
+export function MyPersonaTab({
+	onCreateEssayFromAngle,
+	onRetakeQuiz,
+}: MyPersonaTabProps) {
 	const { t } = useTranslation();
 	const {
 		personalityTags,
@@ -288,7 +308,7 @@ export function MyPersonaTab({ onCreateEssayFromAngle, onRetakeQuiz }: MyPersona
 	const unpinnedAngles = essayAngles.filter((a) => !a.isPinned);
 
 	return (
-		<ScrollArea className="flex-1">
+		<ScrollArea className="flex-1 h-full">
 			<div className="p-6 max-w-5xl mx-auto space-y-8">
 				{/* Header */}
 				<div className="flex items-start justify-between">
@@ -460,7 +480,13 @@ export function MyPersonaTab({ onCreateEssayFromAngle, onRetakeQuiz }: MyPersona
 											key={angle.id}
 											angle={angle}
 											onTogglePin={() => toggleAnglePin(angle.id)}
-											onCreateEssay={() => onCreateEssayFromAngle?.(angle.title, angle.description, angle.suggestedFor)}
+											onCreateEssay={() =>
+												onCreateEssayFromAngle?.(
+													angle.title,
+													angle.description,
+													angle.suggestedFor,
+												)
+											}
 										/>
 									))}
 								</div>
@@ -480,7 +506,13 @@ export function MyPersonaTab({ onCreateEssayFromAngle, onRetakeQuiz }: MyPersona
 											key={angle.id}
 											angle={angle}
 											onTogglePin={() => toggleAnglePin(angle.id)}
-											onCreateEssay={() => onCreateEssayFromAngle?.(angle.title, angle.description, angle.suggestedFor)}
+											onCreateEssay={() =>
+												onCreateEssayFromAngle?.(
+													angle.title,
+													angle.description,
+													angle.suggestedFor,
+												)
+											}
 										/>
 									))}
 								</div>
@@ -492,4 +524,3 @@ export function MyPersonaTab({ onCreateEssayFromAngle, onRetakeQuiz }: MyPersona
 		</ScrollArea>
 	);
 }
-
