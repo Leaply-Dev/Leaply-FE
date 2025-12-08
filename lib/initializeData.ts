@@ -3,13 +3,13 @@
  * This ensures consistent data across the app
  */
 
-import { useUniversitiesStore } from "./store/universitiesStore";
+import { mockApplications, mockTasks } from "./data/applications";
+import { mockConversations } from "./data/chat";
+import { mockResources } from "./data/resources";
+import { mockUniversities } from "./data/universities";
 import { useApplicationsStore } from "./store/applicationsStore";
 import { useChatStore } from "./store/chatStore";
-import { mockUniversities } from "./data/universities";
-import { mockApplications, mockTasks } from "./data/applications";
-import { mockResources } from "./data/resources";
-import { mockConversations } from "./data/chat";
+import { useUniversitiesStore } from "./store/universitiesStore";
 
 export function initializeAppData() {
 	const { setUniversities } = useUniversitiesStore.getState();

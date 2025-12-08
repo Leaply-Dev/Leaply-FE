@@ -1,30 +1,30 @@
 "use client";
 
-import React, { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
+	Award,
+	Brain,
+	CheckCircle2,
+	ChevronDown,
+	ChevronUp,
+	Circle,
+	Compass,
 	GraduationCap,
 	MapPin,
 	School,
-	Target,
-	Compass,
-	Award,
 	Sparkles,
 	Star,
-	Brain,
-	CheckCircle2,
-	Circle,
-	ChevronDown,
-	ChevronUp,
+	Target,
 } from "lucide-react";
-import { useUserStore } from "@/lib/store/userStore";
-import { useUniversitiesStore } from "@/lib/store/universitiesStore";
-import { usePersonaStore } from "@/lib/store/personaStore";
+import React, { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { usePersonaStore } from "@/lib/store/personaStore";
+import { useUniversitiesStore } from "@/lib/store/universitiesStore";
+import { useUserStore } from "@/lib/store/userStore";
 
 // Simulated persona summaries based on traits (for demo purposes)
 const PERSONA_SUMMARIES: Record<string, string> = {
@@ -180,7 +180,7 @@ export function ProfileContextSidebar() {
 						</p>
 						{/* Fade overlay when collapsed */}
 						{!isPersonaSummaryExpanded && getPersonaSummary().length > 100 && (
-							<div className="absolute bottom-0 left-6 right-0 h-6 bg-gradient-to-t from-card/90 to-transparent pointer-events-none" />
+							<div className="absolute bottom-0 left-6 right-0 h-6 bg-linear-to-t from-card/90 to-transparent pointer-events-none" />
 						)}
 					</div>
 					{getPersonaSummary().length > 100 && (

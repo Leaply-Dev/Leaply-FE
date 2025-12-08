@@ -1,33 +1,34 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
 import {
 	ArrowRight,
+	GraduationCap,
+	Heart,
+	Linkedin,
 	Mail,
 	MapPin,
-	Heart,
 	Rocket,
-	Users,
-	GraduationCap,
-	Sparkles,
 	Send,
-	Linkedin,
+	Sparkles,
 	Twitter,
+	Users,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import Link from "next/link";
+import type React from "react";
+import { useState } from "react";
 import {
 	PageTransition,
 	SlideUp,
 	StaggerContainer,
 	StaggerItem,
 } from "@/components/PageTransition";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { cn } from "@/lib/utils";
 
 interface TeamMember {
 	name: string;
@@ -37,11 +38,36 @@ interface TeamMember {
 }
 
 const teamMembers: TeamMember[] = [
-	{ name: "Phạm Phan Anh", role: "Team Leader", department: "R&D", school: "HUST" },
-	{ name: "Nguyễn Trường Sơn", role: "Developer", department: "R&D", school: "HUST" },
-	{ name: "Nguyễn Đăng Khánh", role: "Developer", department: "R&D", school: "HUST" },
-	{ name: "Hoàng Hà Hải Anh", role: "Sales Lead", department: "Sales & Marketing", school: "FTU" },
-	{ name: "Chu Nguyễn Xuân Mai", role: "Finance Lead", department: "Finance", school: "AOF" },
+	{
+		name: "Phạm Phan Anh",
+		role: "Team Leader",
+		department: "R&D",
+		school: "HUST",
+	},
+	{
+		name: "Nguyễn Trường Sơn",
+		role: "Developer",
+		department: "R&D",
+		school: "HUST",
+	},
+	{
+		name: "Nguyễn Đăng Khánh",
+		role: "Developer",
+		department: "R&D",
+		school: "HUST",
+	},
+	{
+		name: "Hoàng Hà Hải Anh",
+		role: "Sales Lead",
+		department: "Sales & Marketing",
+		school: "FTU",
+	},
+	{
+		name: "Chu Nguyễn Xuân Mai",
+		role: "Finance Lead",
+		department: "Finance",
+		school: "AOF",
+	},
 ];
 
 const valueConfigs = [
@@ -51,21 +77,34 @@ const valueConfigs = [
 ];
 
 function getInitials(name: string): string {
-	return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+	return name
+		.split(" ")
+		.map((n) => n[0])
+		.join("")
+		.toUpperCase()
+		.slice(0, 2);
 }
 
 function getDepartmentColor(department: string): string {
 	switch (department) {
-		case "R&D": return "bg-blue-500";
-		case "Sales & Marketing": return "bg-amber-500";
-		case "Finance": return "bg-emerald-500";
-		default: return "bg-primary";
+		case "R&D":
+			return "bg-blue-500";
+		case "Sales & Marketing":
+			return "bg-amber-500";
+		case "Finance":
+			return "bg-emerald-500";
+		default:
+			return "bg-primary";
 	}
 }
 
 export default function AboutPage() {
 	const { t } = useTranslation();
-	const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+	const [formData, setFormData] = useState({
+		name: "",
+		email: "",
+		message: "",
+	});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [submitted, setSubmitted] = useState(false);
 
@@ -97,7 +136,9 @@ export default function AboutPage() {
 							<h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6">
 								{t("about", "heroTitle")}
 								<br />
-								<span className="text-primary">{t("about", "heroTitleHighlight")}</span>
+								<span className="text-primary">
+									{t("about", "heroTitleHighlight")}
+								</span>
 							</h1>
 							<p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
 								{t("about", "heroSubtitle")}
@@ -168,17 +209,26 @@ export default function AboutPage() {
 										<Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1 group">
 											<CardContent className="p-6 text-center">
 												<div className="relative mb-4">
-													<div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
+													<div className="w-20 h-20 rounded-full bg-linear-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
 														<span className="text-xl font-bold text-primary">
 															{getInitials(member.name)}
 														</span>
 													</div>
-													<div className={cn("absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[10px] font-medium text-white", getDepartmentColor(member.department))}>
+													<div
+														className={cn(
+															"absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[10px] font-medium text-white",
+															getDepartmentColor(member.department),
+														)}
+													>
 														{member.department}
 													</div>
 												</div>
-												<h3 className="font-semibold text-foreground mb-1">{member.name}</h3>
-												<p className="text-sm text-primary font-medium mb-2">{member.role}</p>
+												<h3 className="font-semibold text-foreground mb-1">
+													{member.name}
+												</h3>
+												<p className="text-sm text-primary font-medium mb-2">
+													{member.role}
+												</p>
 												<div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
 													<GraduationCap className="w-3 h-3" />
 													{member.school}
@@ -212,8 +262,13 @@ export default function AboutPage() {
 												<Mail className="w-6 h-6 text-primary" />
 											</div>
 											<div>
-												<h3 className="font-semibold text-foreground mb-1">{t("about", "email")}</h3>
-												<a href="mailto:hello@leaply.ai.vn" className="text-muted-foreground hover:text-primary transition-colors">
+												<h3 className="font-semibold text-foreground mb-1">
+													{t("about", "email")}
+												</h3>
+												<a
+													href="mailto:hello@leaply.ai.vn"
+													className="text-muted-foreground hover:text-primary transition-colors"
+												>
 													hello@leaply.ai.vn
 												</a>
 											</div>
@@ -224,14 +279,20 @@ export default function AboutPage() {
 												<MapPin className="w-6 h-6 text-primary" />
 											</div>
 											<div>
-												<h3 className="font-semibold text-foreground mb-1">{t("about", "address")}</h3>
-												<p className="text-muted-foreground">{t("common", "hanoi")}</p>
+												<h3 className="font-semibold text-foreground mb-1">
+													{t("about", "address")}
+												</h3>
+												<p className="text-muted-foreground">
+													{t("common", "hanoi")}
+												</p>
 											</div>
 										</div>
 									</div>
 
 									<div className="mt-10">
-										<p className="text-sm font-medium text-foreground mb-4">{t("about", "followUs")}</p>
+										<p className="text-sm font-medium text-foreground mb-4">
+											{t("about", "followUs")}
+										</p>
 										<div className="flex gap-3">
 											<a
 												href="https://linkedin.com"
@@ -269,7 +330,10 @@ export default function AboutPage() {
 												<p className="text-muted-foreground mb-6">
 													{t("about", "formSuccess")}
 												</p>
-												<Button variant="outline" onClick={() => setSubmitted(false)}>
+												<Button
+													variant="outline"
+													onClick={() => setSubmitted(false)}
+												>
 													{t("about", "formSendAnother")}
 												</Button>
 											</div>
@@ -281,34 +345,59 @@ export default function AboutPage() {
 														id="name"
 														placeholder={t("about", "formNamePlaceholder")}
 														value={formData.name}
-														onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+														onChange={(e) =>
+															setFormData((prev) => ({
+																...prev,
+																name: e.target.value,
+															}))
+														}
 														required
 													/>
 												</div>
 												<div className="space-y-2">
-													<Label htmlFor="email">{t("about", "formEmail")}</Label>
+													<Label htmlFor="email">
+														{t("about", "formEmail")}
+													</Label>
 													<Input
 														id="email"
 														type="email"
 														placeholder={t("about", "formEmailPlaceholder")}
 														value={formData.email}
-														onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+														onChange={(e) =>
+															setFormData((prev) => ({
+																...prev,
+																email: e.target.value,
+															}))
+														}
 														required
 													/>
 												</div>
 												<div className="space-y-2">
-													<Label htmlFor="message">{t("about", "formMessage")}</Label>
+													<Label htmlFor="message">
+														{t("about", "formMessage")}
+													</Label>
 													<Textarea
 														id="message"
 														placeholder={t("about", "formMessagePlaceholder")}
 														rows={5}
 														value={formData.message}
-														onChange={(e) => setFormData((prev) => ({ ...prev, message: e.target.value }))}
+														onChange={(e) =>
+															setFormData((prev) => ({
+																...prev,
+																message: e.target.value,
+															}))
+														}
 														required
 													/>
 												</div>
-												<Button type="submit" className="w-full" disabled={isSubmitting}>
-													{isSubmitting ? t("about", "formSubmitting") : (
+												<Button
+													type="submit"
+													className="w-full"
+													disabled={isSubmitting}
+												>
+													{isSubmitting ? (
+														t("about", "formSubmitting")
+													) : (
 														<>
 															{t("about", "formSubmit")}
 															<Send className="ml-2 w-4 h-4" />

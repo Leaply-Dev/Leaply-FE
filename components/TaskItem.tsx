@@ -1,10 +1,10 @@
 "use client";
 
-import { Calendar, AlertCircle } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
+import { AlertCircle, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { cn } from "@/lib/utils";
 
 interface TaskItemProps {
 	id: string;
@@ -61,28 +61,30 @@ export function TaskItem({
 					>
 						{title}
 					</h4>
-				{priority && (
-					<Badge
-						variant="outline"
-						className={cn("text-xs", config.color, config.bgColor)}
-					>
-						{t("common", priority)}
-					</Badge>
-				)}
+					{priority && (
+						<Badge
+							variant="outline"
+							className={cn("text-xs", config.color, config.bgColor)}
+						>
+							{t("common", priority)}
+						</Badge>
+					)}
 				</div>
 
 				<p className="text-sm text-muted-foreground mb-2">{description}</p>
 
-			<div className="flex items-center gap-2 text-xs text-muted-foreground">
-				<Calendar className="w-3 h-3" />
-				<span>{t("common", "due")}: {new Date(dueDate).toLocaleDateString()}</span>
-				{isOverdue && (
-					<>
-						<AlertCircle className="w-3 h-3 text-red-600 ml-2" />
-						<span className="text-red-600">{t("common", "overdue")}</span>
-					</>
-				)}
-			</div>
+				<div className="flex items-center gap-2 text-xs text-muted-foreground">
+					<Calendar className="w-3 h-3" />
+					<span>
+						{t("common", "due")}: {new Date(dueDate).toLocaleDateString()}
+					</span>
+					{isOverdue && (
+						<>
+							<AlertCircle className="w-3 h-3 text-red-600 ml-2" />
+							<span className="text-red-600">{t("common", "overdue")}</span>
+						</>
+					)}
+				</div>
 			</div>
 		</div>
 	);

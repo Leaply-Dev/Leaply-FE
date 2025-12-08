@@ -1,21 +1,21 @@
 "use client";
 
+import {
+	Award,
+	DollarSign,
+	ExternalLink,
+	MapPin,
+	MessageCircle,
+	Star,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-	MapPin,
-	Star,
-	DollarSign,
-	MessageCircle,
-	ExternalLink,
-	Award,
-} from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useUniversitiesStore } from "@/lib/store/universitiesStore";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface ExploreCardProps {
 	id: string;
@@ -113,7 +113,8 @@ export function ExploreCard({
 						<div className="flex items-center justify-between text-sm">
 							<span className="flex items-center gap-1 text-muted-foreground">
 								<DollarSign className="w-4 h-4" />$
-								{averageTuition.toLocaleString()}{t("universities", "perYear")}
+								{averageTuition.toLocaleString()}
+								{t("universities", "perYear")}
 							</span>
 							{acceptanceRate && (
 								<span className="flex items-center gap-1 text-xs text-muted-foreground">

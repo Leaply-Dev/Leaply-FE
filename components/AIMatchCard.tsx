@@ -1,19 +1,20 @@
 "use client";
 
+import {
+	DollarSign,
+	HelpCircle,
+	MapPin,
+	MessageCircle,
+	Sparkles,
+	Star,
+	TrendingUp,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-	MapPin,
-	Star,
-	DollarSign,
-	TrendingUp,
-	HelpCircle,
-	Sparkles,
-	MessageCircle,
-} from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
 	Dialog,
 	DialogContent,
@@ -22,17 +23,16 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useUniversitiesStore } from "@/lib/store/universitiesStore";
 import { useUserStore } from "@/lib/store/userStore";
+import { cn } from "@/lib/utils";
 import { calculateFitScore, getFitScoreColor } from "@/lib/utils/fitScore";
 import {
 	generateMatchReasons,
 	getEncouragingCopy,
 	getMatchBadgeText,
 } from "@/lib/utils/matchReasons";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
-import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface AIMatchCardProps {
 	id: string;
@@ -139,7 +139,10 @@ export function AIMatchCard({
 						</p>
 						<Dialog open={isWhyDialogOpen} onOpenChange={setIsWhyDialogOpen}>
 							<DialogTrigger asChild>
-								<button type="button" className="text-xs text-chart-2 hover:text-chart-2/80 flex items-center gap-1 transition-colors">
+								<button
+									type="button"
+									className="text-xs text-chart-2 hover:text-chart-2/80 flex items-center gap-1 transition-colors"
+								>
 									<HelpCircle className="w-3 h-3" />
 									{t("universities", "why")}
 								</button>
@@ -204,7 +207,9 @@ export function AIMatchCard({
 
 								<div className="flex gap-2">
 									<Button asChild type="button" className="flex-1">
-										<Link href={`/universities/${id}`}>{t("universities", "viewDetails")}</Link>
+										<Link href={`/universities/${id}`}>
+											{t("universities", "viewDetails")}
+										</Link>
 									</Button>
 									{onAskAI && (
 										<Button
@@ -259,7 +264,9 @@ export function AIMatchCard({
 					{/* Action Buttons */}
 					<div className="flex gap-2">
 						<Button asChild type="button" size="sm" className="flex-1">
-							<Link href={`/universities/${id}`}>{t("universities", "learnMore")}</Link>
+							<Link href={`/universities/${id}`}>
+								{t("universities", "learnMore")}
+							</Link>
 						</Button>
 						<Button
 							type="button"
@@ -271,7 +278,9 @@ export function AIMatchCard({
 								saved && "bg-chart-4 hover:bg-chart-4/90",
 							)}
 						>
-							{saved ? `★ ${t("universities", "saved")}` : `+ ${t("universities", "addToDreamList")}`}
+							{saved
+								? `★ ${t("universities", "saved")}`
+								: `+ ${t("universities", "addToDreamList")}`}
 						</Button>
 					</div>
 

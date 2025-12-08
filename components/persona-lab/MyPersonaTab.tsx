@@ -1,34 +1,35 @@
 "use client";
 
-import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
-	Tag,
 	BookOpen,
+	Check,
+	Compass,
+	Edit2,
 	Lightbulb,
 	Pin,
 	PinOff,
 	Plus,
-	X,
-	Edit2,
-	Check,
-	Compass,
-	Sparkles,
 	RefreshCw,
+	Sparkles,
+	Tag,
+	X,
 } from "lucide-react";
+import type React from "react";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import {
-	usePersonaStore,
-	type PersonalityTag,
-	type KeyStory,
 	type EssayAngle,
+	type KeyStory,
+	type PersonalityTag,
+	usePersonaStore,
 } from "@/lib/store/personaStore";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface EditableTagProps {
 	tag: PersonalityTag;

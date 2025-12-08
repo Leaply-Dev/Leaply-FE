@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Compass, Target, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Compass, Sparkles, Target } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { OnboardingProgress } from "@/components/OnboardingProgress";
+import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -12,15 +14,10 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { OnboardingProgress } from "@/components/OnboardingProgress";
 import { useUserStore } from "@/lib/store/userStore";
-import { PageTransition } from "@/components/PageTransition";
 import { cn } from "@/lib/utils";
 
-const ONBOARDING_STEPS = [
-	"Thông tin cơ bản",
-	"Hành trình",
-];
+const ONBOARDING_STEPS = ["Thông tin cơ bản", "Hành trình"];
 
 type JourneyType = "exploring" | "targeted" | null;
 
@@ -91,7 +88,7 @@ export default function JourneyTypePage() {
 							initial={{ scale: 0.8, opacity: 0 }}
 							animate={{ scale: 1, opacity: 1 }}
 							transition={{ duration: 0.3 }}
-							className="w-20 h-20 bg-gradient-to-br from-primary/20 to-chart-2/20 rounded-full flex items-center justify-center mx-auto mb-6"
+							className="w-20 h-20 bg-linear-to-br from-primary/20 to-chart-2/20 rounded-full flex items-center justify-center mx-auto mb-6"
 						>
 							<Sparkles className="w-10 h-10 text-primary" />
 						</motion.div>
@@ -99,7 +96,8 @@ export default function JourneyTypePage() {
 							Bạn đang ở đâu trên hành trình du học?
 						</h1>
 						<p className="text-lg text-muted-foreground max-w-xl mx-auto">
-							Không có lựa chọn nào đúng hay sai - chúng tôi sẽ tùy chỉnh trải nghiệm phù hợp với bạn
+							Không có lựa chọn nào đúng hay sai - chúng tôi sẽ tùy chỉnh trải
+							nghiệm phù hợp với bạn
 						</p>
 					</div>
 
@@ -120,7 +118,7 @@ export default function JourneyTypePage() {
 											"relative cursor-pointer transition-all duration-300 h-full overflow-hidden group",
 											isSelected
 												? "ring-2 ring-primary shadow-lg scale-[1.02]"
-												: "hover:shadow-md hover:scale-[1.01]"
+												: "hover:shadow-md hover:scale-[1.01]",
 										)}
 										onClick={() => setSelectedJourney(option.id)}
 									>
@@ -130,7 +128,7 @@ export default function JourneyTypePage() {
 												"absolute top-4 right-4 w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center",
 												isSelected
 													? "border-primary bg-primary"
-													: "border-muted-foreground/30"
+													: "border-muted-foreground/30",
 											)}
 										>
 											{isSelected && (
@@ -148,7 +146,7 @@ export default function JourneyTypePage() {
 													"w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-colors",
 													isSelected
 														? "bg-primary/20"
-														: "bg-muted group-hover:bg-primary/10"
+														: "bg-muted group-hover:bg-primary/10",
 												)}
 											>
 												<Icon
@@ -156,7 +154,7 @@ export default function JourneyTypePage() {
 														"w-7 h-7 transition-colors",
 														isSelected
 															? "text-primary"
-															: "text-muted-foreground group-hover:text-primary"
+															: "text-muted-foreground group-hover:text-primary",
 													)}
 												/>
 											</div>
@@ -175,7 +173,9 @@ export default function JourneyTypePage() {
 														<div
 															className={cn(
 																"w-1.5 h-1.5 rounded-full mt-1.5 shrink-0",
-																isSelected ? "bg-primary" : "bg-muted-foreground/50"
+																isSelected
+																	? "bg-primary"
+																	: "bg-muted-foreground/50",
 															)}
 														/>
 														{detail}
@@ -189,7 +189,7 @@ export default function JourneyTypePage() {
 													"mt-4 px-3 py-1.5 rounded-full text-sm font-medium inline-flex items-center gap-1.5 transition-colors",
 													isSelected
 														? "bg-primary/10 text-primary"
-														: "bg-muted text-muted-foreground"
+														: "bg-muted text-muted-foreground",
 												)}
 											>
 												<ArrowRight className="w-3.5 h-3.5" />
@@ -227,7 +227,8 @@ export default function JourneyTypePage() {
 						</Button>
 
 						<p className="text-sm text-muted-foreground text-center max-w-md">
-							Bạn có thể thay đổi hướng đi bất cứ lúc nào. Leaply sẽ luôn hỗ trợ bạn.
+							Bạn có thể thay đổi hướng đi bất cứ lúc nào. Leaply sẽ luôn hỗ trợ
+							bạn.
 						</p>
 					</motion.div>
 				</div>
@@ -235,4 +236,3 @@ export default function JourneyTypePage() {
 		</PageTransition>
 	);
 }
-

@@ -1,29 +1,37 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-	BookOpen,
-	Star,
-	Heart,
-	Rocket,
-	ChevronRight,
-	Check,
 	ArrowLeft,
+	BookOpen,
+	Check,
+	ChevronRight,
+	Heart,
 	Lightbulb,
+	Rocket,
 	SkipForward,
+	Star,
 } from "lucide-react";
+import type React from "react";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { usePersonaStore, type TrackId, type DiscoveryTrack } from "@/lib/store/personaStore";
-import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import {
+	type DiscoveryTrack,
+	type TrackId,
+	usePersonaStore,
+} from "@/lib/store/personaStore";
+import { cn } from "@/lib/utils";
 
-const TRACK_ICONS: Record<TrackId, React.ComponentType<{ className?: string }>> = {
+const TRACK_ICONS: Record<
+	TrackId,
+	React.ComponentType<{ className?: string }>
+> = {
 	academic: BookOpen,
 	activities: Star,
 	values: Heart,
@@ -53,7 +61,7 @@ function TrackCard({ track, onStart }: TrackCardProps) {
 		<Card
 			className={cn(
 				"group cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02]",
-				track.status === "completed" && "ring-2 ring-primary/20"
+				track.status === "completed" && "ring-2 ring-primary/20",
 			)}
 			onClick={onStart}
 		>
@@ -62,7 +70,7 @@ function TrackCard({ track, onStart }: TrackCardProps) {
 					<div
 						className={cn(
 							"w-12 h-12 rounded-xl flex items-center justify-center mb-3",
-							TRACK_COLORS[track.id]
+							TRACK_COLORS[track.id],
 						)}
 					>
 						<span className="text-2xl">{track.icon}</span>
@@ -90,12 +98,17 @@ function TrackCard({ track, onStart }: TrackCardProps) {
 				</CardTitle>
 			</CardHeader>
 			<CardContent className="pt-0">
-				<p className="text-sm text-muted-foreground mb-4">{track.description}</p>
-				
+				<p className="text-sm text-muted-foreground mb-4">
+					{track.description}
+				</p>
+
 				{track.status !== "not_started" && (
 					<div className="space-y-2">
 						<div className="flex justify-between text-xs text-muted-foreground">
-							<span>{answeredCount} / {totalQuestions} {t("personaLab", "questions")}</span>
+							<span>
+								{answeredCount} / {totalQuestions}{" "}
+								{t("personaLab", "questions")}
+							</span>
 							<span>{Math.round(progress)}%</span>
 						</div>
 						<Progress value={progress} className="h-1.5" />
@@ -121,19 +134,16 @@ interface DiscoveryFlowProps {
 
 function DiscoveryFlow({ track, onBack, onComplete }: DiscoveryFlowProps) {
 	const { t } = useTranslation();
-	const {
-		answerQuestion,
-		nextQuestion,
-		previousQuestion,
-		completeTrack,
-	} = usePersonaStore();
+	const { answerQuestion, nextQuestion, previousQuestion, completeTrack } =
+		usePersonaStore();
 
 	const currentQuestion = track.questions[track.currentQuestionIndex];
 	const existingAnswer = track.answers.find(
-		(a) => a.questionId === currentQuestion.id
+		(a) => a.questionId === currentQuestion.id,
 	);
 	const [answer, setAnswer] = useState(existingAnswer?.answer || "");
-	const isLastQuestion = track.currentQuestionIndex === track.questions.length - 1;
+	const isLastQuestion =
+		track.currentQuestionIndex === track.questions.length - 1;
 	const canProceed = !currentQuestion.required || answer.trim().length > 0;
 
 	const handleNext = () => {
@@ -179,7 +189,8 @@ function DiscoveryFlow({ track, onBack, onComplete }: DiscoveryFlowProps) {
 		}
 	};
 
-	const progress = ((track.currentQuestionIndex + 1) / track.questions.length) * 100;
+	const progress =
+		((track.currentQuestionIndex + 1) / track.questions.length) * 100;
 
 	return (
 		<div className="flex-1 flex flex-col max-w-3xl mx-auto w-full px-4 py-8">
@@ -197,7 +208,7 @@ function DiscoveryFlow({ track, onBack, onComplete }: DiscoveryFlowProps) {
 					<div
 						className={cn(
 							"w-10 h-10 rounded-lg flex items-center justify-center",
-							TRACK_COLORS[track.id]
+							TRACK_COLORS[track.id],
 						)}
 					>
 						<span className="text-xl">{track.icon}</span>
@@ -205,7 +216,8 @@ function DiscoveryFlow({ track, onBack, onComplete }: DiscoveryFlowProps) {
 					<div>
 						<h2 className="font-semibold text-foreground">{track.title}</h2>
 						<p className="text-sm text-muted-foreground">
-							{t("personaLab", "question")} {track.currentQuestionIndex + 1} / {track.questions.length}
+							{t("personaLab", "question")} {track.currentQuestionIndex + 1} /{" "}
+							{track.questions.length}
 						</p>
 					</div>
 				</div>
@@ -249,12 +261,11 @@ function DiscoveryFlow({ track, onBack, onComplete }: DiscoveryFlowProps) {
 							{/* Action Buttons */}
 							<div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
 								<div className="flex gap-2">
-									<Button
-										variant="outline"
-										onClick={handlePrevious}
-									>
+									<Button variant="outline" onClick={handlePrevious}>
 										<ArrowLeft className="w-4 h-4 mr-2" />
-										{track.currentQuestionIndex === 0 ? t("personaLab", "exit") : t("personaLab", "back")}
+										{track.currentQuestionIndex === 0
+											? t("personaLab", "exit")
+											: t("personaLab", "back")}
 									</Button>
 
 									{!currentQuestion.required && (
@@ -269,11 +280,10 @@ function DiscoveryFlow({ track, onBack, onComplete }: DiscoveryFlowProps) {
 									)}
 								</div>
 
-								<Button
-									onClick={handleNext}
-									disabled={!canProceed}
-								>
-									{isLastQuestion ? t("personaLab", "complete") : t("personaLab", "next")}
+								<Button onClick={handleNext} disabled={!canProceed}>
+									{isLastQuestion
+										? t("personaLab", "complete")
+										: t("personaLab", "next")}
 									{!isLastQuestion && <ChevronRight className="w-4 h-4 ml-2" />}
 								</Button>
 							</div>
@@ -291,7 +301,8 @@ interface DiscoveryTabProps {
 
 export function DiscoveryTab({ onComplete }: DiscoveryTabProps) {
 	const { t } = useTranslation();
-	const { tracks, activeTrackId, startTrack, setActiveTrack } = usePersonaStore();
+	const { tracks, activeTrackId, startTrack, setActiveTrack } =
+		usePersonaStore();
 	const [selectedTrackId, setSelectedTrackId] = useState<TrackId | null>(null);
 
 	const activeTrack = tracks.find((t) => t.id === selectedTrackId);
@@ -313,12 +324,13 @@ export function DiscoveryTab({ onComplete }: DiscoveryTabProps) {
 
 	const handleTrackComplete = () => {
 		// Check if ALL tracks are now completed (including the one just finished)
-		const newCompletedCount = tracks.filter((t) => t.status === "completed").length + 1;
+		const newCompletedCount =
+			tracks.filter((t) => t.status === "completed").length + 1;
 		const allTracksCompleted = newCompletedCount >= tracks.length;
-		
+
 		setSelectedTrackId(null);
 		setActiveTrack(null);
-		
+
 		// Only navigate to persona view when ALL tracks are completed
 		if (allTracksCompleted && onComplete) {
 			// Small delay to allow state to update
@@ -351,7 +363,10 @@ export function DiscoveryTab({ onComplete }: DiscoveryTabProps) {
 						{t("personaLab", "discoverySubtitle")}
 					</p>
 					<div className="flex items-center gap-2 mt-4">
-						<Progress value={(completedCount / tracks.length) * 100} className="flex-1 h-2" />
+						<Progress
+							value={(completedCount / tracks.length) * 100}
+							className="flex-1 h-2"
+						/>
 						<span className="text-sm text-muted-foreground">
 							{completedCount} / {tracks.length} {t("personaLab", "tracks")}
 						</span>
@@ -391,4 +406,3 @@ export function DiscoveryTab({ onComplete }: DiscoveryTabProps) {
 		</ScrollArea>
 	);
 }
-

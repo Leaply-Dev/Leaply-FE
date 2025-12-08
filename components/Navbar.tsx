@@ -1,15 +1,15 @@
 "use client";
 
-import Link from "next/link";
+import { ChevronDown, LogOut, Menu, User, X } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, User, LogOut, ChevronDown } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useUserStore } from "@/lib/store/userStore";
-import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useEffect, useRef, useState } from "react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
@@ -40,7 +40,10 @@ export function Navbar() {
 	// Close dropdown when clicking outside
 	useEffect(() => {
 		function handleClickOutside(event: MouseEvent) {
-			if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+			if (
+				dropdownRef.current &&
+				!dropdownRef.current.contains(event.target as Node)
+			) {
 				setAvatarDropdownOpen(false);
 			}
 		}
@@ -64,7 +67,10 @@ export function Navbar() {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex items-center justify-between h-16">
 					{/* Logo */}
-					<Link href={isAuthenticated ? "/home" : "/"} className="flex items-center gap-2">
+					<Link
+						href={isAuthenticated ? "/home" : "/"}
+						className="flex items-center gap-2"
+					>
 						<Image
 							src="/Logo.png"
 							alt="Leaply"
@@ -77,9 +83,10 @@ export function Navbar() {
 					{/* Desktop Navigation */}
 					<div className="hidden md:flex items-center gap-6">
 						{navLinks.map((link) => {
-							const isActive = link.href === "/" 
-								? pathname === "/" 
-								: pathname === link.href || pathname?.startsWith(link.href);
+							const isActive =
+								link.href === "/"
+									? pathname === "/"
+									: pathname === link.href || pathname?.startsWith(link.href);
 							return (
 								<Link
 									key={link.href}
@@ -98,7 +105,7 @@ export function Navbar() {
 					{/* Auth Buttons / Avatar + Language Switcher */}
 					<div className="hidden md:flex items-center gap-3">
 						<LanguageSwitcher />
-						
+
 						{isAuthenticated ? (
 							<div className="relative" ref={dropdownRef}>
 								<button
@@ -107,15 +114,20 @@ export function Navbar() {
 									className="flex items-center gap-2 p-1 rounded-full hover:bg-muted transition-colors"
 								>
 									<Avatar className="w-8 h-8 border-2 border-primary/20">
-										<AvatarImage src={profile?.profilePicture} alt={profile?.fullName} />
+										<AvatarImage
+											src={profile?.profilePicture}
+											alt={profile?.fullName}
+										/>
 										<AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
 											{getInitials(profile?.fullName)}
 										</AvatarFallback>
 									</Avatar>
-									<ChevronDown className={cn(
-										"w-4 h-4 text-muted-foreground transition-transform",
-										avatarDropdownOpen && "rotate-180"
-									)} />
+									<ChevronDown
+										className={cn(
+											"w-4 h-4 text-muted-foreground transition-transform",
+											avatarDropdownOpen && "rotate-180",
+										)}
+									/>
 								</button>
 
 								{/* Avatar Dropdown */}
@@ -187,9 +199,10 @@ export function Navbar() {
 					<div className="md:hidden py-4 border-t border-border">
 						<div className="flex flex-col gap-4">
 							{navLinks.map((link) => {
-								const isActive = link.href === "/" 
-									? pathname === "/" 
-									: pathname === link.href || pathname?.startsWith(link.href);
+								const isActive =
+									link.href === "/"
+										? pathname === "/"
+										: pathname === link.href || pathname?.startsWith(link.href);
 								return (
 									<Link
 										key={link.href}
@@ -209,7 +222,10 @@ export function Navbar() {
 									<>
 										<div className="flex items-center gap-3 px-1 py-2">
 											<Avatar className="w-8 h-8 border-2 border-primary/20">
-												<AvatarImage src={profile?.profilePicture} alt={profile?.fullName} />
+												<AvatarImage
+													src={profile?.profilePicture}
+													alt={profile?.fullName}
+												/>
 												<AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
 													{getInitials(profile?.fullName)}
 												</AvatarFallback>
@@ -224,15 +240,22 @@ export function Navbar() {
 											</div>
 										</div>
 										<Button variant="outline" type="button" size="sm" asChild>
-											<Link href="/dashboard/profile" onClick={() => setMobileMenuOpen(false)}>
+											<Link
+												href="/dashboard/profile"
+												onClick={() => setMobileMenuOpen(false)}
+											>
 												<User className="w-4 h-4 mr-2" />
 												{t("nav", "profile")}
 											</Link>
 										</Button>
-										<Button variant="ghost" size="sm" onClick={() => {
-											logout();
-											setMobileMenuOpen(false);
-										}}>
+										<Button
+											variant="ghost"
+											size="sm"
+											onClick={() => {
+												logout();
+												setMobileMenuOpen(false);
+											}}
+										>
 											<LogOut className="w-4 h-4 mr-2" />
 											{t("nav", "logout")}
 										</Button>
@@ -240,12 +263,18 @@ export function Navbar() {
 								) : (
 									<>
 										<Button variant="outline" size="sm" asChild>
-											<Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+											<Link
+												href="/login"
+												onClick={() => setMobileMenuOpen(false)}
+											>
 												{t("nav", "login")}
 											</Link>
 										</Button>
 										<Button size="sm" asChild>
-											<Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
+											<Link
+												href="/signup"
+												onClick={() => setMobileMenuOpen(false)}
+											>
 												{t("nav", "getStarted")}
 											</Link>
 										</Button>

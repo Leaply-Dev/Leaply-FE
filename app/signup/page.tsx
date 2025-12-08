@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Lock, Mail, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, User } from "lucide-react";
+import { useState } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
 	Card,
 	CardContent,
@@ -15,8 +14,9 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useUserStore } from "@/lib/store/userStore";
-import { PageTransition } from "@/components/PageTransition";
 
 export default function SignupPage() {
 	const router = useRouter();
@@ -109,7 +109,9 @@ export default function SignupPage() {
 								<Checkbox
 									id="terms"
 									checked={agreeToTerms}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAgreeToTerms(e.target.checked)}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										setAgreeToTerms(e.target.checked)
+									}
 									required
 								/>
 								<label

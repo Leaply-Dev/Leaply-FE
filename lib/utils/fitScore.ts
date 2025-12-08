@@ -1,5 +1,5 @@
 import type { University } from "../store/universitiesStore";
-import type { UserProfile, UserPreferences } from "../store/userStore";
+import type { UserPreferences, UserProfile } from "../store/userStore";
 
 /**
  * Calculate fit score between user profile and university

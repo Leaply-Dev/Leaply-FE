@@ -1,8 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { SlideUp } from "./PageTransition";
 import { cn } from "@/lib/utils";
+import { SlideUp } from "./PageTransition";
 
 interface HeroProps {
 	title: string | ReactNode;

@@ -1,36 +1,35 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
 import {
 	ArrowRight,
-	Globe,
-	Search,
-	Filter,
-	Star,
-	FileText,
-	Calendar,
 	Bell,
+	Calendar,
 	CheckSquare,
-	Sparkles,
-	MessageSquare,
+	FileText,
+	Globe,
 	Lightbulb,
+	MessageSquare,
 	PenTool,
-	Target,
-	Users,
-	TrendingUp,
+	Search,
 	Shield,
+	Sparkles,
+	Star,
+	Target,
+	TrendingUp,
+	Users,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
+import type React from "react";
 import {
 	PageTransition,
 	SlideUp,
 	StaggerContainer,
 	StaggerItem,
 } from "@/components/PageTransition";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { cn } from "@/lib/utils";
 
 interface FeatureConfig {
 	id: string;
@@ -55,9 +54,21 @@ const featureConfigs: FeatureConfig[] = [
 		icon: Globe,
 		color: "bg-blue-500",
 		benefits: [
-			{ icon: Search, titleKey: "exploreBenefit1Title", descKey: "exploreBenefit1Desc" },
-			{ icon: Target, titleKey: "exploreBenefit2Title", descKey: "exploreBenefit2Desc" },
-			{ icon: Star, titleKey: "exploreBenefit3Title", descKey: "exploreBenefit3Desc" },
+			{
+				icon: Search,
+				titleKey: "exploreBenefit1Title",
+				descKey: "exploreBenefit1Desc",
+			},
+			{
+				icon: Target,
+				titleKey: "exploreBenefit2Title",
+				descKey: "exploreBenefit2Desc",
+			},
+			{
+				icon: Star,
+				titleKey: "exploreBenefit3Title",
+				descKey: "exploreBenefit3Desc",
+			},
 		],
 	},
 	{
@@ -68,9 +79,21 @@ const featureConfigs: FeatureConfig[] = [
 		icon: FileText,
 		color: "bg-amber-500",
 		benefits: [
-			{ icon: Calendar, titleKey: "applicationsBenefit1Title", descKey: "applicationsBenefit1Desc" },
-			{ icon: Bell, titleKey: "applicationsBenefit2Title", descKey: "applicationsBenefit2Desc" },
-			{ icon: CheckSquare, titleKey: "applicationsBenefit3Title", descKey: "applicationsBenefit3Desc" },
+			{
+				icon: Calendar,
+				titleKey: "applicationsBenefit1Title",
+				descKey: "applicationsBenefit1Desc",
+			},
+			{
+				icon: Bell,
+				titleKey: "applicationsBenefit2Title",
+				descKey: "applicationsBenefit2Desc",
+			},
+			{
+				icon: CheckSquare,
+				titleKey: "applicationsBenefit3Title",
+				descKey: "applicationsBenefit3Desc",
+			},
 		],
 	},
 	{
@@ -81,9 +104,21 @@ const featureConfigs: FeatureConfig[] = [
 		icon: Sparkles,
 		color: "bg-primary",
 		benefits: [
-			{ icon: Lightbulb, titleKey: "personaLabBenefit1Title", descKey: "personaLabBenefit1Desc" },
-			{ icon: PenTool, titleKey: "personaLabBenefit2Title", descKey: "personaLabBenefit2Desc" },
-			{ icon: MessageSquare, titleKey: "personaLabBenefit3Title", descKey: "personaLabBenefit3Desc" },
+			{
+				icon: Lightbulb,
+				titleKey: "personaLabBenefit1Title",
+				descKey: "personaLabBenefit1Desc",
+			},
+			{
+				icon: PenTool,
+				titleKey: "personaLabBenefit2Title",
+				descKey: "personaLabBenefit2Desc",
+			},
+			{
+				icon: MessageSquare,
+				titleKey: "personaLabBenefit3Title",
+				descKey: "personaLabBenefit3Desc",
+			},
 		],
 	},
 ];
@@ -94,19 +129,42 @@ const additionalBenefitConfigs = [
 	{ icon: TrendingUp, titleKey: "benefit3Title", descKey: "benefit3Desc" },
 ];
 
-function FeatureSection({ feature, index }: { feature: FeatureConfig; index: number }) {
+function FeatureSection({
+	feature,
+	index,
+}: {
+	feature: FeatureConfig;
+	index: number;
+}) {
 	const { t } = useTranslation();
 	const isEven = index % 2 === 0;
 	const Icon = feature.icon;
 
 	return (
-		<section id={feature.id} className={cn("py-20 scroll-mt-20", isEven ? "bg-background" : "bg-muted/50")}>
+		<section
+			id={feature.id}
+			className={cn(
+				"py-20 scroll-mt-20",
+				isEven ? "bg-background" : "bg-muted/50",
+			)}
+		>
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-				<div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center", !isEven && "lg:grid-flow-dense")}>
+				<div
+					className={cn(
+						"grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center",
+						!isEven && "lg:grid-flow-dense",
+					)}
+				>
 					{/* Content */}
 					<div className={cn(!isEven && "lg:col-start-2")}>
 						<SlideUp>
-							<div className={cn("inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium mb-6", feature.color, "text-white")}>
+							<div
+								className={cn(
+									"inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium mb-6",
+									feature.color,
+									"text-white",
+								)}
+							>
 								<Icon className="w-4 h-4" />
 								{t("features", feature.titleKey)}
 							</div>
@@ -122,13 +180,17 @@ function FeatureSection({ feature, index }: { feature: FeatureConfig; index: num
 									const BenefitIcon = benefit.icon;
 									return (
 										<div key={benefit.titleKey} className="flex gap-4">
-											<div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shrink-0", feature.color + "/10")}>
+											<div
+												className={cn(
+													`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${feature.color}/10`,
+												)}
+											>
 												<BenefitIcon
 													className={cn(
 														"w-6 h-6",
 														feature.id === "explore" && "text-blue-500",
 														feature.id === "applications" && "text-amber-500",
-														feature.id === "persona-lab" && "text-primary"
+														feature.id === "persona-lab" && "text-primary",
 													)}
 												/>
 											</div>
@@ -159,16 +221,21 @@ function FeatureSection({ feature, index }: { feature: FeatureConfig; index: num
 					{/* Visual */}
 					<div className={cn(!isEven && "lg:col-start-1")}>
 						<SlideUp delay={0.1}>
-							<div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-muted to-muted/50 border border-border shadow-xl">
+							<div className="relative aspect-4/3 rounded-2xl overflow-hidden bg-linear-to-br from-muted to-muted/50 border border-border shadow-xl">
 								<div className="absolute inset-0 flex items-center justify-center">
 									<div className="text-center p-8">
-										<div className={cn("w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4", feature.color + "/20")}>
+										<div
+											className={cn(
+												"w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4",
+												feature.color + "/20",
+											)}
+										>
 											<Icon
 												className={cn(
 													"w-10 h-10",
 													feature.id === "explore" && "text-blue-500",
 													feature.id === "applications" && "text-amber-500",
-													feature.id === "persona-lab" && "text-primary"
+													feature.id === "persona-lab" && "text-primary",
 												)}
 											/>
 										</div>
@@ -204,7 +271,9 @@ export default function FeaturesPage() {
 							<h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6">
 								{t("features", "heroTitle")}
 								<br />
-								<span className="text-primary">{t("features", "heroTitleHighlight")}</span>
+								<span className="text-primary">
+									{t("features", "heroTitleHighlight")}
+								</span>
 							</h1>
 							<p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
 								{t("features", "heroSubtitle")}
@@ -218,11 +287,13 @@ export default function FeaturesPage() {
 											href={`#${feature.id}`}
 											className={cn(
 												"inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border",
-												"hover:border-primary hover:bg-primary/5 transition-colors"
+												"hover:border-primary hover:bg-primary/5 transition-colors",
 											)}
 										>
 											<Icon className="w-4 h-4 text-primary" />
-											<span className="text-sm font-medium">{t("features", feature.titleKey)}</span>
+											<span className="text-sm font-medium">
+												{t("features", feature.titleKey)}
+											</span>
 										</Link>
 									);
 								})}

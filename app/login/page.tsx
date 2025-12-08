@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Lock, Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock } from "lucide-react";
+import { useState } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
 	Card,
 	CardContent,
@@ -14,8 +13,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useUserStore } from "@/lib/store/userStore";
-import { PageTransition } from "@/components/PageTransition";
 
 export default function LoginPage() {
 	const router = useRouter();

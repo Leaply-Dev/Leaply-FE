@@ -1,19 +1,19 @@
 "use client";
 
-import { useState } from "react";
 import {
-	Target,
 	DollarSign,
 	Globe,
-	Sparkles,
-	RotateCcw,
 	MessageCircle,
+	RotateCcw,
+	Sparkles,
+	Target,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Select } from "@/components/ui/select";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 
 export interface ProfileConfig {
 	gpa: number;
@@ -314,7 +314,7 @@ export function PersonaLabProfile({ onAskLeafy }: PersonaLabProfileProps) {
 
 						<Button
 							onClick={handleAskLeafy}
-							className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
+							className="w-full bg-linear-to-r from-primary to-accent hover:opacity-90"
 							size="lg"
 						>
 							<MessageCircle className="w-4 h-4 mr-2" />

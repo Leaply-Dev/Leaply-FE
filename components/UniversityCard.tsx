@@ -1,15 +1,15 @@
 "use client";
 
+import { DollarSign, MapPin, Star, TrendingUp } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Star, DollarSign, TrendingUp } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useUniversitiesStore } from "@/lib/store/universitiesStore";
 import { useUserStore } from "@/lib/store/userStore";
-import { calculateFitScore, getFitScoreColor } from "@/lib/utils/fitScore";
 import { cn } from "@/lib/utils";
+import { calculateFitScore, getFitScoreColor } from "@/lib/utils/fitScore";
 
 interface UniversityCardProps {
 	id: string;

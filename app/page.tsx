@@ -1,60 +1,147 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
-import Image from "next/image";
+import { motion } from "framer-motion";
 import {
-	Brain,
-	Target,
-	Globe,
 	ArrowRight,
-	Sparkles,
-	Users,
-	FileCheck,
 	Bot,
-	User,
-	School,
-	MapPin,
+	Brain,
 	ChevronDown,
+	FileCheck,
+	Globe,
+	MapPin,
+	School,
+	Sparkles,
+	Target,
+	User,
+	Users,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import Image from "next/image";
+import Link from "next/link";
+import React from "react";
 import {
+	SlideUp,
 	StaggerContainer,
 	StaggerItem,
-	SlideUp,
 } from "@/components/PageTransition";
-import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const featuredUniversities = [
-	{ name: "Harvard University", location: "USA", logo: "/universities/havard.png" },
-	{ name: "Massachusetts Institute of Technology", location: "USA", logo: "/universities/mit.png" },
-	{ name: "Stanford University", location: "USA", logo: "/universities/stanford.png" },
+	{
+		name: "Harvard University",
+		location: "USA",
+		logo: "/universities/havard.png",
+	},
+	{
+		name: "Massachusetts Institute of Technology",
+		location: "USA",
+		logo: "/universities/mit.png",
+	},
+	{
+		name: "Stanford University",
+		location: "USA",
+		logo: "/universities/stanford.png",
+	},
 	{ name: "Yale University", location: "USA", logo: "/universities/yale.png" },
-	{ name: "Princeton University", location: "USA", logo: "/universities/princeton.png" },
-	{ name: "University of Oxford", location: "UK", logo: "/universities/oxford.png" },
-	{ name: "University of Cambridge", location: "UK", logo: "/universities/cambridge.png" },
-	{ name: "Imperial College London", location: "UK", logo: "/universities/imperial_college_london.png" },
-	{ name: "University College London", location: "UK", logo: "/universities/ucl.png" },
-	{ name: "King's College London", location: "UK", logo: "/universities/london.png" },
-	{ name: "ETH Zurich", location: "Switzerland", logo: "/universities/eth_zurich.png" },
-	{ name: "Technical University of Munich", location: "Germany", logo: "/universities/tu_muenchen.png" },
-	{ name: "National University of Singapore", location: "Singapore", logo: "/universities/nus.png" },
-	{ name: "Peking University", location: "China", logo: "/universities/peking.png" },
-	{ name: "Tsinghua University", location: "China", logo: "/universities/tshinghua.png" },
-	{ name: "University of Tokyo", location: "Japan", logo: "/universities/tokyo.png" },
-	{ name: "Seoul National University", location: "South Korea", logo: "/universities/snu.png" },
-	{ name: "University of Toronto", location: "Canada", logo: "/universities/toronto.png" },
-	{ name: "University of British Columbia", location: "Canada", logo: "/universities/ubc.png" },
-	{ name: "McGill University", location: "Canada", logo: "/universities/mcgill.png" },
-	{ name: "University of Melbourne", location: "Australia", logo: "/universities/melbourne.png" },
-	{ name: "University of Sydney", location: "Australia", logo: "/universities/usyd.png" },
+	{
+		name: "Princeton University",
+		location: "USA",
+		logo: "/universities/princeton.png",
+	},
+	{
+		name: "University of Oxford",
+		location: "UK",
+		logo: "/universities/oxford.png",
+	},
+	{
+		name: "University of Cambridge",
+		location: "UK",
+		logo: "/universities/cambridge.png",
+	},
+	{
+		name: "Imperial College London",
+		location: "UK",
+		logo: "/universities/imperial_college_london.png",
+	},
+	{
+		name: "University College London",
+		location: "UK",
+		logo: "/universities/ucl.png",
+	},
+	{
+		name: "King's College London",
+		location: "UK",
+		logo: "/universities/london.png",
+	},
+	{
+		name: "ETH Zurich",
+		location: "Switzerland",
+		logo: "/universities/eth_zurich.png",
+	},
+	{
+		name: "Technical University of Munich",
+		location: "Germany",
+		logo: "/universities/tu_muenchen.png",
+	},
+	{
+		name: "National University of Singapore",
+		location: "Singapore",
+		logo: "/universities/nus.png",
+	},
+	{
+		name: "Peking University",
+		location: "China",
+		logo: "/universities/peking.png",
+	},
+	{
+		name: "Tsinghua University",
+		location: "China",
+		logo: "/universities/tshinghua.png",
+	},
+	{
+		name: "University of Tokyo",
+		location: "Japan",
+		logo: "/universities/tokyo.png",
+	},
+	{
+		name: "Seoul National University",
+		location: "South Korea",
+		logo: "/universities/snu.png",
+	},
+	{
+		name: "University of Toronto",
+		location: "Canada",
+		logo: "/universities/toronto.png",
+	},
+	{
+		name: "University of British Columbia",
+		location: "Canada",
+		logo: "/universities/ubc.png",
+	},
+	{
+		name: "McGill University",
+		location: "Canada",
+		logo: "/universities/mcgill.png",
+	},
+	{
+		name: "University of Melbourne",
+		location: "Australia",
+		logo: "/universities/melbourne.png",
+	},
+	{
+		name: "University of Sydney",
+		location: "Australia",
+		logo: "/universities/usyd.png",
+	},
 ];
 
 interface StepVisual {
 	step: number;
-	icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+	icon: React.ComponentType<{
+		className?: string;
+		style?: React.CSSProperties;
+	}>;
 	color: string;
 	title: string;
 	imagePath: string;
@@ -93,7 +180,10 @@ function ParallaxVisual() {
 			});
 		};
 
-		const observer = new IntersectionObserver(observerCallback, observerOptions);
+		const observer = new IntersectionObserver(
+			observerCallback,
+			observerOptions,
+		);
 
 		const setupObserver = () => {
 			const steps = document.querySelectorAll<HTMLDivElement>("[data-step]");
@@ -116,10 +206,34 @@ function ParallaxVisual() {
 	}, [mounted]);
 
 	const stepVisuals: StepVisual[] = [
-		{ step: 1, icon: Users, color: "#95CA55", title: "Profile Setup", imagePath: "/how-it-works/step-1.png" },
-		{ step: 2, icon: Brain, color: "#4CA8D3", title: "AI Matching", imagePath: "/how-it-works/step-2.png" },
-		{ step: 3, icon: FileCheck, color: "#E8A634", title: "Application Tracking", imagePath: "/how-it-works/step-3.png" },
-		{ step: 4, icon: Sparkles, color: "#95CA55", title: "AI Enhancement", imagePath: "/how-it-works/step-4.png" },
+		{
+			step: 1,
+			icon: Users,
+			color: "#95CA55",
+			title: "Profile Setup",
+			imagePath: "/how-it-works/step-1.png",
+		},
+		{
+			step: 2,
+			icon: Brain,
+			color: "#4CA8D3",
+			title: "AI Matching",
+			imagePath: "/how-it-works/step-2.png",
+		},
+		{
+			step: 3,
+			icon: FileCheck,
+			color: "#E8A634",
+			title: "Application Tracking",
+			imagePath: "/how-it-works/step-3.png",
+		},
+		{
+			step: 4,
+			icon: Sparkles,
+			color: "#95CA55",
+			title: "AI Enhancement",
+			imagePath: "/how-it-works/step-4.png",
+		},
 	];
 
 	const currentVisual = stepVisuals[activeStep - 1];
@@ -129,17 +243,26 @@ function ParallaxVisual() {
 		<div className="relative w-full h-full bg-card rounded-2xl shadow-2xl p-8 overflow-hidden">
 			<motion.div
 				className="absolute inset-0 opacity-5"
-				animate={{ background: `radial-gradient(circle at 50% 50%, ${currentVisual.color} 0%, transparent 70%)` }}
+				animate={{
+					background: `radial-gradient(circle at 50% 50%, ${currentVisual.color} 0%, transparent 70%)`,
+				}}
 				transition={{ duration: 0.6, ease: "easeOut" }}
 			/>
 			<div className="relative flex items-center justify-between mb-8">
 				<div className="flex items-center gap-3">
-					<div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${currentVisual.color}20` }}>
+					<div
+						className="w-12 h-12 rounded-xl flex items-center justify-center"
+						style={{ backgroundColor: `${currentVisual.color}20` }}
+					>
 						<Icon className="w-6 h-6" style={{ color: currentVisual.color }} />
 					</div>
 					<div>
-						<p className="text-sm text-muted-foreground font-medium">Step {currentVisual.step}</p>
-						<p className="text-lg font-bold text-foreground">{currentVisual.title}</p>
+						<p className="text-sm text-muted-foreground font-medium">
+							Step {currentVisual.step}
+						</p>
+						<p className="text-lg font-bold text-foreground">
+							{currentVisual.title}
+						</p>
 					</div>
 				</div>
 				<div className="flex gap-2">
@@ -147,13 +270,23 @@ function ParallaxVisual() {
 						<div
 							key={step}
 							className={`w-2 h-2 rounded-full transition-all duration-300 ${step === activeStep ? "bg-primary" : "bg-muted"}`}
-							style={{ width: step === activeStep ? "24px" : "8px", backgroundColor: step === activeStep ? currentVisual.color : undefined }}
+							style={{
+								width: step === activeStep ? "24px" : "8px",
+								backgroundColor:
+									step === activeStep ? currentVisual.color : undefined,
+							}}
 						/>
 					))}
 				</div>
 			</div>
 			<div className="relative h-[450px] w-full rounded-xl overflow-hidden flex items-center justify-center">
-				<Image src={currentVisual.imagePath} alt={currentVisual.title} fill className="object-contain p-4" priority={activeStep === 1} />
+				<Image
+					src={currentVisual.imagePath}
+					alt={currentVisual.title}
+					fill
+					className="object-contain p-4"
+					priority={activeStep === 1}
+				/>
 			</div>
 		</div>
 	);
@@ -161,7 +294,10 @@ function ParallaxVisual() {
 
 export default function HomePage() {
 	const { t } = useTranslation();
-	const marqueeUniversities = [...featuredUniversities, ...featuredUniversities];
+	const marqueeUniversities = [
+		...featuredUniversities,
+		...featuredUniversities,
+	];
 
 	// Stats with translations
 	const stats = [
@@ -172,18 +308,62 @@ export default function HomePage() {
 
 	// Features with translations
 	const features = [
-		{ icon: Globe, titleKey: "feature1Title", descKey: "feature1Desc", href: "/features" },
-		{ icon: Brain, titleKey: "feature2Title", descKey: "feature2Desc", href: "/features" },
-		{ icon: Target, titleKey: "feature3Title", descKey: "feature3Desc", href: "/features" },
-		{ icon: Sparkles, titleKey: "feature4Title", descKey: "feature4Desc", href: "/features" },
+		{
+			icon: Globe,
+			titleKey: "feature1Title",
+			descKey: "feature1Desc",
+			href: "/features",
+		},
+		{
+			icon: Brain,
+			titleKey: "feature2Title",
+			descKey: "feature2Desc",
+			href: "/features",
+		},
+		{
+			icon: Target,
+			titleKey: "feature3Title",
+			descKey: "feature3Desc",
+			href: "/features",
+		},
+		{
+			icon: Sparkles,
+			titleKey: "feature4Title",
+			descKey: "feature4Desc",
+			href: "/features",
+		},
 	];
 
 	// How it works steps with translations
 	const howItWorksSteps = [
-		{ step: 1, icon: Users, titleKey: "step1Title", quoteKey: "step1Quote", descKey: "step1Desc" },
-		{ step: 2, icon: Brain, titleKey: "step2Title", quoteKey: "step2Quote", descKey: "step2Desc" },
-		{ step: 3, icon: FileCheck, titleKey: "step3Title", quoteKey: "step3Quote", descKey: "step3Desc" },
-		{ step: 4, icon: Sparkles, titleKey: "step4Title", quoteKey: "step4Quote", descKey: "step4Desc" },
+		{
+			step: 1,
+			icon: Users,
+			titleKey: "step1Title",
+			quoteKey: "step1Quote",
+			descKey: "step1Desc",
+		},
+		{
+			step: 2,
+			icon: Brain,
+			titleKey: "step2Title",
+			quoteKey: "step2Quote",
+			descKey: "step2Desc",
+		},
+		{
+			step: 3,
+			icon: FileCheck,
+			titleKey: "step3Title",
+			quoteKey: "step3Quote",
+			descKey: "step3Desc",
+		},
+		{
+			step: 4,
+			icon: Sparkles,
+			titleKey: "step4Title",
+			quoteKey: "step4Quote",
+			descKey: "step4Desc",
+		},
 	];
 
 	return (
@@ -191,8 +371,15 @@ export default function HomePage() {
 			{/* Hero Section */}
 			<section className="relative bg-background py-20 md:py-32 overflow-hidden">
 				<div className="absolute inset-0 z-0">
-					<Image src="/hero.png" alt="Hero background" fill className="object-cover opacity-15" priority quality={90} />
-					<div className="absolute inset-0 bg-gradient-to-b from-background/50 via-transparent to-background" />
+					<Image
+						src="/hero.png"
+						alt="Hero background"
+						fill
+						className="object-cover opacity-15"
+						priority
+						quality={90}
+					/>
+					<div className="absolute inset-0 bg-linear-to-b from-background/50 via-transparent to-background" />
 				</div>
 
 				<div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -220,7 +407,9 @@ export default function HomePage() {
 							<h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight">
 								{t("landing", "heroTitle")}
 								<br />
-								<span className="text-primary">{t("landing", "heroTitleHighlight")}</span>
+								<span className="text-primary">
+									{t("landing", "heroTitleHighlight")}
+								</span>
 							</h1>
 						</SlideUp>
 						<SlideUp delay={0.1}>
@@ -230,13 +419,22 @@ export default function HomePage() {
 						</SlideUp>
 						<SlideUp delay={0.15}>
 							<div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center mt-4">
-								<Button size="lg" className="text-lg px-8 py-6 sm:min-w-[220px] shadow-lg shadow-primary/25" asChild>
+								<Button
+									size="lg"
+									className="text-lg px-8 py-6 sm:min-w-[220px] shadow-lg shadow-primary/25"
+									asChild
+								>
 									<Link href="/signup">
 										{t("landing", "ctaStart")}
 										<ArrowRight className="ml-2 w-5 h-5" />
 									</Link>
 								</Button>
-								<Button size="lg" variant="outline" className="text-lg px-8 py-6 sm:min-w-[220px]" asChild>
+								<Button
+									size="lg"
+									variant="outline"
+									className="text-lg px-8 py-6 sm:min-w-[220px]"
+									asChild
+								>
 									<Link href="#features">
 										{t("landing", "ctaLearnMore")}
 										<ChevronDown className="ml-2 w-5 h-5" />
@@ -250,13 +448,20 @@ export default function HomePage() {
 								{stats.map((stat) => {
 									const Icon = stat.icon;
 									return (
-										<div key={stat.labelKey} className="flex items-center gap-3">
+										<div
+											key={stat.labelKey}
+											className="flex items-center gap-3"
+										>
 											<div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
 												<Icon className="w-5 h-5 text-primary" />
 											</div>
 											<div className="text-left">
-												<p className="text-2xl font-bold text-foreground">{stat.value}</p>
-												<p className="text-sm text-muted-foreground">{t("landing", stat.labelKey)}</p>
+												<p className="text-2xl font-bold text-foreground">
+													{stat.value}
+												</p>
+												<p className="text-sm text-muted-foreground">
+													{t("landing", stat.labelKey)}
+												</p>
 											</div>
 										</div>
 									);
@@ -286,9 +491,17 @@ export default function HomePage() {
 						<div className="absolute inset-y-0 right-0 w-16 bg-linear-to-l from-muted to-transparent pointer-events-none" />
 						<div className="marquee-track flex items-center gap-10 py-6">
 							{marqueeUniversities.map((university, index) => (
-								<div key={`${university.name}-${index}`} className="flex items-center shrink-0">
+								<div
+									key={`${university.name}-${index}`}
+									className="flex items-center shrink-0"
+								>
 									<div className="relative w-32 h-16">
-										<Image src={university.logo} alt={university.name} fill className="object-contain" />
+										<Image
+											src={university.logo}
+											alt={university.name}
+											fill
+											className="object-contain"
+										/>
 									</div>
 								</div>
 							))}
@@ -306,7 +519,9 @@ export default function HomePage() {
 								<h2 className="text-3xl md:text-4xl font-bold text-foreground leading-tight max-w-xl">
 									<span className="relative inline-block">
 										<span className="absolute inset-x-0 bottom-1 h-3 bg-accent/60 rounded-md" />
-										<span className="relative">{t("landing", "featuresTitle")}</span>
+										<span className="relative">
+											{t("landing", "featuresTitle")}
+										</span>
 									</span>{" "}
 									{t("landing", "featuresTitleSuffix")}
 								</h2>
@@ -337,7 +552,10 @@ export default function HomePage() {
 													</p>
 												</div>
 												<div className="mt-auto pt-4">
-													<Link href={feature.href} className="inline-flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+													<Link
+														href={feature.href}
+														className="inline-flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+													>
 														{t("landing", "learnMore")}
 														<ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
 													</Link>
@@ -385,7 +603,9 @@ export default function HomePage() {
 										<div className="space-y-4 mb-6">
 											<div className="flex justify-end gap-3">
 												<div className="max-w-[85%] rounded-lg px-4 py-3 bg-primary text-primary-foreground shadow-sm">
-													<p className="text-base leading-relaxed">{t("landing", item.quoteKey)}</p>
+													<p className="text-base leading-relaxed">
+														{t("landing", item.quoteKey)}
+													</p>
 												</div>
 												<div className="shrink-0 w-8 h-8 rounded-full bg-foreground flex items-center justify-center">
 													<User className="w-5 h-5 text-background" />
@@ -396,7 +616,9 @@ export default function HomePage() {
 													<Bot className="w-5 h-5 text-primary-foreground" />
 												</div>
 												<div className="max-w-[85%] rounded-lg px-4 py-3 bg-card border border-border shadow-sm">
-													<p className="text-base text-foreground leading-relaxed">{t("landing", item.descKey)}</p>
+													<p className="text-base text-foreground leading-relaxed">
+														{t("landing", item.descKey)}
+													</p>
 												</div>
 											</div>
 										</div>
@@ -427,7 +649,9 @@ export default function HomePage() {
 									<div className="space-y-4 mb-6">
 										<div className="flex justify-end gap-3">
 											<div className="max-w-[85%] rounded-lg px-4 py-3 bg-primary text-primary-foreground shadow-sm">
-												<p className="text-base leading-relaxed">{t("landing", item.quoteKey)}</p>
+												<p className="text-base leading-relaxed">
+													{t("landing", item.quoteKey)}
+												</p>
 											</div>
 											<div className="shrink-0 w-8 h-8 rounded-full bg-foreground flex items-center justify-center">
 												<User className="w-5 h-5 text-background" />
@@ -438,7 +662,9 @@ export default function HomePage() {
 												<Bot className="w-5 h-5 text-primary-foreground" />
 											</div>
 											<div className="max-w-[85%] rounded-lg px-4 py-3 bg-card border border-border shadow-sm">
-												<p className="text-base text-foreground leading-relaxed">{t("landing", item.descKey)}</p>
+												<p className="text-base text-foreground leading-relaxed">
+													{t("landing", item.descKey)}
+												</p>
 											</div>
 										</div>
 									</div>
@@ -450,7 +676,7 @@ export default function HomePage() {
 			</section>
 
 			{/* CTA Section */}
-			<section className="py-24 cta-pattern text-primary-foreground relative overflow-hidden">
+			<section className="py-24 cta-pattern text-secondary-foreground/90 relative overflow-hidden">
 				<div className="absolute inset-0 bg-background/40 z-0" />
 				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
 					<SlideUp>
@@ -461,17 +687,27 @@ export default function HomePage() {
 						<h2 className="text-3xl md:text-5xl font-bold mb-6">
 							{t("landing", "ctaTitle")}
 						</h2>
-						<p className="text-lg md:text-xl mb-10 text-primary-foreground/90 max-w-2xl mx-auto">
+						<p className="text-lg md:text-xl mb-10 text-secondary-foreground/90 max-w-2xl mx-auto">
 							{t("landing", "ctaSubtitle")}
 						</p>
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
-							<Button size="lg" variant="secondary" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold text-lg px-8 py-6" asChild>
+							<Button
+								size="lg"
+								variant="secondary"
+								className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold text-lg px-8 py-6"
+								asChild
+							>
 								<Link href="/signup">
 									{t("landing", "ctaCreateAccount")}
 									<ArrowRight className="ml-2 w-5 h-5" />
 								</Link>
 							</Button>
-							<Button size="lg" variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary text-lg px-8 py-6" asChild>
+							<Button
+								size="lg"
+								variant="outline"
+								className="bg-transparent border-secondary-foreground text-secondary-foreground/90 hover:bg-primary-foreground hover:text-primary text-lg px-8 py-6"
+								asChild
+							>
 								<Link href="/login">{t("nav", "login")}</Link>
 							</Button>
 						</div>

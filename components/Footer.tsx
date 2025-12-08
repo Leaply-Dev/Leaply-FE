@@ -1,6 +1,6 @@
-import Link from "next/link";
+import { Facebook, Instagram, Linkedin, Mail, Twitter } from "lucide-react";
 import Image from "next/image";
-import { Facebook, Twitter, Instagram, Linkedin, Mail } from "lucide-react";
+import Link from "next/link";
 
 const footerLinks = {
 	Product: [

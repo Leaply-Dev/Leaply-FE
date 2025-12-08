@@ -1,11 +1,11 @@
 "use client";
 
+import { BookOpen, ExternalLink, FileText, Video } from "lucide-react";
 import Link from "next/link";
-import { FileText, Video, BookOpen, ExternalLink } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { cn } from "@/lib/utils";
 
 interface ResourceCardProps {
 	title: string;
@@ -43,9 +43,9 @@ export function ResourceCard({
 					</div>
 					<div className="flex-1">
 						<CardTitle className="text-lg mb-1">{title}</CardTitle>
-					<Badge variant="secondary" className="text-xs">
-						{t("common", config.labelKey)}
-					</Badge>
+						<Badge variant="secondary" className="text-xs">
+							{t("common", config.labelKey)}
+						</Badge>
 					</div>
 				</div>
 			</CardHeader>
@@ -62,13 +62,13 @@ export function ResourceCard({
 					</div>
 				)}
 
-			<Link
-				href={url}
-				className="inline-flex items-center gap-2 text-sm text-primary hover:text-accent font-medium"
-			>
-				{t("common", "readMore")}
-				<ExternalLink className="w-4 h-4" />
-			</Link>
+				<Link
+					href={url}
+					className="inline-flex items-center gap-2 text-sm text-primary hover:text-accent font-medium"
+				>
+					{t("common", "readMore")}
+					<ExternalLink className="w-4 h-4" />
+				</Link>
 			</CardContent>
 		</Card>
 	);

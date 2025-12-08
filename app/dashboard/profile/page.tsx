@@ -1,16 +1,16 @@
 "use client";
 
+import { Calendar, Globe, GraduationCap, Mail, User } from "lucide-react";
 import { useState } from "react";
-import { User, Mail, Globe, GraduationCap, Calendar } from "lucide-react";
+import { PageContainer } from "@/components/Layout";
+import { PageTransition, SlideUp } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PageContainer } from "@/components/Layout";
-import { useUserStore } from "@/lib/store/userStore";
-import { PageTransition, SlideUp } from "@/components/PageTransition";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useUserStore } from "@/lib/store/userStore";
 
 export default function ProfilePage() {
 	const { t } = useTranslation();
@@ -52,7 +52,9 @@ export default function ProfilePage() {
 		<PageTransition>
 			<PageContainer>
 				<div className="mb-8">
-					<h1 className="text-3xl font-bold text-foreground mb-2">{t("profile", "title")}</h1>
+					<h1 className="text-3xl font-bold text-foreground mb-2">
+						{t("profile", "title")}
+					</h1>
 					<p className="text-lg text-muted-foreground">
 						{t("profile", "subtitle")}
 					</p>
@@ -74,7 +76,9 @@ export default function ProfilePage() {
 											<Button variant="outline" onClick={handleCancel}>
 												{t("profile", "cancel")}
 											</Button>
-											<Button onClick={handleSave}>{t("profile", "saveChanges")}</Button>
+											<Button onClick={handleSave}>
+												{t("profile", "saveChanges")}
+											</Button>
 										</div>
 									)}
 								</div>
@@ -83,7 +87,9 @@ export default function ProfilePage() {
 								<div className="space-y-6">
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 										<div className="space-y-2">
-											<Label htmlFor="fullName">{t("profile", "fullName")}</Label>
+											<Label htmlFor="fullName">
+												{t("profile", "fullName")}
+											</Label>
 											{isEditing ? (
 												<Input
 													id="fullName"
@@ -98,7 +104,9 @@ export default function ProfilePage() {
 											) : (
 												<div className="flex items-center gap-2 p-3 bg-muted rounded-md">
 													<User className="w-4 h-4 text-muted-foreground" />
-													<span>{profile?.fullName || t("profile", "notSet")}</span>
+													<span>
+														{profile?.fullName || t("profile", "notSet")}
+													</span>
 												</div>
 											)}
 										</div>
@@ -112,7 +120,9 @@ export default function ProfilePage() {
 										</div>
 
 										<div className="space-y-2">
-											<Label htmlFor="dateOfBirth">{t("profile", "dateOfBirth")}</Label>
+											<Label htmlFor="dateOfBirth">
+												{t("profile", "dateOfBirth")}
+											</Label>
 											{isEditing ? (
 												<Input
 													id="dateOfBirth"
@@ -140,7 +150,9 @@ export default function ProfilePage() {
 										</div>
 
 										<div className="space-y-2">
-											<Label htmlFor="nationality">{t("profile", "nationality")}</Label>
+											<Label htmlFor="nationality">
+												{t("profile", "nationality")}
+											</Label>
 											{isEditing ? (
 												<Select
 													id="nationality"
@@ -152,11 +164,21 @@ export default function ProfilePage() {
 														}))
 													}
 												>
-													<option value="">{t("profile", "selectNationality")}</option>
-													<option value="United States">{t("profile", "unitedStates")}</option>
-													<option value="United Kingdom">{t("profile", "unitedKingdom")}</option>
-													<option value="Canada">{t("profile", "canada")}</option>
-													<option value="Australia">{t("profile", "australia")}</option>
+													<option value="">
+														{t("profile", "selectNationality")}
+													</option>
+													<option value="United States">
+														{t("profile", "unitedStates")}
+													</option>
+													<option value="United Kingdom">
+														{t("profile", "unitedKingdom")}
+													</option>
+													<option value="Canada">
+														{t("profile", "canada")}
+													</option>
+													<option value="Australia">
+														{t("profile", "australia")}
+													</option>
 													<option value="India">{t("profile", "india")}</option>
 													<option value="China">{t("profile", "china")}</option>
 													<option value="Other">{t("profile", "other")}</option>
@@ -164,13 +186,17 @@ export default function ProfilePage() {
 											) : (
 												<div className="flex items-center gap-2 p-3 bg-muted rounded-md">
 													<Globe className="w-4 h-4 text-muted-foreground" />
-													<span>{profile?.nationality || t("profile", "notSet")}</span>
+													<span>
+														{profile?.nationality || t("profile", "notSet")}
+													</span>
 												</div>
 											)}
 										</div>
 
 										<div className="space-y-2">
-											<Label htmlFor="educationLevel">{t("profile", "educationLevel")}</Label>
+											<Label htmlFor="educationLevel">
+												{t("profile", "educationLevel")}
+											</Label>
 											{isEditing ? (
 												<Select
 													id="educationLevel"
@@ -182,16 +208,25 @@ export default function ProfilePage() {
 														}))
 													}
 												>
-													<option value="">{t("profile", "selectLevel")}</option>
-													<option value="High School">{t("profile", "highSchool")}</option>
-													<option value="Undergraduate">{t("profile", "undergraduate")}</option>
-													<option value="Graduate">{t("profile", "graduate")}</option>
+													<option value="">
+														{t("profile", "selectLevel")}
+													</option>
+													<option value="High School">
+														{t("profile", "highSchool")}
+													</option>
+													<option value="Undergraduate">
+														{t("profile", "undergraduate")}
+													</option>
+													<option value="Graduate">
+														{t("profile", "graduate")}
+													</option>
 												</Select>
 											) : (
 												<div className="flex items-center gap-2 p-3 bg-muted rounded-md">
 													<GraduationCap className="w-4 h-4 text-muted-foreground" />
 													<span>
-														{profile?.currentEducationLevel || t("profile", "notSet")}
+														{profile?.currentEducationLevel ||
+															t("profile", "notSet")}
 													</span>
 												</div>
 											)}

@@ -1,23 +1,26 @@
 "use client";
 
 import {
-	Calendar,
-	CheckCircle2,
-	Clock,
-	FileText,
-	Target,
-	TrendingUp,
 	AlertCircle,
-	Globe,
-	DollarSign,
 	Award,
 	BookOpen,
-	MessageSquare,
-	ExternalLink,
+	Calendar,
+	CheckCircle2,
 	ChevronRight,
+	Clock,
+	DollarSign,
+	ExternalLink,
+	FileText,
+	Globe,
 	Info,
+	MessageSquare,
 	Sparkles,
+	Target,
+	TrendingUp,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -25,9 +28,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
@@ -37,16 +37,16 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import type { EnhancedApplication } from "@/lib/data/enhancedApplications";
-import { useRouter } from "next/navigation";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { cn } from "@/lib/utils";
 
 interface ApplicationDashboardProps {
 	application: EnhancedApplication | null;
@@ -173,7 +173,9 @@ export function ApplicationDashboard({
 									<p className="text-2xl font-bold text-chart-2">
 										{application.documents.length}
 									</p>
-									<p className="text-xs text-muted-foreground">{t("applications", "uploaded")}</p>
+									<p className="text-xs text-muted-foreground">
+										{t("applications", "uploaded")}
+									</p>
 								</div>
 
 								<div className="bg-chart-4/10 rounded-lg p-4">
@@ -187,7 +189,9 @@ export function ApplicationDashboard({
 										{application.tasks.filter((t) => t.completed).length}/
 										{application.tasks.length}
 									</p>
-									<p className="text-xs text-muted-foreground">{t("applications", "completed")}</p>
+									<p className="text-xs text-muted-foreground">
+										{t("applications", "completed")}
+									</p>
 								</div>
 
 								<div className="bg-purple-100 rounded-lg p-4">
@@ -200,7 +204,9 @@ export function ApplicationDashboard({
 									<p className="text-2xl font-bold text-purple-600">
 										{application.upcomingDeadlines.length}
 									</p>
-									<p className="text-xs text-muted-foreground">{t("applications", "upcoming")}</p>
+									<p className="text-xs text-muted-foreground">
+										{t("applications", "upcoming")}
+									</p>
 								</div>
 							</div>
 
@@ -284,7 +290,8 @@ export function ApplicationDashboard({
 														: "text-primary",
 												)}
 											>
-												{nextDeadline.daysUntil} {t("applications", "daysRemaining")}
+												{nextDeadline.daysUntil}{" "}
+												{t("applications", "daysRemaining")}
 											</p>
 										</div>
 									) : (
@@ -322,7 +329,9 @@ export function ApplicationDashboard({
 								<TrendingUp className="w-5 h-5 text-primary" />
 								{t("applications", "profileEvaluation")}
 							</CardTitle>
-							<CardDescription>{t("applications", "yourFitForProgram")}</CardDescription>
+							<CardDescription>
+								{t("applications", "yourFitForProgram")}
+							</CardDescription>
 						</CardHeader>
 						<CardContent className="flex-1 flex flex-col">
 							{/* Fit Score */}
@@ -383,9 +392,12 @@ export function ApplicationDashboard({
 								</DialogTrigger>
 								<DialogContent className="max-w-2xl">
 									<DialogHeader>
-										<DialogTitle>{t("applications", "profileEvaluationDetails")}</DialogTitle>
+										<DialogTitle>
+											{t("applications", "profileEvaluationDetails")}
+										</DialogTitle>
 										<DialogDescription>
-											{t("applications", "comprehensiveAnalysis")} {application.universityName}
+											{t("applications", "comprehensiveAnalysis")}{" "}
+											{application.universityName}
 										</DialogDescription>
 									</DialogHeader>
 									<div className="space-y-4">
@@ -393,7 +405,9 @@ export function ApplicationDashboard({
 											<div className="text-5xl font-bold text-primary mb-2">
 												{application.fitScore}%
 											</div>
-											<p className="text-muted-foreground">{t("applications", "overallFitScore")}</p>
+											<p className="text-muted-foreground">
+												{t("applications", "overallFitScore")}
+											</p>
 										</div>
 
 										<div>
@@ -455,7 +469,9 @@ export function ApplicationDashboard({
 						<CardContent className="space-y-3 flex-1 flex flex-col">
 							<div className="grid grid-cols-2 gap-4 flex-1">
 								<div>
-									<p className="text-xs text-muted-foreground mb-1">{t("applications", "location")}</p>
+									<p className="text-xs text-muted-foreground mb-1">
+										{t("applications", "location")}
+									</p>
 									<p className="text-sm font-semibold text-foreground">
 										{application.universityCountry}
 									</p>
@@ -493,7 +509,9 @@ export function ApplicationDashboard({
 								)}
 
 								<div className="col-span-2">
-									<p className="text-xs text-muted-foreground mb-1">{t("applications", "program")}</p>
+									<p className="text-xs text-muted-foreground mb-1">
+										{t("applications", "program")}
+									</p>
 									<div className="flex items-center gap-1">
 										<BookOpen className="w-4 h-4 text-chart-2" />
 										<p className="text-sm font-semibold text-foreground">

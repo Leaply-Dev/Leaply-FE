@@ -1,14 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Heart, Search, SkipForward, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Heart, Search, X, SkipForward } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -16,8 +13,11 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useUserStore } from "@/lib/store/userStore";
-import { PageTransition } from "@/components/PageTransition";
 
 const MAJOR_OPTIONS = [
 	"Computer Science",
@@ -48,11 +48,31 @@ const MAJOR_OPTIONS = [
 ];
 
 const PRIORITY_OPTIONS = [
-	{ id: "research", label: "Research opportunities", description: "Access to labs, research projects, and faculty" },
-	{ id: "campus", label: "Campus life", description: "Student activities, clubs, and social experience" },
-	{ id: "career", label: "Career prospects", description: "Job placement, internships, and industry connections" },
-	{ id: "scholarship", label: "Scholarship availability", description: "Financial aid and scholarship programs" },
-	{ id: "location", label: "Location", description: "City, climate, and surrounding environment" },
+	{
+		id: "research",
+		label: "Research opportunities",
+		description: "Access to labs, research projects, and faculty",
+	},
+	{
+		id: "campus",
+		label: "Campus life",
+		description: "Student activities, clubs, and social experience",
+	},
+	{
+		id: "career",
+		label: "Career prospects",
+		description: "Job placement, internships, and industry connections",
+	},
+	{
+		id: "scholarship",
+		label: "Scholarship availability",
+		description: "Financial aid and scholarship programs",
+	},
+	{
+		id: "location",
+		label: "Location",
+		description: "City, climate, and surrounding environment",
+	},
 ];
 
 export default function OnboardingQuizPage() {
@@ -70,7 +90,7 @@ export default function OnboardingQuizPage() {
 	const filteredMajors = MAJOR_OPTIONS.filter(
 		(major) =>
 			major.toLowerCase().includes(majorSearch.toLowerCase()) &&
-			!formData.desiredMajors.includes(major)
+			!formData.desiredMajors.includes(major),
 	);
 
 	const handleSubmit = (e: React.FormEvent) => {
@@ -83,9 +103,18 @@ export default function OnboardingQuizPage() {
 		});
 
 		// Store additional data
-		localStorage.setItem("onboarding_desiredMajors", JSON.stringify(formData.desiredMajors));
-		localStorage.setItem("onboarding_priorities", JSON.stringify(formData.priorities));
-		localStorage.setItem("onboarding_selfDescription", formData.selfDescription);
+		localStorage.setItem(
+			"onboarding_desiredMajors",
+			JSON.stringify(formData.desiredMajors),
+		);
+		localStorage.setItem(
+			"onboarding_priorities",
+			JSON.stringify(formData.priorities),
+		);
+		localStorage.setItem(
+			"onboarding_selfDescription",
+			formData.selfDescription,
+		);
 
 		router.push("/onboarding/goals");
 	};
@@ -125,7 +154,8 @@ export default function OnboardingQuizPage() {
 		}));
 	};
 
-	const isFormValid = formData.desiredMajors.length > 0 && formData.priorities.length > 0;
+	const isFormValid =
+		formData.desiredMajors.length > 0 && formData.priorities.length > 0;
 
 	const handleSkip = () => {
 		router.push("/onboarding/goals");
@@ -143,9 +173,12 @@ export default function OnboardingQuizPage() {
 							<div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
 								<Heart className="w-8 h-8 text-primary" />
 							</div>
-							<CardTitle className="text-2xl">Hãy giúp Leaply hiểu bạn hơn</CardTitle>
+							<CardTitle className="text-2xl">
+								Hãy giúp Leaply hiểu bạn hơn
+							</CardTitle>
 							<CardDescription className="text-base">
-								Cho chúng tôi biết về sở thích và điều quan trọng với bạn. Bạn có thể bỏ qua và điền sau.
+								Cho chúng tôi biết về sở thích và điều quan trọng với bạn. Bạn
+								có thể bỏ qua và điền sau.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="pt-6">
@@ -158,7 +191,7 @@ export default function OnboardingQuizPage() {
 											(Chọn một hoặc nhiều)
 										</span>
 									</Label>
-									
+
 									{/* Selected majors */}
 									{formData.desiredMajors.length > 0 && (
 										<div className="flex flex-wrap gap-2 mb-3">
@@ -272,7 +305,10 @@ export default function OnboardingQuizPage() {
 
 								{/* Self Description */}
 								<div className="space-y-2">
-									<Label htmlFor="selfDescription" className="text-base font-medium">
+									<Label
+										htmlFor="selfDescription"
+										className="text-base font-medium"
+									>
 										Một câu mô tả bản thân
 										<span className="text-sm font-normal text-muted-foreground ml-2">
 											(Không bắt buộc)

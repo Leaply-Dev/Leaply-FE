@@ -1,45 +1,58 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
+	ArrowRight,
+	Calendar,
+	Clock,
+	Compass,
+	FileText,
+	FolderOpen,
+	GraduationCap,
+	School,
 	Sparkles,
 	Target,
 	User,
-	GraduationCap,
-	Calendar,
-	Compass,
-	ArrowRight,
-	Clock,
-	School,
-	FileText,
-	FolderOpen,
 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+	PageTransition,
+	SlideUp,
+	StaggerContainer,
+	StaggerItem,
+} from "@/components/PageTransition";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { PageTransition, SlideUp, StaggerContainer, StaggerItem } from "@/components/PageTransition";
-import { useUserStore } from "@/lib/store/userStore";
-import { useApplicationsStore } from "@/lib/store/applicationsStore";
-import { mockEnhancedApplications, type EnhancedApplication } from "@/lib/data/enhancedApplications";
+import {
+	type EnhancedApplication,
+	mockEnhancedApplications,
+} from "@/lib/data/enhancedApplications";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useApplicationsStore } from "@/lib/store/applicationsStore";
+import { useUserStore } from "@/lib/store/userStore";
 
 // Calculate profile completion percentage
-function calculateProfileCompletion(profile: ReturnType<typeof useUserStore.getState>["profile"], preferences: ReturnType<typeof useUserStore.getState>["preferences"]): number {
+function calculateProfileCompletion(
+	profile: ReturnType<typeof useUserStore.getState>["profile"],
+	preferences: ReturnType<typeof useUserStore.getState>["preferences"],
+): number {
 	let filled = 0;
-	let total = 10;
+	const total = 10;
 
 	if (profile?.fullName) filled++;
 	if (profile?.email) filled++;
 	if (profile?.currentEducationLevel) filled++;
 	if (profile?.gpa) filled++;
 	if (profile?.testScores && profile.testScores.length > 0) filled++;
-	if (preferences?.desiredMajors && preferences.desiredMajors.length > 0) filled++;
-	if (preferences?.targetCountries && preferences.targetCountries.length > 0) filled++;
+	if (preferences?.desiredMajors && preferences.desiredMajors.length > 0)
+		filled++;
+	if (preferences?.targetCountries && preferences.targetCountries.length > 0)
+		filled++;
 	if (preferences?.budgetRange) filled++;
 	if (preferences?.timeline) filled++;
 	if (preferences?.priorities && preferences.priorities.length > 0) filled++;
@@ -50,9 +63,12 @@ function calculateProfileCompletion(profile: ReturnType<typeof useUserStore.getS
 export default function HomePage() {
 	const { t } = useTranslation();
 	const router = useRouter();
-	const { profile, preferences, journeyType, isAuthenticated, lastActivity } = useUserStore();
+	const { profile, preferences, journeyType, isAuthenticated, lastActivity } =
+		useUserStore();
 	const { applications, setApplications } = useApplicationsStore();
-	const [enhancedApplications, setEnhancedApplications] = useState<EnhancedApplication[]>([]);
+	const [enhancedApplications, setEnhancedApplications] = useState<
+		EnhancedApplication[]
+	>([]);
 
 	// Redirect to login if not authenticated
 	useEffect(() => {
@@ -75,10 +91,15 @@ export default function HomePage() {
 
 	const profileCompletion = calculateProfileCompletion(profile, preferences);
 	const upcomingDeadlines = enhancedApplications.filter(
-		(app) => app.decisionDeadline && new Date(app.decisionDeadline) > new Date()
+		(app) =>
+			app.decisionDeadline && new Date(app.decisionDeadline) > new Date(),
 	).length;
-	const draftApplications = enhancedApplications.filter((app) => app.status === "draft").length;
-	const submittedApplications = enhancedApplications.filter((app) => app.status === "submitted" || app.status === "under_review").length;
+	const draftApplications = enhancedApplications.filter(
+		(app) => app.status === "draft",
+	).length;
+	const submittedApplications = enhancedApplications.filter(
+		(app) => app.status === "submitted" || app.status === "under_review",
+	).length;
 
 	// Get time of day for greeting
 	const getGreeting = () => {
@@ -110,7 +131,8 @@ export default function HomePage() {
 					<SlideUp>
 						<div className="mb-8">
 							<h1 className="text-3xl font-bold text-foreground mb-2">
-								{getGreeting()}, {profile?.fullName?.split(" ")[0] || t("home", "you")}!
+								{getGreeting()},{" "}
+								{profile?.fullName?.split(" ")[0] || t("home", "you")}!
 							</h1>
 							<p className="text-lg text-muted-foreground">
 								{t("home", "subtitle")}
@@ -126,8 +148,8 @@ export default function HomePage() {
 							transition={{ delay: 0.2 }}
 						>
 							{journeyType === "exploring" ? (
-								<Card className="mb-8 bg-gradient-to-br from-primary/5 via-chart-2/5 to-transparent border-primary/20 overflow-hidden relative">
-									<div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+								<Card className="mb-8 bg-linear-to-br from-primary/5 via-chart-2/5 to-transparent border-primary/20 overflow-hidden relative">
+									<div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-bl from-primary/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
 									<CardContent className="p-6 relative">
 										<div className="flex items-start gap-4">
 											<div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0">
@@ -154,8 +176,8 @@ export default function HomePage() {
 									</CardContent>
 								</Card>
 							) : (
-								<Card className="mb-8 bg-gradient-to-br from-chart-2/5 via-primary/5 to-transparent border-chart-2/20 overflow-hidden relative">
-									<div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-chart-2/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+								<Card className="mb-8 bg-linear-to-br from-chart-2/5 via-primary/5 to-transparent border-chart-2/20 overflow-hidden relative">
+									<div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-bl from-chart-2/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
 									<CardContent className="p-6 relative">
 										<div className="flex items-start gap-4">
 											<div className="w-14 h-14 bg-chart-2/10 rounded-2xl flex items-center justify-center shrink-0">
@@ -171,7 +193,10 @@ export default function HomePage() {
 												<p className="text-muted-foreground mb-4">
 													{t("home", "addFirstTargetDesc")}
 												</p>
-												<Button asChild className="bg-chart-2 hover:bg-chart-2/90">
+												<Button
+													asChild
+													className="bg-chart-2 hover:bg-chart-2/90"
+												>
 													<Link href="/universities">
 														{t("home", "exploreSchools")}
 														<ArrowRight className="w-4 h-4 ml-2" />
@@ -205,7 +230,9 @@ export default function HomePage() {
 													<span className="text-2xl font-bold text-foreground">
 														{profileCompletion}%
 													</span>
-													<span className="text-xs text-muted-foreground">{t("home", "completed")}</span>
+													<span className="text-xs text-muted-foreground">
+														{t("home", "completed")}
+													</span>
 												</div>
 												<Progress value={profileCompletion} className="h-2" />
 											</div>
@@ -251,7 +278,9 @@ export default function HomePage() {
 												<span className="text-2xl font-bold text-foreground">
 													{upcomingDeadlines}
 												</span>
-												<span className="text-sm text-muted-foreground">{t("home", "deadlines")}</span>
+												<span className="text-sm text-muted-foreground">
+													{t("home", "deadlines")}
+												</span>
 											</div>
 										</CardContent>
 									</Card>
@@ -269,8 +298,12 @@ export default function HomePage() {
 												</span>
 											</div>
 											<div className="flex items-baseline gap-2">
-												<span className="text-2xl font-bold text-foreground">0</span>
-												<span className="text-sm text-muted-foreground">/ 4 {t("home", "tracks")}</span>
+												<span className="text-2xl font-bold text-foreground">
+													0
+												</span>
+												<span className="text-sm text-muted-foreground">
+													/ 4 {t("home", "tracks")}
+												</span>
 											</div>
 										</CardContent>
 									</Card>
@@ -314,7 +347,9 @@ export default function HomePage() {
 																			alt={app.universityName}
 																		/>
 																		<AvatarFallback className="text-xs">
-																			{app.universityName.substring(0, 2).toUpperCase()}
+																			{app.universityName
+																				.substring(0, 2)
+																				.toUpperCase()}
 																		</AvatarFallback>
 																	</Avatar>
 																	<div className="flex-1 min-w-0">
@@ -329,18 +364,30 @@ export default function HomePage() {
 																<div className="space-y-2">
 																	<div className="flex items-center justify-between">
 																		<Badge
-																			variant={app.status === "submitted" || app.status === "under_review" ? "default" : "secondary"}
+																			variant={
+																				app.status === "submitted" ||
+																				app.status === "under_review"
+																					? "default"
+																					: "secondary"
+																			}
 																			className="text-xs"
 																		>
-																			{app.status === "submitted" ? t("home", "submitted") : 
-																			 app.status === "under_review" ? t("home", "underReview") :
-																			 app.status === "draft" ? t("home", "draft") : app.status}
+																			{app.status === "submitted"
+																				? t("home", "submitted")
+																				: app.status === "under_review"
+																					? t("home", "underReview")
+																					: app.status === "draft"
+																						? t("home", "draft")
+																						: app.status}
 																		</Badge>
 																		<span className="text-xs font-medium text-foreground">
 																			{app.fitScore}% {t("home", "fit")}
 																		</span>
 																	</div>
-																	<Progress value={app.completionPercentage} className="h-1.5" />
+																	<Progress
+																		value={app.completionPercentage}
+																		className="h-1.5"
+																	/>
 																</div>
 															</CardContent>
 														</Card>
@@ -356,7 +403,9 @@ export default function HomePage() {
 													{t("home", "noApplicationsYet")}
 												</p>
 												<Button variant="outline" size="sm" asChild>
-													<Link href="/universities">{t("home", "exploreSchools")}</Link>
+													<Link href="/universities">
+														{t("home", "exploreSchools")}
+													</Link>
 												</Button>
 											</div>
 										)}
@@ -415,7 +464,9 @@ export default function HomePage() {
 							<SlideUp delay={0.5}>
 								<Card className="mt-6">
 									<CardHeader className="pb-2">
-										<CardTitle className="text-lg">{t("home", "quickActions")}</CardTitle>
+										<CardTitle className="text-lg">
+											{t("home", "quickActions")}
+										</CardTitle>
 									</CardHeader>
 									<CardContent className="space-y-2">
 										<Button
@@ -458,4 +509,3 @@ export default function HomePage() {
 		</PageTransition>
 	);
 }
-

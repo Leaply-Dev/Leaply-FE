@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Award, BookOpen, GraduationCap, SkipForward } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { BookOpen, Award, GraduationCap, SkipForward } from "lucide-react";
+import { useState } from "react";
+import { PageTransition } from "@/components/PageTransition";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
 import {
 	Card,
 	CardContent,
@@ -14,9 +13,10 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { useUserStore } from "@/lib/store/userStore";
-import { PageTransition } from "@/components/PageTransition";
 
 const MAJOR_OPTIONS = [
 	"Computer Science",
@@ -52,14 +52,14 @@ export default function AcademicProfilePage() {
 
 		// Build test scores array
 		const testScores: { type: string; score: string }[] = [];
-		
+
 		if (formData.englishTestType && formData.englishTestScore) {
 			testScores.push({
 				type: formData.englishTestType,
 				score: formData.englishTestScore,
 			});
 		}
-		
+
 		if (formData.standardizedTestType && formData.standardizedTestScore) {
 			testScores.push({
 				type: formData.standardizedTestType,
@@ -104,7 +104,8 @@ export default function AcademicProfilePage() {
 							</div>
 							<CardTitle className="text-2xl">Hồ sơ học thuật</CardTitle>
 							<CardDescription className="text-base">
-								Cho chúng tôi biết về thành tích học tập của bạn. Bạn có thể bỏ qua và điền sau.
+								Cho chúng tôi biết về thành tích học tập của bạn. Bạn có thể bỏ
+								qua và điền sau.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="pt-6">
@@ -117,7 +118,10 @@ export default function AcademicProfilePage() {
 									</Label>
 									<div className="grid grid-cols-2 gap-4">
 										<div className="space-y-2">
-											<Label htmlFor="gpa" className="text-sm text-muted-foreground">
+											<Label
+												htmlFor="gpa"
+												className="text-sm text-muted-foreground"
+											>
 												Điểm GPA
 											</Label>
 											<Input
@@ -126,20 +130,27 @@ export default function AcademicProfilePage() {
 												step="0.01"
 												min="0"
 												max={formData.gpaScale === "4.0" ? "4" : "10"}
-												placeholder={formData.gpaScale === "4.0" ? "3.5" : "8.5"}
+												placeholder={
+													formData.gpaScale === "4.0" ? "3.5" : "8.5"
+												}
 												value={formData.gpa}
 												onChange={(e) => updateField("gpa", e.target.value)}
 												required
 											/>
 										</div>
 										<div className="space-y-2">
-											<Label htmlFor="gpaScale" className="text-sm text-muted-foreground">
+											<Label
+												htmlFor="gpaScale"
+												className="text-sm text-muted-foreground"
+											>
 												Thang điểm
 											</Label>
 											<Select
 												id="gpaScale"
 												value={formData.gpaScale}
-												onChange={(e) => updateField("gpaScale", e.target.value)}
+												onChange={(e) =>
+													updateField("gpaScale", e.target.value)
+												}
 											>
 												<option value="4.0">Thang 4.0</option>
 												<option value="10">Thang 10</option>
@@ -150,14 +161,19 @@ export default function AcademicProfilePage() {
 
 								{/* Current Major */}
 								<div className="space-y-2">
-									<Label htmlFor="currentMajor" className="flex items-center gap-2">
+									<Label
+										htmlFor="currentMajor"
+										className="flex items-center gap-2"
+									>
 										<GraduationCap className="w-4 h-4 text-muted-foreground" />
 										Ngành học hiện tại / Đã tốt nghiệp
 									</Label>
 									<Select
 										id="currentMajor"
 										value={formData.currentMajor}
-										onChange={(e) => updateField("currentMajor", e.target.value)}
+										onChange={(e) =>
+											updateField("currentMajor", e.target.value)
+										}
 										required
 									>
 										<option value="">Chọn ngành học</option>
@@ -174,19 +190,26 @@ export default function AcademicProfilePage() {
 									<h3 className="text-base font-medium text-foreground flex items-center gap-2">
 										<Award className="w-4 h-4 text-primary" />
 										Điểm thi chuẩn hóa
-										<span className="text-sm font-normal text-muted-foreground">(Không bắt buộc)</span>
+										<span className="text-sm font-normal text-muted-foreground">
+											(Không bắt buộc)
+										</span>
 									</h3>
 
 									{/* English Proficiency */}
 									<div className="grid grid-cols-2 gap-4">
 										<div className="space-y-2">
-											<Label htmlFor="englishTestType" className="text-sm text-muted-foreground">
+											<Label
+												htmlFor="englishTestType"
+												className="text-sm text-muted-foreground"
+											>
 												Chứng chỉ tiếng Anh
 											</Label>
 											<Select
 												id="englishTestType"
 												value={formData.englishTestType}
-												onChange={(e) => updateField("englishTestType", e.target.value)}
+												onChange={(e) =>
+													updateField("englishTestType", e.target.value)
+												}
 											>
 												<option value="">Chọn loại</option>
 												<option value="IELTS">IELTS</option>
@@ -196,20 +219,28 @@ export default function AcademicProfilePage() {
 											</Select>
 										</div>
 										<div className="space-y-2">
-											<Label htmlFor="englishTestScore" className="text-sm text-muted-foreground">
+											<Label
+												htmlFor="englishTestScore"
+												className="text-sm text-muted-foreground"
+											>
 												Điểm
 											</Label>
 											<Input
 												id="englishTestScore"
 												type="text"
 												placeholder={
-													formData.englishTestType === "IELTS" ? "7.5" :
-													formData.englishTestType === "TOEFL" ? "100" :
-													formData.englishTestType === "Duolingo" ? "120" :
-													"Nhập điểm"
+													formData.englishTestType === "IELTS"
+														? "7.5"
+														: formData.englishTestType === "TOEFL"
+															? "100"
+															: formData.englishTestType === "Duolingo"
+																? "120"
+																: "Nhập điểm"
 												}
 												value={formData.englishTestScore}
-												onChange={(e) => updateField("englishTestScore", e.target.value)}
+												onChange={(e) =>
+													updateField("englishTestScore", e.target.value)
+												}
 												disabled={!formData.englishTestType}
 											/>
 										</div>
@@ -218,13 +249,18 @@ export default function AcademicProfilePage() {
 									{/* Standardized Tests */}
 									<div className="grid grid-cols-2 gap-4">
 										<div className="space-y-2">
-											<Label htmlFor="standardizedTestType" className="text-sm text-muted-foreground">
+											<Label
+												htmlFor="standardizedTestType"
+												className="text-sm text-muted-foreground"
+											>
 												Bài thi chuẩn hóa
 											</Label>
 											<Select
 												id="standardizedTestType"
 												value={formData.standardizedTestType}
-												onChange={(e) => updateField("standardizedTestType", e.target.value)}
+												onChange={(e) =>
+													updateField("standardizedTestType", e.target.value)
+												}
 											>
 												<option value="">Chọn loại</option>
 												<option value="SAT">SAT</option>
@@ -234,21 +270,30 @@ export default function AcademicProfilePage() {
 											</Select>
 										</div>
 										<div className="space-y-2">
-											<Label htmlFor="standardizedTestScore" className="text-sm text-muted-foreground">
+											<Label
+												htmlFor="standardizedTestScore"
+												className="text-sm text-muted-foreground"
+											>
 												Điểm
 											</Label>
 											<Input
 												id="standardizedTestScore"
 												type="text"
 												placeholder={
-													formData.standardizedTestType === "SAT" ? "1450" :
-													formData.standardizedTestType === "ACT" ? "32" :
-													formData.standardizedTestType === "GRE" ? "320" :
-													formData.standardizedTestType === "GMAT" ? "700" :
-													"Nhập điểm"
+													formData.standardizedTestType === "SAT"
+														? "1450"
+														: formData.standardizedTestType === "ACT"
+															? "32"
+															: formData.standardizedTestType === "GRE"
+																? "320"
+																: formData.standardizedTestType === "GMAT"
+																	? "700"
+																	: "Nhập điểm"
 												}
 												value={formData.standardizedTestScore}
-												onChange={(e) => updateField("standardizedTestScore", e.target.value)}
+												onChange={(e) =>
+													updateField("standardizedTestScore", e.target.value)
+												}
 												disabled={!formData.standardizedTestType}
 											/>
 										</div>
@@ -286,4 +331,3 @@ export default function AcademicProfilePage() {
 		</PageTransition>
 	);
 }
-

@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
-import { User, FileText } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FileText, User } from "lucide-react";
+import React, { useCallback, useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
-import { ProfileContextSidebar } from "@/components/persona-lab/ProfileContextSidebar";
 import { DiscoveryTab } from "@/components/persona-lab/DiscoveryTab";
-import { MyPersonaTab } from "@/components/persona-lab/MyPersonaTab";
 import { EssaysTab } from "@/components/persona-lab/EssaysTab";
+import { MyPersonaTab } from "@/components/persona-lab/MyPersonaTab";
+import { ProfileContextSidebar } from "@/components/persona-lab/ProfileContextSidebar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { usePersonaStore } from "@/lib/store/personaStore";
 

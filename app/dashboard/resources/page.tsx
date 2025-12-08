@@ -1,19 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { ResourceCard } from "@/components/ResourceCard";
+import { useEffect, useState } from "react";
 import { PageContainer } from "@/components/Layout";
-import { useApplicationsStore } from "@/lib/store/applicationsStore";
-import { mockResources } from "@/lib/data/resources";
 import {
 	PageTransition,
 	StaggerContainer,
 	StaggerItem,
 } from "@/components/PageTransition";
+import { ResourceCard } from "@/components/ResourceCard";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { mockResources } from "@/lib/data/resources";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useApplicationsStore } from "@/lib/store/applicationsStore";
 
 export default function ResourcesPage() {
 	const { t } = useTranslation();
@@ -44,7 +44,9 @@ export default function ResourcesPage() {
 		<PageTransition>
 			<PageContainer>
 				<div className="mb-8">
-					<h1 className="text-3xl font-bold text-foreground mb-2">{t("resources", "title")}</h1>
+					<h1 className="text-3xl font-bold text-foreground mb-2">
+						{t("resources", "title")}
+					</h1>
 					<p className="text-lg text-muted-foreground">
 						{t("resources", "subtitle")}
 					</p>
@@ -78,7 +80,11 @@ export default function ResourcesPage() {
 
 				{/* Results Count */}
 				<p className="text-sm text-muted-foreground mb-6">
-					{filteredResources.length} {filteredResources.length !== 1 ? t("resources", "resourcePlural") : t("resources", "resource")} {t("resources", "found")}
+					{filteredResources.length}{" "}
+					{filteredResources.length !== 1
+						? t("resources", "resourcePlural")
+						: t("resources", "resource")}{" "}
+					{t("resources", "found")}
 				</p>
 
 				{/* Resources Grid */}

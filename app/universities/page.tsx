@@ -1,29 +1,29 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { Globe, Search, Sparkles } from "lucide-react";
 import Image from "next/image";
-import { Search, Sparkles, Globe } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { AIMatchCard } from "@/components/AIMatchCard";
 import { ExploreCard } from "@/components/ExploreCard";
 import {
 	FilterQuestionnaire,
 	type FilterState,
 } from "@/components/FilterQuestionnaire";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useUniversitiesStore } from "@/lib/store/universitiesStore";
-import { useUserStore } from "@/lib/store/userStore";
-import { mockUniversities } from "@/lib/data/universities";
-import { calculateFitScore } from "@/lib/utils/fitScore";
 import {
 	PageTransition,
+	SlideUp,
 	StaggerContainer,
 	StaggerItem,
-	SlideUp,
 } from "@/components/PageTransition";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { mockUniversities } from "@/lib/data/universities";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useUniversitiesStore } from "@/lib/store/universitiesStore";
+import { useUserStore } from "@/lib/store/userStore";
+import { calculateFitScore } from "@/lib/utils/fitScore";
 
 export default function UniversitiesPage() {
 	const { t } = useTranslation();
@@ -196,7 +196,9 @@ export default function UniversitiesPage() {
 				<div className="mb-8">
 					<Tabs
 						value={activeMode}
-						onValueChange={(value) => setActiveMode(value as "ai-match" | "explore-all")}
+						onValueChange={(value) =>
+							setActiveMode(value as "ai-match" | "explore-all")
+						}
 						className="w-full"
 					>
 						<div className="flex justify-center mb-2">
@@ -229,7 +231,8 @@ export default function UniversitiesPage() {
 											<>
 												{t("universities", "basedOnProfileFound")}{" "}
 												<span className="font-semibold text-primary">
-													{aiMatchedUniversities.length} {t("universities", "universitiesFit")}
+													{aiMatchedUniversities.length}{" "}
+													{t("universities", "universitiesFit")}
 												</span>{" "}
 											</>
 										) : (
@@ -263,7 +266,9 @@ export default function UniversitiesPage() {
 									<div className="text-center py-16">
 										<Sparkles className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
 										<h3 className="text-xl font-semibold text-foreground mb-2">
-											{profile ? t("universities", "noMatchesFound") : t("universities", "completeProfile")}
+											{profile
+												? t("universities", "noMatchesFound")
+												: t("universities", "completeProfile")}
 										</h3>
 										<p className="text-muted-foreground mb-6">
 											{profile
@@ -297,7 +302,9 @@ export default function UniversitiesPage() {
 											{t("universities", "allUniversities")}
 										</h2>
 										<p className="text-sm text-muted-foreground mt-1">
-											{t("universities", "showing")} {exploreAllUniversities.length} {t("universities", "results")}
+											{t("universities", "showing")}{" "}
+											{exploreAllUniversities.length}{" "}
+											{t("universities", "results")}
 										</p>
 									</div>
 								</div>

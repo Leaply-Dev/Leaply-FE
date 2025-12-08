@@ -1,25 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import {
-	MapPin,
-	Globe,
+	ArrowLeft,
+	BookOpen,
 	Calendar,
 	DollarSign,
-	Users,
+	Globe,
+	MapPin,
 	Star,
-	BookOpen,
-	ArrowLeft,
+	Users,
 } from "lucide-react";
+import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { PageContainer } from "@/components/Layout";
+import { PageTransition, SlideUp } from "@/components/PageTransition";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { PageContainer } from "@/components/Layout";
-import { useUniversitiesStore } from "@/lib/store/universitiesStore";
 import { mockUniversities } from "@/lib/data/universities";
-import { PageTransition, SlideUp } from "@/components/PageTransition";
+import { useUniversitiesStore } from "@/lib/store/universitiesStore";
 
 export default function UniversityDetailPage() {
 	const params = useParams();
@@ -99,7 +99,7 @@ export default function UniversityDetailPage() {
 									/>
 								</div>
 								{/* Dark overlay for better text visibility */}
-								<div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
+								<div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/30 to-black/60" />
 
 								{/* University Name Overlay */}
 								<div className="absolute inset-0 flex items-end p-8">
@@ -429,7 +429,9 @@ export default function UniversityDetailPage() {
 														</p>
 														<ul className="text-sm text-muted-foreground list-disc list-inside">
 															{scholarship.eligibility.map((criteria, idx) => (
-																<li key={`${scholarship.id}-${idx}`}>{criteria}</li>
+																<li key={`${scholarship.id}-${idx}`}>
+																	{criteria}
+																</li>
 															))}
 														</ul>
 													</div>

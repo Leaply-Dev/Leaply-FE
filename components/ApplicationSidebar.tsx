@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Search, Plus } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Plus, Search } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
 import type { EnhancedApplication } from "@/lib/data/enhancedApplications";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { cn } from "@/lib/utils";
 
 interface ApplicationSidebarProps {
 	applications: EnhancedApplication[];
@@ -123,13 +123,13 @@ export function ApplicationSidebar({
 										{/* Fit Score Badge */}
 										<div className="mt-1">
 											<span
-											className={cn(
-												"inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold",
-												getFitScoreColor(app.fitScore),
-											)}
-										>
-											{app.fitScore}% {t("applications", "match")}
-										</span>
+												className={cn(
+													"inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold",
+													getFitScoreColor(app.fitScore),
+												)}
+											>
+												{app.fitScore}% {t("applications", "match")}
+											</span>
 										</div>
 									</div>
 								</div>

@@ -19,7 +19,6 @@ export const useLanguageStore = create<LanguageState>()(
 		}),
 		{
 			name: "leaply-language",
-		}
-	)
+		},
+	),
 );
-

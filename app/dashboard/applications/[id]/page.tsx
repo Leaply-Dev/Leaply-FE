@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import { ArrowLeft, CheckCircle, FileText } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, FileText, CheckCircle } from "lucide-react";
+import { useEffect } from "react";
+import { PageContainer } from "@/components/Layout";
+import { PageTransition, SlideUp } from "@/components/PageTransition";
+import { TaskItem } from "@/components/TaskItem";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { TaskItem } from "@/components/TaskItem";
-import { PageContainer } from "@/components/Layout";
-import { useApplicationsStore } from "@/lib/store/applicationsStore";
 import { mockApplications } from "@/lib/data/applications";
-import { PageTransition, SlideUp } from "@/components/PageTransition";
+import { useApplicationsStore } from "@/lib/store/applicationsStore";
 
 export default function ApplicationDetailPage() {
 	const params = useParams();

@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useApplicationsStore } from "@/lib/store/applicationsStore";
-import {
-	mockEnhancedApplications,
-	type EnhancedApplication,
-} from "@/lib/data/enhancedApplications";
-import { ApplicationSidebar } from "@/components/ApplicationSidebar";
 import { ApplicationDashboard } from "@/components/ApplicationDashboard";
+import { ApplicationSidebar } from "@/components/ApplicationSidebar";
 import { PageTransition } from "@/components/PageTransition";
+import {
+	type EnhancedApplication,
+	mockEnhancedApplications,
+} from "@/lib/data/enhancedApplications";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useApplicationsStore } from "@/lib/store/applicationsStore";
 
 export default function ApplicationsPage() {
 	const { t } = useTranslation();

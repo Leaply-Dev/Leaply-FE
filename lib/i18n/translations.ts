@@ -135,12 +135,18 @@ export const translations = {
 
 		// CTA section
 		ctaFree: { en: "100% free to start", vi: "Hoàn toàn miễn phí" },
-		ctaTitle: { en: "Your journey starts here", vi: "Hành trình của bạn bắt đầu từ đây" },
+		ctaTitle: {
+			en: "Your journey starts here",
+			vi: "Hành trình của bạn bắt đầu từ đây",
+		},
 		ctaSubtitle: {
 			en: "Thousands of students have already taken the first step. Ready to join them?",
 			vi: "Hàng ngàn bạn trẻ đã bắt đầu hành trình. Bạn sẵn sàng chưa?",
 		},
-		ctaCreateAccount: { en: "Create free account", vi: "Tạo tài khoản miễn phí" },
+		ctaCreateAccount: {
+			en: "Create free account",
+			vi: "Tạo tài khoản miễn phí",
+		},
 	},
 
 	// Features Page
@@ -162,7 +168,10 @@ export const translations = {
 			en: "1,500+ universities at your fingertips. Search, filter, compare — and let our AI suggest schools you might not have even considered.",
 			vi: "1,500+ trường đại học trong tầm tay. Tìm kiếm, lọc, so sánh — và để AI gợi ý những trường bạn chưa từng nghĩ đến.",
 		},
-		exploreBenefit1Title: { en: "Search your way", vi: "Tìm theo cách của bạn" },
+		exploreBenefit1Title: {
+			en: "Search your way",
+			vi: "Tìm theo cách của bạn",
+		},
 		exploreBenefit1Desc: {
 			en: "Budget tight? Want sunny weather? Need strong CS programs? Filter by what actually matters to you",
 			vi: "Ngân sách eo hẹp? Thích thời tiết đẹp? Cần ngành IT mạnh? Lọc theo những gì quan trọng với bạn",
@@ -172,7 +181,10 @@ export const translations = {
 			en: "Our AI learns your preferences and finds schools that truly fit — not just random suggestions",
 			vi: "AI học từ sở thích của bạn và tìm trường thực sự phù hợp — không phải gợi ý ngẫu nhiên",
 		},
-		exploreBenefit3Title: { en: "Compare side-by-side", vi: "So sánh trực quan" },
+		exploreBenefit3Title: {
+			en: "Compare side-by-side",
+			vi: "So sánh trực quan",
+		},
 		exploreBenefit3Desc: {
 			en: "Put your top choices next to each other. See tuition, rankings, requirements — all in one view",
 			vi: "Đặt những lựa chọn hàng đầu cạnh nhau. Xem học phí, xếp hạng, yêu cầu — tất cả trong một màn hình",
@@ -188,12 +200,18 @@ export const translations = {
 			en: "Multiple schools, dozens of deadlines, endless documents. Sound familiar? We organize everything so you can focus on what matters — your applications.",
 			vi: "Nhiều trường, hàng tá deadline, vô số giấy tờ. Quen quá phải không? Chúng mình sắp xếp mọi thứ để bạn tập trung vào điều quan trọng — hồ sơ của bạn.",
 		},
-		applicationsBenefit1Title: { en: "See everything at once", vi: "Nhìn tất cả một lần" },
+		applicationsBenefit1Title: {
+			en: "See everything at once",
+			vi: "Nhìn tất cả một lần",
+		},
 		applicationsBenefit1Desc: {
 			en: "One dashboard. All your applications. Every deadline. No surprises",
 			vi: "Một dashboard. Tất cả hồ sơ. Mọi deadline. Không bất ngờ",
 		},
-		applicationsBenefit2Title: { en: "Never miss a date", vi: "Không bỏ lỡ ngày nào" },
+		applicationsBenefit2Title: {
+			en: "Never miss a date",
+			vi: "Không bỏ lỡ ngày nào",
+		},
 		applicationsBenefit2Desc: {
 			en: "We'll ping you before deadlines. Early enough to actually do something about it",
 			vi: "Chúng mình sẽ nhắc bạn trước deadline. Đủ sớm để bạn còn kịp làm gì đó",
@@ -214,7 +232,10 @@ export const translations = {
 			en: "Essays are hard. We get it. That's why we built a space where you can discover what makes you YOU — and turn it into essays that admissions officers actually want to read.",
 			vi: "Viết essay khó lắm. Chúng mình hiểu. Đó là lý do chúng mình tạo ra không gian để bạn khám phá điều làm bạn là CHÍNH BẠN — và biến nó thành essay mà admission thực sự muốn đọc.",
 		},
-		personaLabBenefit1Title: { en: "Know yourself better", vi: "Hiểu bản thân hơn" },
+		personaLabBenefit1Title: {
+			en: "Know yourself better",
+			vi: "Hiểu bản thân hơn",
+		},
 		personaLabBenefit1Desc: {
 			en: "4 guided tracks help you uncover strengths, values, and stories you didn't know you had",
 			vi: "4 chủ đề hướng dẫn giúp bạn khám phá điểm mạnh, giá trị và câu chuyện mà bạn không ngờ mình có",
@@ -224,14 +245,20 @@ export const translations = {
 			en: "AI suggestions that sound like you, not like a robot. Edit, refine, make it yours",
 			vi: "Gợi ý AI nghe như bạn, không phải robot. Chỉnh sửa, hoàn thiện, biến nó thành của bạn",
 		},
-		personaLabBenefit3Title: { en: "Get real feedback", vi: "Nhận phản hồi thật" },
+		personaLabBenefit3Title: {
+			en: "Get real feedback",
+			vi: "Nhận phản hồi thật",
+		},
 		personaLabBenefit3Desc: {
 			en: "Our AI mentor reads like a real person. Specific observations. Actionable suggestions. No fluff",
 			vi: "Mentor AI đọc như người thật. Nhận xét cụ thể. Gợi ý hành động được. Không nói suông",
 		},
 
 		// Additional benefits
-		additionalTitle: { en: "Plus, the basics done right", vi: "Và những điều cơ bản làm đúng" },
+		additionalTitle: {
+			en: "Plus, the basics done right",
+			vi: "Và những điều cơ bản làm đúng",
+		},
 		additionalSubtitle: {
 			en: "Because the little things matter too",
 			vi: "Vì những điều nhỏ cũng quan trọng",
@@ -277,7 +304,10 @@ export const translations = {
 		},
 
 		// Mission
-		missionTitle: { en: "Why we do this", vi: "Tại sao chúng mình làm điều này" },
+		missionTitle: {
+			en: "Why we do this",
+			vi: "Tại sao chúng mình làm điều này",
+		},
 		missionText: {
 			en: "Applying to study abroad shouldn't feel like navigating a maze blindfolded. We remember the late nights googling, the anxiety over deadlines, the essays we rewrote a hundred times. We built Leaply to be the friend we wished we had — someone who actually gets it and can help you figure things out.",
 			vi: "Apply du học không nên giống như đi trong mê cung bịt mắt. Chúng mình nhớ những đêm khuya google tìm thông tin, lo lắng về deadline, những essay viết đi viết lại cả trăm lần. Chúng mình xây Leaply để trở thành người bạn mà chúng mình ước gì mình có — một người thực sự hiểu và có thể giúp bạn tìm ra mọi thứ.",
@@ -301,7 +331,10 @@ export const translations = {
 		},
 
 		// Team
-		teamTitle: { en: "The humans behind Leaply", vi: "Những con người đằng sau Leaply" },
+		teamTitle: {
+			en: "The humans behind Leaply",
+			vi: "Những con người đằng sau Leaply",
+		},
 		teamSubtitle: {
 			en: "A small but mighty team of dreamers, builders, and former stressed-out applicants.",
 			vi: "Một đội ngũ nhỏ nhưng mạnh mẽ của những người mơ ước, những người xây dựng, và những cựu applicant từng stress nặng.",
@@ -319,9 +352,15 @@ export const translations = {
 
 		// Contact form
 		formName: { en: "Your name", vi: "Tên bạn" },
-		formNamePlaceholder: { en: "What should we call you?", vi: "Chúng mình gọi bạn là gì?" },
+		formNamePlaceholder: {
+			en: "What should we call you?",
+			vi: "Chúng mình gọi bạn là gì?",
+		},
 		formEmail: { en: "Email", vi: "Email" },
-		formEmailPlaceholder: { en: "Where can we reach you?", vi: "Chúng mình liên lạc với bạn ở đâu?" },
+		formEmailPlaceholder: {
+			en: "Where can we reach you?",
+			vi: "Chúng mình liên lạc với bạn ở đâu?",
+		},
 		formMessage: { en: "Your message", vi: "Lời nhắn" },
 		formMessagePlaceholder: {
 			en: "Whatever's on your mind...",
@@ -364,7 +403,10 @@ export const translations = {
 				vi: "Đang xử lý hoặc đã nộp",
 			},
 			pendingTasks: { en: "Pending Tasks", vi: "Công việc chờ xử lý" },
-			pendingTasksDesc: { en: "Tasks to complete", vi: "Công việc cần hoàn thành" },
+			pendingTasksDesc: {
+				en: "Tasks to complete",
+				vi: "Công việc cần hoàn thành",
+			},
 			resources: { en: "Resources", vi: "Tài nguyên" },
 			resourcesDesc: { en: "Guides and articles", vi: "Hướng dẫn và bài viết" },
 		},
@@ -388,8 +430,14 @@ export const translations = {
 			en: "Search universities...",
 			vi: "Tìm kiếm trường...",
 		},
-		noApplicationsFound: { en: "No applications found", vi: "Không tìm thấy hồ sơ" },
-		backToApplications: { en: "Back to Applications", vi: "Quay lại danh sách" },
+		noApplicationsFound: {
+			en: "No applications found",
+			vi: "Không tìm thấy hồ sơ",
+		},
+		backToApplications: {
+			en: "Back to Applications",
+			vi: "Quay lại danh sách",
+		},
 		noApplicationSelected: {
 			en: "No Application Selected",
 			vi: "Chưa chọn hồ sơ",
@@ -433,7 +481,10 @@ export const translations = {
 			en: "✓ No pending deadlines",
 			vi: "✓ Không có deadline",
 		},
-		decisionExpectedBy: { en: "Decision expected by:", vi: "Dự kiến có kết quả:" },
+		decisionExpectedBy: {
+			en: "Decision expected by:",
+			vi: "Dự kiến có kết quả:",
+		},
 		applicationComplete: {
 			en: "✓ Application complete!",
 			vi: "✓ Hồ sơ hoàn tất!",
@@ -444,7 +495,10 @@ export const translations = {
 		},
 		// Profile Evaluation
 		profileEvaluation: { en: "Profile Evaluation", vi: "Đánh giá hồ sơ" },
-		yourFitForProgram: { en: "Your fit for this program", vi: "Độ phù hợp với chương trình" },
+		yourFitForProgram: {
+			en: "Your fit for this program",
+			vi: "Độ phù hợp với chương trình",
+		},
 		overallFitScore: { en: "Overall Fit Score", vi: "Điểm phù hợp" },
 		strengths: { en: "Strengths", vi: "Điểm mạnh" },
 		yourStrengths: { en: "Your Strengths", vi: "Điểm mạnh của bạn" },
@@ -494,7 +548,10 @@ export const translations = {
 			en: "Guides and tools to strengthen your application",
 			vi: "Hướng dẫn và công cụ để cải thiện hồ sơ",
 		},
-		essayWritingGuide: { en: "Essay Writing Guide", vi: "Hướng dẫn viết essay" },
+		essayWritingGuide: {
+			en: "Essay Writing Guide",
+			vi: "Hướng dẫn viết essay",
+		},
 		tipsForStatements: {
 			en: "Tips for compelling statements",
 			vi: "Mẹo viết bài luận ấn tượng",
@@ -503,7 +560,10 @@ export const translations = {
 			en: "Learn how to write effective personal statements",
 			vi: "Học cách viết bài luận cá nhân hiệu quả",
 		},
-		interviewPreparation: { en: "Interview Preparation", vi: "Chuẩn bị phỏng vấn" },
+		interviewPreparation: {
+			en: "Interview Preparation",
+			vi: "Chuẩn bị phỏng vấn",
+		},
 		commonQuestions: {
 			en: "Common questions & answers",
 			vi: "Câu hỏi thường gặp",
@@ -547,13 +607,22 @@ export const translations = {
 		task: { en: "task", vi: "công việc" },
 		taskPlural: { en: "tasks", vi: "công việc" },
 		noTasksFound: { en: "No tasks found", vi: "Không tìm thấy công việc" },
-		noCompletedTasks: { en: "No completed tasks yet.", vi: "Chưa có công việc nào hoàn thành." },
+		noCompletedTasks: {
+			en: "No completed tasks yet.",
+			vi: "Chưa có công việc nào hoàn thành.",
+		},
 		noPendingTasks: {
 			en: "All caught up! No pending tasks.",
 			vi: "Đã xong hết! Không có công việc chờ xử lý.",
 		},
-		startByAdding: { en: "Start by adding your first task.", vi: "Bắt đầu bằng cách thêm công việc đầu tiên." },
-		addYourFirstTask: { en: "Add Your First Task", vi: "Thêm công việc đầu tiên" },
+		startByAdding: {
+			en: "Start by adding your first task.",
+			vi: "Bắt đầu bằng cách thêm công việc đầu tiên.",
+		},
+		addYourFirstTask: {
+			en: "Add Your First Task",
+			vi: "Thêm công việc đầu tiên",
+		},
 	},
 
 	// Resources Page
@@ -568,7 +637,10 @@ export const translations = {
 		resource: { en: "resource", vi: "tài nguyên" },
 		resourcePlural: { en: "resources", vi: "tài nguyên" },
 		found: { en: "found", vi: "tìm thấy" },
-		noResourcesFound: { en: "No resources found", vi: "Không tìm thấy tài nguyên" },
+		noResourcesFound: {
+			en: "No resources found",
+			vi: "Không tìm thấy tài nguyên",
+		},
 		tryAdjustingFilters: {
 			en: "Try adjusting your search or filters",
 			vi: "Thử điều chỉnh tìm kiếm hoặc bộ lọc",
@@ -582,7 +654,10 @@ export const translations = {
 			en: "Manage your personal information and preferences",
 			vi: "Quản lý thông tin cá nhân và cài đặt",
 		},
-		personalInformation: { en: "Personal Information", vi: "Thông tin cá nhân" },
+		personalInformation: {
+			en: "Personal Information",
+			vi: "Thông tin cá nhân",
+		},
 		editProfile: { en: "Edit Profile", vi: "Chỉnh sửa" },
 		cancel: { en: "Cancel", vi: "Hủy" },
 		saveChanges: { en: "Save Changes", vi: "Lưu thay đổi" },
@@ -612,22 +687,37 @@ export const translations = {
 
 	// Universities Page
 	universities: {
-		title: { en: "Discover Your Perfect Match", vi: "Tìm trường phù hợp với bạn" },
+		title: {
+			en: "Discover Your Perfect Match",
+			vi: "Tìm trường phù hợp với bạn",
+		},
 		aiMatch: { en: "AI Match", vi: "AI gợi ý" },
 		match: { en: "Match", vi: "Phù hợp" },
 		why: { en: "Why?", vi: "Tại sao?" },
 		whySchool: { en: "Why this school?", vi: "Tại sao trường này?" },
-		whySchoolDesc: { en: "Here's why we think this university could be a great match for you", vi: "Đây là lý do chúng tôi nghĩ trường này có thể phù hợp với bạn" },
-		basedOnProfile: { en: "Based on your profile and preferences", vi: "Dựa trên hồ sơ và sở thích của bạn" },
+		whySchoolDesc: {
+			en: "Here's why we think this university could be a great match for you",
+			vi: "Đây là lý do chúng tôi nghĩ trường này có thể phù hợp với bạn",
+		},
+		basedOnProfile: {
+			en: "Based on your profile and preferences",
+			vi: "Dựa trên hồ sơ và sở thích của bạn",
+		},
 		matchReasons: { en: "Match Reasons", vi: "Lý do phù hợp" },
-		completeProfileForReasons: { en: "Complete your profile to see personalized match reasons!", vi: "Hoàn thiện hồ sơ để xem lý do phù hợp cá nhân!" },
+		completeProfileForReasons: {
+			en: "Complete your profile to see personalized match reasons!",
+			vi: "Hoàn thiện hồ sơ để xem lý do phù hợp cá nhân!",
+		},
 		viewDetails: { en: "View Details", vi: "Xem chi tiết" },
 		askAI: { en: "Ask AI", vi: "Hỏi AI" },
 		learnMore: { en: "Learn More", vi: "Tìm hiểu thêm" },
 		saved: { en: "Saved", vi: "Đã lưu" },
 		addToDreamList: { en: "Add to Dream List", vi: "Thêm vào danh sách" },
 		striveForIt: { en: "Strive for it!", vi: "Cố lên!" },
-		askAIAboutSchool: { en: "Ask AI about this school", vi: "Hỏi AI về trường này" },
+		askAIAboutSchool: {
+			en: "Ask AI about this school",
+			vi: "Hỏi AI về trường này",
+		},
 		acceptance: { en: "acceptance", vi: "tỷ lệ chấp nhận" },
 		public: { en: "Public", vi: "Công lập" },
 		private: { en: "Private", vi: "Tư thục" },
@@ -696,7 +786,10 @@ export const translations = {
 		academicStats: { en: "Academic Stats", vi: "Thông tin học thuật" },
 		from: { en: "From", vi: "Từ" },
 		discoveryWord: { en: "discovery", vi: "khám phá" },
-		highlightedAchievement: { en: "Highlighted Achievement", vi: "Thành tựu nổi bật" },
+		highlightedAchievement: {
+			en: "Highlighted Achievement",
+			vi: "Thành tựu nổi bật",
+		},
 		discoveryProgress: { en: "Discovery Progress", vi: "Tiến độ khám phá" },
 		tracksCompleted: { en: "Tracks completed", vi: "Tracks hoàn thành" },
 		targetCountries: { en: "Target Countries", vi: "Quốc gia mục tiêu" },
@@ -718,13 +811,19 @@ export const translations = {
 		questions: { en: "questions", vi: "câu hỏi" },
 		backToList: { en: "Back to list", vi: "Quay lại danh sách" },
 		question: { en: "Question", vi: "Câu" },
-		writeAnswer: { en: "Write your answer here...", vi: "Viết câu trả lời của bạn ở đây..." },
+		writeAnswer: {
+			en: "Write your answer here...",
+			vi: "Viết câu trả lời của bạn ở đây...",
+		},
 		exit: { en: "Exit", vi: "Thoát" },
 		back: { en: "Back", vi: "Quay lại" },
 		skip: { en: "Skip", vi: "Bỏ qua" },
 		complete: { en: "Complete", vi: "Hoàn thành" },
 		next: { en: "Next", vi: "Tiếp theo" },
-		whyImportant: { en: "Why is this important?", vi: "Tại sao điều này quan trọng?" },
+		whyImportant: {
+			en: "Why is this important?",
+			vi: "Tại sao điều này quan trọng?",
+		},
 		whyImportantDesc: {
 			en: "These questions help Leaply understand your unique story. From there, we can suggest interesting angles for essays and help you stand out in your study abroad application.",
 			vi: "Các câu hỏi này giúp Leaply hiểu được câu chuyện độc đáo của bạn. Từ đó, chúng tôi có thể gợi ý các góc nhìn hay cho essay và giúp bạn nổi bật trong hồ sơ du học.",
@@ -752,7 +851,10 @@ export const translations = {
 		},
 		essayAngles: { en: "Essay Angles", vi: "Essay Angles" },
 		suggested: { en: "Suggested", vi: "Gợi ý" },
-		createEssayFromIdea: { en: "Create essay from this idea", vi: "Tạo essay từ ý tưởng này" },
+		createEssayFromIdea: {
+			en: "Create essay from this idea",
+			vi: "Tạo essay từ ý tưởng này",
+		},
 		noPersonaData: { en: "No persona data yet", vi: "Chưa có dữ liệu persona" },
 		completeOneTrack: {
 			en: "Complete at least 1 track in Discovery to see your persona. Leaply will analyze your answers and create insights for you.",
@@ -767,7 +869,10 @@ export const translations = {
 		total: { en: "Total", vi: "Tổng" },
 		reviewed: { en: "Reviewed", vi: "Reviewed" },
 		pending: { en: "Pending", vi: "Đang chờ" },
-		selectEssayToStart: { en: "Select an essay to start", vi: "Chọn essay để bắt đầu" },
+		selectEssayToStart: {
+			en: "Select an essay to start",
+			vi: "Chọn essay để bắt đầu",
+		},
 		selectFromList: {
 			en: "Select an essay from the list on the left or create a new essay",
 			vi: "Chọn một essay từ danh sách bên trái hoặc tạo essay mới",
@@ -785,23 +890,38 @@ export const translations = {
 		essayType: { en: "Essay type", vi: "Loại essay" },
 		selectType: { en: "Select type", vi: "Chọn loại" },
 		essayPrompt: { en: "Essay prompt", vi: "Essay prompt" },
-		enterPrompt: { en: "Enter the essay question / prompt...", vi: "Nhập câu hỏi / prompt của essay..." },
-		wordLimit: { en: "Word limit (optional)", vi: "Giới hạn từ (không bắt buộc)" },
+		enterPrompt: {
+			en: "Enter the essay question / prompt...",
+			vi: "Nhập câu hỏi / prompt của essay...",
+		},
+		wordLimit: {
+			en: "Word limit (optional)",
+			vi: "Giới hạn từ (không bắt buộc)",
+		},
 		selectWordLimit: { en: "Select word limit", vi: "Chọn giới hạn từ" },
 		eg: { en: "E.g.", vi: "VD" },
 		cancel: { en: "Cancel", vi: "Hủy" },
 		createEssay: { en: "Create essay", vi: "Tạo essay" },
 		prompt: { en: "Prompt", vi: "Prompt" },
-		startWriting: { en: "Start writing your essay...\n\nTip: Write in your own words first, Leaply will help you improve later. Don't worry about perfection from the start.", vi: "Bắt đầu viết essay của bạn...\n\nTip: Hãy viết theo ý của bạn trước, Leaply sẽ giúp bạn cải thiện sau. Đừng lo lắng về sự hoàn hảo ngay từ đầu." },
+		startWriting: {
+			en: "Start writing your essay...\n\nTip: Write in your own words first, Leaply will help you improve later. Don't worry about perfection from the start.",
+			vi: "Bắt đầu viết essay của bạn...\n\nTip: Hãy viết theo ý của bạn trước, Leaply sẽ giúp bạn cải thiện sau. Đừng lo lắng về sự hoàn hảo ngay từ đầu.",
+		},
 		words: { en: "words", vi: "từ" },
 		unsaved: { en: "Unsaved", vi: "Chưa lưu" },
 		save: { en: "Save", vi: "Lưu" },
 		saving: { en: "Saving...", vi: "Đang lưu..." },
 		submitForReview: { en: "Submit for review", vi: "Gửi để review" },
 		feedback: { en: "Feedback", vi: "Feedback" },
-		feedbackFromMentor: { en: "Feedback from Leaply mentor", vi: "Góp ý từ Leaply mentor" },
+		feedbackFromMentor: {
+			en: "Feedback from Leaply mentor",
+			vi: "Góp ý từ Leaply mentor",
+		},
 		noFeedback: { en: "No feedback yet", vi: "Chưa có feedback" },
-		submitToGetFeedback: { en: "Submit essay to get feedback", vi: "Gửi essay để nhận góp ý" },
+		submitToGetFeedback: {
+			en: "Submit essay to get feedback",
+			vi: "Gửi essay để nhận góp ý",
+		},
 		observation: { en: "Observation", vi: "Quan sát" },
 		recommendation: { en: "Recommendation", vi: "Gợi ý" },
 		justNow: { en: "Just now", vi: "Vừa xong" },
@@ -817,13 +937,19 @@ export const translations = {
 		subtitle: { en: "Here's your journey", vi: "Đây là hành trình của bạn" },
 		you: { en: "you", vi: "bạn" },
 		suggestedForYou: { en: "Suggested for you", vi: "Gợi ý cho bạn" },
-		startDiscovery: { en: "Start discovering yourself", vi: "Bắt đầu khám phá bản thân" },
+		startDiscovery: {
+			en: "Start discovering yourself",
+			vi: "Bắt đầu khám phá bản thân",
+		},
 		startDiscoveryDesc: {
 			en: "Understand your strengths and story before choosing the right schools. Persona Lab will help you discover the amazing things about yourself.",
 			vi: "Hiểu rõ điểm mạnh và câu chuyện của bạn trước khi chọn trường phù hợp. Persona Lab sẽ giúp bạn khám phá những điều tuyệt vời về bản thân.",
 		},
 		goToPersonaLab: { en: "Go to Persona Lab", vi: "Vào Persona Lab" },
-		addFirstTarget: { en: "Add your first target school", vi: "Thêm trường mục tiêu đầu tiên" },
+		addFirstTarget: {
+			en: "Add your first target school",
+			vi: "Thêm trường mục tiêu đầu tiên",
+		},
 		addFirstTargetDesc: {
 			en: "Discover schools that match your profile and start building your target school list.",
 			vi: "Khám phá các trường phù hợp với profile của bạn và bắt đầu xây dựng danh sách trường mục tiêu.",
@@ -843,13 +969,19 @@ export const translations = {
 		yourApplications: { en: "Your Applications", vi: "Hồ sơ của bạn" },
 		viewAll: { en: "View all", vi: "Xem tất cả" },
 		saved: { en: "Saved", vi: "Đã lưu" },
-		noSchoolsSaved: { en: "No schools saved yet", vi: "Chưa có trường nào được lưu" },
+		noSchoolsSaved: {
+			en: "No schools saved yet",
+			vi: "Chưa có trường nào được lưu",
+		},
 		noApplicationsYet: { en: "No applications yet", vi: "Chưa có hồ sơ nào" },
 		fit: { en: "fit", vi: "phù hợp" },
 		draft: { en: "Draft", vi: "Nháp" },
 		underReview: { en: "Under Review", vi: "Đang xét" },
 		continueWhereYouLeft: { en: "Continue", vi: "Tiếp tục" },
-		startYourJourney: { en: "Start your journey", vi: "Bắt đầu hành trình của bạn" },
+		startYourJourney: {
+			en: "Start your journey",
+			vi: "Bắt đầu hành trình của bạn",
+		},
 		quickActions: { en: "Quick Actions", vi: "Hành động nhanh" },
 		updateProfile: { en: "Update profile", vi: "Cập nhật profile" },
 		daysAgo: { en: "days ago", vi: "ngày trước" },
@@ -876,4 +1008,3 @@ export const translations = {
 } as const;
 
 export type TranslationKey = keyof typeof translations;
-

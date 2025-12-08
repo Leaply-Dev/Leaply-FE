@@ -57,7 +57,11 @@ interface UserState {
 	setPreferences: (preferences: UserPreferences) => void;
 	updatePreferences: (updates: Partial<UserPreferences>) => void;
 	setJourneyType: (journeyType: JourneyType) => void;
-	setLastActivity: (activity: { type: string; path: string; title: string }) => void;
+	setLastActivity: (activity: {
+		type: string;
+		path: string;
+		title: string;
+	}) => void;
 	completeOnboarding: () => void;
 	login: (profile: UserProfile) => void;
 	logout: () => void;
@@ -77,8 +81,8 @@ export const useUserStore = create<UserState>()(
 
 			updateProfile: (updates) =>
 				set((state) => ({
-					profile: state.profile 
-						? { ...state.profile, ...updates } 
+					profile: state.profile
+						? { ...state.profile, ...updates }
 						: { id: crypto.randomUUID(), email: "", fullName: "", ...updates },
 				})),
 
@@ -123,6 +127,6 @@ export const useUserStore = create<UserState>()(
 				isAuthenticated: state.isAuthenticated,
 				lastActivity: state.lastActivity,
 			}),
-		}
-	)
+		},
+	),
 );

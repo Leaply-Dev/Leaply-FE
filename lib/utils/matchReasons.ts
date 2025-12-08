@@ -1,5 +1,5 @@
 import type { University } from "../store/universitiesStore";
-import type { UserProfile, UserPreferences } from "../store/userStore";
+import type { UserPreferences, UserProfile } from "../store/userStore";
 
 export interface MatchReason {
 	id: string;
@@ -94,7 +94,9 @@ export function generateMatchReasons(
 	) {
 		// Simple keyword matching - in production would be more sophisticated
 		const hasRelevantProgram = university.programs.some((p) =>
-			p.name.toLowerCase().includes(preferences.desiredMajor?.toLowerCase() ?? ""),
+			p.name
+				.toLowerCase()
+				.includes(preferences.desiredMajor?.toLowerCase() ?? ""),
 		);
 
 		if (hasRelevantProgram) {

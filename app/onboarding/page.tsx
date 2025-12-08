@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { GraduationCap, User } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { User, GraduationCap } from "lucide-react";
+import { useState } from "react";
+import { OnboardingProgress } from "@/components/OnboardingProgress";
+import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
 import {
 	Card,
 	CardContent,
@@ -14,14 +13,12 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { OnboardingProgress } from "@/components/OnboardingProgress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { useUserStore } from "@/lib/store/userStore";
-import { PageTransition } from "@/components/PageTransition";
 
-const ONBOARDING_STEPS = [
-	"Thông tin cơ bản",
-	"Hành trình",
-];
+const ONBOARDING_STEPS = ["Thông tin cơ bản", "Hành trình"];
 
 export default function OnboardingPage() {
 	const router = useRouter();
@@ -71,7 +68,9 @@ export default function OnboardingPage() {
 							<div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
 								<User className="w-8 h-8 text-primary" />
 							</div>
-							<CardTitle className="text-2xl">Chào mừng bạn đến Leaply!</CardTitle>
+							<CardTitle className="text-2xl">
+								Chào mừng bạn đến Leaply!
+							</CardTitle>
 							<CardDescription className="text-base">
 								Hãy bắt đầu với một số thông tin cơ bản về bạn
 							</CardDescription>
@@ -107,19 +106,28 @@ export default function OnboardingPage() {
 
 								{/* Education Level */}
 								<div className="space-y-2">
-									<Label htmlFor="educationLevel" className="flex items-center gap-2">
+									<Label
+										htmlFor="educationLevel"
+										className="flex items-center gap-2"
+									>
 										<GraduationCap className="w-4 h-4 text-muted-foreground" />
 										Trình độ học vấn hiện tại
 									</Label>
 									<Select
 										id="educationLevel"
 										value={formData.currentEducationLevel}
-										onChange={(e) => updateField("currentEducationLevel", e.target.value)}
+										onChange={(e) =>
+											updateField("currentEducationLevel", e.target.value)
+										}
 										required
 									>
 										<option value="">Chọn trình độ</option>
-										<option value="High School">Trung học phổ thông (High School)</option>
-										<option value="Undergraduate">Đại học (Undergraduate)</option>
+										<option value="High School">
+											Trung học phổ thông (High School)
+										</option>
+										<option value="Undergraduate">
+											Đại học (Undergraduate)
+										</option>
 										<option value="Graduate">Sau đại học (Graduate)</option>
 									</Select>
 								</div>

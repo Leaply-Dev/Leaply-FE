@@ -1,26 +1,26 @@
 "use client";
 
-import { useEffect } from "react";
-import Link from "next/link";
 import {
-	GraduationCap,
-	FileText,
-	CheckSquare,
-	BookOpen,
 	ArrowRight,
+	BookOpen,
+	CheckSquare,
+	FileText,
+	GraduationCap,
 } from "lucide-react";
+import Link from "next/link";
+import { useEffect } from "react";
+import { ApplicationCard } from "@/components/ApplicationCard";
+import { PageContainer } from "@/components/Layout";
+import { PageTransition, SlideUp } from "@/components/PageTransition";
+import { StatCard } from "@/components/StatCard";
+import { TaskItem } from "@/components/TaskItem";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatCard } from "@/components/StatCard";
-import { ApplicationCard } from "@/components/ApplicationCard";
-import { TaskItem } from "@/components/TaskItem";
-import { PageContainer } from "@/components/Layout";
-import { useUniversitiesStore } from "@/lib/store/universitiesStore";
-import { useApplicationsStore } from "@/lib/store/applicationsStore";
 import { mockApplications, mockTasks } from "@/lib/data/applications";
 import { mockUniversities } from "@/lib/data/universities";
-import { PageTransition, SlideUp } from "@/components/PageTransition";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useApplicationsStore } from "@/lib/store/applicationsStore";
+import { useUniversitiesStore } from "@/lib/store/universitiesStore";
 
 export default function DashboardPage() {
 	const { t } = useTranslation();
@@ -63,7 +63,9 @@ export default function DashboardPage() {
 		<PageTransition>
 			<PageContainer>
 				<div className="mb-8">
-					<h1 className="text-3xl font-bold text-foreground mb-2">{t("dashboard", "title")}</h1>
+					<h1 className="text-3xl font-bold text-foreground mb-2">
+						{t("dashboard", "title")}
+					</h1>
 					<p className="text-lg text-muted-foreground">
 						{t("dashboard", "subtitle")}
 					</p>
@@ -106,7 +108,9 @@ export default function DashboardPage() {
 							<Card>
 								<CardHeader>
 									<div className="flex items-center justify-between">
-										<CardTitle>{t("dashboard", "recentApplications")}</CardTitle>
+										<CardTitle>
+											{t("dashboard", "recentApplications")}
+										</CardTitle>
 										<Button variant="ghost" size="sm" asChild>
 											<Link href="/dashboard/applications">
 												{t("dashboard", "viewAll")}
@@ -137,7 +141,9 @@ export default function DashboardPage() {
 												{t("dashboard", "noApplications")}
 											</p>
 											<Button asChild>
-												<Link href="/universities">{t("dashboard", "browseUniversities")}</Link>
+												<Link href="/universities">
+													{t("dashboard", "browseUniversities")}
+												</Link>
 											</Button>
 										</div>
 									)}
@@ -180,7 +186,9 @@ export default function DashboardPage() {
 									) : (
 										<div className="text-center py-8">
 											<CheckSquare className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-											<p className="text-muted-foreground">{t("dashboard", "allCaughtUp")}</p>
+											<p className="text-muted-foreground">
+												{t("dashboard", "allCaughtUp")}
+											</p>
 										</div>
 									)}
 								</CardContent>

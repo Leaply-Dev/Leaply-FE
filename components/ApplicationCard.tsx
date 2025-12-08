@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { Calendar, FileText } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { cn } from "@/lib/utils";
 
 interface ApplicationCardProps {
 	id: string;
@@ -63,7 +63,8 @@ export function ApplicationCard({
 						<div className="flex items-center gap-2 text-sm text-muted-foreground">
 							<FileText className="w-4 h-4" />
 							<span>
-								{t("applications", "submitted")}: {new Date(submissionDate).toLocaleDateString()}
+								{t("applications", "submitted")}:{" "}
+								{new Date(submissionDate).toLocaleDateString()}
 							</span>
 						</div>
 					)}
@@ -71,13 +72,16 @@ export function ApplicationCard({
 						<div className="flex items-center gap-2 text-sm text-muted-foreground">
 							<Calendar className="w-4 h-4" />
 							<span>
-								{t("applications", "decisionBy")}: {new Date(decisionDeadline).toLocaleDateString()}
+								{t("applications", "decisionBy")}:{" "}
+								{new Date(decisionDeadline).toLocaleDateString()}
 							</span>
 						</div>
 					)}
 				</div>
 				<Button asChild size="sm" variant="outline" className="w-full">
-					<Link href={`/dashboard/applications/${id}`}>{t("applications", "viewApplication")}</Link>
+					<Link href={`/dashboard/applications/${id}`}>
+						{t("applications", "viewApplication")}
+					</Link>
 				</Button>
 			</CardContent>
 		</Card>

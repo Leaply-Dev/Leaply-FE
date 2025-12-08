@@ -1,34 +1,30 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-	FileText,
-	Plus,
-	Clock,
-	MessageSquare,
-	CheckCircle,
 	AlertCircle,
-	Edit,
-	Trash2,
-	School,
+	CheckCircle,
 	ChevronRight,
-	Save,
-	Send,
-	Search,
+	Clock,
+	Edit,
+	FileText,
 	GraduationCap,
-	RefreshCw,
-	Sparkles,
 	Loader2,
+	MessageSquare,
+	Plus,
+	RefreshCw,
+	Save,
+	School,
+	Search,
+	Send,
+	Sparkles,
+	Trash2,
 } from "lucide-react";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
 	Dialog,
 	DialogContent,
@@ -37,14 +33,19 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import {
-	usePersonaStore,
 	type Essay,
-	type EssayStatus,
 	type EssayFeedback,
+	type EssayStatus,
+	usePersonaStore,
 } from "@/lib/store/personaStore";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const STATUS_CONFIG: Record<
 	EssayStatus,
