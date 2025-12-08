@@ -6,10 +6,10 @@ This document defines the conventions and best practices for developing and main
 
 The demo uses the following core technologies:
 
-- **Next.js 14 with App Router** – emphasises React Server Components and Server Actions for data mutations. Use server components by default and add the `'use client'` directive only when interactive behaviour is required.
+- **Next.js 16 with App Router** – emphasises React Server Components and Server Actions for data mutations. Use server components by default and add the `'use client'` directive only when interactive behaviour is required.
 - **TypeScript** – all components and functions must be written in TypeScript. Prefer interfaces over type aliases when defining object shapes.
-- **Tailwind CSS** – primary styling solution. Avoid CSS modules or styled components. Utility classes should be used to compose layouts and spacing.
-- **shadcn/ui** – base UI component library built on Radix UI and Tailwind. Copy components via the shadcn CLI into `components/ui` and customise as needed.
+- **Tailwind 4** – primary styling solution. Avoid CSS modules or styled components. Utility classes should be used to compose layouts and spacing.
+- **shadcn/ui** – base UI component library built on Radix UI and Tailwind 4. Whenever you need a new component, use the shadcn CLI, for example `npx shadcn@latest add button`, to fetch component into `components/ui` and customise as needed.
 - **Framer Motion** – library for animations. Use it for page transitions, hover effects and list staggering.
 - **Zustand** – lightweight global state management library. Use for any state shared across pages (e.g., user profile, saved universities). Keep state local with React hooks when possible.
 
@@ -23,11 +23,10 @@ The demo uses the following core technologies:
 ## Development workflow
 
 - Use **TypeScript** for all source files (`.ts`/`.tsx`). Keep types explicit where possible to catch errors early and prefer interfaces for object definitions.
-- Run the development server with `npm run dev`. The Next.js 14 app router provides hot‑reloading via Turbopack, which significantly speeds up startup and code updates【654689439250516†L22-L63】.
+- Run the development server with `npm run dev`. The Next.js 16 app router provides hot‑reloading via Turbopack, which significantly speeds up startup and code updates.
 - Use `npm run build` to generate a production build.
 - Environment variables should be stored in a `.env.local` file at the project root. Do **not** commit secrets to version control. Use `process.env` to reference variables.
-- Ensure that server‑side code (API routes or Server Actions) is declared inside `app/` or `pages/api`. Server Actions require the `'use server'` directive inside asynchronous functions【654689439250516†L123-L169】. Use Server Components by default and annotate components with `'use client'` only when you need interactive features (e.g., event handlers, stateful hooks).
-- When integrating third‑party AI services, wrap API calls in functions under `lib/` and isolate credentials via environment variables. Avoid hard‑coding API keys.
+- Ensure that server‑side code (API routes or Server Actions) is declared inside `app/` or `pages/api`. Server Actions require the `'use server'` directive inside asynchronous functions. Use Server Components by default and annotate components with `'use client'` only when you need interactive features (e.g., event handlers, stateful hooks).
 - When integrating third‑party AI services, wrap API calls in functions under `lib/` and isolate credentials via environment variables. Avoid hard‑coding API keys.
 
 ## State management

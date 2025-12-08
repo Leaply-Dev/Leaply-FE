@@ -152,6 +152,7 @@ function EssaySidebarItem({ essay, isActive, onClick }: EssaySidebarItemProps) {
 
 	return (
 		<button
+			type="button"
 			onClick={onClick}
 			className={cn(
 				"w-full text-left p-3 rounded-lg transition-all group",
@@ -565,7 +566,7 @@ function EssayEditor({ essay, onUpdate, onDelete }: EssayEditorProps) {
 								value={content}
 								onChange={(e) => handleContentChange(e.target.value)}
 								placeholder={t("personaLab", "startWriting")}
-								className="min-h-[400px] text-base leading-relaxed resize-none border-0 focus-visible:ring-0 p-0 shadow-none"
+								className="min-h-[400px] bg-card text-base leading-relaxed resize-none focus-visible:ring-0"
 							/>
 						</div>
 					</ScrollArea>
