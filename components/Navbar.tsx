@@ -171,7 +171,7 @@ export function Navbar() {
 									<Link href="/login">{t("nav", "login")}</Link>
 								</Button>
 								<Button size="sm" asChild>
-									<Link href="/signup">{t("nav", "getStarted")}</Link>
+									<Link href="/getting-started">{t("nav", "getStarted")}</Link>
 								</Button>
 							</>
 						)}
@@ -272,7 +272,7 @@ export function Navbar() {
 										</Button>
 										<Button size="sm" asChild>
 											<Link
-												href="/signup"
+												href="/getting-started"
 												onClick={() => setMobileMenuOpen(false)}
 											>
 												{t("nav", "getStarted")}

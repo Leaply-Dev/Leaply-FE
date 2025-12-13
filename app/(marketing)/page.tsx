@@ -424,7 +424,7 @@ export default function HomePage() {
 									className="text-lg px-8 py-6 sm:min-w-[220px] shadow-lg shadow-primary/25"
 									asChild
 								>
-									<Link href="/signup">
+									<Link href="/getting-started">
 										{t("landing", "ctaStart")}
 										<ArrowRight className="ml-2 w-5 h-5" />
 									</Link>
@@ -697,7 +697,7 @@ export default function HomePage() {
 								className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold text-lg px-8 py-6"
 								asChild
 							>
-								<Link href="/signup">
+								<Link href="/getting-started">
 									{t("landing", "ctaCreateAccount")}
 									<ArrowRight className="ml-2 w-5 h-5" />
 								</Link>

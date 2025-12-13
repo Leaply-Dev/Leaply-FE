@@ -136,7 +136,7 @@ export default function OnboardingPage() {
 									<Button
 										type="button"
 										variant="outline"
-										onClick={() => router.push("/signup")}
+										onClick={() => router.push("/getting-started")}
 									>
 										Quay lại
 									</Button>

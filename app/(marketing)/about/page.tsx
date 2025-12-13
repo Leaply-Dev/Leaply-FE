@@ -429,7 +429,7 @@ export default function AboutPage() {
 								className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold"
 								asChild
 							>
-								<Link href="/signup">
+								<Link href="/getting-started">
 									{t("about", "ctaButton")}
 									<ArrowRight className="ml-2 w-5 h-5" />
 								</Link>
