@@ -8,17 +8,28 @@ import { useEffect, useRef, useState } from "react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
+import type {Locale} from "@/app/[lang]/dictionaries";
 
-export function Navbar() {
+type Dictionary = Record<string, any>;
+
+interface NavbarProps {
+	locale: Locale;
+	translations: Dictionary;
+}
+
+export function Navbar({ locale, translations }: NavbarProps) {
 	const pathname = usePathname();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 	const { isAuthenticated, profile, logout } = useUserStore();
-	const { t } = useTranslation();
+
+	// Helper to get translation
+	const t = (section: string, key: string) => {
+		return translations[section]?.[key] || key;
+	};
 
 	// Nav links with translations
 	const publicNavLinks = [
@@ -104,7 +115,7 @@ export function Navbar() {
 
 					{/* Auth Buttons / Avatar + Language Switcher */}
 					<div className="hidden md:flex items-center gap-3">
-						<LanguageSwitcher />
+						<LanguageSwitcher currentLocale={locale} />
 
 						{isAuthenticated ? (
 							<div className="relative" ref={dropdownRef}>
@@ -179,7 +190,7 @@ export function Navbar() {
 
 					{/* Mobile Menu Button */}
 					<div className="flex items-center gap-2 md:hidden">
-						<LanguageSwitcher />
+						<LanguageSwitcher currentLocale={locale} />
 						<button
 							type="button"
 							className="p-2 text-foreground"

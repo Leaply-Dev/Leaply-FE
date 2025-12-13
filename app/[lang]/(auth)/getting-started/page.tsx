@@ -5,13 +5,17 @@ import Link from "next/link";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SignupForm } from "@/components/signup-form";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useParams } from "next/navigation";
 
 export default function SignupPage() {
+	const params = useParams();
+	const locale = params.lang as "en" | "vi";
+
 	return (
 		<div className="grid min-h-svh lg:grid-cols-2">
 			<div className="flex flex-col gap-4 p-6 md:p-10">
 				<div className="flex justify-between items-center">
-					<Link href="/" className="flex items-center gap-2">
+					<Link href={`/${locale}`} className="flex items-center gap-2">
 						<Image
 							src="/Logo.png"
 							alt="Logo"
@@ -20,7 +24,7 @@ export default function SignupPage() {
 							className="h-8 w-auto"
 						/>
 					</Link>
-					<LanguageSwitcher />
+					<LanguageSwitcher currentLocale={locale} />
 				</div>
 				<div className="flex flex-1 items-center justify-center">
 					<div className="w-full max-w-xs">
