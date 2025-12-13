@@ -990,6 +990,49 @@ export const translations = {
 		justNow: { en: "Just now", vi: "Vừa xong" },
 	},
 
+	// Auth Pages
+	auth: {
+		// Signup
+		signupTitle: { en: "Create your account", vi: "Tạo tài khoản" },
+		signupSubtitle: {
+			en: "Start your journey to global education",
+			vi: "Khởi đầu hành trình du học của bạn",
+		},
+		alreadyHaveAccount: {
+			en: "Already have an account?",
+			vi: "Đã có tài khoản?",
+		},
+		login: { en: "Login", vi: "Đăng nhập" },
+		fullName: { en: "Full Name", vi: "Họ và tên" },
+		fullNamePlaceholder: { en: "John Doe", vi: "Nguyễn Văn A" },
+		email: { en: "Email", vi: "Email" },
+		emailPlaceholder: { en: "m@example.com", vi: "email@example.com" },
+		emailDescription: {
+			en: "We'll use this to contact you. We will not share your email with anyone else.",
+			vi: "Chúng mình sẽ dùng email này để liên lạc với bạn. Chúng mình sẽ không chia sẻ email của bạn với ai khác.",
+		},
+		password: { en: "Password", vi: "Mật khẩu" },
+		passwordDescription: {
+			en: "Must be at least 8 characters long.",
+			vi: "Phải có ít nhất 8 ký tự.",
+		},
+		confirmPassword: { en: "Confirm Password", vi: "Xác nhận mật khẩu" },
+		confirmPasswordDescription: {
+			en: "Please confirm your password.",
+			vi: "Vui lòng xác nhận mật khẩu.",
+		},
+		createAccount: { en: "Create Account", vi: "Tạo tài khoản" },
+		tosAgreement: {
+			en: "By clicking the Signup button, you agree with our",
+			vi: "Bằng cách nhấn nút Đăng ký, bạn đồng ý với",
+		},
+		tos: { en: "ToS", vi: "Điều khoản dịch vụ" },
+		and: { en: "and", vi: "và" },
+		privacyPolicy: { en: "Privacy policy", vi: "Chính sách bảo mật" },
+		orContinueWith: { en: "Or continue with", vi: "Hoặc tiếp tục với" },
+		signupWithGithub: { en: "Sign up with GitHub", vi: "Đăng ký với GitHub" },
+	},
+
 	// Common
 	common: {
 		leaply: { en: "Leaply", vi: "Leaply" },

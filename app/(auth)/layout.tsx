@@ -1,8 +1,6 @@
 import "@/app/globals.css";
 import { Raleway } from "next/font/google";
 import { DataInitializer } from "@/components/DataInitializer";
-import { Footer } from "@/components/Footer";
-import { Navbar } from "@/components/Navbar";
 
 const raleway = Raleway({
 	subsets: ["latin"],
@@ -18,18 +16,16 @@ export const metadata = {
 	},
 };
 
-export default function RootLayout({
+export default function AuthLayout({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
 	return (
 		<html lang="en" className={raleway.className}>
-			<body className="min-h-screen flex flex-col">
+			<body className="min-h-screen">
 				<DataInitializer />
-				<Navbar />
-				<main className="flex-1 flex flex-col min-h-0">{children}</main>
-				<Footer />
+				{children}
 			</body>
 		</html>
 	);
