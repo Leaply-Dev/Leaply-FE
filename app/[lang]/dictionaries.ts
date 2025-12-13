@@ -14,4 +14,3 @@ export const getDictionary = async (locale: Locale) => dictionaries[locale]();
 
 export const defaultLocale: Locale = "vi";
 export const locales: Locale[] = ["en", "vi"];
-

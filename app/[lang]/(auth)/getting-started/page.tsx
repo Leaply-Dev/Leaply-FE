@@ -2,10 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SignupForm } from "@/components/signup-form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useParams } from "next/navigation";
 
 export default function SignupPage() {
 	const params = useParams();

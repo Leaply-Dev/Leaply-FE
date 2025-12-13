@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+import type { Locale } from "@/app/[lang]/dictionaries";
 import { useLanguageStore } from "@/lib/store/languageStore";
-import type {Locale} from "@/app/[lang]/dictionaries";
 
 export function LocaleSync({ locale }: { locale: Locale }) {
 	const { setLanguage } = useLanguageStore();
@@ -14,4 +14,3 @@ export function LocaleSync({ locale }: { locale: Locale }) {
 
 	return null;
 }
-

@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { Inter } from "next/font/google";
+import { notFound } from "next/navigation";
 import "./globals.css";
 import { hasLocale, type Locale } from "@/app/[lang]/dictionaries";
-import type { LayoutProps } from "next";
 import { LocaleSync } from "@/components/LocaleSync";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -21,7 +20,10 @@ export async function generateStaticParams() {
 export default async function RootLayout({
 	children,
 	params,
-}: LayoutProps<"[lang]">) {
+}: {
+	children: React.ReactNode;
+	params: Promise<{ lang: string }>;
+}) {
 	const { lang } = await params;
 
 	// Validate that the incoming `lang` parameter is valid
@@ -38,4 +40,3 @@ export default async function RootLayout({
 		</html>
 	);
 }
-

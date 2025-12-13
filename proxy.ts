@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import { match as matchLocale } from "@formatjs/intl-localematcher";
 import Negotiator from "negotiator";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 const locales = ["en", "vi"];
 const defaultLocale = "vi";
@@ -30,8 +30,7 @@ export function proxy(request: NextRequest) {
 
 	// Check if there is any supported locale in the pathname
 	const pathnameHasLocale = locales.some(
-		(locale) =>
-			pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
+		(locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
 	);
 
 	if (pathnameHasLocale) return;
@@ -50,4 +49,3 @@ export const config = {
 		"/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)).*)",
 	],
 };
-

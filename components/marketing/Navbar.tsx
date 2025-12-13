@@ -5,10 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import type { Locale } from "@/app/[lang]/dictionaries";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type {Locale} from "@/app/[lang]/dictionaries";
 
 type Dictionary = Record<string, any>;
 

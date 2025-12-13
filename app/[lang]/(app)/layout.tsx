@@ -1,7 +1,10 @@
 import { Raleway } from "next/font/google";
-import type { LayoutProps } from "next";
-import { getDictionary, hasLocale, type Locale } from "@/app/[lang]/dictionaries";
 import { notFound } from "next/navigation";
+import {
+	getDictionary,
+	hasLocale,
+	type Locale,
+} from "@/app/[lang]/dictionaries";
 import { DataInitializer } from "@/components/DataInitializer";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
@@ -23,13 +26,16 @@ export const metadata = {
 export default async function AppLayout({
 	children,
 	params,
-}: LayoutProps<"[lang]">) {
+}: {
+	children: React.ReactNode;
+	params: Promise<{ lang: string }>;
+}) {
 	const { lang } = await params;
-	
+
 	if (!hasLocale(lang)) {
 		notFound();
 	}
-	
+
 	const dict = await getDictionary(lang as Locale);
 
 	return (
