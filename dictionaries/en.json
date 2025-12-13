@@ -149,6 +149,7 @@
 		},
 		"recentApplications": "Recent Applications",
 		"viewAll": "View All",
+		"seeAll": "See All",
 		"noApplications": "No applications yet",
 		"browseUniversities": "Browse Universities",
 		"upcomingTasks": "Upcoming Tasks",
@@ -156,7 +157,20 @@
 		"quickActions": "Quick Actions",
 		"exploreUniversities": "Explore Universities",
 		"askAIAssistant": "Ask AI Assistant",
-		"browseResources": "Browse Resources"
+		"browseResources": "Browse Resources",
+		"share": "Share",
+		"addApplication": "+ Add Application",
+		"applications": "Applications",
+		"submitted": "Submitted",
+		"inProgress": "In-progress",
+		"myApplications": "My Applications",
+		"thisWeek": "This Week",
+		"application": "Application",
+		"program": "Program",
+		"status": "Status",
+		"schedule": "Schedule",
+		"notes": "Notes",
+		"markComplete": "Mark as complete"
 	},
 	"applications": {
 		"title": "Applications",
@@ -478,6 +492,8 @@
 		"signupSubtitle": "Start your journey to global education",
 		"alreadyHaveAccount": "Already have an account?",
 		"login": "Login",
+		"loginTitle": "Welcome Back",
+		"loginSubtitle": "Sign in to your Leaply account",
 		"fullName": "Full Name",
 		"fullNamePlaceholder": "John Doe",
 		"email": "Email",
@@ -493,7 +509,12 @@
 		"and": "and",
 		"privacyPolicy": "Privacy policy",
 		"orContinueWith": "Or continue with",
-		"signupWithGithub": "Sign up with GitHub"
+		"signupWithGithub": "Sign up with GitHub",
+		"rememberMe": "Remember me",
+		"forgotPassword": "Forgot password?",
+		"signIn": "Sign In",
+		"noAccount": "Don't have an account?",
+		"signUp": "Sign up"
 	},
 	"common": {
 		"leaply": "Leaply",

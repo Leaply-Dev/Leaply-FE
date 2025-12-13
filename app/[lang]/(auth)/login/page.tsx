@@ -1,25 +1,31 @@
 "use client";
 
 import { Lock, Mail } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { PageTransition } from "@/components/PageTransition";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+	Field,
+	FieldDescription,
+	FieldGroup,
+	FieldLabel,
+	FieldSeparator,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useUserStore } from "@/lib/store/userStore";
 
 export default function LoginPage() {
+	const params = useParams();
 	const router = useRouter();
+	const locale = params.lang as "en" | "vi";
+	const { t } = useTranslation();
 	const { login } = useUserStore();
+
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 
@@ -37,102 +43,157 @@ export default function LoginPage() {
 		};
 
 		login(mockProfile);
-		router.push("/dashboard");
+		router.push(`/${locale}/dashboard/home`);
 	};
 
 	return (
-		<PageTransition>
-			<div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-muted py-12 px-4 sm:px-6 lg:px-8">
-				<Card className="w-full max-w-md">
-					<CardHeader className="space-y-1">
-						<CardTitle className="text-2xl font-bold text-center">
-							Welcome Back
-						</CardTitle>
-						<CardDescription className="text-center">
-							Sign in to your Leaply account
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<form onSubmit={handleLogin} className="space-y-4">
-							<div className="space-y-2">
-								<Label htmlFor="email">Email</Label>
-								<div className="relative">
-									<Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-									<Input
-										id="email"
-										type="email"
-										placeholder="you@example.com"
-										value={email}
-										onChange={(e) => setEmail(e.target.value)}
-										className="pl-10"
-										required
-									/>
+		<div className="grid min-h-svh lg:grid-cols-2">
+			<div className="flex flex-col gap-4 p-6 md:p-10">
+				<div className="flex justify-between items-center">
+					<Link href={`/${locale}`} className="flex items-center gap-2">
+						<Image
+							src="/Logo.png"
+							alt="Leaply"
+							width={120}
+							height={40}
+							className="h-8 w-auto"
+						/>
+					</Link>
+					<LanguageSwitcher currentLocale={locale} />
+				</div>
+				<div className="flex flex-1 items-center justify-center">
+					<div className="w-full max-w-xs">
+						<form onSubmit={handleLogin} className="flex flex-col gap-6">
+							<FieldGroup>
+								<div className="flex flex-col items-center gap-1 text-center">
+									<h1 className="text-2xl font-bold">
+										{t("auth", "loginTitle")}
+									</h1>
+									<p className="text-muted-foreground text-sm text-balance">
+										{t("auth", "loginSubtitle")}
+									</p>
 								</div>
-							</div>
-
-							<div className="space-y-2">
-								<Label htmlFor="password">Password</Label>
-								<div className="relative">
-									<Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-									<Input
-										id="password"
-										type="password"
-										placeholder="••••••••"
-										value={password}
-										onChange={(e) => setPassword(e.target.value)}
-										className="pl-10"
-										required
-									/>
+								<Field>
+									<FieldLabel htmlFor="email">{t("auth", "email")}</FieldLabel>
+									<div className="relative">
+										<Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+										<Input
+											id="email"
+											type="email"
+											placeholder={t("auth", "emailPlaceholder")}
+											value={email}
+											onChange={(e) => setEmail(e.target.value)}
+											className="pl-10"
+											required
+										/>
+									</div>
+								</Field>
+								<Field>
+									<div className="flex items-center">
+										<FieldLabel htmlFor="password">
+											{t("auth", "password")}
+										</FieldLabel>
+										<a
+											href="#"
+											className="ml-auto text-sm text-primary underline-offset-2 hover:underline"
+										>
+											{t("auth", "forgotPassword")}
+										</a>
+									</div>
+									<div className="relative">
+										<Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+										<Input
+											id="password"
+											type="password"
+											placeholder="••••••••"
+											value={password}
+											onChange={(e) => setPassword(e.target.value)}
+											className="pl-10"
+											required
+										/>
+									</div>
+								</Field>
+								<div className="flex items-center gap-2">
+									<input type="checkbox" id="remember" className="rounded-sm" />
+									<label
+										htmlFor="remember"
+										className="text-sm text-muted-foreground"
+									>
+										{t("auth", "rememberMe")}
+									</label>
 								</div>
-							</div>
-
-							<div className="flex items-center justify-between text-sm">
-								<label className="flex items-center gap-2">
-									<input type="checkbox" className="rounded-sm" />
-									<span className="text-muted-foreground">Remember me</span>
-								</label>
-								<Link href="#" className="text-primary hover:text-accent">
-									Forgot password?
-								</Link>
-							</div>
-
-							<Button type="submit" className="w-full" size="lg">
-								Sign In
-							</Button>
-
-							<div className="relative my-6">
-								<div className="absolute inset-0 flex items-center">
-									<div className="w-full border-t border-border"></div>
-								</div>
-								<div className="relative flex justify-center text-sm">
-									<span className="bg-card px-4 text-muted-foreground">
-										Or continue with
-									</span>
-								</div>
-							</div>
-
-							<div className="grid grid-cols-2 gap-4">
-								<Button type="button" variant="outline" className="w-full">
-									Google
-								</Button>
-								<Button type="button" variant="outline" className="w-full">
-									Facebook
-								</Button>
-							</div>
+								<Field>
+									<Button type="submit" className="w-full">
+										{t("auth", "signIn")}
+									</Button>
+								</Field>
+								<FieldSeparator>{t("auth", "orContinueWith")}</FieldSeparator>
+								<Field className="grid grid-cols-2 gap-4">
+									<Button variant="outline" type="button">
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											viewBox="0 0 24 24"
+											className="w-5 h-5"
+										>
+											<path
+												d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
+												fill="currentColor"
+											/>
+										</svg>
+										Google
+									</Button>
+									<Button variant="outline" type="button">
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											viewBox="0 0 24 24"
+											className="w-5 h-5"
+										>
+											<title>GitHub</title>
+											<path
+												d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
+												fill="currentColor"
+											/>
+										</svg>
+										GitHub
+									</Button>
+								</Field>
+								<FieldDescription className="text-center">
+									{t("auth", "noAccount")}{" "}
+									<Link
+										href={`/${locale}/getting-started`}
+										className="text-primary hover:underline font-medium"
+									>
+										{t("auth", "signUp")}
+									</Link>
+								</FieldDescription>
+							</FieldGroup>
 						</form>
-
-						<p className="text-center text-sm text-muted-foreground mt-6">
-							Don&apos;t have an account?{" "}
-							<Link
-								href="/getting-started"
-								className="text-primary hover:text-accent font-medium"
-							>
-								Sign up
-							</Link>
-						</p>
-					</CardContent>
-				</Card>
+					</div>
+				</div>
 			</div>
-		</PageTransition>
+			<div className="bg-muted relative hidden lg:flex flex-col gap-4 p-10 justify-center">
+				<div className="space-y-6">
+					<Skeleton className="h-12 w-3/4" />
+					<Skeleton className="h-8 w-full" />
+					<Skeleton className="h-8 w-5/6" />
+					<div className="space-y-3 pt-6">
+						<Skeleton className="h-6 w-full" />
+						<Skeleton className="h-6 w-4/5" />
+						<Skeleton className="h-6 w-full" />
+						<Skeleton className="h-6 w-3/4" />
+					</div>
+					<div className="space-y-3 pt-6">
+						<Skeleton className="h-6 w-full" />
+						<Skeleton className="h-6 w-5/6" />
+						<Skeleton className="h-6 w-4/5" />
+					</div>
+					<div className="pt-8 flex gap-3">
+						<Skeleton className="h-32 w-32 rounded-lg" />
+						<Skeleton className="h-32 w-32 rounded-lg" />
+						<Skeleton className="h-32 w-32 rounded-lg" />
+					</div>
+				</div>
+			</div>
+		</div>
 	);
 }

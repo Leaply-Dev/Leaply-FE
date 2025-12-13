@@ -149,6 +149,7 @@
 		},
 		"recentApplications": "Hồ sơ gần đây",
 		"viewAll": "Xem tất cả",
+		"seeAll": "Xem tất cả",
 		"noApplications": "Chưa có hồ sơ nào",
 		"browseUniversities": "Duyệt trường",
 		"upcomingTasks": "Công việc sắp tới",
@@ -156,7 +157,20 @@
 		"quickActions": "Hành động nhanh",
 		"exploreUniversities": "Khám phá trường",
 		"askAIAssistant": "Hỏi trợ lý AI",
-		"browseResources": "Xem tài nguyên"
+		"browseResources": "Xem tài nguyên",
+		"share": "Chia sẻ",
+		"addApplication": "+ Thêm hồ sơ",
+		"applications": "Hồ sơ",
+		"submitted": "Đã nộp",
+		"inProgress": "Đang tiến hành",
+		"myApplications": "Hồ sơ của tôi",
+		"thisWeek": "Tuần này",
+		"application": "Hồ sơ",
+		"program": "Chương trình",
+		"status": "Trạng thái",
+		"schedule": "Lịch trình",
+		"notes": "Ghi chú",
+		"markComplete": "Đánh dấu hoàn thành"
 	},
 	"applications": {
 		"title": "Hồ sơ",
@@ -478,6 +492,8 @@
 		"signupSubtitle": "Khởi đầu hành trình du học của bạn",
 		"alreadyHaveAccount": "Đã có tài khoản?",
 		"login": "Đăng nhập",
+		"loginTitle": "Chào mừng trở lại",
+		"loginSubtitle": "Đăng nhập vào tài khoản Leaply của bạn",
 		"fullName": "Họ và tên",
 		"fullNamePlaceholder": "Nguyễn Văn A",
 		"email": "Email",
@@ -493,7 +509,12 @@
 		"and": "và",
 		"privacyPolicy": "Chính sách bảo mật",
 		"orContinueWith": "Hoặc tiếp tục với",
-		"signupWithGithub": "Đăng ký với GitHub"
+		"signupWithGithub": "Đăng ký với GitHub",
+		"rememberMe": "Ghi nhớ đăng nhập",
+		"forgotPassword": "Quên mật khẩu?",
+		"signIn": "Đăng nhập",
+		"noAccount": "Chưa có tài khoản?",
+		"signUp": "Đăng ký"
 	},
 	"common": {
 		"leaply": "Leaply",
