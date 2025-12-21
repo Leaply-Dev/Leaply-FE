@@ -136,6 +136,7 @@ export default async function OnboardingPage({
 			title: dict.onboarding.step2.title,
 			subtitle: dict.onboarding.step2.subtitle,
 			fieldsOfInterest: dict.onboarding.step2.fieldsOfInterest,
+			fieldsOfInterestMax: dict.onboarding.step2.fieldsOfInterestMax,
 			fieldsRequired: dict.onboarding.step2.fieldsRequired,
 			regionsOfInterest: dict.onboarding.step2.regionsOfInterest,
 			regionsOptional: dict.onboarding.step2.regionsOptional,
