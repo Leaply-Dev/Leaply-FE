@@ -11,6 +11,104 @@
 		"profile": "Tài khoản",
 		"logout": "Đăng xuất"
 	},
+	"onboarding": {
+		"steps": {
+			"basicInfo": "Thông tin cơ bản",
+			"preferences": "Mong muốn",
+			"journey": "Chọn hướng đi",
+			"complete": "Hoàn thành"
+		},
+		"step1": {
+			"title": "Thông tin cơ bản",
+			"subtitle": "Chúng mình cần biết một chút về bạn để bắt đầu",
+			"educationLevel": "Trình độ hiện tại",
+			"educationLevelRequired": "*",
+			"targetDegree": "Chương trình tìm kiếm",
+			"targetDegreeRequired": "*",
+			"levels": {
+				"highSchool": "Trung học phổ thông",
+				"undergraduate": "Đang học đại học",
+				"graduate": "Cử nhân",
+				"working": "Đang đi làm"
+			},
+			"programs": {
+				"bachelors": "Cử nhân",
+				"masters": "Thạc sĩ",
+				"mba": "MBA",
+				"phd": "Tiến sĩ"
+			}
+		},
+		"step2": {
+			"title": "Mong muốn của bạn",
+			"subtitle": "Giúp Leaply hiểu rõ hơn về nhu cầu du học của bạn",
+			"fieldsOfInterest": "Lĩnh vực quan tâm",
+			"fieldsOfInterestMax": "(Tối đa 3)",
+			"fieldsRequired": "*",
+			"regionsOfInterest": "Khu vực quan tâm",
+			"regionsOptional": "(Có thể bỏ qua)",
+			"timeline": "Thời gian nhập học",
+			"timelineRequired": "*",
+			"selectYear": "Thời gian nhập học dự kiến?",
+			"selectYearPlaceholder": "Chọn năm",
+			"selectTerm": "Kỳ học",
+			"selectTermPlaceholder": "Chọn kỳ",
+			"budget": "Ngân sách dự kiến",
+			"budgetRequired": "*",
+			"fields": {
+				"cs": "Khoa học máy tính / IT",
+				"business": "Kinh doanh / Quản trị",
+				"finance": "Kinh tế / Tài chính",
+				"engineering": "Khoa học kỹ thuật",
+				"dataScience": "Khoa học Dữ liệu / Phân tích",
+				"design": "Thiết kế (UX/UI, Công nghiệp)",
+				"health": "Y tế cộng đồng / Y tế",
+				"other": "Khác / Chưa xác định"
+			},
+			"regions": {
+				"eastAsia": "Đông Á",
+				"eastAsiaCountries": "Trung Quốc, Hàn Quốc, Nhật Bản, Đài Loan, Hồng Kông",
+				"southeastAsia": "Đông Nam Á",
+				"southeastAsiaCountries": "Singapore, Malaysia, Thái Lan",
+				"westernEurope": "Tây Âu",
+				"westernEuropeCountries": "Anh, Pháp, Đức, Hà Lan",
+				"northernEurope": "Bắc Âu",
+				"northernEuropeCountries": "Thụy Điển, Đan Mạch, Phần Lan",
+				"northAmerica": "Bắc Mỹ",
+				"northAmericaCountries": "Hoa Kỳ, Canada",
+				"oceania": "Châu Đại Dương",
+				"oceaniaCountries": "Úc, New Zealand"
+			},
+			"budgetOptions": {
+				"low": "<500 triệu",
+				"medium": "500 triệu - 1 tỷ",
+				"high": ">1 tỷ",
+				"scholarship": "Cần học bổng full"
+			},
+			"terms": {
+				"spring": "Kỳ xuân",
+				"summer": "Kỳ hè",
+				"fall": "Kỳ thu",
+				"winter": "Kỳ đông"
+			}
+		},
+		"step3": {
+			"title": "Chọn hướng đi của bạn",
+			"subtitle": "Bạn đang ở giai đoạn nào của quá trình du học?",
+			"exploring": {
+				"title": "Tôi đang khám phá",
+				"description": "Chưa chắc chắn, muốn tìm hiểu thêm"
+			},
+			"targeted": {
+				"title": "Tôi đã có mục tiêu",
+				"description": "Đã biết trường/ngành muốn apply"
+			},
+			"startNow": "Bắt đầu ngay"
+		},
+		"buttons": {
+			"back": "Quay lại",
+			"continue": "Tiếp tục"
+		}
+	},
 	"landing": {
 		"badge": "Người bạn đồng hành du học của bạn",
 		"heroTitle": "Du học thật đơn giản",

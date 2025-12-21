@@ -1,0 +1,615 @@
+"use client";
+
+import { Check, Compass, Target, ArrowRight } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { OnboardingProgress } from "@/components/OnboardingProgress";
+import { PageTransition } from "@/components/PageTransition";
+import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { useUserStore, type JourneyType } from "@/lib/store/userStore";
+import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+	FieldDescription,
+	FieldGroup,
+	FieldSet,
+	FieldLegend,
+} from "@/components/ui/field";
+
+interface OnboardingClientProps {
+	translations: {
+		steps: string[];
+		step1: {
+			title: string;
+			subtitle: string;
+			educationLevel: string;
+			educationLevelRequired: string;
+			targetDegree: string;
+			targetDegreeRequired: string;
+		};
+		step2: {
+			title: string;
+			subtitle: string;
+			fieldsOfInterest: string;
+			fieldsOfInterestMax: string;
+			fieldsRequired: string;
+			regionsOfInterest: string;
+			regionsOptional: string;
+			timeline: string;
+			timelineRequired: string;
+			selectYear: string;
+			selectYearPlaceholder: string;
+			selectTerm: string;
+			selectTermPlaceholder: string;
+			budget: string;
+			budgetRequired: string;
+		};
+		step3: {
+			title: string;
+			subtitle: string;
+			startNow: string;
+		};
+		buttons: {
+			back: string;
+			continue: string;
+		};
+	};
+	constants: {
+		educationLevels: Array<{ value: string; label: string }>;
+		programTypes: Array<{ value: string; label: string; disabled?: boolean }>;
+		fieldsOfStudy: string[];
+		regions: Array<{ name: string; countries: string }>;
+		startYears: string[];
+		startTerms: string[];
+		budgetOptions: Array<{ value: number; label: string }>;
+		journeyOptions: Array<{
+			id: "exploring" | "targeted";
+			iconName: "compass" | "target";
+			title: string;
+			description: string;
+			redirect: string;
+			color: string;
+		}>;
+	};
+	lang: string;
+}
+
+export function OnboardingClient({
+	translations,
+	constants,
+	lang,
+}: OnboardingClientProps) {
+	const router = useRouter();
+	const {
+		profile,
+		updateProfile,
+		preferences,
+		updatePreferences,
+		completeOnboarding,
+		setJourneyType,
+		login,
+	} = useUserStore();
+
+	const [currentStep, setCurrentStep] = useState(0);
+
+	// Form State
+	const [basicInfo, setBasicInfo] = useState({
+		educationLevel: profile?.currentEducationLevel || "",
+		targetDegree: profile?.targetDegree || "",
+	});
+
+	const [prefs, setPrefs] = useState({
+		fields: preferences?.fieldOfInterest || [],
+		regions: preferences?.preferredRegions || [],
+		startYear: "",
+		startTerm: "",
+		budgetIndex: 1, // Default to 500tr-1tỷ
+	});
+
+	// --- Handlers ---
+
+	const handleBasicInfoChange = (field: string, value: string) => {
+		setBasicInfo((prev) => ({ ...prev, [field]: value }));
+	};
+
+	const toggleMultiSelect = (
+		currentList: string[],
+		value: string,
+		setter: (val: string[]) => void,
+		max?: number,
+	) => {
+		if (currentList.includes(value)) {
+			setter(currentList.filter((item) => item !== value));
+		} else {
+			if (max && currentList.length >= max) return;
+			setter([...currentList, value]);
+		}
+	};
+
+	const handleNext = () => {
+		if (currentStep === 0) {
+			// Save step 1 data
+			updateProfile({
+				currentEducationLevel: basicInfo.educationLevel,
+				targetDegree: basicInfo.targetDegree,
+			});
+			setCurrentStep(1);
+		} else if (currentStep === 1) {
+			// Save step 2 data
+			const formattedTimeline = `${prefs.startYear} ${prefs.startTerm}`;
+			const budgetLabel = constants.budgetOptions[prefs.budgetIndex].label;
+
+			updatePreferences({
+				fieldOfInterest: prefs.fields,
+				preferredRegions: prefs.regions,
+				intendedStartTerm: formattedTimeline,
+				budgetLabel: budgetLabel,
+			});
+			setCurrentStep(2);
+		}
+	};
+
+	const handleBack = () => {
+		if (currentStep > 0) {
+			setCurrentStep(currentStep - 1);
+		}
+	};
+
+	const handleJourneySelect = (type: JourneyType, redirectPath: string) => {
+		setJourneyType(type);
+		completeOnboarding();
+		if (profile) login(profile); // Ensure authed
+		router.push(`/${lang}${redirectPath}`);
+	};
+
+	// --- Validation ---
+
+	const isStep1Valid =
+		basicInfo.educationLevel.length > 0 && basicInfo.targetDegree.length > 0;
+
+	const isStep2Valid =
+		prefs.fields.length > 0 &&
+		prefs.startYear.length > 0 &&
+		prefs.startTerm.length > 0;
+
+	// --- Components Helper ---
+
+	// Helper component for selectable cards
+	const SelectionCard = ({
+		selected,
+		onClick,
+		children,
+		className,
+	}: {
+		selected: boolean;
+		onClick: () => void;
+		children: React.ReactNode;
+		className?: string;
+	}) => (
+		<button
+			type="button"
+			onClick={onClick}
+			className={cn(
+				"relative p-4 rounded-xl border border-border cursor-pointer transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none w-full text-left",
+				selected
+					? "bg-primary/5 border-primary shadow-sm"
+					: "bg-card hover:border-primary/50",
+				className,
+			)}
+		>
+			{selected && (
+				<div className="absolute top-2 right-2 bg-green-500 rounded-full p-0.5">
+					<Check className="w-3 h-3 text-white" />
+				</div>
+			)}
+			{children}
+		</button>
+	);
+
+	return (
+		<PageTransition>
+			<div className="min-h-screen bg-background flex flex-col">
+				{/* Header with Logo and Language Switcher */}
+				<div className="w-full border-b border-border">
+					<div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
+						<div className="flex items-center justify-between">
+							{/* Logo */}
+							<Link href={`/${lang}`} className="flex items-center">
+								<Image
+									src="/Logo.png"
+									alt="Leaply"
+									width={120}
+									height={40}
+									className="h-8 w-auto"
+								/>
+							</Link>
+							
+							{/* Language Switcher */}
+							<LanguageSwitcher currentLocale={lang as "en" | "vi"} />
+						</div>
+					</div>
+				</div>
+
+				{/* Progress Header */}
+				<div className="w-full max-w-3xl mx-auto px-6 py-8">
+					<OnboardingProgress
+						steps={translations.steps}
+						currentStep={currentStep}
+					/>
+				</div>
+
+				{/* Main Content Area */}
+				<div className="flex-1 flex flex-col items-center justify-start pt-4 px-4 sm:px-6 pb-12 w-full max-w-5xl mx-auto">
+					<AnimatePresence mode="wait">
+						{/* STEP 1: BASIC INFO */}
+						{currentStep === 0 && (
+							<motion.div
+								key="step1"
+								initial={{ opacity: 0, x: 20 }}
+								animate={{ opacity: 1, x: 0 }}
+								exit={{ opacity: 0, x: -20 }}
+								className="w-full space-y-8"
+							>
+								<div className="text-center space-y-2">
+									<h1 className="text-3xl font-bold tracking-tight">
+										{translations.step1.title}
+									</h1>
+									<p className="text-muted-foreground text-lg">
+										{translations.step1.subtitle}
+									</p>
+								</div>
+
+								<FieldGroup className="bg-card p-6 md:p-8 rounded-2xl border border-border shadow-sm">
+									<FieldSet>
+										<FieldLegend>
+											{translations.step1.educationLevel}{" "}
+											<span className="text-red-500">
+												{translations.step1.educationLevelRequired}
+											</span>
+										</FieldLegend>
+										<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+											{constants.educationLevels.map((level) => (
+												<SelectionCard
+													key={level.value}
+													selected={basicInfo.educationLevel === level.value}
+													onClick={() =>
+														handleBasicInfoChange("educationLevel", level.value)
+													}
+												>
+													<span className="font-medium">{level.label}</span>
+												</SelectionCard>
+											))}
+										</div>
+									</FieldSet>
+
+									<FieldSet>
+										<FieldLegend>
+											{translations.step1.targetDegree}{" "}
+											<span className="text-red-500">
+												{translations.step1.targetDegreeRequired}
+											</span>
+										</FieldLegend>
+										<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+											{constants.programTypes.map((prog) => (
+												<div
+													key={prog.value}
+													className={cn(
+														prog.disabled && "opacity-50 pointer-events-none",
+													)}
+												>
+													<SelectionCard
+														selected={basicInfo.targetDegree === prog.value}
+														onClick={() =>
+															!prog.disabled &&
+															handleBasicInfoChange("targetDegree", prog.value)
+														}
+													>
+														<span className="font-medium block">
+															{prog.label}
+														</span>
+													</SelectionCard>
+												</div>
+											))}
+										</div>
+									</FieldSet>
+
+										<div className="pt-6 flex justify-between border-t border-border mt-6">
+											<Button
+												variant="outline"
+												size="lg"
+												disabled
+												onClick={handleBack}
+												className="px-8"
+											>
+												{translations.buttons.back}
+											</Button>
+											<Button
+												size="lg"
+												disabled={!isStep1Valid}
+												onClick={handleNext}
+												className="px-8"
+											>
+												{translations.buttons.continue}
+											</Button>
+										</div>
+									</FieldGroup>
+							</motion.div>
+						)}
+
+						{/* STEP 2: PREFERENCES */}
+						{currentStep === 1 && (
+							<motion.div
+								key="step2"
+								initial={{ opacity: 0, x: 20 }}
+								animate={{ opacity: 1, x: 0 }}
+								exit={{ opacity: 0, x: -20 }}
+								className="w-full space-y-8"
+							>
+								<div className="text-center space-y-2">
+									<h1 className="text-3xl font-bold tracking-tight">
+										{translations.step2.title}
+									</h1>
+									<p className="text-muted-foreground text-lg">
+										{translations.step2.subtitle}
+									</p>
+								</div>
+
+								<FieldGroup className="bg-card p-6 md:p-8 rounded-2xl border border-border shadow-sm">
+									{/* Fields of Interest */}
+									<FieldSet>
+										<FieldLegend>
+											{translations.step2.fieldsOfInterest}{" "}
+											<span className="text-red-500">
+												{translations.step2.fieldsRequired}
+											</span>
+										</FieldLegend>
+										<FieldDescription>
+											{translations.step2.fieldsOfInterestMax}
+										</FieldDescription>
+										<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+											{constants.fieldsOfStudy.map((field) => (
+												<SelectionCard
+													key={field}
+													selected={prefs.fields.includes(field)}
+													onClick={() =>
+														toggleMultiSelect(
+															prefs.fields,
+															field,
+															(v) => setPrefs((p) => ({ ...p, fields: v })),
+															3,
+														)
+													}
+												>
+													<span className="text-sm font-medium">{field}</span>
+												</SelectionCard>
+											))}
+										</div>
+									</FieldSet>
+
+									{/* Regions */}
+									<FieldSet>
+										<FieldLegend>
+											{translations.step2.regionsOfInterest}
+										</FieldLegend>
+										<FieldDescription>
+											{translations.step2.regionsOptional}
+										</FieldDescription>
+										<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+											{constants.regions.map((region) => (
+												<SelectionCard
+													key={region.name}
+													selected={prefs.regions.includes(region.name)}
+													onClick={() =>
+														toggleMultiSelect(prefs.regions, region.name, (v) =>
+															setPrefs((p) => ({ ...p, regions: v })),
+														)
+													}
+												>
+													<div className="flex flex-col">
+														<span className="font-semibold">{region.name}</span>
+														<span className="text-xs text-muted-foreground mt-0.5">
+															{region.countries}
+														</span>
+													</div>
+												</SelectionCard>
+											))}
+										</div>
+									</FieldSet>
+
+									{/* Timeline */}
+									<FieldSet>
+										<FieldLegend>
+											{translations.step2.timeline}{" "}
+											<span className="text-red-500">
+												{translations.step2.timelineRequired}
+											</span>
+										</FieldLegend>
+										<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+											<div className="space-y-2">
+												<FieldDescription>
+													{translations.step2.selectYear}
+												</FieldDescription>
+												<Select
+													value={prefs.startYear}
+													onChange={(e) =>
+														setPrefs((p) => ({
+															...p,
+															startYear: e.target.value,
+														}))
+													}
+												>
+													<option value="" disabled>
+														{translations.step2.selectYearPlaceholder}
+													</option>
+													{constants.startYears.map((year) => (
+														<option key={year} value={year}>
+															{year}
+														</option>
+													))}
+												</Select>
+											</div>
+
+											<div className="space-y-2">
+												<FieldDescription>
+													{translations.step2.selectTerm}
+												</FieldDescription>
+												<Select
+													value={prefs.startTerm}
+													onChange={(e) =>
+														setPrefs((p) => ({
+															...p,
+															startTerm: e.target.value,
+														}))
+													}
+												>
+													<option value="" disabled>
+														{translations.step2.selectTermPlaceholder}
+													</option>
+													{constants.startTerms.map((term) => (
+														<option key={term} value={term}>
+															{term}
+														</option>
+													))}
+												</Select>
+											</div>
+										</div>
+									</FieldSet>
+
+									{/* Budget */}
+									<FieldSet>
+										<FieldLegend>
+											{translations.step2.budget}{" "}
+											<span className="text-red-500">
+												{translations.step2.budgetRequired}
+											</span>
+										</FieldLegend>
+										<div className="pt-6 px-2 pb-2">
+											<Slider
+												min={0}
+												max={3}
+												step={1}
+												value={prefs.budgetIndex}
+												showValue={false}
+												onChange={(val) =>
+													setPrefs((p) => ({ ...p, budgetIndex: val }))
+												}
+												className="mb-8 w-[95%] mx-auto"
+											/>
+											<div className="relative h-6 w-[95%] mx-auto">
+												{/* Labels for slider steps */}
+												{constants.budgetOptions.map((option, index) => (
+													<div
+														key={option.value}
+														className="absolute -translate-x-1/2"
+														style={{
+															left: `${(index / (constants.budgetOptions.length - 1)) * 100}%`,
+														}}
+													>
+														<span className="text-xs text-muted-foreground whitespace-nowrap">
+															{option.label}
+														</span>
+													</div>
+												))}
+											</div>
+										</div>
+									</FieldSet>
+
+										<div className="pt-6 flex justify-between border-t border-border mt-6">
+											<Button
+												variant="outline"
+												size="lg"
+												onClick={handleBack}
+												className="px-8"
+											>
+												{translations.buttons.back}
+											</Button>
+											<Button
+												size="lg"
+												disabled={!isStep2Valid}
+												onClick={handleNext}
+												className="px-8"
+											>
+												{translations.buttons.continue}
+											</Button>
+										</div>
+									</FieldGroup>
+							</motion.div>
+						)}
+
+						{/* STEP 3: JOURNEY SELECTION */}
+						{currentStep === 2 && (
+							<motion.div
+								key="step3"
+								initial={{ opacity: 0, x: 20 }}
+								animate={{ opacity: 1, x: 0 }}
+								exit={{ opacity: 0, x: -20 }}
+								className="w-full space-y-8"
+							>
+								<div className="text-center space-y-2">
+									<h1 className="text-3xl font-bold tracking-tight">
+										{translations.step3.title}
+									</h1>
+									<p className="text-muted-foreground text-lg">
+										{translations.step3.subtitle}
+									</p>
+								</div>
+
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+									{constants.journeyOptions.map((option) => {
+										const Icon =
+											option.iconName === "compass" ? Compass : Target;
+										return (
+											<Card
+												key={option.id}
+												onClick={() =>
+													handleJourneySelect(option.id, option.redirect)
+												}
+												className="cursor-pointer hover:border-primary hover:shadow-md transition-all duration-300 group relative overflow-hidden h-full"
+											>
+												<div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+												<CardContent className="p-8 flex flex-col items-center text-center h-full justify-center space-y-4">
+													<div
+														className={`w-16 h-16 rounded-full bg-${option.color}/10 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300`}
+													>
+														<Icon
+															className={`w-8 h-8 text-${option.color === "primary" ? "primary" : "chart-2"}`}
+														/>
+													</div>
+													<h3 className="text-xl font-bold">{option.title}</h3>
+													<p className="text-muted-foreground">
+														{option.description}
+													</p>
+													<div className="pt-4 opacity-0 text-primary font-medium group-hover:opacity-100 transition-all flex items-center gap-2 transform translate-y-2 group-hover:translate-y-0">
+														{translations.step3.startNow}{" "}
+														<ArrowRight className="w-4 h-4" />
+													</div>
+												</CardContent>
+											</Card>
+										);
+									})}
+								</div>
+
+								<div className="pt-6 flex justify-start border-t border-border mt-6">
+									<Button
+										variant="outline"
+										size="lg"
+										onClick={handleBack}
+										className="px-8"
+									>
+										{translations.buttons.back}
+									</Button>
+								</div>
+							</motion.div>
+						)}
+					</AnimatePresence>
+				</div>
+			</div>
+		</PageTransition>
+	);
+}

@@ -11,6 +11,104 @@
 		"profile": "Profile",
 		"logout": "Log out"
 	},
+	"onboarding": {
+		"steps": {
+			"basicInfo": "Basic Information",
+			"preferences": "Your Preferences",
+			"journey": "Choose Your Path",
+			"complete": "Complete"
+		},
+		"step1": {
+			"title": "Basic Information",
+			"subtitle": "We need to know a little about you to get started",
+			"educationLevel": "Current Education Level",
+			"educationLevelRequired": "*",
+			"targetDegree": "Program you're looking for",
+			"targetDegreeRequired": "*",
+			"levels": {
+				"highSchool": "High School",
+				"undergraduate": "Undergraduate",
+				"graduate": "Graduate",
+				"working": "Working Professional"
+			},
+			"programs": {
+				"bachelors": "Bachelor's",
+				"masters": "Master's",
+				"mba": "MBA",
+				"phd": "PhD"
+			}
+		},
+		"step2": {
+			"title": "Your Preferences",
+			"subtitle": "Help Leaply understand your study abroad needs better",
+			"fieldsOfInterest": "Fields of Interest",
+			"fieldsOfInterestMax": "(Max 3)",
+			"fieldsRequired": "*",
+			"regionsOfInterest": "Regions of Interest",
+			"regionsOptional": "(Optional)",
+			"timeline": "Intended Start Date",
+			"timelineRequired": "*",
+			"selectYear": "When do you hope to start?",
+			"selectYearPlaceholder": "Select Year",
+			"selectTerm": "Select your semester",
+			"selectTermPlaceholder": "Select Term",
+			"budget": "Estimated Budget",
+			"budgetRequired": "*",
+			"fields": {
+				"cs": "Computer Science / IT",
+				"business": "Business / Management",
+				"finance": "Finance / Economics",
+				"engineering": "Engineering",
+				"dataScience": "Data Science / Analytics",
+				"design": "Design (UX/UI, Industrial)",
+				"health": "Public Health / Healthcare",
+				"other": "Other / Undecided"
+			},
+			"regions": {
+				"eastAsia": "East Asia",
+				"eastAsiaCountries": "China, South Korea, Japan, Taiwan, Hong Kong",
+				"southeastAsia": "Southeast Asia",
+				"southeastAsiaCountries": "Singapore, Malaysia, Thailand",
+				"westernEurope": "Western Europe",
+				"westernEuropeCountries": "UK, France, Germany, Netherlands",
+				"northernEurope": "Northern Europe",
+				"northernEuropeCountries": "Sweden, Denmark, Finland",
+				"northAmerica": "North America",
+				"northAmericaCountries": "USA, Canada",
+				"oceania": "Oceania",
+				"oceaniaCountries": "Australia, New Zealand"
+			},
+			"budgetOptions": {
+				"low": "<500M VND",
+				"medium": "500M-1B VND",
+				"high": ">1B VND",
+				"scholarship": "Need Full Scholarship"
+			},
+			"terms": {
+				"spring": "Spring",
+				"summer": "Summer",
+				"fall": "Fall",
+				"winter": "Winter"
+			}
+		},
+		"step3": {
+			"title": "Choose Your Path",
+			"subtitle": "Where are you in your study abroad journey?",
+			"exploring": {
+				"title": "I'm Exploring",
+				"description": "Not sure yet, want to learn more"
+			},
+			"targeted": {
+				"title": "I Have a Goal",
+				"description": "Already know which school/program to apply to"
+			},
+			"startNow": "Get Started"
+		},
+		"buttons": {
+			"back": "Back",
+			"continue": "Continue"
+		}
+	},
 	"landing": {
 		"badge": "Your personal study abroad mentor",
 		"heroTitle": "Study abroad,",

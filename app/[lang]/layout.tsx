@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Raleway } from "next/font/google";
 import { notFound } from "next/navigation";
 import "./globals.css";
 import { hasLocale, type Locale } from "@/app/[lang]/dictionaries";
 import { LocaleSync } from "@/components/LocaleSync";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const raleway = Raleway({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
 	title: "Leaply - Study Abroad Simplified",
@@ -33,7 +33,7 @@ export default async function RootLayout({
 
 	return (
 		<html lang={lang}>
-			<body className={inter.variable}>
+			<body className={raleway.variable}>
 				<LocaleSync locale={lang as Locale} />
 				{children}
 			</body>

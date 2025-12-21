@@ -36,6 +36,10 @@ export interface UserPreferences {
 	interests?: string[];
 	priorities?: string[];
 	selfDescription?: string;
+	// New fields for onboarding
+	programType?: string;
+	fieldOfInterest?: string[];
+	intendedStartTerm?: string;
 }
 
 export type JourneyType = "exploring" | "targeted" | null;
