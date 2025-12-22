@@ -40,7 +40,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 
 	const authNavLinks = [
 		{ href: "/home", labelKey: "home" },
-		{ href: "/universities", labelKey: "explore" },
+		{ href: "/explore", labelKey: "explore" },
 		{ href: "/dashboard/applications", labelKey: "applications" },
 		{ href: "/persona-lab", labelKey: "personaLab" },
 	];
@@ -182,7 +182,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 									<Link href="/login">{t("nav", "login")}</Link>
 								</Button>
 								<Button size="sm" asChild>
-									<Link href="/getting-started">{t("nav", "getStarted")}</Link>
+									<Link href="/register">{t("nav", "getStarted")}</Link>
 								</Button>
 							</>
 						)}
@@ -283,7 +283,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 										</Button>
 										<Button size="sm" asChild>
 											<Link
-												href="/getting-started"
+												href="/register"
 												onClick={() => setMobileMenuOpen(false)}
 											>
 												{t("nav", "getStarted")}

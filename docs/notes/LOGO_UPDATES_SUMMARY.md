@@ -7,7 +7,7 @@ All university logos have been successfully updated to use Clearbit logo URLs ac
 ### Files Updated
 
 1. **`lib/data/enhancedApplications.ts`** - 5 applications
-2. **`lib/data/universities.ts`** - 20 universities
+2. **`lib/data/explore.ts`** - 20 universities
 
 ### Logo Mappings Applied
 
@@ -42,12 +42,12 @@ Logos now appear with real images in:
    - Sidebar list of applications
    - Each application shows university logo in avatar
 
-2. **Universities Page** (`/universities`)
+2. **Universities Page** (`/explore`)
    - AI Match cards
    - Explore cards
    - Grid view of all universities
 
-3. **University Detail Page** (`/universities/[id]`)
+3. **University Detail Page** (`/explore/[id]`)
    - Hero section with logo in circular frame
    - Background: Gradient (from-leaf-green/20 to-light-green/10)
 
@@ -113,8 +113,8 @@ If Clearbit URL fails:
 ✅ **Build Status**: All changes compile successfully
 ```
 Route /dashboard/applications: 24.4 kB (no errors)
-Route /universities: 11.2 kB (no errors)
-Route /universities/[id]: 3.5 kB (no errors)
+Route /explore: 11.2 kB (no errors)
+Route /explore/[id]: 3.5 kB (no errors)
 ```
 
 ✅ **Linter**: No errors

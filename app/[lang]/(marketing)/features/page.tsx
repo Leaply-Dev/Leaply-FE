@@ -209,7 +209,7 @@ function FeatureSection({
 
 							<div className="mt-10">
 								<Button size="lg" asChild>
-									<Link href="/getting-started">
+									<Link href="/register">
 										{t("features", "startUsing")}
 										<ArrowRight className="ml-2 w-5 h-5" />
 									</Link>
@@ -365,7 +365,7 @@ export default function FeaturesPage() {
 									className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold"
 									asChild
 								>
-									<Link href="/getting-started">
+									<Link href="/register">
 										{t("features", "startFree")}
 										<ArrowRight className="ml-2 w-5 h-5" />
 									</Link>

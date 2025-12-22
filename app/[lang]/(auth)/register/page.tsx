@@ -1,8 +1,9 @@
-import { LoginForm } from "@/components/login-form";
+import { GalleryVerticalEnd } from "lucide-react";
+
+import { SignupForm } from "@/components/signup-form";
 import Link from "next/link";
 import Image from "next/image";
-
-export default function LoginPage() {
+export default function SignupPage() {
 	return (
 		<div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
 			<div className="flex w-full max-w-sm flex-col gap-6">
@@ -12,13 +13,13 @@ export default function LoginPage() {
 				>
 					<Image
 						src="/Logo.png"
-						alt="Leaply"
+						alt="Logo"
 						width={120}
 						height={40}
 						className="h-10 w-auto"
 					/>
 				</Link>
-				<LoginForm />
+				<SignupForm />
 			</div>
 		</div>
 	);

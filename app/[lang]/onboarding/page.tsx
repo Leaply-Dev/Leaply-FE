@@ -112,7 +112,7 @@ export default async function OnboardingPage({
 			iconName: "target" as const,
 			title: dict.onboarding.step3.targeted.title,
 			description: dict.onboarding.step3.targeted.description,
-			redirect: "/universities",
+			redirect: "/explore",
 			color: "primary",
 		},
 	];

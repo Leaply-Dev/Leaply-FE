@@ -106,7 +106,7 @@ export function UniversityCard({
 
 					<div className="flex gap-2">
 						<Button asChild size="sm" className="flex-1">
-							<Link href={`/universities/${id}`}>View Details</Link>
+							<Link href={`/explore/${id}`}>View Details</Link>
 						</Button>
 						<Button
 							size="sm"

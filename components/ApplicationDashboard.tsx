@@ -526,7 +526,7 @@ export function ApplicationDashboard({
 									variant="outline"
 									className="w-full h-10"
 									onClick={() =>
-										router.push(`/universities/${application.universityId}`)
+										router.push(`/explore/${application.universityId}`)
 									}
 								>
 									{t("applications", "viewUniversityDetails")}

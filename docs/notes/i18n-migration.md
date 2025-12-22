@@ -177,7 +177,7 @@ All routes are now under the `[lang]` segment:
 |-----------|-----------|
 | `/` | `/vi/` or `/en/` |
 | `/dashboard` | `/vi/dashboard` or `/en/dashboard` |
-| `/universities` | `/vi/universities` or `/en/universities` |
+| `/explore` | `/vi/explore` or `/en/explore` |
 
 Links should include the locale:
 ```typescript

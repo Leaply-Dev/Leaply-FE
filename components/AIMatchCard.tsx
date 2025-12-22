@@ -207,7 +207,7 @@ export function AIMatchCard({
 
 								<div className="flex gap-2">
 									<Button asChild type="button" className="flex-1">
-										<Link href={`/universities/${id}`}>
+										<Link href={`/explore/${id}`}>
 											{t("universities", "viewDetails")}
 										</Link>
 									</Button>
@@ -264,7 +264,7 @@ export function AIMatchCard({
 					{/* Action Buttons */}
 					<div className="flex gap-2">
 						<Button asChild type="button" size="sm" className="flex-1">
-							<Link href={`/universities/${id}`}>
+							<Link href={`/explore/${id}`}>
 								{t("universities", "learnMore")}
 							</Link>
 						</Button>

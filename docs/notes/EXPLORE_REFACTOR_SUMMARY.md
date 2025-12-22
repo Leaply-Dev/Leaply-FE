@@ -148,7 +148,7 @@ Generates rule-based match explanations:
 
 ## Refactored Page
 
-### `/app/universities/page.tsx`
+### `/app/explore/page.tsx`
 
 **New Structure:**
 
@@ -360,7 +360,7 @@ While not implemented in this refactor (to keep mock data simple), these could b
 
 ## Files Modified
 
-- `/app/universities/page.tsx` - Complete refactor
+- `/app/explore/page.tsx` - Complete refactor
 
 ## Files Created
 

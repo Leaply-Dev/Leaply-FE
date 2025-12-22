@@ -64,7 +64,7 @@ All 5 applications updated with Clearbit logo URLs:
 - ✅ ETH Zurich
 - ✅ National University of Singapore
 
-### 4. **`lib/data/universities.ts`** - Universities Data
+### 4. **`lib/data/explore.ts`** - Universities Data
 All 20 universities updated with Clearbit logo URLs
 
 ---
@@ -82,7 +82,7 @@ All 20 universities updated with Clearbit logo URLs
 - University information displayed with logos
 - All icons load from Clearbit CDN
 
-### ✅ Universities Page (`/universities`)
+### ✅ Universities Page (`/explore`)
 
 **AI Match Cards:**
 - Already using Next.js Image ✓
@@ -96,7 +96,7 @@ All 20 universities updated with Clearbit logo URLs
 - Already using Next.js Image ✓
 - Logo as background cover image
 
-### ✅ University Detail Page (`/universities/[id]`)
+### ✅ University Detail Page (`/explore/[id]`)
 
 **Hero Section:**
 - Already using Next.js Image ✓
@@ -212,8 +212,8 @@ Changes to `next.config.js` and component updates require a full restart to take
 ### Bundle Sizes:
 ```
 /dashboard/applications: 23.5 kB (optimized)
-/universities: 11.2 kB (optimized)
-/universities/[id]: 3.5 kB (optimized)
+/explore: 11.2 kB (optimized)
+/explore/[id]: 3.5 kB (optimized)
 ```
 
 ---

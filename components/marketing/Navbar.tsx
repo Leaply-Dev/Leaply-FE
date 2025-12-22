@@ -74,7 +74,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 					<div className="hidden md:flex items-center gap-3">
 						<LanguageSwitcher currentLocale={locale} />
 						<Button size="sm" asChild>
-							<Link href="/getting-started">{t("landing", "ctaStart")}</Link>
+							<Link href="/register">{t("landing", "ctaStart")}</Link>
 						</Button>
 					</div>
 
@@ -121,7 +121,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 							<div className="pt-4 border-t border-border">
 								<Button size="sm" className="w-full" asChild>
 									<Link
-										href="/getting-started"
+										href="/register"
 										onClick={() => setMobileMenuOpen(false)}
 									>
 										{t("landing", "ctaStart")}

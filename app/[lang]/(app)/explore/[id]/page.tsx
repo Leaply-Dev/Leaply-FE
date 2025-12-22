@@ -51,7 +51,7 @@ export default function UniversityDetailPage() {
 					<h1 className="text-2xl font-bold text-foreground mb-2">
 						University not found
 					</h1>
-					<Button onClick={() => router.push("/universities")}>
+					<Button onClick={() => router.push("/explore")}>
 						Back to Universities
 					</Button>
 				</div>

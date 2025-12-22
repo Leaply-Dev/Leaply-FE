@@ -133,7 +133,7 @@ export function ExploreCard({
 					<div className="space-y-2">
 						<div className="flex gap-2">
 							<Button asChild size="sm" className="flex-1">
-								<Link href={`/universities/${id}`}>
+								<Link href={`/explore/${id}`}>
 									<ExternalLink className="w-4 h-4 mr-2" />
 									{t("universities", "viewDetails")}
 								</Link>
