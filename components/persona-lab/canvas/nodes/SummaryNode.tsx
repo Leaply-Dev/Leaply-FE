@@ -13,6 +13,9 @@ export interface SummaryNodeData {
 	brief?: string;
 	themeTag?: string;
 	unlockHint?: string;
+	zoom?: number;
+	isCluster?: boolean;
+	childCount?: number;
 	[key: string]: unknown;
 }
 
@@ -24,20 +27,41 @@ interface SummaryNodeProps {
 export function SummaryNode({ data, selected }: SummaryNodeProps) {
 	const isLocked = data.state === "locked";
 	const colors = getTrackColor(data.track);
-	const showDetails = data.showDetails !== false;
+
+	const isMacroView = data.zoom && data.zoom < 0.5;
+	const isMicroView = !data.zoom || data.zoom > 0.8;
+	const showDetails = isMicroView;
+
+	// Macro View (Deep Zoom Out)
+	if (isMacroView) {
+		return (
+			<div className="group relative flex items-center justify-center">
+				<div
+					className={cn(
+						"w-12 h-12 rounded-full border-4 transition-all duration-500",
+						isLocked ? "bg-muted border-border" : "shadow-lg"
+					)}
+					style={!isLocked ? { backgroundColor: colors.primary, borderColor: colors.light, boxShadow: `0 0 20px ${colors.primary}40` } : {}}
+				/>
+				<div className="absolute top-14 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-background/90 px-2 py-1 rounded text-[10px] font-bold border border-border">
+					{data.title || data.track}
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div
 			className={cn(
-				"relative rounded-xl border-2 shadow-md transition-all duration-300 cursor-pointer",
+				"relative rounded-xl border-2 shadow-md transition-all duration-500 cursor-pointer overflow-hidden",
 				"min-w-[180px] max-w-[200px] px-4 py-3",
-				"hover:shadow-lg hover:scale-[1.05]",
+				"hover:shadow-xl hover:scale-[1.02]",
 				isLocked
 					? "bg-muted/50 border-border/50"
 					: "bg-background",
 				selected && "ring-2 ring-offset-2",
 				selected && !isLocked && colors.textClass.replace("text-", "ring-"),
-				!showDetails && "scale-90",
+				!isMicroView && "scale-90 opacity-80",
 			)}
 			style={
 				!isLocked
@@ -45,7 +69,15 @@ export function SummaryNode({ data, selected }: SummaryNodeProps) {
 					: undefined
 			}
 		>
-			<div className="flex items-start gap-3">
+			{/* Glow effect for unlocked nodes */}
+			{!isLocked && (
+				<div
+					className="absolute -inset-1 opacity-20 blur-xl transition-all group-hover:opacity-30"
+					style={{ backgroundColor: colors.primary }}
+				/>
+			)}
+
+			<div className="relative z-10 flex items-start gap-3">
 				<div
 					className={cn(
 						"flex items-center justify-center w-8 h-8 rounded-lg shrink-0",
@@ -73,22 +105,29 @@ export function SummaryNode({ data, selected }: SummaryNodeProps) {
 							<span className="text-sm font-semibold text-foreground line-clamp-2">
 								{data.title || "Your Story"}
 							</span>
-							{data.themeTag && showDetails && (
-								<span
-									className={cn(
-										"inline-block text-[10px] px-1.5 py-0.5 rounded mt-1.5",
-										colors.bgClass,
+							{data.themeTag && isMicroView && (
+								<div className="flex flex-wrap gap-1 mt-1.5">
+									<span
+										className={cn(
+											"inline-block text-[10px] px-1.5 py-0.5 rounded-full font-medium",
+											colors.bgClass,
+										)}
+										style={{ color: colors.primary }}
+									>
+										{data.themeTag}
+									</span>
+									{data.isCluster && (
+										<span className="text-[10px] bg-foreground/10 px-1.5 py-0.5 rounded-full font-bold">
+											+{data.childCount} stories
+										</span>
 									)}
-									style={{ color: colors.primary }}
-								>
-									{data.themeTag}
-								</span>
+								</div>
 							)}
 						</>
 					)}
 				</div>
 
-				{!isLocked && showDetails && (
+				{!isLocked && isMicroView && (
 					<ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 mt-1" />
 				)}
 			</div>

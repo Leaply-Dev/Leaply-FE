@@ -20,6 +20,7 @@ import {
 	calculateNodePosition,
 	getCoreNodePosition,
 	generateEdgesForTrack,
+	CANVAS_CENTER,
 } from "@/lib/utils/canvasLayout";
 import {
 	CoreNode,
@@ -34,7 +35,7 @@ import {
 import { NodeDetailModal, type NodeDetailData, type NodeType } from "./NodeDetailModal";
 import { CanvasControls } from "./CanvasControls";
 import { cn } from "@/lib/utils";
-import { useCanvasPhysics } from "@/lib/hooks/useCanvasPhysics";
+import { useOrganicLayout } from "@/lib/hooks/useOrganicLayout";
 
 // Define node types for React Flow
 const nodeTypes = {
@@ -65,7 +66,16 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	const { zoom } = useViewport();
-	const showDetails = zoom > 0.8;
+	const [expandedClusters, setExpandedClusters] = useState<Set<string>>(new Set());
+
+	const toggleCluster = useCallback((clusterId: string) => {
+		setExpandedClusters(prev => {
+			const next = new Set(prev);
+			if (next.has(clusterId)) next.delete(clusterId);
+			else next.add(clusterId);
+			return next;
+		});
+	}, []);
 
 	// Generate nodes and edges from persona data
 	const generatedData = useMemo(() => {
@@ -117,12 +127,17 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 			trackNodeIds.summary.push(summaryNodeId);
 
 			const firstStory = trackStories[0];
+			const isClustered = trackStories.length >= 5;
+			const isExpanded = expandedClusters.has(summaryNodeId);
+
 			const summaryData: SummaryNodeData = {
 				track: track.id,
 				state: isCompleted ? "unlocked" : "locked",
 				title: isCompleted ? firstStory?.title || track.title : undefined,
 				themeTag: isCompleted ? getThemeTag(track.id) : undefined,
 				unlockHint: `Complete ${track.title}`,
+				isCluster: isClustered,
+				childCount: trackStories.length,
 			};
 
 			nodes.push({
@@ -132,27 +147,29 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				data: summaryData,
 			});
 
-			// Evidence nodes (story nodes)
-			const additionalStories = trackStories.slice(1, 4);
-			additionalStories.forEach((story, idx) => {
-				const evidenceNodeId = `${track.id}-evidence-${idx}`;
-				trackNodeIds.evidence.push(evidenceNodeId);
+			// Evidence nodes (story nodes) - show if NOT clustered OR if expanded
+			if (!isClustered || isExpanded) {
+				const storiesToShow = isClustered ? trackStories : trackStories.slice(1, 4);
+				storiesToShow.forEach((story, idx) => {
+					const evidenceNodeId = `${track.id}-evidence-${idx}`;
+					trackNodeIds.evidence.push(evidenceNodeId);
 
-				const evidenceData: EvidenceNodeData = {
-					track: track.id,
-					state: isCompleted ? "unlocked" : "locked",
-					title: story.title,
-					content: story.summary,
-					unlockHint: "Share more stories",
-				};
+					const evidenceData: EvidenceNodeData = {
+						track: track.id,
+						state: isCompleted ? "unlocked" : "locked",
+						title: story.title,
+						content: story.summary,
+						unlockHint: "Share more stories",
+					};
 
-				nodes.push({
-					id: evidenceNodeId,
-					type: "evidence",
-					position: calculateNodePosition(track.id, "evidence", idx),
-					data: evidenceData,
+					nodes.push({
+						id: evidenceNodeId,
+						type: "evidence",
+						position: calculateNodePosition(track.id, "evidence", idx),
+						data: evidenceData,
+					});
 				});
-			});
+			}
 
 			// Insight node (AI-generated)
 			if (isCompleted) {
@@ -189,26 +206,49 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 	const [nodes, setNodes, onNodesChange] = useNodesState(generatedData.nodes);
 	const [edges, setEdges, onEdgesChange] = useEdgesState(generatedData.edges);
 
-	// Initialize physics hook
-	useCanvasPhysics(nodes, edges, setNodes);
+	// Initialize organic layout hook
+	const { isMacroView } = useOrganicLayout({ nodes, edges, setNodes });
 
-	// Sync states when initial data changes
+	// Sync states when initial data changes or zoom changes
 	useEffect(() => {
 		setNodes((nds) => {
-			const newIds = new Set(generatedData.nodes.map(n => n.id));
-			const currentIds = new Set(nds.map(n => n.id));
+			// Process nodes to include zoom level and other metadata
+			let processedNodes = generatedData.nodes.map(node => {
+				const existing = nds.find(n => n.id === node.id);
+				return {
+					...node,
+					position: existing ? existing.position : node.position,
+					data: {
+						...node.data,
+						zoom
+					}
+				} as Node;
+			});
 
-			// Keep existing nodes, add brand new ones at center
-			const brandNewNodes = generatedData.nodes.filter(n => !currentIds.has(n.id))
-				.map(n => ({ ...n, position: { x: 400, y: 300 } }));
+			// Add Seed Nodes if empty (Cold Start)
+			if (processedNodes.length < 3) {
+				const seedNodes: Node[] = [
+					{
+						id: 'seed-1',
+						type: 'insight',
+						position: { x: CANVAS_CENTER.x - 200, y: CANVAS_CENTER.y - 100 },
+						data: { title: 'Share a story about leadership', track: 'activities', state: 'unlocked', zoom }
+					},
+					{
+						id: 'seed-2',
+						type: 'insight',
+						position: { x: CANVAS_CENTER.x + 200, y: CANVAS_CENTER.y + 100 },
+						data: { title: 'What are your core values?', track: 'values', state: 'unlocked', zoom }
+					}
+				];
+				processedNodes = [...processedNodes, ...seedNodes];
+			}
 
-			const preservedNodes = nds.filter(n => newIds.has(n.id));
-
-			return [...preservedNodes, ...brandNewNodes];
+			return processedNodes;
 		});
-	}, [generatedData.nodes, setNodes]);
+	}, [generatedData.nodes, zoom, setNodes]);
 
-	// Semantic zoom and edge styling
+	// Highlight connections
 	const styledEdges = useMemo(() => {
 		return generatedData.edges.map((edge) => {
 			const isHighlighted =
@@ -218,15 +258,15 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				hoveredNodeId === edge.target;
 
 			// Check if this edge connects to a node that is hidden by zoom
-			const sourceIsHidden = !showDetails && (edge.source.includes('evidence') || edge.source.includes('insight'));
-			const targetIsHidden = !showDetails && (edge.target.includes('evidence') || edge.target.includes('insight'));
+			const sourceIsHidden = isMacroView && (edge.source.includes('evidence') || edge.source.includes('insight'));
+			const targetIsHidden = isMacroView && (edge.target.includes('evidence') || edge.target.includes('insight'));
 			const isHiddenByZoom = sourceIsHidden || targetIsHidden;
 
 			return {
 				...edge,
 				style: {
 					...edge.style,
-					strokeOpacity: isHiddenByZoom ? 0 : (isHighlighted ? 1 : 0.15),
+					strokeOpacity: isHiddenByZoom ? 0 : (isHighlighted ? 0.8 : 0.1),
 					stroke: isHighlighted ? edge.style?.stroke : "#94a3b8",
 					transition: "stroke-opacity 0.3s ease, stroke 0.3s ease",
 					pointerEvents: (isHiddenByZoom ? 'none' : 'auto') as any,
@@ -234,24 +274,20 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				animated: isHighlighted && !edge.id.includes('insight'),
 			};
 		});
-	}, [generatedData.edges, selectedNodeId, hoveredNodeId, showDetails]);
+	}, [generatedData.edges, selectedNodeId, hoveredNodeId, isMacroView]);
 
 	useEffect(() => {
-		setEdges(styledEdges);
+		setEdges(styledEdges as Edge[]);
 	}, [styledEdges, setEdges]);
-
-	const nodesWithZoom = useMemo(() => {
-		return nodes.map(node => ({
-			...node,
-			data: {
-				...node.data,
-				showDetails
-			}
-		}));
-	}, [nodes, showDetails]);
 
 	const handleNodeClick = useCallback(
 		(_event: React.MouseEvent, node: Node) => {
+			// Handle cluster toggle
+			if (node.type === 'summary' && node.data.isCluster) {
+				toggleCluster(node.id);
+				return;
+			}
+
 			setSelectedNodeId(node.id);
 			onNodeSelect?.(node.id);
 
@@ -283,7 +319,7 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 	}, []);
 
 	const handleModalNavigate = useCallback((nodeId: string) => {
-		const node = generatedData.nodes.find((n) => n.id === nodeId);
+		const node = nodes.find((n) => n.id === nodeId);
 		if (node) {
 			setSelectedNodeId(nodeId);
 			const nodeData = createModalData(node, tracks, keyStories);
@@ -291,12 +327,12 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				setModalData(nodeData);
 			}
 		}
-	}, [generatedData.nodes, tracks, keyStories]);
+	}, [nodes, tracks, keyStories]);
 
 	return (
 		<div className={cn("w-full h-full relative", className)}>
 			<ReactFlow
-				nodes={nodesWithZoom}
+				nodes={nodes}
 				edges={edges}
 				onNodesChange={onNodesChange}
 				onEdgesChange={onEdgesChange}
