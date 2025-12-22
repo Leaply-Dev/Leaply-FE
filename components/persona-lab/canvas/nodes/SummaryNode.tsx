@@ -1,7 +1,7 @@
 "use client";
 
 import { Handle, Position } from "@xyflow/react";
-import { FileText, Lock } from "lucide-react";
+import { FileText, ChevronRight } from "lucide-react";
 import type { TrackId } from "@/lib/store/personaStore";
 import { getTrackColor } from "@/lib/constants/personaColors";
 import { cn } from "@/lib/utils";
@@ -9,33 +9,35 @@ import { cn } from "@/lib/utils";
 export interface SummaryNodeData {
 	track: TrackId;
 	state: "locked" | "unlocked";
-	layerLabel?: string;
 	title?: string;
-	content?: string;
+	brief?: string;
 	themeTag?: string;
 	unlockHint?: string;
 	[key: string]: unknown;
 }
 
 interface SummaryNodeProps {
-	data: SummaryNodeData;
+	data: SummaryNodeData & { showDetails?: boolean };
 	selected?: boolean;
 }
 
 export function SummaryNode({ data, selected }: SummaryNodeProps) {
 	const isLocked = data.state === "locked";
 	const colors = getTrackColor(data.track);
+	const showDetails = data.showDetails !== false;
 
 	return (
 		<div
 			className={cn(
-				"relative rounded-xl border-2 shadow-md transition-all duration-200",
-				"min-w-[200px] max-w-[220px] px-4 py-3",
+				"relative rounded-xl border-2 shadow-md transition-all duration-300 cursor-pointer",
+				"min-w-[180px] max-w-[200px] px-4 py-3",
+				"hover:shadow-lg hover:scale-[1.05]",
 				isLocked
-					? "bg-muted border-border cursor-pointer hover:border-muted-foreground/50"
-					: `bg-background ${colors.borderClass}`,
+					? "bg-muted/50 border-border/50"
+					: "bg-background",
 				selected && "ring-2 ring-offset-2",
 				selected && !isLocked && colors.textClass.replace("text-", "ring-"),
+				!showDetails && "scale-90",
 			)}
 			style={
 				!isLocked
@@ -43,52 +45,41 @@ export function SummaryNode({ data, selected }: SummaryNodeProps) {
 					: undefined
 			}
 		>
-			{/* Layer label */}
-			<div
-				className={cn(
-					"text-[10px] font-semibold uppercase tracking-wider mb-1",
-					isLocked ? "text-muted-foreground/60" : colors.textClass,
-				)}
-			>
-				{data.layerLabel || "L1: Summary"}
-			</div>
-
-			<div className="flex items-start gap-2">
+			<div className="flex items-start gap-3">
 				<div
 					className={cn(
-						"flex items-center justify-center w-7 h-7 rounded-lg shrink-0",
-						isLocked ? "bg-muted-foreground/10" : colors.bgClass,
+						"flex items-center justify-center w-8 h-8 rounded-lg shrink-0",
+						isLocked ? "bg-muted" : colors.bgClass,
 					)}
 				>
-					{isLocked ? (
-						<Lock className="w-3.5 h-3.5 text-muted-foreground" />
-					) : (
-						<FileText className={cn("w-3.5 h-3.5", colors.textClass)} />
-					)}
+					<FileText
+						className={cn("w-4 h-4", isLocked ? "text-muted-foreground" : colors.textClass)}
+						style={!isLocked ? { color: colors.primary } : undefined}
+					/>
 				</div>
 
 				<div className="flex-1 min-w-0">
 					{isLocked ? (
 						<>
 							<span className="text-sm font-medium text-muted-foreground">
-								Locked
+								Keep sharing...
 							</span>
-							<p className="text-xs text-muted-foreground/70 mt-0.5">
-								{data.unlockHint || "Complete this track"}
+							<p className="text-xs text-muted-foreground/70 mt-0.5 line-clamp-1">
+								{data.unlockHint || "Complete this topic"}
 							</p>
 						</>
 					) : (
 						<>
 							<span className="text-sm font-semibold text-foreground line-clamp-2">
-								{data.title || "Summary Title"}
+								{data.title || "Your Story"}
 							</span>
-							{data.themeTag && (
+							{data.themeTag && showDetails && (
 								<span
 									className={cn(
-										"inline-block text-[10px] px-1.5 py-0.5 rounded mt-1",
+										"inline-block text-[10px] px-1.5 py-0.5 rounded mt-1.5",
 										colors.bgClass,
-										colors.textClass,
 									)}
+									style={{ color: colors.primary }}
 								>
 									{data.themeTag}
 								</span>
@@ -96,6 +87,10 @@ export function SummaryNode({ data, selected }: SummaryNodeProps) {
 						</>
 					)}
 				</div>
+
+				{!isLocked && showDetails && (
+					<ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 mt-1" />
+				)}
 			</div>
 
 			{/* Handles - all sides for flexible connections */}

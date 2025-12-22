@@ -4,20 +4,18 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
 	ArrowLeft,
 	BookOpen,
-	Check,
 	ChevronRight,
+	Compass,
 	Heart,
 	Lightbulb,
 	Rocket,
-	SkipForward,
+	Sparkles,
 	Star,
 } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -28,111 +26,249 @@ import {
 } from "@/lib/store/personaStore";
 import { cn } from "@/lib/utils";
 
-const TRACK_ICONS: Record<
+// Topic metadata with friendly wording
+const TOPIC_META: Record<
 	TrackId,
-	React.ComponentType<{ className?: string }>
+	{
+		icon: React.ReactNode;
+		gradient: string;
+		bgLight: string;
+		borderColor: string;
+	}
 > = {
-	academic: BookOpen,
-	activities: Star,
-	values: Heart,
-	future: Rocket,
+	academic: {
+		icon: <BookOpen className="w-6 h-6" />,
+		gradient: "from-blue-500 to-blue-600",
+		bgLight: "bg-blue-50 dark:bg-blue-950/30",
+		borderColor: "border-blue-200 dark:border-blue-900",
+	},
+	activities: {
+		icon: <Star className="w-6 h-6" />,
+		gradient: "from-amber-500 to-orange-500",
+		bgLight: "bg-amber-50 dark:bg-amber-950/30",
+		borderColor: "border-amber-200 dark:border-amber-900",
+	},
+	values: {
+		icon: <Heart className="w-6 h-6" />,
+		gradient: "from-rose-500 to-pink-500",
+		bgLight: "bg-rose-50 dark:bg-rose-950/30",
+		borderColor: "border-rose-200 dark:border-rose-900",
+	},
+	future: {
+		icon: <Rocket className="w-6 h-6" />,
+		gradient: "from-violet-500 to-purple-600",
+		bgLight: "bg-violet-50 dark:bg-violet-950/30",
+		borderColor: "border-violet-200 dark:border-violet-900",
+	},
 };
 
-const TRACK_COLORS: Record<TrackId, string> = {
-	academic: "bg-blue-500/10 text-blue-600 border-blue-200",
-	activities: "bg-amber-500/10 text-amber-600 border-amber-200",
-	values: "bg-rose-500/10 text-rose-600 border-rose-200",
-	future: "bg-violet-500/10 text-violet-600 border-violet-200",
+// Friendly topic titles (will be used for both languages)
+const TOPIC_TITLES: Record<TrackId, { en: string; vi: string }> = {
+	academic: {
+		en: "Your Learning Story",
+		vi: "Câu chuyện học tập",
+	},
+	activities: {
+		en: "What Drives You",
+		vi: "Điều thúc đẩy bạn",
+	},
+	values: {
+		en: "Your Core Beliefs",
+		vi: "Giá trị cốt lõi",
+	},
+	future: {
+		en: "Where You're Headed",
+		vi: "Hướng đi tương lai",
+	},
 };
 
-interface TrackCardProps {
+const TOPIC_DESCRIPTIONS: Record<TrackId, { en: string; vi: string }> = {
+	academic: {
+		en: "Share your academic journey and discoveries",
+		vi: "Chia sẻ hành trình học tập của bạn",
+	},
+	activities: {
+		en: "Tell us about activities that matter to you",
+		vi: "Kể về những hoạt động có ý nghĩa với bạn",
+	},
+	values: {
+		en: "Explore what shapes who you are",
+		vi: "Khám phá điều định hình con người bạn",
+	},
+	future: {
+		en: "Envision your path forward",
+		vi: "Hình dung con đường phía trước",
+	},
+};
+
+// Circular progress component
+function CircularProgress({
+	progress,
+	size = 48,
+	strokeWidth = 4,
+	className,
+}: {
+	progress: number;
+	size?: number;
+	strokeWidth?: number;
+	className?: string;
+}) {
+	const radius = (size - strokeWidth) / 2;
+	const circumference = radius * 2 * Math.PI;
+	const offset = circumference - (progress / 100) * circumference;
+
+	return (
+		<svg
+			width={size}
+			height={size}
+			className={cn("rotate-[-90deg]", className)}
+		>
+			{/* Background circle */}
+			<circle
+				cx={size / 2}
+				cy={size / 2}
+				r={radius}
+				fill="none"
+				stroke="currentColor"
+				strokeWidth={strokeWidth}
+				className="text-muted/30"
+			/>
+			{/* Progress circle */}
+			<circle
+				cx={size / 2}
+				cy={size / 2}
+				r={radius}
+				fill="none"
+				stroke="url(#progressGradient)"
+				strokeWidth={strokeWidth}
+				strokeLinecap="round"
+				strokeDasharray={circumference}
+				strokeDashoffset={offset}
+				className="transition-all duration-500 ease-out"
+			/>
+			<defs>
+				<linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+					<stop offset="0%" stopColor="hsl(var(--primary))" />
+					<stop offset="100%" stopColor="hsl(var(--chart-2))" />
+				</linearGradient>
+			</defs>
+		</svg>
+	);
+}
+
+interface TopicCardProps {
 	track: DiscoveryTrack;
 	onStart: () => void;
 }
 
-function TrackCard({ track, onStart }: TrackCardProps) {
-	const { t } = useTranslation();
-	const Icon = TRACK_ICONS[track.id];
+function TopicCard({ track, onStart }: TopicCardProps) {
+	const meta = TOPIC_META[track.id];
 	const answeredCount = track.answers.length;
 	const totalQuestions = track.questions.length;
-	const progress = (answeredCount / totalQuestions) * 100;
+	const progress = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
+	const isCompleted = track.status === "completed";
+	const isStarted = track.status !== "not_started";
+
+	// Get locale (simplified - in production, use proper hook)
+	const title = TOPIC_TITLES[track.id].en;
+	const description = TOPIC_DESCRIPTIONS[track.id].en;
 
 	return (
-		<Card
-			className={cn(
-				"group cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02]",
-				track.status === "completed" && "ring-2 ring-primary/20",
-			)}
-			onClick={onStart}
+		<motion.div
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ duration: 0.3 }}
 		>
-			<CardHeader className="pb-3">
-				<div className="flex items-start justify-between">
-					<div
-						className={cn(
-							"w-12 h-12 rounded-xl flex items-center justify-center mb-3",
-							TRACK_COLORS[track.id],
-						)}
-					>
-						<span className="text-2xl">{track.icon}</span>
-					</div>
-					<Badge
-						variant={
-							track.status === "completed"
-								? "default"
-								: track.status === "in_progress"
-									? "secondary"
-									: "outline"
-						}
-						className="text-xs"
-					>
-						{track.status === "completed" && <Check className="w-3 h-3 mr-1" />}
-						{track.status === "completed"
-							? t("personaLab", "statusCompleted")
-							: track.status === "in_progress"
-								? t("personaLab", "statusInProgress")
-								: t("personaLab", "statusNotStarted")}
-					</Badge>
-				</div>
-				<CardTitle className="text-lg group-hover:text-primary transition-colors">
-					{track.title}
-				</CardTitle>
-			</CardHeader>
-			<CardContent className="pt-0">
-				<p className="text-sm text-muted-foreground mb-4">
-					{track.description}
-				</p>
-
-				{track.status !== "not_started" && (
-					<div className="space-y-2">
-						<div className="flex justify-between text-xs text-muted-foreground">
-							<span>
-								{answeredCount} / {totalQuestions}{" "}
-								{t("personaLab", "questions")}
-							</span>
-							<span>{Math.round(progress)}%</span>
-						</div>
-						<Progress value={progress} className="h-1.5" />
-					</div>
+			<Card
+				className={cn(
+					"group cursor-pointer transition-all duration-300",
+					"hover:shadow-lg hover:scale-[1.02]",
+					"border-2",
+					isCompleted
+						? "ring-2 ring-primary/20 border-primary/30"
+						: meta.borderColor,
+					meta.bgLight,
 				)}
+				onClick={onStart}
+			>
+				<CardContent className="p-5">
+					<div className="flex items-start gap-4">
+						{/* Icon with progress ring */}
+						<div className="relative shrink-0">
+							{isStarted && !isCompleted ? (
+								<>
+									<CircularProgress progress={progress} size={52} strokeWidth={3} />
+									<div
+										className={cn(
+											"absolute inset-0 flex items-center justify-center",
+											`bg-gradient-to-br ${meta.gradient} bg-clip-text text-transparent`,
+										)}
+									>
+										{meta.icon}
+									</div>
+								</>
+							) : (
+								<div
+									className={cn(
+										"w-13 h-13 rounded-xl flex items-center justify-center",
+										isCompleted
+											? "bg-gradient-to-br from-primary to-primary/80 text-white"
+											: `bg-gradient-to-br ${meta.gradient} text-white`,
+									)}
+								>
+									{isCompleted ? (
+										<Sparkles className="w-6 h-6" />
+									) : (
+										meta.icon
+									)}
+								</div>
+							)}
+						</div>
 
-				<div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-					<span className="text-xs text-muted-foreground">
-						{totalQuestions} {t("personaLab", "questions")}
-					</span>
-					<ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-				</div>
-			</CardContent>
-		</Card>
+						{/* Content */}
+						<div className="flex-1 min-w-0">
+							<div className="flex items-center justify-between mb-1">
+								<h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+									{title}
+								</h3>
+								<ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+							</div>
+							<p className="text-sm text-muted-foreground line-clamp-2">
+								{description}
+							</p>
+
+							{/* Status indicator */}
+							<div className="mt-3 flex items-center gap-2">
+								{isCompleted ? (
+									<span className="text-xs font-medium text-primary flex items-center gap-1">
+										<Sparkles className="w-3 h-3" />
+										Complete
+									</span>
+								) : isStarted ? (
+									<span className="text-xs text-muted-foreground">
+										{answeredCount} of {totalQuestions}
+									</span>
+								) : (
+									<span className="text-xs text-muted-foreground">
+										{totalQuestions} questions
+									</span>
+								)}
+							</div>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+		</motion.div>
 	);
 }
 
-interface DiscoveryFlowProps {
+interface ConversationFlowProps {
 	track: DiscoveryTrack;
 	onBack: () => void;
 	onComplete: () => void;
 }
 
-function DiscoveryFlow({ track, onBack, onComplete }: DiscoveryFlowProps) {
+function ConversationFlow({ track, onBack, onComplete }: ConversationFlowProps) {
 	const { t } = useTranslation();
 	const { answerQuestion, nextQuestion, previousQuestion, completeTrack } =
 		usePersonaStore();
@@ -145,6 +281,8 @@ function DiscoveryFlow({ track, onBack, onComplete }: DiscoveryFlowProps) {
 	const isLastQuestion =
 		track.currentQuestionIndex === track.questions.length - 1;
 	const canProceed = !currentQuestion.required || answer.trim().length > 0;
+	const meta = TOPIC_META[track.id];
+	const title = TOPIC_TITLES[track.id].en;
 
 	const handleNext = () => {
 		if (answer.trim()) {
@@ -177,118 +315,99 @@ function DiscoveryFlow({ track, onBack, onComplete }: DiscoveryFlowProps) {
 		}
 	};
 
-	const handleSkip = () => {
-		if (isLastQuestion) {
-			completeTrack(track.id);
-			onComplete();
-		} else {
-			nextQuestion(track.id);
-			const nextQ = track.questions[track.currentQuestionIndex + 1];
-			const nextAnswer = track.answers.find((a) => a.questionId === nextQ?.id);
-			setAnswer(nextAnswer?.answer || "");
-		}
-	};
-
-	const progress =
-		((track.currentQuestionIndex + 1) / track.questions.length) * 100;
-
 	return (
-		<div className="flex-1 flex flex-col max-w-3xl mx-auto w-full px-4 py-8">
+		<div className="flex-1 flex flex-col max-w-2xl mx-auto w-full px-4 py-6">
 			{/* Header */}
-			<div className="mb-8">
+			<div className="mb-6">
 				<button
 					onClick={onBack}
 					className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4"
 				>
 					<ArrowLeft className="w-4 h-4" />
-					{t("personaLab", "backToList")}
+					<span className="text-sm">{title}</span>
 				</button>
 
-				<div className="flex items-center gap-3 mb-4">
-					<div
-						className={cn(
-							"w-10 h-10 rounded-lg flex items-center justify-center",
-							TRACK_COLORS[track.id],
-						)}
-					>
-						<span className="text-xl">{track.icon}</span>
-					</div>
-					<div>
-						<h2 className="font-semibold text-foreground">{track.title}</h2>
-						<p className="text-sm text-muted-foreground">
-							{t("personaLab", "question")} {track.currentQuestionIndex + 1} /{" "}
-							{track.questions.length}
-						</p>
-					</div>
+				{/* Minimal progress indicator */}
+				<div className="flex items-center gap-2 text-sm text-muted-foreground">
+					<span className="font-medium text-foreground">
+						{track.currentQuestionIndex + 1}
+					</span>
+					<span>of</span>
+					<span>{track.questions.length}</span>
 				</div>
-
-				<Progress value={progress} className="h-2" />
 			</div>
 
-			{/* Question Card */}
+			{/* Chat-like question display */}
 			<AnimatePresence mode="wait">
 				<motion.div
 					key={currentQuestion.id}
-					initial={{ opacity: 0, x: 20 }}
-					animate={{ opacity: 1, x: 0 }}
-					exit={{ opacity: 0, x: -20 }}
-					transition={{ duration: 0.3 }}
+					initial={{ opacity: 0, y: 10 }}
+					animate={{ opacity: 1, y: 0 }}
+					exit={{ opacity: 0, y: -10 }}
+					transition={{ duration: 0.2 }}
 					className="flex-1 flex flex-col"
 				>
-					<Card className="flex-1 flex flex-col">
-						<CardHeader className="pb-4">
-							<CardTitle className="text-xl leading-relaxed">
-								{currentQuestion.question}
-								{currentQuestion.required && (
-									<span className="text-destructive ml-1">*</span>
-								)}
-							</CardTitle>
+					{/* AI Question bubble */}
+					<div className="flex gap-3 mb-6">
+						<div
+							className={cn(
+								"w-9 h-9 rounded-full flex items-center justify-center shrink-0",
+								`bg-gradient-to-br ${meta.gradient} text-white`,
+							)}
+						>
+							<Compass className="w-4 h-4" />
+						</div>
+						<div className="flex-1">
+							<div className="bg-muted/50 rounded-2xl rounded-tl-sm px-4 py-3 inline-block max-w-full">
+								<p className="text-foreground leading-relaxed">
+									{currentQuestion.question}
+									{currentQuestion.required && (
+										<span className="text-destructive ml-1">*</span>
+									)}
+								</p>
+							</div>
 							{currentQuestion.hint && (
-								<p className="text-sm text-muted-foreground flex items-start gap-2 mt-2">
-									<Lightbulb className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
+								<p className="text-xs text-muted-foreground mt-2 flex items-start gap-1.5 px-1">
+									<Lightbulb className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-500" />
 									{currentQuestion.hint}
 								</p>
 							)}
-						</CardHeader>
-						<CardContent className="flex-1 flex flex-col pt-0">
-							<Textarea
-								value={answer}
-								onChange={(e) => setAnswer(e.target.value)}
-								placeholder={t("personaLab", "writeAnswer")}
-								className="flex-1 min-h-[200px] resize-none text-base leading-relaxed"
-							/>
+						</div>
+					</div>
 
-							{/* Action Buttons */}
-							<div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
-								<div className="flex gap-2">
-									<Button variant="outline" onClick={handlePrevious}>
-										<ArrowLeft className="w-4 h-4 mr-2" />
-										{track.currentQuestionIndex === 0
-											? t("personaLab", "exit")
-											: t("personaLab", "back")}
-									</Button>
+					{/* User answer area */}
+					<div className="flex-1 flex flex-col gap-4">
+						<Textarea
+							value={answer}
+							onChange={(e) => setAnswer(e.target.value)}
+							placeholder={t("personaLab", "writeAnswer")}
+							className="flex-1 min-h-[150px] resize-none text-base leading-relaxed rounded-xl border-2 focus:border-primary/50"
+						/>
 
-									{!currentQuestion.required && (
-										<Button
-											variant="ghost"
-											onClick={handleSkip}
-											className="text-muted-foreground"
-										>
-											<SkipForward className="w-4 h-4 mr-2" />
-											{t("personaLab", "skip")}
-										</Button>
-									)}
-								</div>
+						{/* Action Buttons */}
+						<div className="flex items-center justify-between pt-2">
+							<Button variant="ghost" onClick={handlePrevious} size="sm">
+								<ArrowLeft className="w-4 h-4 mr-2" />
+								{track.currentQuestionIndex === 0
+									? t("personaLab", "exit")
+									: t("personaLab", "back")}
+							</Button>
 
-								<Button onClick={handleNext} disabled={!canProceed}>
-									{isLastQuestion
-										? t("personaLab", "complete")
-										: t("personaLab", "next")}
-									{!isLastQuestion && <ChevronRight className="w-4 h-4 ml-2" />}
-								</Button>
-							</div>
-						</CardContent>
-					</Card>
+							<Button
+								onClick={handleNext}
+								disabled={!canProceed}
+								className={cn(
+									"px-6",
+									`bg-gradient-to-r ${meta.gradient} hover:opacity-90`,
+								)}
+							>
+								{isLastQuestion
+									? t("personaLab", "complete")
+									: t("personaLab", "next")}
+								{!isLastQuestion && <ChevronRight className="w-4 h-4 ml-1" />}
+							</Button>
+						</div>
+					</div>
 				</motion.div>
 			</AnimatePresence>
 		</div>
@@ -301,12 +420,10 @@ interface DiscoveryTabProps {
 
 export function DiscoveryTab({ onComplete }: DiscoveryTabProps) {
 	const { t } = useTranslation();
-	const { tracks, activeTrackId, startTrack, setActiveTrack } =
-		usePersonaStore();
+	const { tracks, startTrack, setActiveTrack } = usePersonaStore();
 	const [selectedTrackId, setSelectedTrackId] = useState<TrackId | null>(null);
 
 	const activeTrack = tracks.find((t) => t.id === selectedTrackId);
-	const completedCount = tracks.filter((t) => t.status === "completed").length;
 
 	const handleStartTrack = (trackId: TrackId) => {
 		const track = tracks.find((t) => t.id === trackId);
@@ -342,7 +459,7 @@ export function DiscoveryTab({ onComplete }: DiscoveryTabProps) {
 	if (activeTrack) {
 		return (
 			<ScrollArea className="flex-1">
-				<DiscoveryFlow
+				<ConversationFlow
 					track={activeTrack}
 					onBack={handleBack}
 					onComplete={handleTrackComplete}
@@ -353,55 +470,46 @@ export function DiscoveryTab({ onComplete }: DiscoveryTabProps) {
 
 	return (
 		<ScrollArea className="flex-1">
-			<div className="p-6 max-w-5xl mx-auto">
+			<div className="p-6 max-w-3xl mx-auto">
 				{/* Header */}
-				<div className="mb-8">
+				<div className="text-center mb-8">
 					<h2 className="text-2xl font-bold text-foreground mb-2">
 						{t("personaLab", "discoveryTitle")}
 					</h2>
 					<p className="text-muted-foreground">
-						{t("personaLab", "discoverySubtitle")}
+						Share your story, and we'll help you discover what makes you unique
 					</p>
-					<div className="flex items-center gap-2 mt-4">
-						<Progress
-							value={(completedCount / tracks.length) * 100}
-							className="flex-1 h-2"
-						/>
-						<span className="text-sm text-muted-foreground">
-							{completedCount} / {tracks.length} {t("personaLab", "tracks")}
-						</span>
-					</div>
 				</div>
 
-				{/* Track Cards Grid */}
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-					{tracks.map((track) => (
-						<TrackCard
+				{/* Topic Cards Grid */}
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+					{tracks.map((track, index) => (
+						<motion.div
 							key={track.id}
-							track={track}
-							onStart={() => handleStartTrack(track.id)}
-						/>
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: index * 0.1 }}
+						>
+							<TopicCard
+								track={track}
+								onStart={() => handleStartTrack(track.id)}
+							/>
+						</motion.div>
 					))}
 				</div>
 
-				{/* Info Card */}
-				<Card className="mt-8 bg-primary/5 border-primary/20">
-					<CardContent className="p-6">
-						<div className="flex items-start gap-4">
-							<div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
-								<Lightbulb className="w-5 h-5 text-primary" />
-							</div>
-							<div>
-								<h3 className="font-semibold text-foreground mb-1">
-									{t("personaLab", "whyImportant")}
-								</h3>
-								<p className="text-sm text-muted-foreground">
-									{t("personaLab", "whyImportantDesc")}
-								</p>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
+				{/* Encouragement footer */}
+				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					transition={{ delay: 0.5 }}
+					className="mt-8 text-center"
+				>
+					<p className="text-sm text-muted-foreground">
+						<Sparkles className="w-4 h-4 inline mr-1 text-primary" />
+						Complete all topics to unlock your full persona insights
+					</p>
+				</motion.div>
 			</div>
 		</ScrollArea>
 	);

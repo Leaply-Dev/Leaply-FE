@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { personaApi } from "@/lib/api/personaApi";
 
 // Discovery Track Types
 export type TrackId = "academic" | "activities" | "values" | "future";
@@ -107,6 +108,10 @@ interface PersonaState {
 	essays: Essay[];
 	selectedEssayId: string | null;
 
+	// API Loading
+	isLoading: boolean;
+	error: string | null;
+
 	// Canvas
 	viewMode: ViewMode;
 	selectedNodeId: string | null;
@@ -154,6 +159,10 @@ interface PersonaState {
 	getTrackProgress: () => { completed: number; total: number };
 	getCompletedTracks: () => DiscoveryTrack[];
 	resetPersona: () => void;
+
+	// Async Actions
+	initializeStore: () => Promise<void>;
+	generateInsightAsync: (trackId: TrackId) => Promise<void>;
 }
 
 // Initial Discovery Tracks
@@ -751,6 +760,10 @@ export const usePersonaStore = create<PersonaState>()(
 			essays: demoEssays,
 			selectedEssayId: "demo-essay-1",
 
+			// API Loading
+			isLoading: false,
+			error: null,
+
 			// Canvas State
 			viewMode: "canvas" as ViewMode,
 			selectedNodeId: null,
@@ -789,8 +802,8 @@ export const usePersonaStore = create<PersonaState>()(
 						const answers =
 							existingIndex >= 0
 								? track.answers.map((a, i) =>
-										i === existingIndex ? newAnswer : a,
-									)
+									i === existingIndex ? newAnswer : a,
+								)
 								: [...track.answers, newAnswer];
 
 						return { ...track, answers };
@@ -801,11 +814,11 @@ export const usePersonaStore = create<PersonaState>()(
 				set((state) => ({
 					tracks: state.tracks.map((track) =>
 						track.id === trackId &&
-						track.currentQuestionIndex < track.questions.length - 1
+							track.currentQuestionIndex < track.questions.length - 1
 							? {
-									...track,
-									currentQuestionIndex: track.currentQuestionIndex + 1,
-								}
+								...track,
+								currentQuestionIndex: track.currentQuestionIndex + 1,
+							}
 							: track,
 					),
 				})),
@@ -815,9 +828,9 @@ export const usePersonaStore = create<PersonaState>()(
 					tracks: state.tracks.map((track) =>
 						track.id === trackId && track.currentQuestionIndex > 0
 							? {
-									...track,
-									currentQuestionIndex: track.currentQuestionIndex - 1,
-								}
+								...track,
+								currentQuestionIndex: track.currentQuestionIndex - 1,
+							}
 							: track,
 					),
 				})),
@@ -827,10 +840,10 @@ export const usePersonaStore = create<PersonaState>()(
 					tracks: state.tracks.map((track) =>
 						track.id === trackId
 							? {
-									...track,
-									status: "completed" as TrackStatus,
-									completedAt: Date.now(),
-								}
+								...track,
+								status: "completed" as TrackStatus,
+								completedAt: Date.now(),
+							}
 							: track,
 					),
 					activeTrackId: null,
@@ -901,13 +914,13 @@ export const usePersonaStore = create<PersonaState>()(
 					essays: state.essays.map((e) =>
 						e.id === essayId
 							? {
-									...e,
-									...updates,
-									wordCount: updates.content
-										? updates.content.split(/\s+/).filter(Boolean).length
-										: e.wordCount,
-									updatedAt: Date.now(),
-								}
+								...e,
+								...updates,
+								wordCount: updates.content
+									? updates.content.split(/\s+/).filter(Boolean).length
+									: e.wordCount,
+								updatedAt: Date.now(),
+							}
 							: e,
 					),
 				})),
@@ -924,18 +937,18 @@ export const usePersonaStore = create<PersonaState>()(
 					essays: state.essays.map((e) =>
 						e.id === essayId
 							? {
-									...e,
-									feedback: [
-										...e.feedback,
-										{
-											...feedback,
-											id: crypto.randomUUID(),
-											timestamp: Date.now(),
-										},
-									],
-									status: "reviewed" as EssayStatus,
-									updatedAt: Date.now(),
-								}
+								...e,
+								feedback: [
+									...e.feedback,
+									{
+										...feedback,
+										id: crypto.randomUUID(),
+										timestamp: Date.now(),
+									},
+								],
+								status: "reviewed" as EssayStatus,
+								updatedAt: Date.now(),
+							}
 							: e,
 					),
 				})),
@@ -983,6 +996,50 @@ export const usePersonaStore = create<PersonaState>()(
 						insight: true,
 					},
 				}),
+
+			// Async Actions
+			initializeStore: async () => {
+				set({ isLoading: true, error: null });
+				try {
+					const data = await personaApi.getPersonaData();
+					if (data.tracks.length > 0) {
+						set({
+							tracks: data.tracks,
+							keyStories: data.keyStories,
+							personalityTags: data.personalityTags,
+							essayAngles: data.essayAngles,
+						});
+					}
+				} catch (err) {
+					set({ error: (err as Error).message });
+				} finally {
+					set({ isLoading: false });
+				}
+			},
+
+			generateInsightAsync: async (trackId) => {
+				set({ isLoading: true, error: null });
+				try {
+					const { insight, angles } = await personaApi.generateInsight(trackId);
+					set((state) => ({
+						essayAngles: [
+							...state.essayAngles,
+							{
+								id: `insight-${trackId}-${Date.now()}`,
+								title: `AI Insight: ${trackId}`,
+								description: insight,
+								relevantTracks: [trackId],
+								isPinned: false,
+								suggestedFor: angles
+							}
+						]
+					}));
+				} catch (err) {
+					set({ error: (err as Error).message });
+				} finally {
+					set({ isLoading: false });
+				}
+			},
 		}),
 		{
 			name: "leaply-persona-store",
