@@ -1,0 +1,131 @@
+"use client";
+
+import dynamic from "next/dynamic";
+import { LayoutGrid, List } from "lucide-react";
+import { useCallback } from "react";
+import { PageTransition } from "@/components/PageTransition";
+import { ChatSidebar } from "@/components/persona-lab/ChatSidebar";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePersonaStore } from "@/lib/store/personaStore";
+import { cn } from "@/lib/utils";
+
+// Dynamic import for PersonaCanvas to avoid SSR issues with React Flow
+const PersonaCanvas = dynamic(
+	() =>
+		import("@/components/persona-lab/canvas/PersonaCanvas").then(
+			(mod) => mod.PersonaCanvas,
+		),
+	{
+		ssr: false,
+		loading: () => (
+			<div className="flex-1 flex items-center justify-center bg-muted/20">
+				<div className="text-center space-y-4">
+					<Skeleton className="w-32 h-32 rounded-full mx-auto" />
+					<Skeleton className="w-24 h-3 mx-auto" />
+				</div>
+			</div>
+		),
+	},
+);
+
+// Dynamic import for simplified list view
+const PersonaListView = dynamic(
+	() =>
+		import("@/components/persona-lab/PersonaListView").then(
+			(mod) => mod.PersonaListView,
+		),
+	{
+		ssr: false,
+		loading: () => (
+			<div className="p-6 space-y-4">
+				<Skeleton className="h-20 w-full rounded-xl" />
+				<Skeleton className="h-20 w-full rounded-xl" />
+				<Skeleton className="h-20 w-full rounded-xl" />
+			</div>
+		),
+	},
+);
+
+export default function PersonaLabPage() {
+	const { viewMode, setViewMode, setSelectedNode } = usePersonaStore();
+
+	const handleNodeSelect = useCallback(
+		(nodeId: string | null) => {
+			setSelectedNode(nodeId);
+		},
+		[setSelectedNode],
+	);
+
+	return (
+		<PageTransition className="flex-1 flex flex-col min-h-0">
+			<div className="flex flex-1 min-h-0 w-full bg-background overflow-hidden">
+				{/* Left Sidebar - Chat Interface */}
+				<aside className="w-80 min-w-[300px] border-r border-border bg-card/50 backdrop-blur-sm hidden lg:flex flex-col">
+					<ChatSidebar />
+				</aside>
+
+				{/* Main Content Area */}
+				<main className="flex-1 min-w-0 flex flex-col min-h-0">
+					{/* Header with View Toggle */}
+					<div className="border-b border-border bg-card/80 backdrop-blur-sm px-6 py-3 shrink-0">
+						<div className="flex items-center justify-between">
+							<div>
+								<h1 className="text-xl font-bold text-foreground">
+									Persona Canvas
+								</h1>
+								<p className="text-sm text-muted-foreground">
+									Your unique story visualized
+								</p>
+							</div>
+
+							{/* View Mode Toggle */}
+							<div className="flex items-center bg-muted rounded-lg p-1">
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => setViewMode("canvas")}
+									className={cn(
+										"h-8 px-3 rounded-md gap-1.5",
+										viewMode === "canvas"
+											? "bg-background shadow-sm"
+											: "hover:bg-transparent",
+									)}
+								>
+									<LayoutGrid className="w-4 h-4" />
+									<span className="hidden sm:inline text-sm">Canvas</span>
+								</Button>
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => setViewMode("list")}
+									className={cn(
+										"h-8 px-3 rounded-md gap-1.5",
+										viewMode === "list"
+											? "bg-background shadow-sm"
+											: "hover:bg-transparent",
+									)}
+								>
+									<List className="w-4 h-4" />
+									<span className="hidden sm:inline text-sm">List</span>
+								</Button>
+							</div>
+						</div>
+					</div>
+
+					{/* Content */}
+					<div className="flex-1 min-h-0">
+						{viewMode === "canvas" ? (
+							<PersonaCanvas
+								className="w-full h-full"
+								onNodeSelect={handleNodeSelect}
+							/>
+						) : (
+							<PersonaListView />
+						)}
+					</div>
+				</main>
+			</div>
+		</PageTransition>
+	);
+}
