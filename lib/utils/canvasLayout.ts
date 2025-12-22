@@ -19,17 +19,17 @@ export const TRACK_DIRECTIONS: Record<
 
 // Distance from center for each layer
 const LAYER_DISTANCES = {
-	summary: 180,
-	evidence: 320,
-	insight: 420,
+	summary: 280,
+	evidence: 480,
+	insight: 620,
 };
 
 // Node dimensions for centering calculations
 const NODE_SIZES: Record<NodeLayer, { width: number; height: number }> = {
-	core: { width: 140, height: 80 },
-	summary: { width: 160, height: 70 },
-	evidence: { width: 140, height: 60 },
-	insight: { width: 130, height: 50 },
+	core: { width: 180, height: 100 },
+	summary: { width: 200, height: 80 },
+	evidence: { width: 160, height: 70 },
+	insight: { width: 150, height: 60 },
 };
 
 // Convert angle (degrees) to radians and calculate position

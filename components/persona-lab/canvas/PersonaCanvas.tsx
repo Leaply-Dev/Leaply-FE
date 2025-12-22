@@ -4,16 +4,17 @@ import {
 	ReactFlow,
 	Background,
 	Controls,
-	MiniMap,
 	useNodesState,
 	useEdgesState,
 	type Node,
 	type Edge,
 	BackgroundVariant,
+	ReactFlowProvider,
+	useViewport,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useCallback, useEffect, useMemo } from "react";
-import { usePersonaStore } from "@/lib/store/personaStore";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePersonaStore, type DiscoveryTrack, type KeyStory } from "@/lib/store/personaStore";
 import { TRACK_COLORS } from "@/lib/constants/personaColors";
 import {
 	calculateNodePosition,
@@ -30,8 +31,10 @@ import {
 	type EvidenceNodeData,
 	type InsightNodeData,
 } from "./nodes";
+import { NodeDetailModal, type NodeDetailData, type NodeType } from "./NodeDetailModal";
 import { CanvasControls } from "./CanvasControls";
 import { cn } from "@/lib/utils";
+import { useCanvasPhysics } from "@/lib/hooks/useCanvasPhysics";
 
 // Define node types for React Flow
 const nodeTypes = {
@@ -46,10 +49,25 @@ interface PersonaCanvasProps {
 	onNodeSelect?: (nodeId: string | null) => void;
 }
 
-export function PersonaCanvas({ className, onNodeSelect }: PersonaCanvasProps) {
-	const { tracks, keyStories } = usePersonaStore();
+export function PersonaCanvas(props: PersonaCanvasProps) {
+	return (
+		<ReactFlowProvider>
+			<PersonaCanvasInner {...props} />
+		</ReactFlowProvider>
+	);
+}
 
-	// Generate nodes from store data
+function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
+	const { tracks, keyStories } = usePersonaStore();
+	const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+	const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+	const [modalData, setModalData] = useState<NodeDetailData | null>(null);
+	const [isModalOpen, setIsModalOpen] = useState(false);
+
+	const { zoom } = useViewport();
+	const showDetails = zoom > 0.8;
+
+	// Generate nodes and edges from persona data
 	const generatedData = useMemo(() => {
 		const nodes: Node[] = [];
 		const edges: Edge[] = [];
@@ -65,7 +83,7 @@ export function PersonaCanvas({ className, onNodeSelect }: PersonaCanvasProps) {
 			subtitle: allTracksCompleted
 				? "Bridge between tradition & technology"
 				: undefined,
-			unlockHint: "Complete all tracks to discover your archetype",
+			unlockHint: "Complete all topics to discover",
 		};
 
 		nodes.push({
@@ -94,7 +112,7 @@ export function PersonaCanvas({ className, onNodeSelect }: PersonaCanvasProps) {
 				(s) => s.sourceTrack === track.id,
 			);
 
-			// L1: Summary node (first answer/story)
+			// Summary node (main topic node)
 			const summaryNodeId = `${track.id}-summary`;
 			trackNodeIds.summary.push(summaryNodeId);
 
@@ -102,7 +120,6 @@ export function PersonaCanvas({ className, onNodeSelect }: PersonaCanvasProps) {
 			const summaryData: SummaryNodeData = {
 				track: track.id,
 				state: isCompleted ? "unlocked" : "locked",
-				layerLabel: "L1: Summary",
 				title: isCompleted ? firstStory?.title || track.title : undefined,
 				themeTag: isCompleted ? getThemeTag(track.id) : undefined,
 				unlockHint: `Complete ${track.title}`,
@@ -115,7 +132,7 @@ export function PersonaCanvas({ className, onNodeSelect }: PersonaCanvasProps) {
 				data: summaryData,
 			});
 
-			// L2: Evidence nodes (additional stories/answers)
+			// Evidence nodes (story nodes)
 			const additionalStories = trackStories.slice(1, 4);
 			additionalStories.forEach((story, idx) => {
 				const evidenceNodeId = `${track.id}-evidence-${idx}`;
@@ -124,10 +141,9 @@ export function PersonaCanvas({ className, onNodeSelect }: PersonaCanvasProps) {
 				const evidenceData: EvidenceNodeData = {
 					track: track.id,
 					state: isCompleted ? "unlocked" : "locked",
-					layerLabel: "L2: Evidence",
 					title: story.title,
 					content: story.summary,
-					unlockHint: "Answer more questions",
+					unlockHint: "Share more stories",
 				};
 
 				nodes.push({
@@ -138,7 +154,7 @@ export function PersonaCanvas({ className, onNodeSelect }: PersonaCanvasProps) {
 				});
 			});
 
-			// L3: Insight node (AI-generated, placeholder for now)
+			// Insight node (AI-generated)
 			if (isCompleted) {
 				const insightNodeId = `${track.id}-insight`;
 				trackNodeIds.insight.push(insightNodeId);
@@ -146,7 +162,6 @@ export function PersonaCanvas({ className, onNodeSelect }: PersonaCanvasProps) {
 				const insightData: InsightNodeData = {
 					track: track.id,
 					state: "unlocked",
-					layerLabel: "L3: Insight",
 					title: getInsightTitle(track.id),
 					isAIGenerated: true,
 				};
@@ -165,7 +180,7 @@ export function PersonaCanvas({ className, onNodeSelect }: PersonaCanvasProps) {
 				trackNodeIds,
 				trackColor.primary,
 			);
-			edges.push(...trackEdges);
+			edges.push(...(trackEdges as Edge[]));
 		}
 
 		return { nodes, edges };
@@ -174,32 +189,121 @@ export function PersonaCanvas({ className, onNodeSelect }: PersonaCanvasProps) {
 	const [nodes, setNodes, onNodesChange] = useNodesState(generatedData.nodes);
 	const [edges, setEdges, onEdgesChange] = useEdgesState(generatedData.edges);
 
-	// Update nodes when store data changes
+	// Initialize physics hook
+	useCanvasPhysics(nodes, edges, setNodes);
+
+	// Sync states when initial data changes
 	useEffect(() => {
-		setNodes(generatedData.nodes);
-		setEdges(generatedData.edges);
-	}, [generatedData, setNodes, setEdges]);
+		setNodes((nds) => {
+			const newIds = new Set(generatedData.nodes.map(n => n.id));
+			const currentIds = new Set(nds.map(n => n.id));
+
+			// Keep existing nodes, add brand new ones at center
+			const brandNewNodes = generatedData.nodes.filter(n => !currentIds.has(n.id))
+				.map(n => ({ ...n, position: { x: 400, y: 300 } }));
+
+			const preservedNodes = nds.filter(n => newIds.has(n.id));
+
+			return [...preservedNodes, ...brandNewNodes];
+		});
+	}, [generatedData.nodes, setNodes]);
+
+	// Semantic zoom and edge styling
+	const styledEdges = useMemo(() => {
+		return generatedData.edges.map((edge) => {
+			const isHighlighted =
+				selectedNodeId === edge.source ||
+				selectedNodeId === edge.target ||
+				hoveredNodeId === edge.source ||
+				hoveredNodeId === edge.target;
+
+			// Check if this edge connects to a node that is hidden by zoom
+			const sourceIsHidden = !showDetails && (edge.source.includes('evidence') || edge.source.includes('insight'));
+			const targetIsHidden = !showDetails && (edge.target.includes('evidence') || edge.target.includes('insight'));
+			const isHiddenByZoom = sourceIsHidden || targetIsHidden;
+
+			return {
+				...edge,
+				style: {
+					...edge.style,
+					strokeOpacity: isHiddenByZoom ? 0 : (isHighlighted ? 1 : 0.15),
+					stroke: isHighlighted ? edge.style?.stroke : "#94a3b8",
+					transition: "stroke-opacity 0.3s ease, stroke 0.3s ease",
+					pointerEvents: (isHiddenByZoom ? 'none' : 'auto') as any,
+				},
+				animated: isHighlighted && !edge.id.includes('insight'),
+			};
+		});
+	}, [generatedData.edges, selectedNodeId, hoveredNodeId, showDetails]);
+
+	useEffect(() => {
+		setEdges(styledEdges);
+	}, [styledEdges, setEdges]);
+
+	const nodesWithZoom = useMemo(() => {
+		return nodes.map(node => ({
+			...node,
+			data: {
+				...node.data,
+				showDetails
+			}
+		}));
+	}, [nodes, showDetails]);
 
 	const handleNodeClick = useCallback(
 		(_event: React.MouseEvent, node: Node) => {
+			setSelectedNodeId(node.id);
 			onNodeSelect?.(node.id);
+
+			const nodeData = createModalData(node, tracks, keyStories);
+			if (nodeData) {
+				setModalData(nodeData);
+				setIsModalOpen(true);
+			}
 		},
-		[onNodeSelect],
+		[onNodeSelect, tracks, keyStories],
 	);
 
+	const handleNodeMouseEnter = useCallback((_: React.MouseEvent, node: Node) => {
+		setHoveredNodeId(node.id);
+	}, []);
+
+	const handleNodeMouseLeave = useCallback(() => {
+		setHoveredNodeId(null);
+	}, []);
+
 	const handlePaneClick = useCallback(() => {
+		setSelectedNodeId(null);
 		onNodeSelect?.(null);
 	}, [onNodeSelect]);
+
+	const handleModalClose = useCallback(() => {
+		setIsModalOpen(false);
+		setModalData(null);
+	}, []);
+
+	const handleModalNavigate = useCallback((nodeId: string) => {
+		const node = generatedData.nodes.find((n) => n.id === nodeId);
+		if (node) {
+			setSelectedNodeId(nodeId);
+			const nodeData = createModalData(node, tracks, keyStories);
+			if (nodeData) {
+				setModalData(nodeData);
+			}
+		}
+	}, [generatedData.nodes, tracks, keyStories]);
 
 	return (
 		<div className={cn("w-full h-full relative", className)}>
 			<ReactFlow
-				nodes={nodes}
+				nodes={nodesWithZoom}
 				edges={edges}
 				onNodesChange={onNodesChange}
 				onEdgesChange={onEdgesChange}
 				onNodeClick={handleNodeClick}
 				onPaneClick={handlePaneClick}
+				onNodeMouseEnter={handleNodeMouseEnter}
+				onNodeMouseLeave={handleNodeMouseLeave}
 				nodeTypes={nodeTypes}
 				fitView
 				fitViewOptions={{ padding: 0.2 }}
@@ -208,29 +312,19 @@ export function PersonaCanvas({ className, onNodeSelect }: PersonaCanvasProps) {
 				defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
 				proOptions={{ hideAttribution: true }}
 				className="bg-background"
+				nodesDraggable={false}
+				nodesConnectable={false}
+				elementsSelectable={true}
 			>
 				<Background
 					variant={BackgroundVariant.Dots}
 					gap={20}
 					size={1}
-					color="hsl(var(--muted-foreground) / 0.2)"
+					color="hsl(var(--muted-foreground) / 0.15)"
 				/>
 				<Controls
 					showInteractive={false}
 					className="!bg-background !border-border !shadow-md"
-				/>
-				<MiniMap
-					nodeColor={(node) => {
-						if (node.type === "core") return "hsl(var(--primary))";
-						const data = node.data as SummaryNodeData | undefined;
-						const trackId = data?.track;
-						if (trackId && TRACK_COLORS[trackId]) {
-							return TRACK_COLORS[trackId].primary;
-						}
-						return "hsl(var(--muted))";
-					}}
-					maskColor="hsl(var(--background) / 0.8)"
-					className="!bg-card !border-border"
 				/>
 			</ReactFlow>
 
@@ -238,8 +332,86 @@ export function PersonaCanvas({ className, onNodeSelect }: PersonaCanvasProps) {
 			<div className="absolute top-4 left-4 z-10">
 				<CanvasControls />
 			</div>
+
+			{/* Node detail modal */}
+			<NodeDetailModal
+				isOpen={isModalOpen}
+				data={modalData}
+				onClose={handleModalClose}
+				onNavigate={handleModalNavigate}
+			/>
 		</div>
 	);
+}
+
+// Helper function to create modal data from node
+function createModalData(
+	node: Node,
+	tracks: DiscoveryTrack[],
+	keyStories: KeyStory[],
+): NodeDetailData | null {
+	const nodeType = node.type as string;
+
+	if (nodeType === "core") {
+		const data = node.data as CoreNodeData;
+		return {
+			id: node.id,
+			type: "core" as NodeType,
+			title: data.archetype || "Your Archetype",
+			subtitle: data.subtitle,
+			content: data.state === "unlocked"
+				? "This is your unique archetype, synthesized from all your stories and experiences. It represents the core of who you are and what makes you stand out."
+				: "Complete all topics to discover your unique archetype.",
+		};
+	}
+
+	if (nodeType === "summary") {
+		const data = node.data as SummaryNodeData;
+		const track = tracks.find((t) => t.id === data.track);
+		const stories = keyStories.filter((s) => s.sourceTrack === data.track);
+
+		return {
+			id: node.id,
+			type: "topic" as NodeType,
+			trackId: data.track,
+			title: data.title || track?.title || "Topic",
+			subtitle: track?.description,
+			themes: data.themeTag ? [data.themeTag] : [],
+			relatedStories: stories.slice(1, 4).map((s) => ({
+				id: `${data.track}-evidence-${stories.indexOf(s) - 1}`,
+				title: s.title,
+			})),
+		};
+	}
+
+	if (nodeType === "evidence") {
+		const data = node.data as EvidenceNodeData;
+		const story = keyStories.find((s) => s.title === data.title);
+
+		return {
+			id: node.id,
+			type: "story" as NodeType,
+			trackId: data.track,
+			title: data.title || "Your Story",
+			content: story?.summary || data.content,
+		};
+	}
+
+	if (nodeType === "insight") {
+		const data = node.data as InsightNodeData;
+
+		return {
+			id: node.id,
+			type: "insight" as NodeType,
+			trackId: data.track,
+			title: data.title || "AI Insight",
+			isAIGenerated: true,
+			content: getInsightContent(data.track),
+			suggestedAngles: getInsightAngles(data.track),
+		};
+	}
+
+	return null;
 }
 
 // Helper functions for demo data
@@ -261,4 +433,36 @@ function getInsightTitle(trackId: string): string {
 		future: "Technology for community empowerment",
 	};
 	return insights[trackId] || "Key insight from your journey";
+}
+
+function getInsightContent(trackId: string): string {
+	const content: Record<string, string> = {
+		academic: "Based on your stories, you demonstrate a strong ability to connect academic learning with practical applications. Your projects show a pattern of taking theoretical concepts and applying them to solve real community problems.",
+		activities: "Your activities reveal a talent for building collaborative networks. You don't just participate — you create systems and communities that enable others to contribute to meaningful change.",
+		values: "Your responses show a unique ability to bridge traditional wisdom with modern innovation. This perspective is valuable in showing how you can bring diverse viewpoints together.",
+		future: "Your vision clearly centers on using technology as a tool for community empowerment, not just innovation for its own sake. This purpose-driven approach is compelling.",
+	};
+	return content[trackId] || "Leaply AI has identified patterns in your stories that reveal unique strengths.";
+}
+
+function getInsightAngles(trackId: string): string[] {
+	const angles: Record<string, string[]> = {
+		academic: [
+			"Write about a specific moment when theory met practice",
+			"Describe a research question that emerged from community work",
+		],
+		activities: [
+			"Focus on how you built trust across diverse groups",
+			"Show the ripple effects of your network-building",
+		],
+		values: [
+			"Illustrate how traditional and modern perspectives can complement",
+			"Share a moment of cultural bridge-building",
+		],
+		future: [
+			"Connect a personal experience to your larger vision",
+			"Show how your past experiences shaped your future goals",
+		],
+	};
+	return angles[trackId] || [];
 }
