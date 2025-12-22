@@ -9,6 +9,7 @@ export interface CoreNodeData {
 	archetype?: string;
 	subtitle?: string;
 	unlockHint?: string;
+	zoom?: number;
 	[key: string]: unknown;
 }
 
@@ -58,18 +59,22 @@ export function CoreNode({ data, selected }: CoreNodeProps) {
 						<span className="text-sm font-medium text-muted-foreground">
 							Your Archetype
 						</span>
-						<span className="text-xs text-muted-foreground/70 max-w-[160px]">
-							{data.unlockHint || "Complete all topics to discover"}
-						</span>
+						{(!data.zoom || data.zoom > 0.6) && (
+							<span className="text-xs text-muted-foreground/70 max-w-[160px]">
+								{data.unlockHint || "Complete all topics to discover"}
+							</span>
+						)}
 					</>
 				) : (
 					<>
 						<span className="text-lg font-bold text-foreground">
 							{data.archetype || "The Innovator"}
 						</span>
-						<span className="text-sm text-muted-foreground max-w-[180px]">
-							{data.subtitle || "Your unique identity"}
-						</span>
+						{(!data.zoom || data.zoom > 0.6) && (
+							<span className="text-sm text-muted-foreground max-w-[180px]">
+								{data.subtitle || "Your unique identity"}
+							</span>
+						)}
 					</>
 				)}
 			</div>

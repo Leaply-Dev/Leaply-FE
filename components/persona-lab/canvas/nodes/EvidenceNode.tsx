@@ -9,9 +9,10 @@ import { cn } from "@/lib/utils";
 export interface EvidenceNodeData {
 	track: TrackId;
 	state: "locked" | "unlocked";
-	title?: string;
+	title: string;
 	content?: string;
 	unlockHint?: string;
+	zoom?: number;
 	[key: string]: unknown;
 }
 
@@ -23,7 +24,9 @@ interface EvidenceNodeProps {
 export function EvidenceNode({ data, selected }: EvidenceNodeProps) {
 	const isLocked = data.state === "locked";
 	const colors = getTrackColor(data.track);
-	const showDetails = data.showDetails !== false; // Default to true if not provided
+
+	const isMacroView = data.zoom && data.zoom < 0.5;
+	const isMicroView = !data.zoom || data.zoom > 0.8;
 
 	return (
 		<div
@@ -36,7 +39,8 @@ export function EvidenceNode({ data, selected }: EvidenceNodeProps) {
 					: "bg-background border-border",
 				selected && "ring-2 ring-offset-1",
 				selected && !isLocked && colors.textClass.replace("text-", "ring-"),
-				!showDetails && "opacity-0 scale-90 pointer-events-none",
+				isMacroView && "opacity-0 scale-50 pointer-events-none",
+				!isMicroView && !isMacroView && "scale-90 opacity-80",
 			)}
 		>
 			<div className="flex items-center gap-2">
@@ -53,14 +57,13 @@ export function EvidenceNode({ data, selected }: EvidenceNodeProps) {
 				</div>
 
 				<div className="flex-1 min-w-0">
-					{isLocked ? (
-						<span className="text-xs text-muted-foreground">
-							Locked
-						</span>
-					) : (
-						<span className="text-xs font-medium text-foreground line-clamp-2">
-							{data.title || "Story"}
-						</span>
+					<span className="text-xs font-semibold text-foreground line-clamp-1">
+						{data.title || "Evidence"}
+					</span>
+					{(!data.zoom || data.zoom > 0.8) && data.content && (
+						<p className="text-[10px] text-muted-foreground mt-1 line-clamp-2 leading-tight">
+							{data.content}
+						</p>
 					)}
 				</div>
 

@@ -11,6 +11,7 @@ export interface InsightNodeData {
 	state: "locked" | "unlocked";
 	title?: string;
 	isAIGenerated?: boolean;
+	zoom?: number;
 	[key: string]: unknown;
 }
 
@@ -22,7 +23,9 @@ interface InsightNodeProps {
 export function InsightNode({ data, selected }: InsightNodeProps) {
 	const isLocked = data.state === "locked";
 	const colors = getTrackColor(data.track);
-	const showDetails = data.showDetails !== false;
+
+	const isMacroView = data.zoom && data.zoom < 0.5;
+	const isMicroView = !data.zoom || data.zoom > 0.8;
 
 	return (
 		<div
@@ -34,7 +37,8 @@ export function InsightNode({ data, selected }: InsightNodeProps) {
 					? "bg-muted/20 border border-dashed border-border/50"
 					: "bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-900",
 				selected && "ring-2 ring-amber-400 ring-offset-1",
-				!showDetails && "opacity-0 scale-90 pointer-events-none",
+				isMacroView && "opacity-0 scale-50 pointer-events-none",
+				!isMicroView && !isMacroView && "scale-90 opacity-80",
 			)}
 		>
 			<div className="flex items-center gap-2">
