@@ -56,6 +56,17 @@ export interface EssayAngle {
 	suggestedFor?: string[]; // Essay types this angle works well for
 }
 
+// Canvas Types
+export type NodeLayer = "core" | "summary" | "evidence" | "insight";
+export type ViewMode = "list" | "canvas";
+
+export interface VisibleLayers {
+	core: boolean;
+	summary: boolean;
+	evidence: boolean;
+	insight: boolean;
+}
+
 // Essay Types
 export type EssayStatus = "draft" | "submitted" | "reviewed";
 
@@ -96,6 +107,11 @@ interface PersonaState {
 	essays: Essay[];
 	selectedEssayId: string | null;
 
+	// Canvas
+	viewMode: ViewMode;
+	selectedNodeId: string | null;
+	visibleLayers: VisibleLayers;
+
 	// Discovery Actions
 	startTrack: (trackId: TrackId) => void;
 	answerQuestion: (
@@ -127,6 +143,12 @@ interface PersonaState {
 		feedback: Omit<EssayFeedback, "id" | "timestamp">,
 	) => void;
 	setSelectedEssay: (essayId: string | null) => void;
+
+	// Canvas Actions
+	setViewMode: (mode: ViewMode) => void;
+	setSelectedNode: (nodeId: string | null) => void;
+	setVisibleLayers: (layers: VisibleLayers) => void;
+	toggleLayer: (layer: NodeLayer) => void;
 
 	// Utility
 	getTrackProgress: () => { completed: number; total: number };
@@ -729,6 +751,16 @@ export const usePersonaStore = create<PersonaState>()(
 			essays: demoEssays,
 			selectedEssayId: "demo-essay-1",
 
+			// Canvas State
+			viewMode: "canvas" as ViewMode,
+			selectedNodeId: null,
+			visibleLayers: {
+				core: true,
+				summary: true,
+				evidence: true,
+				insight: true,
+			},
+
 			// Discovery Actions
 			startTrack: (trackId) =>
 				set((state) => ({
@@ -910,6 +942,18 @@ export const usePersonaStore = create<PersonaState>()(
 
 			setSelectedEssay: (essayId) => set({ selectedEssayId: essayId }),
 
+			// Canvas Actions
+			setViewMode: (mode) => set({ viewMode: mode }),
+			setSelectedNode: (nodeId) => set({ selectedNodeId: nodeId }),
+			setVisibleLayers: (layers) => set({ visibleLayers: layers }),
+			toggleLayer: (layer) =>
+				set((state) => ({
+					visibleLayers: {
+						...state.visibleLayers,
+						[layer]: !state.visibleLayers[layer],
+					},
+				})),
+
 			// Utility
 			getTrackProgress: () => {
 				const tracks = get().tracks;
@@ -930,6 +974,14 @@ export const usePersonaStore = create<PersonaState>()(
 					essayAngles: demoEssayAngles,
 					essays: demoEssays,
 					selectedEssayId: "demo-essay-1",
+					viewMode: "canvas" as ViewMode,
+					selectedNodeId: null,
+					visibleLayers: {
+						core: true,
+						summary: true,
+						evidence: true,
+						insight: true,
+					},
 				}),
 		}),
 		{
