@@ -11,7 +11,7 @@ import { OnboardingProgress } from "@/components/OnboardingProgress";
 import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useUserStore, type JourneyType } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
@@ -229,7 +229,7 @@ export function OnboardingClient({
 									className="h-8 w-auto"
 								/>
 							</Link>
-							
+
 							{/* Language Switcher */}
 							<LanguageSwitcher currentLocale={lang as "en" | "vi"} />
 						</div>
@@ -245,7 +245,7 @@ export function OnboardingClient({
 				</div>
 
 				{/* Main Content Area */}
-				<div className="flex-1 flex flex-col items-center justify-start pt-4 px-4 sm:px-6 pb-12 w-full max-w-5xl mx-auto">
+				<div className="flex-1 flex flex-col items-center justify-start pt-4 px-4 sm:px-6 pb-12 w-full max-w-2xl mx-auto">
 					<AnimatePresence mode="wait">
 						{/* STEP 1: BASIC INFO */}
 						{currentStep === 0 && (
@@ -273,19 +273,30 @@ export function OnboardingClient({
 												{translations.step1.educationLevelRequired}
 											</span>
 										</FieldLegend>
-										<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+										<ToggleGroup
+											type="single"
+											variant="outline"
+											spacing={2}
+											size="sm"
+											value={basicInfo.educationLevel}
+											onValueChange={(value) => {
+												if (value)
+													handleBasicInfoChange("educationLevel", value);
+											}}
+											className="flex flex-wrap gap-2"
+										>
 											{constants.educationLevels.map((level) => (
-												<SelectionCard
+												<ToggleGroupItem
 													key={level.value}
-													selected={basicInfo.educationLevel === level.value}
-													onClick={() =>
-														handleBasicInfoChange("educationLevel", level.value)
-													}
+													value={level.value}
+													className="h-auto py-2 px-4 rounded-full border-muted-foreground/30 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:border-primary transition-all"
 												>
-													<span className="font-medium">{level.label}</span>
-												</SelectionCard>
+													<span className="text-sm font-medium">
+														{level.label}
+													</span>
+												</ToggleGroupItem>
 											))}
-										</div>
+										</ToggleGroup>
 									</FieldSet>
 
 									<FieldSet>
@@ -295,50 +306,52 @@ export function OnboardingClient({
 												{translations.step1.targetDegreeRequired}
 											</span>
 										</FieldLegend>
-										<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+										<ToggleGroup
+											type="single"
+											variant="outline"
+											spacing={2}
+											size="sm"
+											value={basicInfo.targetDegree}
+											onValueChange={(value) => {
+												if (value) handleBasicInfoChange("targetDegree", value);
+											}}
+											className="flex flex-wrap gap-2"
+										>
 											{constants.programTypes.map((prog) => (
-												<div
+												<ToggleGroupItem
 													key={prog.value}
-													className={cn(
-														prog.disabled && "opacity-50 pointer-events-none",
-													)}
+													value={prog.value}
+													disabled={prog.disabled}
+													className="h-auto py-2 px-4 rounded-full border-muted-foreground/30 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:border-primary disabled:opacity-50 transition-all"
 												>
-													<SelectionCard
-														selected={basicInfo.targetDegree === prog.value}
-														onClick={() =>
-															!prog.disabled &&
-															handleBasicInfoChange("targetDegree", prog.value)
-														}
-													>
-														<span className="font-medium block">
-															{prog.label}
-														</span>
-													</SelectionCard>
-												</div>
+													<span className="text-sm font-medium">
+														{prog.label}
+													</span>
+												</ToggleGroupItem>
 											))}
-										</div>
+										</ToggleGroup>
 									</FieldSet>
 
-										<div className="pt-6 flex justify-between border-t border-border mt-6">
-											<Button
-												variant="outline"
-												size="lg"
-												disabled
-												onClick={handleBack}
-												className="px-8"
-											>
-												{translations.buttons.back}
-											</Button>
-											<Button
-												size="lg"
-												disabled={!isStep1Valid}
-												onClick={handleNext}
-												className="px-8"
-											>
-												{translations.buttons.continue}
-											</Button>
-										</div>
-									</FieldGroup>
+									<div className="pt-6 flex justify-between border-t border-border mt-6">
+										<Button
+											variant="outline"
+											size="lg"
+											disabled
+											onClick={handleBack}
+											className="px-8"
+										>
+											{translations.buttons.back}
+										</Button>
+										<Button
+											size="lg"
+											disabled={!isStep1Valid}
+											onClick={handleNext}
+											className="px-8"
+										>
+											{translations.buttons.continue}
+										</Button>
+									</div>
+								</FieldGroup>
 							</motion.div>
 						)}
 
@@ -363,63 +376,121 @@ export function OnboardingClient({
 								<FieldGroup className="bg-card p-6 md:p-8 rounded-2xl border border-border shadow-sm">
 									{/* Fields of Interest */}
 									<FieldSet>
-										<FieldLegend>
-											{translations.step2.fieldsOfInterest}{" "}
-											<span className="text-red-500">
-												{translations.step2.fieldsRequired}
+										<FieldLegend className="flex items-center justify-between w-full">
+											<span>
+												{translations.step2.fieldsOfInterest}{" "}
+												<span className="text-red-500">
+													{translations.step2.fieldsRequired}
+												</span>
 											</span>
+											<button
+												type="button"
+												onClick={() => {
+													setPrefs((p) => ({ ...p, fields: [] }));
+												}}
+												className="text-xs font-medium hover:underline text-muted-foreground"
+											>
+												Đặt lại
+											</button>
 										</FieldLegend>
 										<FieldDescription>
 											{translations.step2.fieldsOfInterestMax}
 										</FieldDescription>
-										<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+										<ToggleGroup
+											type="multiple"
+											variant="outline"
+											spacing={2}
+											size="sm"
+											value={prefs.fields}
+											onValueChange={(value) => {
+												if (value.length <= 3) {
+													setPrefs((p) => ({ ...p, fields: value }));
+												}
+											}}
+											className="flex flex-wrap gap-2"
+										>
 											{constants.fieldsOfStudy.map((field) => (
-												<SelectionCard
+												<ToggleGroupItem
 													key={field}
-													selected={prefs.fields.includes(field)}
-													onClick={() =>
-														toggleMultiSelect(
-															prefs.fields,
-															field,
-															(v) => setPrefs((p) => ({ ...p, fields: v })),
-															3,
-														)
+													value={field}
+													disabled={
+														!prefs.fields.includes(field) &&
+														prefs.fields.length >= 3
 													}
+													className="h-auto py-2 px-4 rounded-full border-muted-foreground/30 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:border-primary disabled:opacity-40 transition-all"
 												>
 													<span className="text-sm font-medium">{field}</span>
-												</SelectionCard>
+												</ToggleGroupItem>
 											))}
-										</div>
+										</ToggleGroup>
 									</FieldSet>
 
 									{/* Regions */}
 									<FieldSet>
-										<FieldLegend>
-											{translations.step2.regionsOfInterest}
+										<FieldLegend className="flex items-center justify-between w-full">
+											<span>{translations.step2.regionsOfInterest}</span>
+											<div className="flex gap-2">
+												<button
+													type="button"
+													onClick={() => {
+														const allRegionNames = constants.regions.map(
+															(r) => r.name,
+														);
+														setPrefs((p) => ({
+															...p,
+															regions: allRegionNames,
+														}));
+													}}
+													className="text-xs font-medium text-primary hover:underline"
+												>
+													Chọn tất cả
+												</button>
+												<button
+													type="button"
+													onClick={() => {
+														setPrefs((p) => ({
+															...p,
+															regions: [],
+														}));
+													}}
+													className="text-xs font-medium hover:underline text-muted-foreground"
+												>
+													Đặt lại
+												</button>
+											</div>
 										</FieldLegend>
 										<FieldDescription>
-											{translations.step2.regionsOptional}
+											{(() => {
+												const countries = constants.regions
+													.filter((r) => prefs.regions.includes(r.name))
+													.map((r) => r.countries)
+													.join(", ");
+												return `Các quốc gia trong vùng lựa chọn: ${countries || "chưa có"}`;
+											})()}
 										</FieldDescription>
-										<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+										<ToggleGroup
+											type="multiple"
+											variant="outline"
+											spacing={2}
+											size="sm"
+											value={prefs.regions}
+											onValueChange={(value) => {
+												setPrefs((p) => ({ ...p, regions: value }));
+											}}
+											className="flex flex-wrap gap-2"
+										>
 											{constants.regions.map((region) => (
-												<SelectionCard
+												<ToggleGroupItem
 													key={region.name}
-													selected={prefs.regions.includes(region.name)}
-													onClick={() =>
-														toggleMultiSelect(prefs.regions, region.name, (v) =>
-															setPrefs((p) => ({ ...p, regions: v })),
-														)
-													}
+													value={region.name}
+													className="h-auto py-2 px-4 rounded-full border-muted-foreground/30 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:border-primary transition-all"
 												>
-													<div className="flex flex-col">
-														<span className="font-semibold">{region.name}</span>
-														<span className="text-xs text-muted-foreground mt-0.5">
-															{region.countries}
-														</span>
-													</div>
-												</SelectionCard>
+													<span className="text-sm font-medium">
+														{region.name}
+													</span>
+												</ToggleGroupItem>
 											))}
-										</div>
+										</ToggleGroup>
 									</FieldSet>
 
 									{/* Timeline */}
@@ -489,56 +560,55 @@ export function OnboardingClient({
 												{translations.step2.budgetRequired}
 											</span>
 										</FieldLegend>
-										<div className="pt-6 px-2 pb-2">
-											<Slider
-												min={0}
-												max={3}
-												step={1}
-												value={prefs.budgetIndex}
-												showValue={false}
-												onChange={(val) =>
-													setPrefs((p) => ({ ...p, budgetIndex: val }))
+										<ToggleGroup
+											type="single"
+											variant="outline"
+											spacing={2}
+											size="sm"
+											value={prefs.budgetIndex.toString()}
+											onValueChange={(value) => {
+												if (value) {
+													setPrefs((p) => ({
+														...p,
+														budgetIndex: parseInt(value),
+													}));
 												}
-												className="mb-8 w-[95%] mx-auto"
-											/>
-											<div className="relative h-6 w-[95%] mx-auto">
-												{/* Labels for slider steps */}
-												{constants.budgetOptions.map((option, index) => (
-													<div
-														key={option.value}
-														className="absolute -translate-x-1/2"
-														style={{
-															left: `${(index / (constants.budgetOptions.length - 1)) * 100}%`,
-														}}
-													>
-														<span className="text-xs text-muted-foreground whitespace-nowrap">
-															{option.label}
-														</span>
-													</div>
-												))}
-											</div>
-										</div>
+											}}
+											className="flex flex-wrap gap-2 pt-2"
+										>
+											{constants.budgetOptions.map((option, index) => (
+												<ToggleGroupItem
+													key={option.value}
+													value={index.toString()}
+													className="h-auto py-2 px-4 rounded-full border-muted-foreground/30 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:border-primary transition-all"
+												>
+													<span className="text-sm font-medium">
+														{option.label}
+													</span>
+												</ToggleGroupItem>
+											))}
+										</ToggleGroup>
 									</FieldSet>
 
-										<div className="pt-6 flex justify-between border-t border-border mt-6">
-											<Button
-												variant="outline"
-												size="lg"
-												onClick={handleBack}
-												className="px-8"
-											>
-												{translations.buttons.back}
-											</Button>
-											<Button
-												size="lg"
-												disabled={!isStep2Valid}
-												onClick={handleNext}
-												className="px-8"
-											>
-												{translations.buttons.continue}
-											</Button>
-										</div>
-									</FieldGroup>
+									<div className="pt-6 flex justify-between border-t border-border mt-6">
+										<Button
+											variant="outline"
+											size="lg"
+											onClick={handleBack}
+											className="px-8"
+										>
+											{translations.buttons.back}
+										</Button>
+										<Button
+											size="lg"
+											disabled={!isStep2Valid}
+											onClick={handleNext}
+											className="px-8"
+										>
+											{translations.buttons.continue}
+										</Button>
+									</div>
+								</FieldGroup>
 							</motion.div>
 						)}
 
