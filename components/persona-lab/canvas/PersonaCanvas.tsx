@@ -14,7 +14,11 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { usePersonaStore, type DiscoveryTrack, type KeyStory } from "@/lib/store/personaStore";
+import {
+	usePersonaStore,
+	type DiscoveryTrack,
+	type KeyStory,
+} from "@/lib/store/personaStore";
 import { TRACK_COLORS } from "@/lib/constants/personaColors";
 import {
 	calculateNodePosition,
@@ -32,10 +36,14 @@ import {
 	type EvidenceNodeData,
 	type InsightNodeData,
 } from "./nodes";
-import { NodeDetailModal, type NodeDetailData, type NodeType } from "./NodeDetailModal";
+import {
+	NodeDetailModal,
+	type NodeDetailData,
+	type NodeType,
+} from "./NodeDetailModal";
 import { CanvasControls } from "./CanvasControls";
 import { cn } from "@/lib/utils";
-import { useOrganicLayout } from "@/lib/hooks/useOrganicLayout";
+import { useMindmapLayout } from "@/lib/hooks/useMindmapLayout";
 
 // Define node types for React Flow
 const nodeTypes = {
@@ -66,10 +74,12 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	const { zoom } = useViewport();
-	const [expandedClusters, setExpandedClusters] = useState<Set<string>>(new Set());
+	const [expandedClusters, setExpandedClusters] = useState<Set<string>>(
+		new Set(),
+	);
 
 	const toggleCluster = useCallback((clusterId: string) => {
-		setExpandedClusters(prev => {
+		setExpandedClusters((prev) => {
 			const next = new Set(prev);
 			if (next.has(clusterId)) next.delete(clusterId);
 			else next.add(clusterId);
@@ -118,9 +128,7 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 			};
 
 			// Get stories for this track
-			const trackStories = keyStories.filter(
-				(s) => s.sourceTrack === track.id,
-			);
+			const trackStories = keyStories.filter((s) => s.sourceTrack === track.id);
 
 			// Summary node (main topic node)
 			const summaryNodeId = `${track.id}-summary`;
@@ -149,7 +157,9 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 
 			// Evidence nodes (story nodes) - show if NOT clustered OR if expanded
 			if (!isClustered || isExpanded) {
-				const storiesToShow = isClustered ? trackStories : trackStories.slice(1, 4);
+				const storiesToShow = isClustered
+					? trackStories
+					: trackStories.slice(1, 4);
 				storiesToShow.forEach((story, idx) => {
 					const evidenceNodeId = `${track.id}-evidence-${idx}`;
 					trackNodeIds.evidence.push(evidenceNodeId);
@@ -206,22 +216,24 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 	const [nodes, setNodes, onNodesChange] = useNodesState(generatedData.nodes);
 	const [edges, setEdges, onEdgesChange] = useEdgesState(generatedData.edges);
 
-	// Initialize organic layout hook
-	const { isMacroView } = useOrganicLayout({ nodes, edges, setNodes });
+	// Initialize mindmap layout hook
+	const { runLayout } = useMindmapLayout({ nodes, edges, active: true });
+
+	const isMacroView = zoom < 0.5;
 
 	// Sync states when initial data changes or zoom changes
 	useEffect(() => {
 		setNodes((nds) => {
 			// Process nodes to include zoom level and other metadata
-			let processedNodes = generatedData.nodes.map(node => {
-				const existing = nds.find(n => n.id === node.id);
+			let processedNodes = generatedData.nodes.map((node) => {
+				const existing = nds.find((n) => n.id === node.id);
 				return {
 					...node,
 					position: existing ? existing.position : node.position,
 					data: {
 						...node.data,
-						zoom
-					}
+						zoom,
+					},
 				} as Node;
 			});
 
@@ -229,17 +241,27 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 			if (processedNodes.length < 3) {
 				const seedNodes: Node[] = [
 					{
-						id: 'seed-1',
-						type: 'insight',
+						id: "seed-1",
+						type: "insight",
 						position: { x: CANVAS_CENTER.x - 200, y: CANVAS_CENTER.y - 100 },
-						data: { title: 'Share a story about leadership', track: 'activities', state: 'unlocked', zoom }
+						data: {
+							title: "Share a story about leadership",
+							track: "activities",
+							state: "unlocked",
+							zoom,
+						},
 					},
 					{
-						id: 'seed-2',
-						type: 'insight',
+						id: "seed-2",
+						type: "insight",
 						position: { x: CANVAS_CENTER.x + 200, y: CANVAS_CENTER.y + 100 },
-						data: { title: 'What are your core values?', track: 'values', state: 'unlocked', zoom }
-					}
+						data: {
+							title: "What are your core values?",
+							track: "values",
+							state: "unlocked",
+							zoom,
+						},
+					},
 				];
 				processedNodes = [...processedNodes, ...seedNodes];
 			}
@@ -258,20 +280,24 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				hoveredNodeId === edge.target;
 
 			// Check if this edge connects to a node that is hidden by zoom
-			const sourceIsHidden = isMacroView && (edge.source.includes('evidence') || edge.source.includes('insight'));
-			const targetIsHidden = isMacroView && (edge.target.includes('evidence') || edge.target.includes('insight'));
+			const sourceIsHidden =
+				isMacroView &&
+				(edge.source.includes("evidence") || edge.source.includes("insight"));
+			const targetIsHidden =
+				isMacroView &&
+				(edge.target.includes("evidence") || edge.target.includes("insight"));
 			const isHiddenByZoom = sourceIsHidden || targetIsHidden;
 
 			return {
 				...edge,
 				style: {
 					...edge.style,
-					strokeOpacity: isHiddenByZoom ? 0 : (isHighlighted ? 0.8 : 0.1),
+					strokeOpacity: isHiddenByZoom ? 0 : isHighlighted ? 0.8 : 0.1,
 					stroke: isHighlighted ? edge.style?.stroke : "#94a3b8",
 					transition: "stroke-opacity 0.3s ease, stroke 0.3s ease",
-					pointerEvents: (isHiddenByZoom ? 'none' : 'auto') as any,
+					pointerEvents: (isHiddenByZoom ? "none" : "auto") as any,
 				},
-				animated: isHighlighted && !edge.id.includes('insight'),
+				animated: isHighlighted && !edge.id.includes("insight"),
 			};
 		});
 	}, [generatedData.edges, selectedNodeId, hoveredNodeId, isMacroView]);
@@ -283,7 +309,7 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 	const handleNodeClick = useCallback(
 		(_event: React.MouseEvent, node: Node) => {
 			// Handle cluster toggle
-			if (node.type === 'summary' && node.data.isCluster) {
+			if (node.type === "summary" && node.data.isCluster) {
 				toggleCluster(node.id);
 				return;
 			}
@@ -300,9 +326,12 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 		[onNodeSelect, tracks, keyStories],
 	);
 
-	const handleNodeMouseEnter = useCallback((_: React.MouseEvent, node: Node) => {
-		setHoveredNodeId(node.id);
-	}, []);
+	const handleNodeMouseEnter = useCallback(
+		(_: React.MouseEvent, node: Node) => {
+			setHoveredNodeId(node.id);
+		},
+		[],
+	);
 
 	const handleNodeMouseLeave = useCallback(() => {
 		setHoveredNodeId(null);
@@ -318,16 +347,19 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 		setModalData(null);
 	}, []);
 
-	const handleModalNavigate = useCallback((nodeId: string) => {
-		const node = nodes.find((n) => n.id === nodeId);
-		if (node) {
-			setSelectedNodeId(nodeId);
-			const nodeData = createModalData(node, tracks, keyStories);
-			if (nodeData) {
-				setModalData(nodeData);
+	const handleModalNavigate = useCallback(
+		(nodeId: string) => {
+			const node = nodes.find((n) => n.id === nodeId);
+			if (node) {
+				setSelectedNodeId(nodeId);
+				const nodeData = createModalData(node, tracks, keyStories);
+				if (nodeData) {
+					setModalData(nodeData);
+				}
 			}
-		}
-	}, [nodes, tracks, keyStories]);
+		},
+		[nodes, tracks, keyStories],
+	);
 
 	return (
 		<div className={cn("w-full h-full relative", className)}>
@@ -395,9 +427,10 @@ function createModalData(
 			type: "core" as NodeType,
 			title: data.archetype || "Your Archetype",
 			subtitle: data.subtitle,
-			content: data.state === "unlocked"
-				? "This is your unique archetype, synthesized from all your stories and experiences. It represents the core of who you are and what makes you stand out."
-				: "Complete all topics to discover your unique archetype.",
+			content:
+				data.state === "unlocked"
+					? "This is your unique archetype, synthesized from all your stories and experiences. It represents the core of who you are and what makes you stand out."
+					: "Complete all topics to discover your unique archetype.",
 		};
 	}
 
@@ -473,12 +506,19 @@ function getInsightTitle(trackId: string): string {
 
 function getInsightContent(trackId: string): string {
 	const content: Record<string, string> = {
-		academic: "Based on your stories, you demonstrate a strong ability to connect academic learning with practical applications. Your projects show a pattern of taking theoretical concepts and applying them to solve real community problems.",
-		activities: "Your activities reveal a talent for building collaborative networks. You don't just participate — you create systems and communities that enable others to contribute to meaningful change.",
-		values: "Your responses show a unique ability to bridge traditional wisdom with modern innovation. This perspective is valuable in showing how you can bring diverse viewpoints together.",
-		future: "Your vision clearly centers on using technology as a tool for community empowerment, not just innovation for its own sake. This purpose-driven approach is compelling.",
+		academic:
+			"Based on your stories, you demonstrate a strong ability to connect academic learning with practical applications. Your projects show a pattern of taking theoretical concepts and applying them to solve real community problems.",
+		activities:
+			"Your activities reveal a talent for building collaborative networks. You don't just participate — you create systems and communities that enable others to contribute to meaningful change.",
+		values:
+			"Your responses show a unique ability to bridge traditional wisdom with modern innovation. This perspective is valuable in showing how you can bring diverse viewpoints together.",
+		future:
+			"Your vision clearly centers on using technology as a tool for community empowerment, not just innovation for its own sake. This purpose-driven approach is compelling.",
 	};
-	return content[trackId] || "Leaply AI has identified patterns in your stories that reveal unique strengths.";
+	return (
+		content[trackId] ||
+		"Leaply AI has identified patterns in your stories that reveal unique strengths."
+	);
 }
 
 function getInsightAngles(trackId: string): string[] {
