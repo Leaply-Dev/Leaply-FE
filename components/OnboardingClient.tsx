@@ -1,26 +1,26 @@
 "use client";
 
-import { Check, Compass, Target, ArrowRight, PartyPopper } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, Check, Compass, PartyPopper, Target } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { OnboardingProgress } from "@/components/OnboardingProgress";
 import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/select";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { useUserStore, type JourneyType } from "@/lib/store/userStore";
-import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import {
 	FieldDescription,
 	FieldGroup,
-	FieldSet,
 	FieldLegend,
+	FieldSet,
 } from "@/components/ui/field";
+import { Select } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { type JourneyType, useUserStore } from "@/lib/store/userStore";
+import { cn } from "@/lib/utils";
 
 interface OnboardingClientProps {
 	translations: {
