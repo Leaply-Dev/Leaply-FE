@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import type { EnhancedApplication } from "@/lib/data/enhancedApplications";
-import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 interface ApplicationSidebarProps {
@@ -24,7 +24,7 @@ export function ApplicationSidebar({
 	onSelectApplication,
 	onNewApplication,
 }: ApplicationSidebarProps) {
-	const { t } = useTranslation();
+	const t = useTranslations("applications");
 	const [searchQuery, setSearchQuery] = useState("");
 
 	// Filter applications based on search
@@ -54,7 +54,7 @@ export function ApplicationSidebar({
 			<div className="p-4 border-b border-border space-y-4">
 				<div className="flex items-center justify-between">
 					<h2 className="text-lg font-semibold text-foreground">
-						{t("applications", "title")}
+						{t("title")}
 					</h2>
 					<span className="text-sm text-muted-foreground">
 						{applications.length}
@@ -66,7 +66,7 @@ export function ApplicationSidebar({
 					<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
 					<Input
 						type="text"
-						placeholder={t("applications", "searchUniversities")}
+						placeholder={t("searchUniversities")}
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
 						className="pl-9"
@@ -76,7 +76,7 @@ export function ApplicationSidebar({
 				{/* New Application Button */}
 				<Button onClick={onNewApplication} className="w-full" size="sm">
 					<Plus className="w-4 h-4 mr-2" />
-					{t("applications", "newApplication")}
+					{t("newApplication")}
 				</Button>
 			</div>
 
@@ -84,7 +84,7 @@ export function ApplicationSidebar({
 			<div className="flex-1 overflow-y-auto pb-4">
 				{filteredApplications.length === 0 ? (
 					<div className="p-4 text-center text-sm text-muted-foreground">
-						{t("applications", "noApplicationsFound")}
+						{t("noApplicationsFound")}
 					</div>
 				) : (
 					<div>
@@ -128,7 +128,7 @@ export function ApplicationSidebar({
 													getFitScoreColor(app.fitScore),
 												)}
 											>
-												{app.fitScore}% {t("applications", "match")}
+												{app.fitScore}% {t("match")}
 											</span>
 										</div>
 									</div>
@@ -138,7 +138,7 @@ export function ApplicationSidebar({
 								<div className="mb-2.5">
 									<div className="flex items-center justify-between mb-1.5">
 										<span className="text-xs text-muted-foreground">
-											{t("applications", "progress")}
+											{t("progress")}
 										</span>
 										<span className="text-xs font-medium text-foreground">
 											{app.completionPercentage}%

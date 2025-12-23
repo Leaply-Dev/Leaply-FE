@@ -41,7 +41,9 @@ export function Step4JourneySelection({
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
 				{constants.journeyOptions.map((option) => {
 					const Icon = option.iconName === "compass" ? Compass : Target;
-					const colors = COLOR_MAP[option.color as keyof typeof COLOR_MAP] || COLOR_MAP.primary;
+					const colors =
+						COLOR_MAP[option.color as keyof typeof COLOR_MAP] ||
+						COLOR_MAP.primary;
 
 					return (
 						<Card
@@ -69,12 +71,7 @@ export function Step4JourneySelection({
 			</div>
 
 			<div className="pt-6 flex justify-start border-t border-border mt-6">
-				<Button
-					variant="outline"
-					size="lg"
-					onClick={onBack}
-					className="px-8"
-				>
+				<Button variant="outline" size="lg" onClick={onBack} className="px-8">
 					{translations.buttons.back}
 				</Button>
 			</div>

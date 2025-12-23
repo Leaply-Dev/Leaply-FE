@@ -1,14 +1,14 @@
 "use client";
 
-import {
-	FieldDescription,
-	FieldLegend,
-	FieldSet,
-} from "@/components/ui/field";
+import { FieldDescription, FieldLegend, FieldSet } from "@/components/ui/field";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { StepContainer } from "../components/StepContainer";
 import { StepNavigation } from "../components/StepNavigation";
-import type { OnboardingConstants, OnboardingTranslations, Preferences } from "../types";
+import type {
+	OnboardingConstants,
+	OnboardingTranslations,
+	Preferences,
+} from "../types";
 
 interface Step2PreferencesProps {
 	translations: OnboardingTranslations;
@@ -77,7 +77,9 @@ export function Step2Preferences({
 						<ToggleGroupItem
 							key={field}
 							value={field}
-							disabled={!prefs.fields.includes(field) && prefs.fields.length >= 3}
+							disabled={
+								!prefs.fields.includes(field) && prefs.fields.length >= 3
+							}
 							className="h-auto py-2 px-4 rounded-full border-muted-foreground/30 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:border-primary disabled:opacity-40 transition-all"
 						>
 							<span className="text-sm font-medium">{field}</span>

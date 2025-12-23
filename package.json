@@ -16,6 +16,7 @@
 	"dependencies": {
 		"@formatjs/intl-localematcher": "^0.6.2",
 		"@radix-ui/react-dialog": "^1.1.15",
+		"@radix-ui/react-dropdown-menu": "^2.1.16",
 		"@radix-ui/react-label": "^2.1.8",
 		"@radix-ui/react-scroll-area": "^1.2.10",
 		"@radix-ui/react-separator": "^1.1.8",
@@ -33,9 +34,11 @@
 		"clsx": "^2.1.1",
 		"d3-force": "^3.0.0",
 		"framer-motion": "^12.23.25",
+		"js-cookie": "^3.0.5",
 		"lucide-react": "^0.556.0",
 		"negotiator": "^1.0.0",
 		"next": "16.0.7",
+		"next-intl": "^4.6.1",
 		"postcss": "^8.4.0",
 		"react": "19.2.1",
 		"react-dom": "19.2.1",
@@ -47,6 +50,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.8",
+		"@types/js-cookie": "^3.0.6",
 		"@types/negotiator": "^0.6.4",
 		"@types/node": "^24.10.1",
 		"@types/react": "19.2.7",
@@ -59,5 +63,10 @@
 	"overrides": {
 		"@types/react": "19.2.7",
 		"@types/react-dom": "19.2.3"
-	}
+	},
+	"trustedDependencies": [
+		"@parcel/watcher",
+		"@swc/core",
+		"unrs-resolver"
+	]
 }

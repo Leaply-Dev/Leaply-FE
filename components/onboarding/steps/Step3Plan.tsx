@@ -1,15 +1,15 @@
 "use client";
 
-import {
-	FieldDescription,
-	FieldLegend,
-	FieldSet,
-} from "@/components/ui/field";
+import { FieldDescription, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Select } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { StepContainer } from "../components/StepContainer";
 import { StepNavigation } from "../components/StepNavigation";
-import type { OnboardingConstants, OnboardingTranslations, Preferences } from "../types";
+import type {
+	OnboardingConstants,
+	OnboardingTranslations,
+	Preferences,
+} from "../types";
 
 interface Step3PlanProps {
 	translations: OnboardingTranslations;

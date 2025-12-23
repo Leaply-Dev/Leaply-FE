@@ -1,5 +1,6 @@
 "use client";
 
+import { AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -19,10 +20,9 @@ import {
 	FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { authService } from "@/lib/services/auth";
 import { useUserStore } from "@/lib/store/userStore";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function SignupForm({
 	className,
@@ -69,7 +69,7 @@ export function SignupForm({
 				fullName: formData.fullName, // Capture full name from form
 			};
 
-			login(userProfile, response.token);
+			login(userProfile, response.token, response.onboardingCompleted);
 
 			// Register always leads to onboarding or dashboard for new users
 			router.push("/onboarding");

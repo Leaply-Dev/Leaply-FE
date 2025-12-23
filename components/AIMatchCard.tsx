@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,6 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useUniversitiesStore } from "@/lib/store/universitiesStore";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
@@ -59,7 +59,7 @@ export function AIMatchCard({
 	className,
 	onAskAI,
 }: AIMatchCardProps) {
-	const { t } = useTranslation();
+	const t = useTranslations("explore");
 	const { saveUniversity, unsaveUniversity, isSaved, universities } =
 		useUniversitiesStore();
 	const { profile, preferences } = useUserStore();
@@ -103,7 +103,7 @@ export function AIMatchCard({
 					<div className="absolute top-4 left-4">
 						<Badge className="bg-linear-to-r from-primary to-accent text-white border-0 font-semibold shadow-lg">
 							<Sparkles className="w-3 h-3 mr-1" />
-							{t("universities", "aiMatch")}
+							{t("aiMatch")}
 						</Badge>
 					</div>
 
@@ -125,7 +125,7 @@ export function AIMatchCard({
 								)}
 							>
 								<TrendingUp className="w-3 h-3 mr-1" />
-								{fitScore}% {t("universities", "match")}
+								{fitScore}% {t("match")}
 							</Badge>
 						</div>
 					)}
@@ -144,18 +144,16 @@ export function AIMatchCard({
 									className="text-xs text-chart-2 hover:text-chart-2/80 flex items-center gap-1 transition-colors"
 								>
 									<HelpCircle className="w-3 h-3" />
-									{t("universities", "why")}
+									{t("why")}
 								</button>
 							</DialogTrigger>
 							<DialogContent className="max-w-md">
 								<DialogHeader>
 									<DialogTitle className="flex items-center gap-2">
 										<Sparkles className="w-5 h-5 text-primary" />
-										{t("universities", "whySchool")}
+										{t("whySchool")}
 									</DialogTitle>
-									<DialogDescription>
-										{t("universities", "whySchoolDesc")}
-									</DialogDescription>
+									<DialogDescription>{t("whySchoolDesc")}</DialogDescription>
 								</DialogHeader>
 
 								<div className="space-y-4 py-4">
@@ -172,14 +170,14 @@ export function AIMatchCard({
 												{getMatchBadgeText(fitScore)}
 											</p>
 											<p className="text-xs text-muted-foreground">
-												{t("universities", "basedOnProfile")}
+												{t("basedOnProfile")}
 											</p>
 										</div>
 									</div>
 
 									<div className="space-y-3">
 										<h4 className="text-sm font-semibold text-foreground">
-											{t("universities", "matchReasons")}:
+											{t("matchReasons")}:
 										</h4>
 										{detailedReasons.length > 0 ? (
 											<ul className="space-y-2">
@@ -199,7 +197,7 @@ export function AIMatchCard({
 											</ul>
 										) : (
 											<p className="text-sm text-muted-foreground">
-												{t("universities", "completeProfileForReasons")}
+												{t("completeProfileForReasons")}
 											</p>
 										)}
 									</div>
@@ -207,9 +205,7 @@ export function AIMatchCard({
 
 								<div className="flex gap-2">
 									<Button asChild type="button" className="flex-1">
-										<Link href={`/explore/${id}`}>
-											{t("universities", "viewDetails")}
-										</Link>
+										<Link href={`/explore/${id}`}>{t("viewDetails")}</Link>
 									</Button>
 									{onAskAI && (
 										<Button
@@ -221,7 +217,7 @@ export function AIMatchCard({
 											}}
 										>
 											<MessageCircle className="w-4 h-4 mr-2" />
-											{t("universities", "askAI")}
+											{t("askAI")}
 										</Button>
 									)}
 								</div>
@@ -264,9 +260,7 @@ export function AIMatchCard({
 					{/* Action Buttons */}
 					<div className="flex gap-2">
 						<Button asChild type="button" size="sm" className="flex-1">
-							<Link href={`/explore/${id}`}>
-								{t("universities", "learnMore")}
-							</Link>
+							<Link href={`/explore/${id}`}>{t("learnMore")}</Link>
 						</Button>
 						<Button
 							type="button"
@@ -278,9 +272,7 @@ export function AIMatchCard({
 								saved && "bg-chart-4 hover:bg-chart-4/90",
 							)}
 						>
-							{saved
-								? `★ ${t("universities", "saved")}`
-								: `+ ${t("universities", "addToDreamList")}`}
+							{saved ? `★ ${t("saved")}` : `+ ${t("addToDreamList")}`}
 						</Button>
 					</div>
 
@@ -293,7 +285,7 @@ export function AIMatchCard({
 							className="w-full mt-2 text-chart-2 hover:text-chart-2/80 hover:bg-chart-2/5"
 						>
 							<MessageCircle className="w-4 h-4 mr-2" />
-							{t("universities", "askAIAboutSchool")}
+							{t("askAIAboutSchool")}
 						</Button>
 					)}
 				</div>

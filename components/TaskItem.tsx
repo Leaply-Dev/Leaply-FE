@@ -1,9 +1,9 @@
 "use client";
 
 import { AlertCircle, Calendar } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 interface TaskItemProps {
@@ -33,7 +33,7 @@ export function TaskItem({
 	onToggle,
 	className,
 }: TaskItemProps) {
-	const { t } = useTranslation();
+	const tCommon = useTranslations("common");
 	const isOverdue = new Date(dueDate) < new Date() && !completed;
 	const config = priorityConfig[priority];
 
@@ -66,7 +66,7 @@ export function TaskItem({
 							variant="outline"
 							className={cn("text-xs", config.color, config.bgColor)}
 						>
-							{t("common", priority)}
+							{tCommon(priority)}
 						</Badge>
 					)}
 				</div>
@@ -76,12 +76,12 @@ export function TaskItem({
 				<div className="flex items-center gap-2 text-xs text-muted-foreground">
 					<Calendar className="w-3 h-3" />
 					<span>
-						{t("common", "due")}: {new Date(dueDate).toLocaleDateString()}
+						{tCommon("due")}: {new Date(dueDate).toLocaleDateString()}
 					</span>
 					{isOverdue && (
 						<>
 							<AlertCircle className="w-3 h-3 text-red-600 ml-2" />
-							<span className="text-red-600">{t("common", "overdue")}</span>
+							<span className="text-red-600">{tCommon("overdue")}</span>
 						</>
 					)}
 				</div>

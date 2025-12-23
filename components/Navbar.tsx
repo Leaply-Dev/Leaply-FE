@@ -4,22 +4,15 @@ import { ChevronDown, LogOut, Menu, User, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
-import type { Locale } from "@/app/[lang]/dictionaries";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { LanguageSwitcher } from "@/components/app/LanguageSwitcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
 
-type Dictionary = Record<string, any>;
-
-interface NavbarProps {
-	locale: Locale;
-	translations: Dictionary;
-}
-
-export function Navbar({ locale, translations }: NavbarProps) {
+export function Navbar() {
 	const pathname = usePathname();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
@@ -27,9 +20,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 	const { isAuthenticated, profile, logout } = useUserStore();
 
 	// Helper to get translation
-	const t = (section: string, key: string) => {
-		return translations[section]?.[key] || key;
-	};
+	const t = useTranslations("nav");
 
 	// Nav links with translations
 	const publicNavLinks = [
@@ -107,7 +98,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 										isActive ? "text-primary" : "text-foreground",
 									)}
 								>
-									{t("nav", link.labelKey)}
+									{t(link.labelKey)}
 								</Link>
 							);
 						})}
@@ -115,7 +106,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 
 					{/* Auth Buttons / Avatar + Language Switcher */}
 					<div className="hidden md:flex items-center gap-3">
-						<LanguageSwitcher currentLocale={locale} />
+						<LanguageSwitcher />
 
 						{isAuthenticated ? (
 							<div className="relative" ref={dropdownRef}>
@@ -159,7 +150,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 												onClick={() => setAvatarDropdownOpen(false)}
 											>
 												<User className="w-4 h-4" />
-												{t("nav", "profile")}
+												{t("profile")}
 											</Link>
 											<button
 												type="button"
@@ -170,7 +161,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 												className="flex items-center gap-2 w-full px-4 py-2 text-sm text-destructive hover:bg-muted transition-colors"
 											>
 												<LogOut className="w-4 h-4" />
-												{t("nav", "logout")}
+												{t("logout")}
 											</button>
 										</div>
 									</div>
@@ -179,10 +170,10 @@ export function Navbar({ locale, translations }: NavbarProps) {
 						) : (
 							<>
 								<Button variant="ghost" size="sm" asChild>
-									<Link href="/login">{t("nav", "login")}</Link>
+									<Link href="/login">{t("login")}</Link>
 								</Button>
 								<Button size="sm" asChild>
-									<Link href="/register">{t("nav", "getStarted")}</Link>
+									<Link href="/register">{t("getStarted")}</Link>
 								</Button>
 							</>
 						)}
@@ -190,7 +181,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 
 					{/* Mobile Menu Button */}
 					<div className="flex items-center gap-2 md:hidden">
-						<LanguageSwitcher currentLocale={locale} />
+						<LanguageSwitcher />
 						<button
 							type="button"
 							className="p-2 text-foreground"
@@ -224,7 +215,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 										)}
 										onClick={() => setMobileMenuOpen(false)}
 									>
-										{t("nav", link.labelKey)}
+										{t(link.labelKey)}
 									</Link>
 								);
 							})}
@@ -256,7 +247,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 												onClick={() => setMobileMenuOpen(false)}
 											>
 												<User className="w-4 h-4 mr-2" />
-												{t("nav", "profile")}
+												{t("profile")}
 											</Link>
 										</Button>
 										<Button
@@ -268,7 +259,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 											}}
 										>
 											<LogOut className="w-4 h-4 mr-2" />
-											{t("nav", "logout")}
+											{t("logout")}
 										</Button>
 									</>
 								) : (
@@ -278,7 +269,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 												href="/login"
 												onClick={() => setMobileMenuOpen(false)}
 											>
-												{t("nav", "login")}
+												{t("login")}
 											</Link>
 										</Button>
 										<Button size="sm" asChild>
@@ -286,7 +277,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 												href="/register"
 												onClick={() => setMobileMenuOpen(false)}
 											>
-												{t("nav", "getStarted")}
+												{t("getStarted")}
 											</Link>
 										</Button>
 									</>

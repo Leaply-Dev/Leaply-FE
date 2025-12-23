@@ -2,9 +2,9 @@
 
 import { BookOpen, ExternalLink, FileText, Video } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 interface ResourceCardProps {
@@ -30,7 +30,7 @@ export function ResourceCard({
 	tags,
 	className,
 }: ResourceCardProps) {
-	const { t } = useTranslation();
+	const t = useTranslations("common");
 	const config = typeConfig[type];
 	const Icon = config.icon;
 
@@ -44,7 +44,7 @@ export function ResourceCard({
 					<div className="flex-1">
 						<CardTitle className="text-lg mb-1">{title}</CardTitle>
 						<Badge variant="secondary" className="text-xs">
-							{t("common", config.labelKey)}
+							{t(config.labelKey)}
 						</Badge>
 					</div>
 				</div>
@@ -66,7 +66,7 @@ export function ResourceCard({
 					href={url}
 					className="inline-flex items-center gap-2 text-sm text-primary hover:text-accent font-medium"
 				>
-					{t("common", "readMore")}
+					{t("readMore")}
 					<ExternalLink className="w-4 h-4" />
 				</Link>
 			</CardContent>

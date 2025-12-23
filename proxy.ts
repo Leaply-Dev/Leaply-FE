@@ -1,46 +1,63 @@
-import { match as matchLocale } from "@formatjs/intl-localematcher";
-import Negotiator from "negotiator";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-const locales = ["en", "vi"];
-const defaultLocale = "vi";
-
-function getLocale(request: NextRequest): string {
-	// Get the preferred locale from the Accept-Language header
-	const negotiatorHeaders: Record<string, string> = {};
-	request.headers.forEach((value, key) => {
-		negotiatorHeaders[key] = value;
-	});
-
-	// Negotiator requires mutable array
-	const languages = new Negotiator({ headers: negotiatorHeaders }).languages(
-		locales as unknown as string[],
-	);
-
-	try {
-		return matchLocale(languages, locales, defaultLocale);
-	} catch {
-		return defaultLocale;
-	}
-}
+const PROTECTED_ROUTES = [
+	"/dashboard",
+	"/explore",
+	"/persona-lab",
+	"/onboarding",
+];
 
 export function proxy(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 
-	// Check if there is any supported locale in the pathname
-	const pathnameHasLocale = locales.some(
-		(locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
+	// Check if the path is a protected route
+	const isProtectedRoute = PROTECTED_ROUTES.some((route) =>
+		pathname.startsWith(route),
 	);
 
-	if (pathnameHasLocale) return;
+	if (!isProtectedRoute) {
+		return NextResponse.next();
+	}
 
-	// Redirect if there is no locale
-	const locale = getLocale(request);
-	request.nextUrl.pathname = `/${locale}${pathname}`;
-	// e.g. incoming request is /dashboard
-	// The new URL is now /vi/dashboard
-	return NextResponse.redirect(request.nextUrl);
+	// Check if user is authenticated
+	const authStateCookie = request.cookies.get("leaply-auth-state")?.value;
+
+	if (!authStateCookie) {
+		return NextResponse.redirect(new URL(`/login`, request.url));
+	}
+
+	let isAuthenticated = false;
+	let isOnboardingComplete = false;
+
+	try {
+		const authState = JSON.parse(authStateCookie);
+		isAuthenticated = authState.isAuthenticated;
+		isOnboardingComplete = authState.isOnboardingComplete;
+	} catch {
+		// If cookie is invalid, redirect to login
+		return NextResponse.redirect(new URL(`/login`, request.url));
+	}
+
+	if (!isAuthenticated) {
+		return NextResponse.redirect(new URL(`/login`, request.url));
+	}
+
+	if (pathname === "/onboarding" || pathname.startsWith("/onboarding")) {
+		if (isOnboardingComplete) {
+			// Already completed onboarding → redirect to dashboard
+			return NextResponse.redirect(new URL(`/dashboard`, request.url));
+		}
+		// Allow access to onboarding
+		return NextResponse.next();
+	}
+
+	// For all other protected routes, require onboarding completion
+	if (!isOnboardingComplete) {
+		return NextResponse.redirect(new URL(`/onboarding`, request.url));
+	}
+
+	return NextResponse.next();
 }
 
 export const config = {

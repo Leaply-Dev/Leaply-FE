@@ -2,10 +2,10 @@
 
 import { Calendar, FileText } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 interface ApplicationCardProps {
@@ -42,8 +42,8 @@ export function ApplicationCard({
 	decisionDeadline,
 	className,
 }: ApplicationCardProps) {
-	const { t } = useTranslation();
-	const statusLabel = t("applications", `status.${status}`);
+	const t = useTranslations("applications");
+	const statusLabel = t(`status.${status}`);
 	const config = { ...statusConfig[status], label: statusLabel };
 
 	return (
@@ -63,7 +63,7 @@ export function ApplicationCard({
 						<div className="flex items-center gap-2 text-sm text-muted-foreground">
 							<FileText className="w-4 h-4" />
 							<span>
-								{t("applications", "submitted")}:{" "}
+								{t("submitted")}:{" "}
 								{new Date(submissionDate).toLocaleDateString()}
 							</span>
 						</div>
@@ -72,7 +72,7 @@ export function ApplicationCard({
 						<div className="flex items-center gap-2 text-sm text-muted-foreground">
 							<Calendar className="w-4 h-4" />
 							<span>
-								{t("applications", "decisionBy")}:{" "}
+								{t("decisionBy")}:{" "}
 								{new Date(decisionDeadline).toLocaleDateString()}
 							</span>
 						</div>
@@ -80,7 +80,7 @@ export function ApplicationCard({
 				</div>
 				<Button asChild size="sm" variant="outline" className="w-full">
 					<Link href={`/dashboard/applications/${id}`}>
-						{t("applications", "viewApplication")}
+						{t("viewApplication")}
 					</Link>
 				</Button>
 			</CardContent>

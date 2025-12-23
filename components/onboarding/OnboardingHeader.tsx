@@ -2,18 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { LanguageSwitcher } from "@/components/app/LanguageSwitcher";
 
-interface OnboardingHeaderProps {
-	lang: string;
-}
-
-export function OnboardingHeader({ lang }: OnboardingHeaderProps) {
+export function OnboardingHeader() {
 	return (
 		<div className="w-full border-b border-border">
 			<div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
 				<div className="flex items-center justify-between">
-					<Link href={`/${lang}`} className="flex items-center">
+					<Link href={``} className="flex items-center">
 						<Image
 							src="/Logo.png"
 							alt="Leaply"
@@ -22,7 +18,7 @@ export function OnboardingHeader({ lang }: OnboardingHeaderProps) {
 							className="h-8 w-auto"
 						/>
 					</Link>
-					<LanguageSwitcher currentLocale={lang as "en" | "vi"} />
+					<LanguageSwitcher />
 				</div>
 			</div>
 		</div>

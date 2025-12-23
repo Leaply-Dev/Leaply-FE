@@ -128,7 +128,7 @@ export function MyComponent({ locale, translations }: MyComponentProps) {
 
 ### For Existing Components (Temporary)
 
-Components using `useTranslation()` will continue to work thanks to:
+Components using `useTranslations()` will continue to work thanks to:
 1. `LocaleSync` component syncing URL locale → language store
 2. Existing `lib/i18n/translations.ts` and `useTranslation.ts` files
 
@@ -165,7 +165,7 @@ const dict = await getDictionary(locale);
 <p>{dict.newSection.newKey}</p>
 
 // Client component (old way - still works)
-const { t } = useTranslation();
+const t = useTranslations();
 <p>{t("newSection", "newKey")}</p>
 ```
 

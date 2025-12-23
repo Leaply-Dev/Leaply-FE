@@ -1,3 +1,4 @@
+import Cookies from "js-cookie";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -40,6 +41,7 @@ export interface UserPreferences {
 	programType?: string;
 	fieldOfInterest?: string[];
 	intendedStartTerm?: string;
+	journeyType?: string;
 }
 
 export type JourneyType = "exploring" | "targeted" | null;
@@ -68,7 +70,11 @@ interface UserState {
 		title: string;
 	}) => void;
 	completeOnboarding: () => void;
-	login: (profile: UserProfile, token: string) => void;
+	login: (
+		profile: UserProfile,
+		token: string,
+		isOnboardingComplete?: boolean,
+	) => void;
 	logout: () => void;
 }
 
@@ -111,7 +117,8 @@ export const useUserStore = create<UserState>()(
 
 			completeOnboarding: () => set({ isOnboardingComplete: true }),
 
-			login: (profile, token) => set({ profile, token, isAuthenticated: true }),
+			login: (profile, token, isOnboardingComplete = false) =>
+				set({ profile, token, isAuthenticated: true, isOnboardingComplete }),
 
 			logout: () =>
 				set({
@@ -138,3 +145,16 @@ export const useUserStore = create<UserState>()(
 		},
 	),
 );
+
+// Subscribe to store changes to sync auth state to cookie for middleware
+useUserStore.subscribe((state) => {
+	const authState = {
+		isAuthenticated: state.isAuthenticated,
+		isOnboardingComplete: state.isOnboardingComplete,
+	};
+	Cookies.set("leaply-auth-state", JSON.stringify(authState), {
+		expires: 7, // 7 days
+		path: "/",
+		sameSite: "lax",
+	});
+});

@@ -4,27 +4,17 @@ import { Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
-import type { Locale } from "@/app/[lang]/dictionaries";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { LanguageSwitcher } from "@/components/app/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-type Dictionary = Record<string, any>;
-
-interface NavbarProps {
-	locale: Locale;
-	translations: Dictionary;
-}
-
-export function Navbar({ locale, translations }: NavbarProps) {
+export function Navbar() {
+	const tNav = useTranslations("nav");
+	const tLanding = useTranslations("landing");
 	const pathname = usePathname();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-	// Helper to get translation
-	const t = (section: string, key: string) => {
-		return translations[section]?.[key] || key;
-	};
 
 	// Nav links with translations
 	const navLinks = [
@@ -64,7 +54,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 										isActive ? "text-primary" : "text-foreground",
 									)}
 								>
-									{t("nav", link.labelKey)}
+									{tNav(link.labelKey)}
 								</Link>
 							);
 						})}
@@ -72,15 +62,15 @@ export function Navbar({ locale, translations }: NavbarProps) {
 
 					{/* Language Switcher + CTA Button */}
 					<div className="hidden md:flex items-center gap-3">
-						<LanguageSwitcher currentLocale={locale} />
+						<LanguageSwitcher />
 						<Button size="sm" asChild>
-							<Link href="/register">{t("landing", "ctaStart")}</Link>
+							<Link href="/register">{tLanding("ctaStart")}</Link>
 						</Button>
 					</div>
 
 					{/* Mobile Menu Button */}
 					<div className="flex items-center gap-2 md:hidden">
-						<LanguageSwitcher currentLocale={locale} />
+						<LanguageSwitcher />
 						<button
 							type="button"
 							className="p-2 text-foreground"
@@ -114,7 +104,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 										)}
 										onClick={() => setMobileMenuOpen(false)}
 									>
-										{t("nav", link.labelKey)}
+										{tNav(link.labelKey)}
 									</Link>
 								);
 							})}
@@ -124,7 +114,7 @@ export function Navbar({ locale, translations }: NavbarProps) {
 										href="/register"
 										onClick={() => setMobileMenuOpen(false)}
 									>
-										{t("landing", "ctaStart")}
+										{tLanding("ctaStart")}
 									</Link>
 								</Button>
 							</div>

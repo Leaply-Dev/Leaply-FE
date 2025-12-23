@@ -1,13 +1,14 @@
 "use client";
 
-import {
-	FieldLegend,
-	FieldSet,
-} from "@/components/ui/field";
+import { FieldLegend, FieldSet } from "@/components/ui/field";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { StepContainer } from "../components/StepContainer";
 import { StepNavigation } from "../components/StepNavigation";
-import type { BasicInfo, OnboardingConstants, OnboardingTranslations } from "../types";
+import type {
+	BasicInfo,
+	OnboardingConstants,
+	OnboardingTranslations,
+} from "../types";
 
 interface Step1BasicInfoProps {
 	translations: OnboardingTranslations;

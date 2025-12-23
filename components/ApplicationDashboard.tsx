@@ -19,6 +19,7 @@ import {
 	TrendingUp,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,7 +46,6 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { EnhancedApplication } from "@/lib/data/enhancedApplications";
-import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 
 interface ApplicationDashboardProps {
@@ -80,7 +80,7 @@ const statusConfig = {
 export function ApplicationDashboard({
 	application,
 }: ApplicationDashboardProps) {
-	const { t } = useTranslation();
+	const t = useTranslations("applications");
 	const router = useRouter();
 
 	if (!application) {
@@ -89,17 +89,15 @@ export function ApplicationDashboard({
 				<div className="text-center">
 					<FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
 					<h3 className="text-xl font-semibold text-foreground mb-2">
-						{t("applications", "noApplicationSelected")}
+						{t("noApplicationSelected")}
 					</h3>
-					<p className="text-muted-foreground">
-						{t("applications", "selectApplication")}
-					</p>
+					<p className="text-muted-foreground">{t("selectApplication")}</p>
 				</div>
 			</div>
 		);
 	}
 
-	const statusLabel = t("applications", `status.${application.status}`);
+	const statusLabel = t(`status.${application.status}`);
 	const config = { ...statusConfig[application.status], label: statusLabel };
 	const StatusIcon = config.icon;
 
@@ -142,11 +140,9 @@ export function ApplicationDashboard({
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
 								<Target className="w-5 h-5 text-primary" />
-								{t("applications", "applicationStatus")}
+								{t("applicationStatus")}
 							</CardTitle>
-							<CardDescription>
-								{t("applications", "trackProgress")}
-							</CardDescription>
+							<CardDescription>{t("trackProgress")}</CardDescription>
 						</CardHeader>
 						<CardContent>
 							{/* Key Metrics Row */}
@@ -155,7 +151,7 @@ export function ApplicationDashboard({
 									<div className="flex items-center gap-2 mb-1">
 										<Target className="w-4 h-4 text-primary" />
 										<span className="text-xs font-medium text-muted-foreground">
-											{t("applications", "completion")}
+											{t("completion")}
 										</span>
 									</div>
 									<p className="text-2xl font-bold text-primary">
@@ -167,14 +163,14 @@ export function ApplicationDashboard({
 									<div className="flex items-center gap-2 mb-1">
 										<FileText className="w-4 h-4 text-chart-2" />
 										<span className="text-xs font-medium text-muted-foreground">
-											{t("applications", "documents")}
+											{t("documents")}
 										</span>
 									</div>
 									<p className="text-2xl font-bold text-chart-2">
 										{application.documents.length}
 									</p>
 									<p className="text-xs text-muted-foreground">
-										{t("applications", "uploaded")}
+										{t("uploaded")}
 									</p>
 								</div>
 
@@ -182,7 +178,7 @@ export function ApplicationDashboard({
 									<div className="flex items-center gap-2 mb-1">
 										<CheckCircle2 className="w-4 h-4 text-chart-4" />
 										<span className="text-xs font-medium text-muted-foreground">
-											{t("applications", "tasks")}
+											{t("tasks")}
 										</span>
 									</div>
 									<p className="text-2xl font-bold text-chart-4">
@@ -190,7 +186,7 @@ export function ApplicationDashboard({
 										{application.tasks.length}
 									</p>
 									<p className="text-xs text-muted-foreground">
-										{t("applications", "completed")}
+										{t("completed")}
 									</p>
 								</div>
 
@@ -198,14 +194,14 @@ export function ApplicationDashboard({
 									<div className="flex items-center gap-2 mb-1">
 										<Calendar className="w-4 h-4 text-purple-600" />
 										<span className="text-xs font-medium text-muted-foreground">
-											{t("applications", "deadlines")}
+											{t("deadlines")}
 										</span>
 									</div>
 									<p className="text-2xl font-bold text-purple-600">
 										{application.upcomingDeadlines.length}
 									</p>
 									<p className="text-xs text-muted-foreground">
-										{t("applications", "upcoming")}
+										{t("upcoming")}
 									</p>
 								</div>
 							</div>
@@ -215,7 +211,7 @@ export function ApplicationDashboard({
 								{/* Completion Progress */}
 								<div className="space-y-3">
 									<span className="text-sm font-semibold text-foreground">
-										{t("applications", "progress")}
+										{t("progress")}
 									</span>
 									<Progress
 										value={application.completionPercentage}
@@ -223,15 +219,15 @@ export function ApplicationDashboard({
 									/>
 									<p className="text-xs text-muted-foreground">
 										{application.completionPercentage === 100
-											? t("applications", "applicationComplete")
-											: `${100 - application.completionPercentage}% ${t("applications", "remainingToComplete")}`}
+											? t("applicationComplete")
+											: `${100 - application.completionPercentage}% ${t("remainingToComplete")}`}
 									</p>
 								</div>
 
 								{/* Status */}
 								<div className="space-y-3">
 									<span className="text-sm font-semibold text-foreground">
-										{t("applications", "currentStatus")}
+										{t("currentStatus")}
 									</span>
 									<div className="flex items-center gap-3">
 										<StatusIcon
@@ -255,7 +251,7 @@ export function ApplicationDashboard({
 											<p className="text-xs text-muted-foreground">
 												{application.submissionDate
 													? `${new Date(application.submissionDate).toLocaleDateString()}`
-													: t("applications", "notYetSubmitted")}
+													: t("notYetSubmitted")}
 											</p>
 										</div>
 									</div>
@@ -264,7 +260,7 @@ export function ApplicationDashboard({
 								{/* Next Deadline */}
 								<div className="space-y-3">
 									<span className="text-sm font-semibold text-foreground">
-										{t("applications", "nextDeadline")}
+										{t("nextDeadline")}
 									</span>
 									{nextDeadline ? (
 										<div
@@ -290,14 +286,13 @@ export function ApplicationDashboard({
 														: "text-primary",
 												)}
 											>
-												{nextDeadline.daysUntil}{" "}
-												{t("applications", "daysRemaining")}
+												{nextDeadline.daysUntil} {t("daysRemaining")}
 											</p>
 										</div>
 									) : (
 										<div className="p-3 rounded-lg bg-green-50 border-l-4 border-green-500">
 											<p className="text-sm text-green-700 font-medium">
-												{t("applications", "noPendingDeadlines")}
+												{t("noPendingDeadlines")}
 											</p>
 										</div>
 									)}
@@ -309,7 +304,7 @@ export function ApplicationDashboard({
 									<div className="flex items-center gap-2 text-sm bg-chart-2/10 p-3 rounded-lg">
 										<Info className="w-4 h-4 text-chart-2 shrink-0" />
 										<span className="text-muted-foreground">
-											{t("applications", "decisionExpectedBy")}{" "}
+											{t("decisionExpectedBy")}{" "}
 											<span className="font-semibold text-foreground">
 												{new Date(
 													application.decisionDeadline,
@@ -327,11 +322,9 @@ export function ApplicationDashboard({
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
 								<TrendingUp className="w-5 h-5 text-primary" />
-								{t("applications", "profileEvaluation")}
+								{t("profileEvaluation")}
 							</CardTitle>
-							<CardDescription>
-								{t("applications", "yourFitForProgram")}
-							</CardDescription>
+							<CardDescription>{t("yourFitForProgram")}</CardDescription>
 						</CardHeader>
 						<CardContent className="flex-1 flex flex-col">
 							{/* Fit Score */}
@@ -340,7 +333,7 @@ export function ApplicationDashboard({
 									{application.fitScore}%
 								</div>
 								<p className="text-sm text-muted-foreground">
-									{t("applications", "overallFitScore")}
+									{t("overallFitScore")}
 								</p>
 							</div>
 
@@ -348,7 +341,7 @@ export function ApplicationDashboard({
 							<div className="mb-4">
 								<h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-1">
 									<CheckCircle2 className="w-4 h-4 text-green-600" />
-									{t("applications", "strengths")}
+									{t("strengths")}
 								</h4>
 								<ul className="space-y-2">
 									{application.strengths.slice(0, 2).map((strength, idx) => (
@@ -367,7 +360,7 @@ export function ApplicationDashboard({
 							<div className="mb-4 flex-1">
 								<h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-1">
 									<AlertCircle className="w-4 h-4 text-chart-4" />
-									{t("applications", "areasToConsider")}
+									{t("areasToConsider")}
 								</h4>
 								<ul className="space-y-2">
 									{application.weaknesses.slice(0, 2).map((weakness, idx) => (
@@ -386,18 +379,15 @@ export function ApplicationDashboard({
 							<Dialog>
 								<DialogTrigger asChild>
 									<Button variant="outline" className="w-full h-10">
-										{t("applications", "viewDetailedAnalysis")}
+										{t("viewDetailedAnalysis")}
 										<ChevronRight className="w-4 h-4 ml-1" />
 									</Button>
 								</DialogTrigger>
 								<DialogContent className="max-w-2xl">
 									<DialogHeader>
-										<DialogTitle>
-											{t("applications", "profileEvaluationDetails")}
-										</DialogTitle>
+										<DialogTitle>{t("profileEvaluationDetails")}</DialogTitle>
 										<DialogDescription>
-											{t("applications", "comprehensiveAnalysis")}{" "}
-											{application.universityName}
+											{t("comprehensiveAnalysis")} {application.universityName}
 										</DialogDescription>
 									</DialogHeader>
 									<div className="space-y-4">
@@ -406,14 +396,14 @@ export function ApplicationDashboard({
 												{application.fitScore}%
 											</div>
 											<p className="text-muted-foreground">
-												{t("applications", "overallFitScore")}
+												{t("overallFitScore")}
 											</p>
 										</div>
 
 										<div>
 											<h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
 												<CheckCircle2 className="w-5 h-5 text-green-600" />
-												{t("applications", "yourStrengths")}
+												{t("yourStrengths")}
 											</h4>
 											<ul className="space-y-2">
 												{application.strengths.map((strength, idx) => (
@@ -433,7 +423,7 @@ export function ApplicationDashboard({
 										<div>
 											<h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
 												<AlertCircle className="w-5 h-5 text-chart-4" />
-												{t("applications", "areasToConsider")}
+												{t("areasToConsider")}
 											</h4>
 											<ul className="space-y-2">
 												{application.weaknesses.map((weakness, idx) => (
@@ -460,17 +450,15 @@ export function ApplicationDashboard({
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
 								<Globe className="w-5 h-5 text-primary" />
-								{t("applications", "schoolInformation")}
+								{t("schoolInformation")}
 							</CardTitle>
-							<CardDescription>
-								{t("applications", "keyDetails")}
-							</CardDescription>
+							<CardDescription>{t("keyDetails")}</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-3 flex-1 flex flex-col">
 							<div className="grid grid-cols-2 gap-4 flex-1">
 								<div>
 									<p className="text-xs text-muted-foreground mb-1">
-										{t("applications", "location")}
+										{t("location")}
 									</p>
 									<p className="text-sm font-semibold text-foreground">
 										{application.universityCountry}
@@ -483,7 +471,7 @@ export function ApplicationDashboard({
 								{application.universityRanking && (
 									<div>
 										<p className="text-xs text-muted-foreground mb-1">
-											{t("applications", "worldRanking")}
+											{t("worldRanking")}
 										</p>
 										<div className="flex items-center gap-1">
 											<Award className="w-4 h-4 text-chart-4" />
@@ -497,7 +485,7 @@ export function ApplicationDashboard({
 								{application.tuitionRange && (
 									<div className="col-span-2">
 										<p className="text-xs text-muted-foreground mb-1">
-											{t("applications", "tuitionRange")}
+											{t("tuitionRange")}
 										</p>
 										<div className="flex items-center gap-1">
 											<DollarSign className="w-4 h-4 text-primary" />
@@ -510,7 +498,7 @@ export function ApplicationDashboard({
 
 								<div className="col-span-2">
 									<p className="text-xs text-muted-foreground mb-1">
-										{t("applications", "program")}
+										{t("program")}
 									</p>
 									<div className="flex items-center gap-1">
 										<BookOpen className="w-4 h-4 text-chart-2" />
@@ -529,7 +517,7 @@ export function ApplicationDashboard({
 										router.push(`/explore/${application.universityId}`)
 									}
 								>
-									{t("applications", "viewUniversityDetails")}
+									{t("viewUniversityDetails")}
 									<ExternalLink className="w-4 h-4 ml-2" />
 								</Button>
 							</div>
@@ -541,16 +529,14 @@ export function ApplicationDashboard({
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
 								<CheckCircle2 className="w-5 h-5 text-primary" />
-								{t("applications", "nextActions")}
+								{t("nextActions")}
 							</CardTitle>
-							<CardDescription>
-								{t("applications", "tasksToComplete")}
-							</CardDescription>
+							<CardDescription>{t("tasksToComplete")}</CardDescription>
 						</CardHeader>
 						<CardContent>
 							{application.tasks.length === 0 ? (
 								<p className="text-sm text-muted-foreground">
-									{t("applications", "noTasksToComplete")}
+									{t("noTasksToComplete")}
 								</p>
 							) : (
 								<div className="space-y-3">
@@ -588,7 +574,7 @@ export function ApplicationDashboard({
 														<div className="flex items-center gap-2 mt-2">
 															<Calendar className="w-3 h-3 text-muted-foreground" />
 															<span className="text-xs text-muted-foreground">
-																{t("applications", "due")}:{" "}
+																{t("due")}:{" "}
 																{new Date(task.dueDate).toLocaleDateString()}
 															</span>
 															{isUrgent && (
@@ -596,7 +582,7 @@ export function ApplicationDashboard({
 																	variant="destructive"
 																	className="text-xs"
 																>
-																	{t("applications", "urgent")}
+																	{t("urgent")}
 																</Badge>
 															)}
 															{task.priority && (
@@ -608,7 +594,7 @@ export function ApplicationDashboard({
 																	}
 																	className="text-xs"
 																>
-																	{t("applications", task.priority)}
+																	{t(task.priority)}
 																</Badge>
 															)}
 														</div>
@@ -626,7 +612,7 @@ export function ApplicationDashboard({
 													application.tasks.filter((task) => task.completed)
 														.length
 												}{" "}
-												{t("applications", "taskCompleted")}
+												{t("taskCompleted")}
 											</p>
 										</div>
 									)}
@@ -640,11 +626,9 @@ export function ApplicationDashboard({
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
 								<BookOpen className="w-5 h-5 text-primary" />
-								{t("applications", "helpfulResources")}
+								{t("helpfulResources")}
 							</CardTitle>
-							<CardDescription>
-								{t("applications", "guidesAndTools")}
-							</CardDescription>
+							<CardDescription>{t("guidesAndTools")}</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -659,16 +643,16 @@ export function ApplicationDashboard({
 												<FileText className="w-5 h-5 mr-3 text-chart-2 shrink-0" />
 												<div className="text-left">
 													<p className="font-medium text-sm">
-														{t("applications", "essayWritingGuide")}
+														{t("essayWritingGuide")}
 													</p>
 													<p className="text-xs text-muted-foreground">
-														{t("applications", "tipsForStatements")}
+														{t("tipsForStatements")}
 													</p>
 												</div>
 											</Button>
 										</TooltipTrigger>
 										<TooltipContent>
-											<p>{t("applications", "learnEffectiveStatements")}</p>
+											<p>{t("learnEffectiveStatements")}</p>
 										</TooltipContent>
 									</Tooltip>
 								</TooltipProvider>
@@ -684,16 +668,16 @@ export function ApplicationDashboard({
 												<MessageSquare className="w-5 h-5 mr-3 text-chart-4 shrink-0" />
 												<div className="text-left">
 													<p className="font-medium text-sm">
-														{t("applications", "interviewPreparation")}
+														{t("interviewPreparation")}
 													</p>
 													<p className="text-xs text-muted-foreground">
-														{t("applications", "commonQuestions")}
+														{t("commonQuestions")}
 													</p>
 												</div>
 											</Button>
 										</TooltipTrigger>
 										<TooltipContent>
-											<p>{t("applications", "prepareForInterviews")}</p>
+											<p>{t("prepareForInterviews")}</p>
 										</TooltipContent>
 									</Tooltip>
 								</TooltipProvider>
@@ -709,16 +693,16 @@ export function ApplicationDashboard({
 												<DollarSign className="w-5 h-5 mr-3 text-green-600 shrink-0" />
 												<div className="text-left">
 													<p className="font-medium text-sm">
-														{t("applications", "scholarshipFinder")}
+														{t("scholarshipFinder")}
 													</p>
 													<p className="text-xs text-muted-foreground">
-														{t("applications", "findFunding")}
+														{t("findFunding")}
 													</p>
 												</div>
 											</Button>
 										</TooltipTrigger>
 										<TooltipContent>
-											<p>{t("applications", "discoverScholarships")}</p>
+											<p>{t("discoverScholarships")}</p>
 										</TooltipContent>
 									</Tooltip>
 								</TooltipProvider>
@@ -738,16 +722,16 @@ export function ApplicationDashboard({
 												<Sparkles className="w-5 h-5 mr-3 text-primary shrink-0" />
 												<div className="text-left">
 													<p className="font-medium text-sm">
-														{t("applications", "askAIAssistant")}
+														{t("askAIAssistant")}
 													</p>
 													<p className="text-xs text-muted-foreground">
-														{t("applications", "getPersonalizedAdvice")}
+														{t("getPersonalizedAdvice")}
 													</p>
 												</div>
 											</Button>
 										</TooltipTrigger>
 										<TooltipContent>
-											<p>{t("applications", "chatWithAI")}</p>
+											<p>{t("chatWithAI")}</p>
 										</TooltipContent>
 									</Tooltip>
 								</TooltipProvider>
