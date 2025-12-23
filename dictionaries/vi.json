@@ -15,6 +15,7 @@
 		"steps": {
 			"basicInfo": "Thông tin cơ bản",
 			"preferences": "Mong muốn",
+			"plan": "Kế hoạch",
 			"journey": "Chọn hướng đi",
 			"complete": "Hoàn thành"
 		},
@@ -91,6 +92,30 @@
 				"winter": "Kỳ đông"
 			}
 		},
+		"step2b": {
+			"title": "Kế hoạch của bạn",
+			"subtitle": "Hãy nói về thời gian và ngân sách dự kiến",
+			"timeline": "Thời gian nhập học",
+			"timelineRequired": "*",
+			"selectYear": "Thời gian nhập học dự kiến?",
+			"selectYearPlaceholder": "Chọn năm",
+			"selectTerm": "Kỳ học",
+			"selectTermPlaceholder": "Chọn kỳ",
+			"budget": "Ngân sách dự kiến",
+			"budgetRequired": "*",
+			"budgetOptions": {
+				"low": "<500 triệu",
+				"medium": "500 triệu - 1 tỷ",
+				"high": ">1 tỷ",
+				"scholarship": "Cần học bổng full"
+			},
+			"terms": {
+				"spring": "Kỳ xuân",
+				"summer": "Kỳ hè",
+				"fall": "Kỳ thu",
+				"winter": "Kỳ đông"
+			}
+		},
 		"step3": {
 			"title": "Chọn hướng đi của bạn",
 			"subtitle": "Bạn đang ở giai đoạn nào của quá trình du học?",
@@ -102,7 +127,13 @@
 				"title": "Tôi đã có mục tiêu",
 				"description": "Đã biết trường/ngành muốn apply"
 			},
-			"startNow": "Bắt đầu ngay"
+			"startNow": "Chọn hướng này"
+		},
+		"step4": {
+			"title": "Chúc mừng bạn!",
+			"subtitle": "Bạn đã sẵn sàng để bắt đầu hành trình.",
+			"ctaExploring": "Bắt đầu khám phá bản thân",
+			"ctaTargeted": "Khám phá danh sách chương trình"
 		},
 		"buttons": {
 			"back": "Quay lại",

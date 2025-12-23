@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Compass, Target, ArrowRight } from "lucide-react";
+import { Check, Compass, Target, ArrowRight, PartyPopper } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -41,6 +41,10 @@ interface OnboardingClientProps {
 			fieldsRequired: string;
 			regionsOfInterest: string;
 			regionsOptional: string;
+		};
+		step2b: {
+			title: string;
+			subtitle: string;
 			timeline: string;
 			timelineRequired: string;
 			selectYear: string;
@@ -54,6 +58,12 @@ interface OnboardingClientProps {
 			title: string;
 			subtitle: string;
 			startNow: string;
+		};
+		step4: {
+			title: string;
+			subtitle: string;
+			ctaExploring: string;
+			ctaTargeted: string;
 		};
 		buttons: {
 			back: string;
@@ -112,24 +122,14 @@ export function OnboardingClient({
 		budgetIndex: 1, // Default to 500tr-1tỷ
 	});
 
+	const [selectedJourney, setSelectedJourney] = useState<JourneyType | null>(
+		null,
+	);
+
 	// --- Handlers ---
 
 	const handleBasicInfoChange = (field: string, value: string) => {
 		setBasicInfo((prev) => ({ ...prev, [field]: value }));
-	};
-
-	const toggleMultiSelect = (
-		currentList: string[],
-		value: string,
-		setter: (val: string[]) => void,
-		max?: number,
-	) => {
-		if (currentList.includes(value)) {
-			setter(currentList.filter((item) => item !== value));
-		} else {
-			if (max && currentList.length >= max) return;
-			setter([...currentList, value]);
-		}
 	};
 
 	const handleNext = () => {
@@ -141,17 +141,22 @@ export function OnboardingClient({
 			});
 			setCurrentStep(1);
 		} else if (currentStep === 1) {
-			// Save step 2 data
+			// Save step 2 data (Fields & Regions)
+			updatePreferences({
+				fieldOfInterest: prefs.fields,
+				preferredRegions: prefs.regions,
+			});
+			setCurrentStep(2);
+		} else if (currentStep === 2) {
+			// Save step 3 data (Timeline & Budget)
 			const formattedTimeline = `${prefs.startYear} ${prefs.startTerm}`;
 			const budgetLabel = constants.budgetOptions[prefs.budgetIndex].label;
 
 			updatePreferences({
-				fieldOfInterest: prefs.fields,
-				preferredRegions: prefs.regions,
 				intendedStartTerm: formattedTimeline,
 				budgetLabel: budgetLabel,
 			});
-			setCurrentStep(2);
+			setCurrentStep(3);
 		}
 	};
 
@@ -161,10 +166,17 @@ export function OnboardingClient({
 		}
 	};
 
-	const handleJourneySelect = (type: JourneyType, redirectPath: string) => {
+	const handleJourneySelect = (type: JourneyType) => {
+		setSelectedJourney(type);
 		setJourneyType(type);
 		completeOnboarding();
 		if (profile) login(profile); // Ensure authed
+		setCurrentStep(4);
+	};
+
+	const handleCompletion = () => {
+		const redirectPath =
+			selectedJourney === "targeted" ? "/explore" : "/persona-lab";
 		router.push(`/${lang}${redirectPath}`);
 	};
 
@@ -173,44 +185,9 @@ export function OnboardingClient({
 	const isStep1Valid =
 		basicInfo.educationLevel.length > 0 && basicInfo.targetDegree.length > 0;
 
-	const isStep2Valid =
-		prefs.fields.length > 0 &&
-		prefs.startYear.length > 0 &&
-		prefs.startTerm.length > 0;
+	const isStep2Valid = prefs.fields.length > 0;
 
-	// --- Components Helper ---
-
-	// Helper component for selectable cards
-	const SelectionCard = ({
-		selected,
-		onClick,
-		children,
-		className,
-	}: {
-		selected: boolean;
-		onClick: () => void;
-		children: React.ReactNode;
-		className?: string;
-	}) => (
-		<button
-			type="button"
-			onClick={onClick}
-			className={cn(
-				"relative p-4 rounded-xl border border-border cursor-pointer transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none w-full text-left",
-				selected
-					? "bg-primary/5 border-primary shadow-sm"
-					: "bg-card hover:border-primary/50",
-				className,
-			)}
-		>
-			{selected && (
-				<div className="absolute top-2 right-2 bg-green-500 rounded-full p-0.5">
-					<Check className="w-3 h-3 text-white" />
-				</div>
-			)}
-			{children}
-		</button>
-	);
+	const isStep3Valid = prefs.startYear.length > 0 && prefs.startTerm.length > 0;
 
 	return (
 		<PageTransition>
@@ -236,13 +213,15 @@ export function OnboardingClient({
 					</div>
 				</div>
 
-				{/* Progress Header */}
-				<div className="w-full max-w-3xl mx-auto px-6 py-8">
-					<OnboardingProgress
-						steps={translations.steps}
-						currentStep={currentStep}
-					/>
-				</div>
+				{/* Progress Header - Only show for first 4 steps */}
+				{currentStep < 4 && (
+					<div className="w-full max-w-3xl mx-auto px-6 py-8">
+						<OnboardingProgress
+							steps={translations.steps}
+							currentStep={currentStep}
+						/>
+					</div>
+				)}
 
 				{/* Main Content Area */}
 				<div className="flex-1 flex flex-col items-center justify-start pt-4 px-4 sm:px-6 pb-12 w-full max-w-2xl mx-auto">
@@ -355,7 +334,7 @@ export function OnboardingClient({
 							</motion.div>
 						)}
 
-						{/* STEP 2: PREFERENCES */}
+						{/* STEP 2: PREFERENCES (Fields & Regions) */}
 						{currentStep === 1 && (
 							<motion.div
 								key="step2"
@@ -493,18 +472,59 @@ export function OnboardingClient({
 										</ToggleGroup>
 									</FieldSet>
 
+									<div className="pt-6 flex justify-between border-t border-border mt-6">
+										<Button
+											variant="outline"
+											size="lg"
+											onClick={handleBack}
+											className="px-8"
+										>
+											{translations.buttons.back}
+										</Button>
+										<Button
+											size="lg"
+											disabled={!isStep2Valid}
+											onClick={handleNext}
+											className="px-8"
+										>
+											{translations.buttons.continue}
+										</Button>
+									</div>
+								</FieldGroup>
+							</motion.div>
+						)}
+
+						{/* STEP 3: PLAN (Timeline & Budget) */}
+						{currentStep === 2 && (
+							<motion.div
+								key="step2b"
+								initial={{ opacity: 0, x: 20 }}
+								animate={{ opacity: 1, x: 0 }}
+								exit={{ opacity: 0, x: -20 }}
+								className="w-full space-y-8"
+							>
+								<div className="text-center space-y-2">
+									<h1 className="text-3xl font-bold tracking-tight">
+										{translations.step2b.title}
+									</h1>
+									<p className="text-muted-foreground text-lg">
+										{translations.step2b.subtitle}
+									</p>
+								</div>
+
+								<FieldGroup className="bg-card p-6 md:p-8 rounded-2xl border border-border shadow-sm">
 									{/* Timeline */}
 									<FieldSet>
 										<FieldLegend>
-											{translations.step2.timeline}{" "}
+											{translations.step2b.timeline}{" "}
 											<span className="text-red-500">
-												{translations.step2.timelineRequired}
+												{translations.step2b.timelineRequired}
 											</span>
 										</FieldLegend>
 										<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 											<div className="space-y-2">
 												<FieldDescription>
-													{translations.step2.selectYear}
+													{translations.step2b.selectYear}
 												</FieldDescription>
 												<Select
 													value={prefs.startYear}
@@ -516,7 +536,7 @@ export function OnboardingClient({
 													}
 												>
 													<option value="" disabled>
-														{translations.step2.selectYearPlaceholder}
+														{translations.step2b.selectYearPlaceholder}
 													</option>
 													{constants.startYears.map((year) => (
 														<option key={year} value={year}>
@@ -528,7 +548,7 @@ export function OnboardingClient({
 
 											<div className="space-y-2">
 												<FieldDescription>
-													{translations.step2.selectTerm}
+													{translations.step2b.selectTerm}
 												</FieldDescription>
 												<Select
 													value={prefs.startTerm}
@@ -540,7 +560,7 @@ export function OnboardingClient({
 													}
 												>
 													<option value="" disabled>
-														{translations.step2.selectTermPlaceholder}
+														{translations.step2b.selectTermPlaceholder}
 													</option>
 													{constants.startTerms.map((term) => (
 														<option key={term} value={term}>
@@ -555,9 +575,9 @@ export function OnboardingClient({
 									{/* Budget */}
 									<FieldSet>
 										<FieldLegend>
-											{translations.step2.budget}{" "}
+											{translations.step2b.budget}{" "}
 											<span className="text-red-500">
-												{translations.step2.budgetRequired}
+												{translations.step2b.budgetRequired}
 											</span>
 										</FieldLegend>
 										<ToggleGroup
@@ -601,7 +621,7 @@ export function OnboardingClient({
 										</Button>
 										<Button
 											size="lg"
-											disabled={!isStep2Valid}
+											disabled={!isStep3Valid}
 											onClick={handleNext}
 											className="px-8"
 										>
@@ -612,8 +632,8 @@ export function OnboardingClient({
 							</motion.div>
 						)}
 
-						{/* STEP 3: JOURNEY SELECTION */}
-						{currentStep === 2 && (
+						{/* STEP 4: JOURNEY SELECTION */}
+						{currentStep === 3 && (
 							<motion.div
 								key="step3"
 								initial={{ opacity: 0, x: 20 }}
@@ -637,9 +657,7 @@ export function OnboardingClient({
 										return (
 											<Card
 												key={option.id}
-												onClick={() =>
-													handleJourneySelect(option.id, option.redirect)
-												}
+												onClick={() => handleJourneySelect(option.id)}
 												className="cursor-pointer hover:border-primary hover:shadow-md transition-all duration-300 group relative overflow-hidden h-full"
 											>
 												<div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -673,6 +691,43 @@ export function OnboardingClient({
 										className="px-8"
 									>
 										{translations.buttons.back}
+									</Button>
+								</div>
+							</motion.div>
+						)}
+
+						{/* STEP 5: COMPLETION */}
+						{currentStep === 4 && (
+							<motion.div
+								key="step4"
+								initial={{ opacity: 0, scale: 0.95 }}
+								animate={{ opacity: 1, scale: 1 }}
+								transition={{ duration: 0.5, ease: "easeOut" }}
+								className="w-full space-y-8 flex flex-col items-center text-center max-w-lg mx-auto py-12"
+							>
+								<div className="w-24 h-24 bg-primary dark:bg-primary/30 rounded-full flex items-center justify-center mb-4 text-primary-foreground dark:text-primary-foreground">
+									<PartyPopper className="w-12 h-12" />
+								</div>
+
+								<div className="space-y-4">
+									<h1 className="text-4xl font-bold tracking-tight">
+										{translations.step4.title}
+									</h1>
+									<p className="text-xl text-muted-foreground">
+										{translations.step4.subtitle}
+									</p>
+								</div>
+
+								<div className="pt-8 w-full">
+									<Button
+										size="lg"
+										onClick={handleCompletion}
+										className="w-full h-14 text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+									>
+										{selectedJourney === "targeted"
+											? translations.step4.ctaTargeted
+											: translations.step4.ctaExploring}
+										<ArrowRight className="ml-2 w-5 h-5" />
 									</Button>
 								</div>
 							</motion.div>

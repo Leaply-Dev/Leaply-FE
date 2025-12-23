@@ -15,6 +15,7 @@
 		"steps": {
 			"basicInfo": "Basic Information",
 			"preferences": "Your Preferences",
+			"plan": "Your Plan",
 			"journey": "Choose Your Path",
 			"complete": "Complete"
 		},
@@ -91,6 +92,30 @@
 				"winter": "Winter"
 			}
 		},
+		"step2b": {
+			"title": "Your Plan",
+			"subtitle": "Let's talk about timing and budget",
+			"timeline": "Intended Start Date",
+			"timelineRequired": "*",
+			"selectYear": "When do you hope to start?",
+			"selectYearPlaceholder": "Select Year",
+			"selectTerm": "Select your semester",
+			"selectTermPlaceholder": "Select Term",
+			"budget": "Estimated Budget",
+			"budgetRequired": "*",
+			"budgetOptions": {
+				"low": "<500M VND",
+				"medium": "500M-1B VND",
+				"high": ">1B VND",
+				"scholarship": "Need Full Scholarship"
+			},
+			"terms": {
+				"spring": "Spring",
+				"summer": "Summer",
+				"fall": "Fall",
+				"winter": "Winter"
+			}
+		},
 		"step3": {
 			"title": "Choose Your Path",
 			"subtitle": "Where are you in your study abroad journey?",
@@ -102,7 +127,13 @@
 				"title": "I Have a Goal",
 				"description": "Already know which school/program to apply to"
 			},
-			"startNow": "Get Started"
+			"startNow": "Select This Path"
+		},
+		"step4": {
+			"title": "Congratulations!",
+			"subtitle": "You're all set to begin your journey.",
+			"ctaExploring": "Go to Persona Lab",
+			"ctaTargeted": "Start Exploring Schools"
 		},
 		"buttons": {
 			"back": "Back",
