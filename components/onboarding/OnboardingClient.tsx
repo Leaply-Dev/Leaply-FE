@@ -102,9 +102,12 @@ export function OnboardingClient({
 	const handleJourneySelect = (type: JourneyType) => {
 		setSelectedJourney(type);
 		setJourneyType(type);
-		completeOnboarding();
-		if (profile) login(profile);
-		setCurrentStep(4);
+
+		if (profile) {
+			login(profile);
+			completeOnboarding();
+			setCurrentStep(4);
+		}
 	};
 
 	const handleCompletion = () => {

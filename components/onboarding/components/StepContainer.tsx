@@ -2,14 +2,7 @@
 
 import { motion } from "framer-motion";
 import { FieldGroup } from "@/components/ui/field";
-
-interface StepContainerProps {
-	stepKey: string;
-	title: string;
-	subtitle: string;
-	children: React.ReactNode;
-	variant?: "card" | "plain";
-}
+import type { StepContainerProps } from "../types";
 
 export function StepContainer({
 	stepKey,

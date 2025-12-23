@@ -14,6 +14,17 @@ interface Step4JourneySelectionProps {
 	onBack: () => void;
 }
 
+const COLOR_MAP = {
+	primary: {
+		bg: "bg-primary/10",
+		text: "text-primary",
+	},
+	"chart-2": {
+		bg: "bg-chart-2/10",
+		text: "text-chart-2",
+	},
+} as const;
+
 export function Step4JourneySelection({
 	translations,
 	constants,
@@ -30,6 +41,8 @@ export function Step4JourneySelection({
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
 				{constants.journeyOptions.map((option) => {
 					const Icon = option.iconName === "compass" ? Compass : Target;
+					const colors = COLOR_MAP[option.color as keyof typeof COLOR_MAP] || COLOR_MAP.primary;
+
 					return (
 						<Card
 							key={option.id}
@@ -39,11 +52,9 @@ export function Step4JourneySelection({
 							<div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 							<CardContent className="p-8 flex flex-col items-center text-center h-full justify-center space-y-4">
 								<div
-									className={`w-16 h-16 rounded-full bg-${option.color}/10 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300`}
+									className={`w-16 h-16 rounded-full ${colors.bg} flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300`}
 								>
-									<Icon
-										className={`w-8 h-8 text-${option.color === "primary" ? "primary" : "chart-2"}`}
-									/>
+									<Icon className={`w-8 h-8 ${colors.text}`} />
 								</div>
 								<h3 className="text-xl font-bold">{option.title}</h3>
 								<p className="text-muted-foreground">{option.description}</p>

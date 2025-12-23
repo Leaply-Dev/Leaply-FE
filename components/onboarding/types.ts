@@ -87,9 +87,11 @@ export interface StepProps {
 }
 
 export interface StepContainerProps {
+	stepKey: string;
 	title: string;
 	subtitle: string;
 	children: React.ReactNode;
+	variant?: "card" | "plain";
 }
 
 export interface StepNavigationProps {
