@@ -46,6 +46,7 @@ export type JourneyType = "exploring" | "targeted" | null;
 
 interface UserState {
 	profile: UserProfile | null;
+	token: string | null;
 	preferences: UserPreferences;
 	journeyType: JourneyType;
 	isOnboardingComplete: boolean;
@@ -67,7 +68,7 @@ interface UserState {
 		title: string;
 	}) => void;
 	completeOnboarding: () => void;
-	login: (profile: UserProfile) => void;
+	login: (profile: UserProfile, token: string) => void;
 	logout: () => void;
 }
 
@@ -75,6 +76,7 @@ export const useUserStore = create<UserState>()(
 	persist(
 		(set) => ({
 			profile: null,
+			token: null,
 			preferences: {},
 			journeyType: null,
 			isOnboardingComplete: false,
@@ -109,11 +111,12 @@ export const useUserStore = create<UserState>()(
 
 			completeOnboarding: () => set({ isOnboardingComplete: true }),
 
-			login: (profile) => set({ profile, isAuthenticated: true }),
+			login: (profile, token) => set({ profile, token, isAuthenticated: true }),
 
 			logout: () =>
 				set({
 					profile: null,
+					token: null,
 					isAuthenticated: false,
 					isOnboardingComplete: false,
 					preferences: {},
@@ -125,6 +128,7 @@ export const useUserStore = create<UserState>()(
 			name: "leaply-user-store",
 			partialize: (state) => ({
 				profile: state.profile,
+				token: state.token,
 				preferences: state.preferences,
 				journeyType: state.journeyType,
 				isOnboardingComplete: state.isOnboardingComplete,
