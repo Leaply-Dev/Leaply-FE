@@ -51,7 +51,10 @@ export function EvidenceNode({ data, selected }: EvidenceNodeProps) {
 					)}
 				>
 					<BookOpen
-						className={cn("w-3 h-3", isLocked ? "text-muted-foreground" : colors.textClass)}
+						className={cn(
+							"w-3 h-3",
+							isLocked ? "text-muted-foreground" : colors.textClass,
+						)}
 						style={!isLocked ? { color: colors.primary } : undefined}
 					/>
 				</div>
@@ -72,34 +75,28 @@ export function EvidenceNode({ data, selected }: EvidenceNodeProps) {
 				)}
 			</div>
 
-			{/* Handles */}
+			{/* Single central handle for organic connections */}
 			<Handle
 				type="target"
 				position={Position.Top}
-				id={Position.Top}
 				className="w-1.5 h-1.5 !opacity-0"
-				style={{ backgroundColor: isLocked ? "#9ca3af" : colors.primary }}
-			/>
-			<Handle
-				type="target"
-				position={Position.Left}
-				id={Position.Left}
-				className="w-1.5 h-1.5 !opacity-0"
-				style={{ backgroundColor: isLocked ? "#9ca3af" : colors.primary }}
+				style={{
+					backgroundColor: isLocked ? "#9ca3af" : colors.primary,
+					left: "50%",
+					top: "50%",
+					transform: "translate(-50%, -50%)",
+				}}
 			/>
 			<Handle
 				type="source"
 				position={Position.Bottom}
-				id={Position.Bottom}
 				className="w-1.5 h-1.5 !opacity-0"
-				style={{ backgroundColor: isLocked ? "#9ca3af" : colors.primary }}
-			/>
-			<Handle
-				type="source"
-				position={Position.Right}
-				id={Position.Right}
-				className="w-1.5 h-1.5 !opacity-0"
-				style={{ backgroundColor: isLocked ? "#9ca3af" : colors.primary }}
+				style={{
+					backgroundColor: isLocked ? "#9ca3af" : colors.primary,
+					left: "50%",
+					top: "50%",
+					transform: "translate(-50%, -50%)",
+				}}
 			/>
 		</div>
 	);

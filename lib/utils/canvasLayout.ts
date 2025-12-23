@@ -141,8 +141,6 @@ export function generateEdgesForTrack(
 			id: `core-to-${nodeIds.summary[0]}`,
 			source: "core",
 			target: nodeIds.summary[0],
-			sourceHandle: direction.sourcePos,
-			targetHandle: direction.targetPos,
 			type: "default", // Bezier curve
 			style: {
 				stroke: trackColor,
@@ -158,8 +156,6 @@ export function generateEdgesForTrack(
 				id: `${nodeIds.summary[0]}-to-${evidenceId}`,
 				source: nodeIds.summary[0],
 				target: evidenceId,
-				sourceHandle: direction.sourcePos,
-				targetHandle: direction.targetPos,
 				type: "default", // Bezier curve
 				style: {
 					stroke: `${trackColor}90`,
@@ -181,8 +177,6 @@ export function generateEdgesForTrack(
 				id: `${sourceNode}-to-${nodeIds.insight[0]}`,
 				source: sourceNode,
 				target: nodeIds.insight[0],
-				sourceHandle: direction.sourcePos,
-				targetHandle: direction.targetPos,
 				type: "default", // Bezier curve
 				animated: true,
 				style: {

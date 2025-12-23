@@ -4,13 +4,17 @@ import { useEffect, useCallback, useRef } from "react";
 import { type Node, type Edge, useReactFlow, Position } from "@xyflow/react";
 import { stratify, tree, type HierarchyNode } from "d3-hierarchy";
 
+// Track order for sorting
+const TRACK_ORDER = ['future', 'academic', 'activities', 'values'];
+
 // Config for the layout
 const LAYOUT_CONFIG = {
   // Radial layout dimensions
   radius: 600, // Max radius
   // Separation between nodes
   separation: (a: HierarchyNode<any>, b: HierarchyNode<any>) => {
-    return (a.parent === b.parent ? 1 : 2) / a.depth;
+    // If same parent, closer together. If different parent, more space (sector separation)
+    return (a.parent === b.parent ? 1 : 3) / a.depth;
   }
 };
 
@@ -56,10 +60,11 @@ export function useMindmapLayout({
       parentMap.set(edge.target, edge.source);
     });
 
-    // Helper to find valid data for stratify
+    // Helper to find valid data for stratify and preserve data for sorting
     const hierarchyData = currentNodes.map(node => ({
       id: node.id,
-      parentId: node.id === rootId ? null : (parentMap.get(node.id) || 'core')
+      parentId: node.id === rootId ? null : (parentMap.get(node.id) || 'core'),
+      data: node.data // Preserve original data for sorting
     }));
 
     // Safety: ensure root exists in data
@@ -71,13 +76,27 @@ export function useMindmapLayout({
 
     try {
       // 2. Stratify: Convert flat list to hierarchy
-      const root = stratify<{ id: string, parentId: string | null }>()
+      const root = stratify<{ id: string, parentId: string | null, data: any }>()
         .id(d => d.id)
         .parentId(d => d.parentId)(hierarchyData);
 
+      // 2.5 Sort: This is critical for the "Solar System" look (Group by Track)
+      root.sort((a, b) => {
+        const trackA = a.data.data?.track;
+        const trackB = b.data.data?.track;
+
+        // If both have tracks, sort by predefined order
+        if (trackA && trackB) {
+          return TRACK_ORDER.indexOf(trackA) - TRACK_ORDER.indexOf(trackB);
+        }
+        
+        // Sort by ID as fallback to keep deterministic
+        return (a.id || '').localeCompare(b.id || '');
+      });
+
       // 3. Configure the Tree Layout (Radial)
       // Map x to angle (0 - 2PI) and y to radius (0 - RADIUS)
-      const layout = tree<{ id: string, parentId: string | null }>()
+      const layout = tree<{ id: string, parentId: string | null, data: any }>()
         .size([2 * Math.PI, LAYOUT_CONFIG.radius])
         .separation(LAYOUT_CONFIG.separation);
 

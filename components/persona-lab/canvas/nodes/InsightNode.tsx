@@ -82,30 +82,26 @@ export function InsightNode({ data, selected }: InsightNodeProps) {
 				</div>
 			)}
 
-			{/* Handles */}
+			{/* Single central handle for organic connections */}
 			<Handle
 				type="target"
 				position={Position.Top}
-				id={Position.Top}
 				className="w-1.5 h-1.5 !opacity-0 !bg-amber-500"
-			/>
-			<Handle
-				type="target"
-				position={Position.Left}
-				id={Position.Left}
-				className="w-1.5 h-1.5 !opacity-0 !bg-amber-500"
+				style={{
+					left: "50%",
+					top: "50%",
+					transform: "translate(-50%, -50%)",
+				}}
 			/>
 			<Handle
 				type="source"
 				position={Position.Bottom}
-				id={Position.Bottom}
 				className="w-1.5 h-1.5 !opacity-0 !bg-amber-500"
-			/>
-			<Handle
-				type="source"
-				position={Position.Right}
-				id={Position.Right}
-				className="w-1.5 h-1.5 !opacity-0 !bg-amber-500"
+				style={{
+					left: "50%",
+					top: "50%",
+					transform: "translate(-50%, -50%)",
+				}}
 			/>
 		</div>
 	);

@@ -43,7 +43,7 @@ import {
 } from "./NodeDetailModal";
 import { CanvasControls } from "./CanvasControls";
 import { cn } from "@/lib/utils";
-import { useMindmapLayout } from "@/lib/hooks/useMindmapLayout";
+import { useOrganicLayout } from "@/lib/hooks/useOrganicLayout";
 
 // Define node types for React Flow
 const nodeTypes = {
@@ -216,10 +216,8 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 	const [nodes, setNodes, onNodesChange] = useNodesState(generatedData.nodes);
 	const [edges, setEdges, onEdgesChange] = useEdgesState(generatedData.edges);
 
-	// Initialize mindmap layout hook
-	const { runLayout } = useMindmapLayout({ nodes, edges, active: true });
-
-	const isMacroView = zoom < 0.5;
+	// Initialize organic layout hook
+	const { isMacroView } = useOrganicLayout({ nodes, edges, setNodes });
 
 	// Sync states when initial data changes or zoom changes
 	useEffect(() => {

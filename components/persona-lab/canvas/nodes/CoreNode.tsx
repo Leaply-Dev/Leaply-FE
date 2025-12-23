@@ -79,30 +79,29 @@ export function CoreNode({ data, selected }: CoreNodeProps) {
 				)}
 			</div>
 
-			{/* Handles for connections - all sides with IDs */}
-			<Handle
-				type="source"
-				position={Position.Top}
-				id={Position.Top}
-				className="w-2 h-2 !bg-primary !opacity-0 hover:!opacity-100"
-			/>
-			<Handle
-				type="source"
-				position={Position.Right}
-				id={Position.Right}
-				className="w-2 h-2 !bg-primary !opacity-0 hover:!opacity-100"
-			/>
+			{/* Single central handle for organic connections */}
 			<Handle
 				type="source"
 				position={Position.Bottom}
-				id={Position.Bottom}
-				className="w-2 h-2 !bg-primary !opacity-0 hover:!opacity-100"
+				className="w-2 h-2 !bg-primary !opacity-0"
+				style={{
+					left: "50%",
+					top: "50%",
+					transform: "translate(-50%, -50%)",
+				}}
 			/>
+			{/* We add a secondary target handle at same position to allow incoming connections if needed by React Flow logic, 
+			    though often one handle is enough if type is generic. For now, let's stick to source as main anchor 
+			    or standard target/source pair at center. */}
 			<Handle
-				type="source"
-				position={Position.Left}
-				id={Position.Left}
-				className="w-2 h-2 !bg-primary !opacity-0 hover:!opacity-100"
+				type="target"
+				position={Position.Top}
+				className="w-2 h-2 !bg-primary !opacity-0"
+				style={{
+					left: "50%",
+					top: "50%",
+					transform: "translate(-50%, -50%)",
+				}}
 			/>
 		</div>
 	);
