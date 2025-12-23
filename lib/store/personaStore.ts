@@ -109,8 +109,10 @@ export const usePersonaStore = create<PersonaStoreState>()(
 			// Fetch full persona state from API
 			fetchPersonaState: async () => {
 				set({ isLoading: true, error: null });
+				console.log("PersonaStore: Fetching persona state...");
 				try {
 					const state = await personaApi.getPersonaState();
+					console.log("PersonaStore: State received:", state);
 					set({
 						tracks: state.tracks,
 						nodes: state.nodes,
@@ -120,8 +122,9 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						isLoading: false,
 					});
 				} catch (err) {
+					console.error("PersonaStore: Failed to fetch state:", err);
 					set({
-						error: (err as Error).message,
+						error: (err as Error).message || "Failed to load persona data. Please refresh.",
 						isLoading: false,
 					});
 				}
@@ -130,8 +133,10 @@ export const usePersonaStore = create<PersonaStoreState>()(
 			// Select a track to start/continue
 			selectTrack: async (trackId: TrackId) => {
 				set({ isSending: true, error: null });
+				console.log(`PersonaStore: Selecting track: ${trackId}`);
 				try {
 					const response = await personaApi.selectTrack(trackId);
+					console.log("PersonaStore: Track selection successful");
 
 					set((state) => ({
 						conversationHistory: [
@@ -149,8 +154,9 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						isSending: false,
 					}));
 				} catch (err) {
+					console.error(`PersonaStore: Failed to select track ${trackId}:`, err);
 					set({
-						error: (err as Error).message,
+						error: (err as Error).message || `Failed to select ${trackId}. Please try again.`,
 						isSending: false,
 					});
 				}
@@ -326,7 +332,7 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					for (const action of actions) {
 						if (action.action === "add" && action.node) {
 							// Add new node (avoid duplicates)
-							if (!nodes.find((n) => n.id === action.node!.id)) {
+							if (!nodes.find((n) => n.id === action.node?.id)) {
 								nodes.push(action.node);
 							}
 						}

@@ -12,6 +12,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
 	Field,
 	FieldDescription,
@@ -98,10 +99,11 @@ export function LoginForm({
 							</FieldSeparator>
 
 							{error && (
-								<div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+								<Alert variant="destructive">
 									<AlertCircle className="h-4 w-4" />
-									<p>{error}</p>
-								</div>
+									<AlertTitle>Error</AlertTitle>
+									<AlertDescription>{error}</AlertDescription>
+								</Alert>
 							)}
 
 							<Field>

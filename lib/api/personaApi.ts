@@ -126,7 +126,7 @@ const MOCK_FOLLOWUPS = {
 // Helper Functions
 // ============================================
 
-function createTrackActions(currentTrackId: TrackId | null): TrackAction[] {
+function createTrackActions(): TrackAction[] {
 	return (Object.keys(TRACKS) as TrackId[]).map((trackId) => ({
 		trackId,
 		displayName: TRACKS[trackId].displayName,
@@ -143,7 +143,7 @@ function createWelcomeMessage(): ChatMessage {
 			"Chào bạn! Tôi là mentor AI của Leaply, sẵn sàng giúp bạn khám phá câu chuyện cá nhân cho hành trình du học.\n\nChúng ta sẽ cùng nhau đi qua 4 chủ đề khám phá. Hãy chọn một chủ đề để bắt đầu:",
 		type: "track_selection",
 		timestamp: new Date().toISOString(),
-		actions: createTrackActions(null),
+		actions: createTrackActions(),
 	};
 }
 
@@ -237,7 +237,14 @@ const mockPersonaApi = {
 		mockState.followUpIndex = 0;
 
 		const track = TRACKS[trackId];
-		const firstQuestion = MOCK_QUESTIONS[trackId][0];
+		const questions = MOCK_QUESTIONS[trackId] || [];
+		
+		if (questions.length === 0) {
+			console.error(`personaApi: No questions found for track ${trackId}`);
+			throw new Error(`Technical error: Missing questions for track ${trackId}`);
+		}
+
+		const firstQuestion = questions[0];
 
 		const message: ChatMessage = {
 			id: generateId(),
@@ -362,7 +369,7 @@ const mockPersonaApi = {
 					content: `Tuyệt vời! 🎉 Bạn đã hoàn thành ${TRACKS[trackId].displayName}!\n\nTôi đã thu thập được nhiều insight quý giá. Bạn muốn khám phá track nào tiếp theo?`,
 					type: "track_complete",
 					timestamp: new Date().toISOString(),
-					actions: createTrackActions(null).filter(
+					actions: createTrackActions().filter(
 						(a) => a.status !== "completed",
 					),
 					canvasActions:
@@ -381,7 +388,14 @@ const mockPersonaApi = {
 			}
 
 			// Move to next core question
-			const nextQuestion = MOCK_QUESTIONS[trackId][mockState.coreQuestionIndex];
+			const questions = MOCK_QUESTIONS[trackId] || [];
+			const nextQuestion = questions[mockState.coreQuestionIndex];
+			
+			if (!nextQuestion) {
+				console.error(`personaApi: Question at index ${mockState.coreQuestionIndex} missing for track ${trackId}`);
+				throw new Error("I've run out of questions for this track. Let's try another one!");
+			}
+
 			const acknowledgment =
 				content.length > 50
 					? "Cảm ơn bạn đã chia sẻ chi tiết! "
@@ -427,7 +441,7 @@ const mockPersonaApi = {
 				"Không sao! Bạn có thể quay lại track này bất cứ lúc nào.\n\nBạn muốn khám phá track nào?",
 			type: "track_selection",
 			timestamp: new Date().toISOString(),
-			actions: createTrackActions(null),
+			actions: createTrackActions(),
 		};
 
 		mockState.conversationHistory.push(message);

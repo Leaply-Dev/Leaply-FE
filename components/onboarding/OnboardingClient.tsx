@@ -8,6 +8,8 @@ import { PageTransition } from "@/components/PageTransition";
 import { onboardingService } from "@/lib/services/onboarding";
 import { userService } from "@/lib/services/user";
 import { type JourneyType, useUserStore } from "@/lib/store/userStore";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, X } from "lucide-react";
 import { OnboardingHeader } from "./OnboardingHeader";
 import {
 	Step1BasicInfo,
@@ -44,7 +46,7 @@ export function OnboardingClient({
 
 	const [currentStep, setCurrentStep] = useState(0);
 	const [isLoading, setIsLoading] = useState(true);
-	const [isSaving, setIsSaving] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
 	// Form State
 	const [basicInfo, setBasicInfo] = useState<BasicInfo>({
@@ -69,37 +71,61 @@ export function OnboardingClient({
 		const loadOnboardingData = async () => {
 			try {
 				setIsLoading(true);
+				console.log("OnboardingClient: Starting data load...");
 
 				// Get onboarding status to determine starting step
 				const status = await onboardingService
 					.getOnboardingStatus()
 					.catch((error) => {
+						console.warn(
+							"OnboardingClient: Status fetch failed, defaulting to 0",
+							error,
+						);
 						// If user has no onboarding data yet (404), start from step 0
 						if (error?.status === 404 || error?.message?.includes("404")) {
 							return { completedSteps: 0, isComplete: false };
 						}
-						throw error;
+						return { completedSteps: 0, isComplete: false };
 					});
 
+				console.log("OnboardingClient: Status received:", status);
+
 				// If onboarding is complete, redirect to dashboard
-				if (status.isComplete) {
+				if (status?.isComplete) {
+					console.log(
+						"OnboardingClient: Onboarding complete, redirecting to dashboard",
+					);
 					completeOnboarding();
 					router.push(`/dashboard`);
 					return;
 				}
 
 				// Set the current step based on completed steps
-				// completedSteps: 0 = start at step 0, 1 = start at step 1, etc.
-				setCurrentStep(status.completedSteps);
+				// Ensure it's within bounds (0 to 4)
+				const startingStep = Math.min(
+					Math.max(status?.completedSteps || 0, 0),
+					4,
+				);
+				console.log(
+					`OnboardingClient: Setting initial step to ${startingStep}`,
+				);
+				setCurrentStep(startingStep);
 
 				// Load user profile and preferences
 				const [profileData, preferencesData] = await Promise.all([
-					userService.getProfile().catch(() => null),
-					userService.getPreferences().catch(() => null),
+					userService.getProfile().catch((e) => {
+						console.warn("OnboardingClient: Failed to fetch profile", e);
+						return null;
+					}),
+					userService.getPreferences().catch((e) => {
+						console.warn("OnboardingClient: Failed to fetch preferences", e);
+						return null;
+					}),
 				]);
 
 				// Populate form with existing data
 				if (profileData) {
+					console.log("OnboardingClient: Populating basic info");
 					setBasicInfo({
 						educationLevel: profileData.currentEducationLevel || "",
 						targetDegree: profileData.targetDegree || "",
@@ -107,23 +133,34 @@ export function OnboardingClient({
 				}
 
 				if (preferencesData) {
+					console.log("OnboardingClient: Populating preferences");
 					// Parse timeline if it exists
 					const timeline = preferencesData.intendedStartTerm || "";
-					const [year, term] = timeline.split(" ");
+					const parts = timeline.split(" ");
+					const year = parts[0] || "";
+					const term = parts.slice(1).join(" ") || "";
 
 					setPrefs({
 						fields: preferencesData.fieldOfInterest || [],
 						regions: preferencesData.preferredRegions || [],
-						startYear: year || "",
-						startTerm: term || "",
+						startYear: year,
+						startTerm: term,
 						budgetIndex:
 							constants.budgetOptions.findIndex(
 								(opt) => opt.label === preferencesData.budgetLabel,
-							) || 1,
+							) === -1
+								? 1
+								: constants.budgetOptions.findIndex(
+										(opt) => opt.label === preferencesData.budgetLabel,
+									),
 					});
 				}
+				console.log("OnboardingClient: Initial data load successful");
 			} catch (error) {
-				console.error("Failed to load onboarding data:", error);
+				console.error(
+					"OnboardingClient: Critical failure loading data:",
+					error,
+				);
 				// Start from step 0 if there's an error
 				setCurrentStep(0);
 			} finally {
@@ -146,8 +183,6 @@ export function OnboardingClient({
 
 	const handleStep1Next = async () => {
 		try {
-			setIsSaving(true);
-
 			// Update profile via API
 			await userService.updateProfile({
 				currentEducationLevel: basicInfo.educationLevel,
@@ -175,18 +210,17 @@ export function OnboardingClient({
 			});
 
 			setCurrentStep(1);
+			setError(null);
 		} catch (error) {
 			console.error("Failed to save step 1:", error);
-			alert("Failed to save your information. Please try again.");
+			setError("Failed to save your information. Please try again.");
 		} finally {
-			setIsSaving(false);
+			setIsLoading(false);
 		}
 	};
 
 	const handleStep2Next = async () => {
 		try {
-			setIsSaving(true);
-
 			// Update preferences via API
 			await userService.updatePreferences({
 				fieldOfInterest: prefs.fields,
@@ -206,18 +240,17 @@ export function OnboardingClient({
 			});
 
 			setCurrentStep(2);
+			setError(null);
 		} catch (error) {
 			console.error("Failed to save step 2:", error);
-			alert("Failed to save your preferences. Please try again.");
+			setError("Failed to save your preferences. Please try again.");
 		} finally {
-			setIsSaving(false);
+			setIsLoading(false);
 		}
 	};
 
 	const handleStep3Next = async () => {
 		try {
-			setIsSaving(true);
-
 			const formattedTimeline = `${prefs.startYear} ${prefs.startTerm}`;
 			const budgetLabel = constants.budgetOptions[prefs.budgetIndex].label;
 
@@ -240,11 +273,12 @@ export function OnboardingClient({
 			});
 
 			setCurrentStep(3);
+			setError(null);
 		} catch (error) {
 			console.error("Failed to save step 3:", error);
-			alert("Failed to save your plan. Please try again.");
+			setError("Failed to save your plan. Please try again.");
 		} finally {
-			setIsSaving(false);
+			setIsLoading(false);
 		}
 	};
 
@@ -256,7 +290,6 @@ export function OnboardingClient({
 
 	const handleJourneySelect = async (type: JourneyType) => {
 		try {
-			setIsSaving(true);
 			setSelectedJourney(type);
 			setJourneyType(type);
 
@@ -277,11 +310,12 @@ export function OnboardingClient({
 
 			completeOnboarding();
 			setCurrentStep(4);
+			setError(null);
 		} catch (error) {
 			console.error("Failed to save journey selection:", error);
-			alert("Failed to save your journey selection. Please try again.");
+			setError("Failed to save your journey selection. Please try again.");
 		} finally {
-			setIsSaving(false);
+			setIsLoading(false);
 		}
 	};
 
@@ -311,7 +345,26 @@ export function OnboardingClient({
 				<OnboardingHeader />
 
 				{currentStep < 4 && (
-					<div className="w-full max-w-3xl mx-auto px-6 py-8">
+					<div className="w-full max-w-3xl mx-auto px-6 py-8 space-y-4">
+						<AnimatePresence>
+							{error && (
+								<PageTransition>
+									<Alert variant="destructive" className="relative pr-10">
+										<AlertCircle className="h-4 w-4" />
+										<AlertTitle>Error</AlertTitle>
+										<AlertDescription>{error}</AlertDescription>
+										<button
+											type="button"
+											onClick={() => setError(null)}
+											className="absolute right-3 top-3 text-destructive/60 hover:text-destructive"
+										>
+											<X className="h-4 w-4" />
+										</button>
+									</Alert>
+								</PageTransition>
+							)}
+						</AnimatePresence>
+
 						<OnboardingProgress
 							steps={translations.steps}
 							currentStep={currentStep}
