@@ -1,18 +1,19 @@
 "use client";
 
-import { useState } from "react";
 import {
-	Target,
-	FileText,
-	List,
-	Lightbulb,
+	ChevronDown,
 	Eye,
 	EyeOff,
-	ChevronDown,
+	FileText,
+	Lightbulb,
+	List,
+	Sparkles,
+	Target,
 } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { type NodeLayer, usePersonaStore } from "@/lib/store/personaStore";
 import { cn } from "@/lib/utils";
-import { type NodeLayer } from "@/lib/utils/canvasLayout";
 
 interface LayerConfig {
 	id: NodeLayer;
@@ -21,13 +22,21 @@ interface LayerConfig {
 }
 
 const LAYERS: LayerConfig[] = [
-	{ id: "core", label: "Core", icon: <Target className="w-3.5 h-3.5" /> },
 	{
-		id: "summary",
-		label: "Summary",
+		id: "archetype",
+		label: "Archetype",
+		icon: <Sparkles className="w-3.5 h-3.5" />,
+	},
+	{
+		id: "story",
+		label: "Stories",
 		icon: <FileText className="w-3.5 h-3.5" />,
 	},
-	{ id: "evidence", label: "Evidence", icon: <List className="w-3.5 h-3.5" /> },
+	{
+		id: "evidence",
+		label: "Evidence",
+		icon: <List className="w-3.5 h-3.5" />,
+	},
 	{
 		id: "insight",
 		label: "Insights",
@@ -41,32 +50,17 @@ interface CanvasControlsProps {
 
 export function CanvasControls({ className }: CanvasControlsProps) {
 	const [isExpanded, setIsExpanded] = useState(false);
-	const [visibleLayers, setVisibleLayers] = useState<Record<NodeLayer, boolean>>(
-		{
-			core: true,
-			summary: true,
-			evidence: true,
-			insight: true,
-		},
-	);
-
-	const toggleLayer = (layerId: NodeLayer) => {
-		setVisibleLayers((prev) => ({
-			...prev,
-			[layerId]: !prev[layerId],
-		}));
-	};
+	const { visibleLayers, toggleLayer, setVisibleLayers } = usePersonaStore();
 
 	const allVisible = Object.values(visibleLayers).every(Boolean);
-	const noneVisible = Object.values(visibleLayers).every((v) => !v);
 
 	const toggleAll = () => {
 		const newState = !allVisible;
 		setVisibleLayers({
-			core: newState,
-			summary: newState,
+			story: newState,
 			evidence: newState,
 			insight: newState,
+			archetype: newState,
 		});
 	};
 

@@ -1,7 +1,7 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { LayoutGrid, List } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useCallback } from "react";
 import { PageTransition } from "@/components/PageTransition";
 import { ChatSidebar } from "@/components/persona-lab/ChatSidebar";
@@ -48,13 +48,13 @@ const PersonaListView = dynamic(
 );
 
 export default function PersonaLabPage() {
-	const { viewMode, setViewMode, setSelectedNode } = usePersonaStore();
+	const { viewMode, setViewMode, selectNode } = usePersonaStore();
 
 	const handleNodeSelect = useCallback(
 		(nodeId: string | null) => {
-			setSelectedNode(nodeId);
+			selectNode(nodeId);
 		},
-		[setSelectedNode],
+		[selectNode],
 	);
 
 	return (

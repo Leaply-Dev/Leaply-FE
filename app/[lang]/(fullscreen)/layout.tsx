@@ -41,7 +41,9 @@ export default async function FullscreenLayout({
 		<div className={`h-screen flex flex-col ${raleway.className}`}>
 			<DataInitializer />
 			<Navbar locale={lang as Locale} translations={dict} />
-			<main className="flex-1 flex flex-col min-h-0 overflow-hidden">{children}</main>
+			<main className="flex-1 flex flex-col min-h-0 overflow-hidden">
+				{children}
+			</main>
 		</div>
 	);
 }

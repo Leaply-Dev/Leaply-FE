@@ -258,7 +258,7 @@ export function OnboardingClient({
 											spacing={2}
 											size="sm"
 											value={basicInfo.educationLevel}
-											onValueChange={(value) => {
+											onValueChange={(value: string) => {
 												if (value)
 													handleBasicInfoChange("educationLevel", value);
 											}}
@@ -291,7 +291,7 @@ export function OnboardingClient({
 											spacing={2}
 											size="sm"
 											value={basicInfo.targetDegree}
-											onValueChange={(value) => {
+											onValueChange={(value: string) => {
 												if (value) handleBasicInfoChange("targetDegree", value);
 											}}
 											className="flex flex-wrap gap-2"
@@ -381,7 +381,7 @@ export function OnboardingClient({
 											spacing={2}
 											size="sm"
 											value={prefs.fields}
-											onValueChange={(value) => {
+											onValueChange={(value: string[]) => {
 												if (value.length <= 3) {
 													setPrefs((p) => ({ ...p, fields: value }));
 												}
@@ -453,7 +453,7 @@ export function OnboardingClient({
 											spacing={2}
 											size="sm"
 											value={prefs.regions}
-											onValueChange={(value) => {
+											onValueChange={(value: string[]) => {
 												setPrefs((p) => ({ ...p, regions: value }));
 											}}
 											className="flex flex-wrap gap-2"
@@ -586,7 +586,7 @@ export function OnboardingClient({
 											spacing={2}
 											size="sm"
 											value={prefs.budgetIndex.toString()}
-											onValueChange={(value) => {
+											onValueChange={(value: string) => {
 												if (value) {
 													setPrefs((p) => ({
 														...p,

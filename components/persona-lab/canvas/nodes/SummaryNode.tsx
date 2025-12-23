@@ -1,9 +1,9 @@
 "use client";
 
 import { Handle, Position } from "@xyflow/react";
-import { FileText, ChevronRight } from "lucide-react";
-import type { TrackId } from "@/lib/store/personaStore";
+import { ChevronRight, FileText } from "lucide-react";
 import { getTrackColor } from "@/lib/constants/personaColors";
+import type { TrackId } from "@/lib/store/personaStore";
 import { cn } from "@/lib/utils";
 
 export interface SummaryNodeData {
@@ -39,9 +39,17 @@ export function SummaryNode({ data, selected }: SummaryNodeProps) {
 				<div
 					className={cn(
 						"w-12 h-12 rounded-full border-4 transition-all duration-500",
-						isLocked ? "bg-muted border-border" : "shadow-lg"
+						isLocked ? "bg-muted border-border" : "shadow-lg",
 					)}
-					style={!isLocked ? { backgroundColor: colors.primary, borderColor: colors.light, boxShadow: `0 0 20px ${colors.primary}40` } : {}}
+					style={
+						!isLocked
+							? {
+									backgroundColor: colors.primary,
+									borderColor: colors.light,
+									boxShadow: `0 0 20px ${colors.primary}40`,
+								}
+							: {}
+					}
 				/>
 				<div className="absolute top-14 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-background/90 px-2 py-1 rounded text-[10px] font-bold border border-border">
 					{data.title || data.track}
@@ -56,9 +64,7 @@ export function SummaryNode({ data, selected }: SummaryNodeProps) {
 				"relative rounded-xl border-2 shadow-md transition-all duration-500 cursor-pointer overflow-hidden",
 				"min-w-[180px] max-w-[200px] px-4 py-3",
 				"hover:shadow-xl hover:scale-[1.02]",
-				isLocked
-					? "bg-muted/50 border-border/50"
-					: "bg-background",
+				isLocked ? "bg-muted/50 border-border/50" : "bg-background",
 				selected && "ring-2 ring-offset-2",
 				selected && !isLocked && colors.textClass.replace("text-", "ring-"),
 				!isMicroView && "scale-90 opacity-80",
@@ -85,7 +91,10 @@ export function SummaryNode({ data, selected }: SummaryNodeProps) {
 					)}
 				>
 					<FileText
-						className={cn("w-4 h-4", isLocked ? "text-muted-foreground" : colors.textClass)}
+						className={cn(
+							"w-4 h-4",
+							isLocked ? "text-muted-foreground" : colors.textClass,
+						)}
 						style={!isLocked ? { color: colors.primary } : undefined}
 					/>
 				</div>

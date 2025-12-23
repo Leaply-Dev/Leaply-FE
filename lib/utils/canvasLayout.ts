@@ -1,7 +1,7 @@
-import type { TrackId } from "@/lib/store/personaStore";
 import { Position } from "@xyflow/react";
+import type { TrackId } from "@/lib/types/persona";
 
-export type NodeLayer = "core" | "summary" | "evidence" | "insight";
+export type NodeLayer = "archetype" | "story" | "evidence" | "insight";
 
 export const CANVAS_CENTER = { x: 400, y: 300 };
 
@@ -11,23 +11,39 @@ export const TRACK_DIRECTIONS: Record<
 	TrackId,
 	{ angle: number; sourcePos: Position; targetPos: Position }
 > = {
-	future: { angle: -90, sourcePos: Position.Top, targetPos: Position.Bottom }, // Top
-	academic: { angle: 0, sourcePos: Position.Right, targetPos: Position.Left }, // Right
-	values: { angle: 90, sourcePos: Position.Bottom, targetPos: Position.Top }, // Bottom
-	activities: { angle: 180, sourcePos: Position.Left, targetPos: Position.Right }, // Left
+	future_vision: {
+		angle: -90,
+		sourcePos: Position.Top,
+		targetPos: Position.Bottom,
+	}, // Top
+	academic_journey: {
+		angle: 0,
+		sourcePos: Position.Right,
+		targetPos: Position.Left,
+	}, // Right
+	values_turning_points: {
+		angle: 90,
+		sourcePos: Position.Bottom,
+		targetPos: Position.Top,
+	}, // Bottom
+	activities_impact: {
+		angle: 180,
+		sourcePos: Position.Left,
+		targetPos: Position.Right,
+	}, // Left
 };
 
 // Distance from center for each layer
 const LAYER_DISTANCES = {
-	summary: 280,
+	story: 280,
 	evidence: 480,
 	insight: 620,
 };
 
 // Node dimensions for centering calculations
 const NODE_SIZES: Record<NodeLayer, { width: number; height: number }> = {
-	core: { width: 180, height: 100 },
-	summary: { width: 200, height: 80 },
+	archetype: { width: 180, height: 100 },
+	story: { width: 200, height: 80 },
 	evidence: { width: 160, height: 70 },
 	insight: { width: 150, height: 60 },
 };
@@ -63,7 +79,7 @@ function getPerpendicularOffset(
 
 export function calculateNodePosition(
 	track: TrackId,
-	layer: Exclude<NodeLayer, "core">,
+	layer: Exclude<NodeLayer, "archetype">,
 	index: number = 0,
 ): { x: number; y: number } {
 	const direction = TRACK_DIRECTIONS[track];
@@ -94,13 +110,16 @@ export function calculateNodePosition(
 	};
 }
 
-export function getCoreNodePosition(): { x: number; y: number } {
-	const nodeSize = NODE_SIZES.core;
+export function getArchetypeNodePosition(): { x: number; y: number } {
+	const nodeSize = NODE_SIZES.archetype;
 	return {
 		x: CANVAS_CENTER.x - nodeSize.width / 2,
 		y: CANVAS_CENTER.y - nodeSize.height / 2,
 	};
 }
+
+// Legacy alias
+export const getCoreNodePosition = getArchetypeNodePosition;
 
 export function getHandlePositions(track: TrackId): {
 	source: Position;
@@ -129,18 +148,18 @@ export interface EdgeConfig {
 
 export function generateEdgesForTrack(
 	trackId: TrackId,
-	nodeIds: { summary?: string[]; evidence?: string[]; insight?: string[] },
+	nodeIds: { story?: string[]; evidence?: string[]; insight?: string[] },
 	trackColor: string,
 ): EdgeConfig[] {
 	const edges: EdgeConfig[] = [];
 	const direction = TRACK_DIRECTIONS[trackId];
 
-	// Connect core to summary node
-	if (nodeIds.summary && nodeIds.summary.length > 0) {
+	// Connect archetype to story node
+	if (nodeIds.story && nodeIds.story.length > 0) {
 		edges.push({
-			id: `core-to-${nodeIds.summary[0]}`,
-			source: "core",
-			target: nodeIds.summary[0],
+			id: `archetype-to-${nodeIds.story[0]}`,
+			source: "archetype",
+			target: nodeIds.story[0],
 			sourceHandle: direction.sourcePos,
 			targetHandle: direction.targetPos,
 			type: "default", // Bezier curve
@@ -151,12 +170,12 @@ export function generateEdgesForTrack(
 		});
 	}
 
-	// Connect summary to evidence nodes
-	if (nodeIds.summary && nodeIds.summary.length > 0 && nodeIds.evidence) {
+	// Connect story to evidence nodes
+	if (nodeIds.story && nodeIds.story.length > 0 && nodeIds.evidence) {
 		for (const evidenceId of nodeIds.evidence) {
 			edges.push({
-				id: `${nodeIds.summary[0]}-to-${evidenceId}`,
-				source: nodeIds.summary[0],
+				id: `${nodeIds.story[0]}-to-${evidenceId}`,
+				source: nodeIds.story[0],
 				target: evidenceId,
 				sourceHandle: direction.sourcePos,
 				targetHandle: direction.targetPos,
@@ -169,12 +188,12 @@ export function generateEdgesForTrack(
 		}
 	}
 
-	// Connect summary to insight node (or last evidence to insight)
+	// Connect story to insight node (or last evidence to insight)
 	if (nodeIds.insight && nodeIds.insight.length > 0) {
 		const sourceNode =
 			nodeIds.evidence && nodeIds.evidence.length > 0
 				? nodeIds.evidence[Math.floor(nodeIds.evidence.length / 2)]
-				: nodeIds.summary?.[0];
+				: nodeIds.story?.[0];
 
 		if (sourceNode) {
 			edges.push({

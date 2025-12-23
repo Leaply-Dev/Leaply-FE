@@ -1,7 +1,7 @@
 "use client";
 
 import { Handle, Position } from "@xyflow/react";
-import { Target, Sparkles } from "lucide-react";
+import { Sparkles, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface CoreNodeData {

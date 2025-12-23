@@ -1,59 +1,58 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
 	BookOpen,
 	ChevronDown,
 	ChevronRight,
+	Gem,
 	Lightbulb,
 	Sparkles,
 	Target,
 } from "lucide-react";
 import { useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { usePersonaStore, type TrackId } from "@/lib/store/personaStore";
-import { TRACK_COLORS } from "@/lib/constants/personaColors";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ARCHETYPES } from "@/lib/constants/archetypes";
+import { TRACK_COLORS, TRACK_IDS, TRACKS } from "@/lib/constants/tracks";
+import { usePersonaStore } from "@/lib/store/personaStore";
+import type { CanvasNode, TrackId } from "@/lib/types/persona";
 import { cn } from "@/lib/utils";
 
 const TRACK_ICONS: Record<TrackId, React.ReactNode> = {
-	academic: <BookOpen className="w-5 h-5" />,
-	activities: <Sparkles className="w-5 h-5" />,
-	values: <Target className="w-5 h-5" />,
-	future: <Lightbulb className="w-5 h-5" />,
+	future_vision: <Target className="w-5 h-5" />,
+	academic_journey: <BookOpen className="w-5 h-5" />,
+	activities_impact: <Sparkles className="w-5 h-5" />,
+	values_turning_points: <Gem className="w-5 h-5" />,
 };
 
 // Friendly topic labels
 const TOPIC_LABELS: Record<TrackId, string> = {
-	academic: "Your Learning Story",
-	activities: "What Drives You",
-	values: "Your Core Beliefs",
-	future: "Where You're Headed",
+	future_vision: "Your Future Vision",
+	academic_journey: "Your Learning Journey",
+	activities_impact: "Your Impact & Activities",
+	values_turning_points: "Your Values & Growth",
 };
-
-// Track order for display
-const TRACK_ORDER: TrackId[] = ["academic", "activities", "values", "future"];
 
 interface TopicSummaryCardProps {
 	trackId: TrackId;
 	isCompleted: boolean;
-	theme?: string;
-	topStory?: { title: string; summary: string };
-	insight?: string;
-	allStories: Array<{ id: string; title: string; summary: string }>;
+	nodes: CanvasNode[];
 }
 
 function TopicSummaryCard({
 	trackId,
 	isCompleted,
-	theme,
-	topStory,
-	insight,
-	allStories,
+	nodes,
 }: TopicSummaryCardProps) {
 	const [isExpanded, setIsExpanded] = useState(false);
 	const colors = TRACK_COLORS[trackId];
 	const label = TOPIC_LABELS[trackId];
+
+	const stories = nodes.filter((n) => n.type === "story");
+	const insights = nodes.filter((n) => n.type === "insight");
+	const topStory = stories[0];
+	const topInsight = insights[0];
 
 	return (
 		<motion.div
@@ -105,21 +104,8 @@ function TopicSummaryCard({
 					)}
 				</div>
 
-				{isCompleted ? (
+				{nodes.length > 0 ? (
 					<div className="space-y-3">
-						{/* Key Theme */}
-						{theme && (
-							<div className="flex items-start gap-2">
-								<span
-									className="text-xs font-semibold uppercase tracking-wide shrink-0 pt-0.5"
-									style={{ color: colors.primary }}
-								>
-									Theme
-								</span>
-								<span className="text-sm text-foreground">{theme}</span>
-							</div>
-						)}
-
 						{/* Top Story */}
 						{topStory && (
 							<div className="flex items-start gap-2">
@@ -136,21 +122,25 @@ function TopicSummaryCard({
 						)}
 
 						{/* AI Insight */}
-						{insight && (
-							<div className="flex items-start gap-2 bg-background/50 rounded-lg p-2.5 border border-dashed" style={{ borderColor: `${colors.primary}30` }}>
+						{topInsight && (
+							<div
+								className="flex items-start gap-2 bg-background/50 rounded-lg p-2.5 border border-dashed"
+								style={{ borderColor: `${colors.primary}30` }}
+							>
 								<Lightbulb
 									className="w-4 h-4 shrink-0 mt-0.5"
 									style={{ color: colors.primary }}
 								/>
 								<span className="text-sm text-foreground/90 line-clamp-2">
-									{insight}
+									{topInsight.content || topInsight.title}
 								</span>
 							</div>
 						)}
 
 						{/* Expand toggle */}
-						{allStories.length > 1 && (
+						{stories.length > 1 && (
 							<button
+								type="button"
 								onClick={() => setIsExpanded(!isExpanded)}
 								className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors pt-1"
 							>
@@ -162,7 +152,8 @@ function TopicSummaryCard({
 								) : (
 									<>
 										<ChevronRight className="w-3 h-3" />
-										See {allStories.length - 1} more {allStories.length === 2 ? "story" : "stories"}
+										See {stories.length - 1} more{" "}
+										{stories.length === 2 ? "story" : "stories"}
 									</>
 								)}
 							</button>
@@ -177,7 +168,7 @@ function TopicSummaryCard({
 
 			{/* Expanded stories */}
 			<AnimatePresence>
-				{isExpanded && allStories.length > 1 && (
+				{isExpanded && stories.length > 1 && (
 					<motion.div
 						initial={{ height: 0, opacity: 0 }}
 						animate={{ height: "auto", opacity: 1 }}
@@ -187,16 +178,16 @@ function TopicSummaryCard({
 					>
 						<div className="px-4 pb-4 space-y-2">
 							<div className="h-px bg-border" />
-							{allStories.slice(1).map((story, idx) => (
+							{stories.slice(1).map((story) => (
 								<div
-									key={story.id || idx}
+									key={story.id}
 									className="p-3 rounded-lg bg-background/30 hover:bg-background/50 transition-colors"
 								>
 									<p className="text-sm font-medium text-foreground">
 										{story.title}
 									</p>
 									<p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-										{story.summary}
+										{story.content}
 									</p>
 								</div>
 							))}
@@ -209,18 +200,30 @@ function TopicSummaryCard({
 }
 
 export function PersonaListView() {
-	const { tracks, keyStories } = usePersonaStore();
+	const { tracks, nodes, archetype, getTrackProgress } = usePersonaStore();
+	const { completed: completedCount, total } = getTrackProgress();
 
 	// Check if all tracks completed
-	const allCompleted = tracks.every((t) => t.status === "completed");
-	const completedCount = tracks.filter((t) => t.status === "completed").length;
+	const allCompleted = completedCount === total;
 
-	// Get track data in display order
-	const orderedTracks = TRACK_ORDER.map((id) => {
-		const track = tracks.find((t) => t.id === id)!;
-		const stories = keyStories.filter((s) => s.sourceTrack === id);
-		return { track, stories };
-	});
+	// Get archetype definition if revealed
+	const archetypeDef = archetype
+		? ARCHETYPES[archetype.type as keyof typeof ARCHETYPES]
+		: null;
+
+	// Group nodes by track
+	const nodesByTrack: Record<TrackId, CanvasNode[]> = {
+		future_vision: [],
+		academic_journey: [],
+		activities_impact: [],
+		values_turning_points: [],
+	};
+
+	for (const node of nodes) {
+		if (node.sourceTrackId) {
+			nodesByTrack[node.sourceTrackId].push(node);
+		}
+	}
 
 	return (
 		<ScrollArea className="h-full">
@@ -231,7 +234,7 @@ export function PersonaListView() {
 					animate={{ opacity: 1, y: 0 }}
 					className={cn(
 						"rounded-2xl border-2 p-6 text-center",
-						allCompleted
+						archetype
 							? "bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 border-primary"
 							: "bg-muted/30 border-border border-dashed",
 					)}
@@ -239,24 +242,31 @@ export function PersonaListView() {
 					<div
 						className={cn(
 							"w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4",
-							allCompleted
+							archetype
 								? "bg-gradient-to-br from-primary to-primary/80 text-white shadow-lg"
 								: "bg-muted",
 						)}
 					>
-						{allCompleted ? (
+						{archetype ? (
 							<Sparkles className="w-8 h-8 animate-pulse" />
 						) : (
 							<Target className="w-8 h-8 text-muted-foreground" />
 						)}
 					</div>
 
-					{allCompleted ? (
+					{archetype && archetypeDef ? (
 						<>
-							<h2 className="text-xl font-bold text-foreground">The Innovator</h2>
+							<h2 className="text-xl font-bold text-foreground">
+								{archetypeDef.title}
+							</h2>
 							<p className="text-sm text-muted-foreground mt-1">
-								Bridge between tradition & technology
+								{archetypeDef.tagline}
 							</p>
+							{archetype.personalizedSummary && (
+								<p className="text-sm text-foreground/80 mt-3 max-w-md mx-auto">
+									{archetype.personalizedSummary}
+								</p>
+							)}
 						</>
 					) : (
 						<>
@@ -264,7 +274,7 @@ export function PersonaListView() {
 								Your Archetype
 							</h2>
 							<p className="text-sm text-muted-foreground/70 mt-1">
-								{completedCount}/4 topics completed
+								{completedCount}/{total} topics completed
 							</p>
 						</>
 					)}
@@ -272,32 +282,22 @@ export function PersonaListView() {
 
 				{/* Topic Summary Cards */}
 				<div className="space-y-4">
-					{orderedTracks.map(({ track, stories }, index) => {
+					{TRACK_IDS.map((trackId, index) => {
+						const track = tracks[trackId];
+						const trackNodes = nodesByTrack[trackId];
 						const isCompleted = track.status === "completed";
-						const firstStory = stories[0];
 
 						return (
 							<motion.div
-								key={track.id}
+								key={trackId}
 								initial={{ opacity: 0, y: 10 }}
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ delay: index * 0.1 }}
 							>
 								<TopicSummaryCard
-									trackId={track.id}
+									trackId={trackId}
 									isCompleted={isCompleted}
-									theme={isCompleted ? getThemeForTrack(track.id) : undefined}
-									topStory={
-										isCompleted && firstStory
-											? { title: firstStory.title, summary: firstStory.summary }
-											: undefined
-									}
-									insight={isCompleted ? getInsightText(track.id) : undefined}
-									allStories={stories.map((s) => ({
-										id: s.id,
-										title: s.title,
-										summary: s.summary,
-									}))}
+									nodes={trackNodes}
 								/>
 							</motion.div>
 						);
@@ -305,7 +305,7 @@ export function PersonaListView() {
 				</div>
 
 				{/* Empty state encouragement */}
-				{completedCount === 0 && (
+				{completedCount === 0 && nodes.length === 0 && (
 					<motion.div
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
@@ -321,24 +321,4 @@ export function PersonaListView() {
 			</div>
 		</ScrollArea>
 	);
-}
-
-function getThemeForTrack(trackId: TrackId): string {
-	const themes: Record<TrackId, string> = {
-		academic: "Hands-on problem solving with real community impact",
-		activities: "Building collaborative networks for systemic change",
-		values: "Bridging tradition and modern innovation authentically",
-		future: "Technology as a tool for community empowerment",
-	};
-	return themes[trackId];
-}
-
-function getInsightText(trackId: TrackId): string {
-	const insights: Record<TrackId, string> = {
-		academic: "Connects theory to real-world impact through hands-on research",
-		activities: "Builds networks for systemic change with collaborative approach",
-		values: "Bridges tradition and innovation with authentic values",
-		future: "Uses technology for community empowerment and social good",
-	};
-	return insights[trackId];
 }
