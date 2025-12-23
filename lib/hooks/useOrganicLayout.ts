@@ -175,23 +175,17 @@ export function useOrganicLayout({ nodes, edges, setNodes }: UseOrganicLayoutPro
                 .force("collide", forceCollideRect())
                 .alpha(0.8)
                 .alphaDecay(0.01) // Slower decay for "liquid" feel
-                .alphaTarget(0.05) // Maintain a "breathing" state
+                .alphaTarget(0) // Allow simulation to settle
                 .on("tick", () => {
-                    // Update nodes with "breathing" drift
-                    const time = Date.now() * 0.001;
                     setNodes((nds) =>
                         nds.map((node) => {
                             const simNode = simNodes.find((sn) => sn.id === node.id);
                             if (simNode) {
-                                // Add a tiny "breathing" oscillation
-                                const driftX = Math.sin(time + simNode.x! * 0.01) * 0.5;
-                                const driftY = Math.cos(time + simNode.y! * 0.01) * 0.5;
-
                                 return {
                                     ...node,
                                     position: {
-                                        x: simNode.x! + driftX - simNode.width / 2,
-                                        y: simNode.y! + driftY - simNode.height / 2
+                                        x: simNode.x! - simNode.width / 2,
+                                        y: simNode.y! - simNode.height / 2
                                     },
                                 };
                             }
