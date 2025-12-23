@@ -7,12 +7,15 @@ export interface ApiResponse<T> {
 }
 
 export interface ErrorDetails {
-	code: string;
-	field: string;
-	details: Record<string, any>;
+	code?: string;
+	field?: string;
+	details?: Record<string, any>;
 }
 
+// ============================================
 // Authentication
+// ============================================
+
 export interface RegisterRequest {
 	email: string;
 	password: string;
@@ -23,6 +26,10 @@ export interface LoginRequest {
 	password: string;
 }
 
+export interface GoogleAuthRequest {
+	idToken: string;
+}
+
 export interface AuthResponse {
 	userId: string;
 	email: string;
@@ -30,39 +37,115 @@ export interface AuthResponse {
 	onboardingCompleted: boolean;
 }
 
+// ============================================
+// User Context & Profile
+// ============================================
+
+export interface UserInfo {
+	id: string;
+	email: string;
+	isEmailVerified: boolean;
+	isOnboardingComplete: boolean;
+	createdAt: string;
+}
+
+export interface ProfileInfo {
+	fullName?: string;
+	currentEducationLevel?: string;
+	targetDegree?: string;
+	gpa?: string;
+	gpaScale?: string;
+	testScores?: Record<string, string>;
+}
+
+export interface PreferencesInfo {
+	fieldOfInterest?: string[];
+	preferredRegions?: string[];
+	intendedStartTerm?: string;
+	budgetLabel?: string;
+	journeyType?: string;
+	programType?: string;
+	campusSetting?: string;
+	interests?: string[];
+}
+
+export interface UserContextResponse {
+	user: UserInfo;
+	profile: ProfileInfo;
+	preferences: PreferencesInfo;
+}
+
+export interface ProfileResponse {
+	userId: string;
+	fullName?: string;
+	currentEducationLevel?: string;
+	targetDegree?: string;
+	gpa?: number;
+	gpaScale?: number;
+	testScores?: Record<string, string>;
+	workExperienceYears?: number;
+	profileCompletion?: number;
+}
+
+export interface UpdateProfileRequest {
+	fullName?: string;
+	currentEducationLevel?: string;
+	targetDegree?: string;
+	gpa?: number;
+	gpaScale?: number;
+	currentMajor?: string;
+	testScores?: Record<string, string>;
+	intendedStartYear?: number;
+	workExperienceYears?: number;
+}
+
+export interface PreferencesResponse {
+	userId: string;
+	fieldOfInterest?: string[];
+	preferredRegions?: string[];
+	intendedStartTerm?: string;
+	budgetLabel?: string;
+	journeyType?: string;
+	programType?: string;
+	campusSetting?: string;
+	interests?: string[];
+}
+
+export interface UpdatePreferencesRequest {
+	fieldOfInterest?: string[];
+	preferredRegions?: string[];
+	intendedStartTerm?: string;
+	budgetLabel?: string;
+	journeyType?: string;
+	programType?: string;
+	campusSetting?: string;
+	interests?: string[];
+}
+
+// ============================================
 // Onboarding
-export interface Step1Request {
-	fullName: string;
-	currentLevel: "high_school" | "undergrad" | "graduate" | "working";
-	targetDegree: "bachelors" | "masters" | "mba" | "phd";
+// ============================================
+
+export interface UpdateOnboardingRequest {
+	fullName?: string;
+	currentLevel?: "high_school" | "undergrad" | "graduate" | "working";
+	targetDegree?: "bachelors" | "masters" | "mba" | "phd";
+	targetRegions?: string[];
+	budgetRange?: string;
+	targetFields?: string[];
+	targetIntake?: string;
+	direction?: "exploring" | "has_target";
 }
 
-export interface Step2Request {
-	targetRegions: string[];
-	budgetRange: string;
-	targetFields: string[];
-	targetIntake: string;
+export interface OnboardingDataResponse {
+	completedSteps: number;
+	isComplete: boolean;
 }
 
-export interface Step3Request {
-	direction: "exploring" | "has_target";
-}
-
-export interface OnboardingResponse {
-	currentStep: number;
-	nextStep: number;
-	completed: boolean;
-	redirectTo: string;
-	message: string;
-}
-
-export interface OnboardingStatusResponse {
-	currentStep: number;
-	completed: boolean;
-	data: Record<string, any>;
-}
-
+// ============================================
 // Persona Lab
+// ============================================
+
 export type TrackType =
 	| "FUTURE_VISION"
 	| "ACADEMIC_JOURNEY"
