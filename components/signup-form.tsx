@@ -58,6 +58,7 @@ export function SignupForm({
 		try {
 			// Register returns AuthResponse which includes token
 			const response = await authService.register({
+				fullName: formData.fullName,
 				email: formData.email,
 				password: formData.password,
 				// fullName isn't in RegisterRequest yet, keeping it local or enhancing endpoint later
