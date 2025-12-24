@@ -143,6 +143,20 @@ export interface OnboardingDataResponse {
 	isComplete: boolean;
 }
 
+export interface OnboardingStatusResponse {
+	currentStep: number;
+	completed: boolean;
+	data?: Record<string, any>;
+}
+
+export interface OnboardingResponse {
+	currentStep: number;
+	nextStep: number;
+	completed: boolean;
+	redirectTo?: string;
+	message?: string;
+}
+
 // ============================================
 // Explore API
 // ============================================
@@ -191,7 +205,7 @@ export interface ProgramListItemResponse {
 	nextDeadline?: string;
 	nextIntake?: string;
 	fitScore?: number;
-	fitCategory?: "reach" | "target" | "safety";
+	fitCategory?: "reach" | "target" | "safety" | string;
 	fitReasons?: string[];
 	fitGaps?: string[];
 	isSaved?: boolean;
@@ -285,6 +299,141 @@ export interface SaveProgramResponse {
 }
 
 // ============================================
+// Applications API
+// ============================================
+
+export interface CreateApplicationRequest {
+	programId: string;
+	intakeId?: string;
+}
+
+export interface CreateApplicationResponse {
+	id: string;
+	message: string;
+}
+
+export interface UpdateApplicationRequest {
+	status?: "planning" | "writing" | "submitted";
+}
+
+export interface UpdateApplicationResponse {
+	id: string;
+	status: string;
+	updatedAt: string;
+}
+
+export interface DeleteApplicationResponse {
+	success: boolean;
+	message: string;
+}
+
+export interface ProgramSummaryDto {
+	id: string;
+	universityName: string;
+	programName: string;
+	degreeName: string;
+	nextDeadline?: string;
+	nextIntake?: string;
+}
+
+export interface GapDto {
+	field: string;
+	message: string;
+	severity: string;
+}
+
+export interface ApplicationResponse {
+	id: string;
+	program: ProgramSummaryDto;
+	status: string;
+	fitScore?: number;
+	fitCategory?: string;
+	gaps?: GapDto[];
+	sopStatus?: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface ApplicationSummaryDto {
+	total: number;
+	byStatus: Record<string, number>;
+	byCategory: Record<string, number>;
+}
+
+export interface UpcomingDeadlineDto {
+	applicationId: string;
+	programName: string;
+	deadline: string;
+	daysRemaining: number;
+}
+
+export interface ApplicationListResponse {
+	applications: ApplicationResponse[];
+	summary: ApplicationSummaryDto;
+	upcomingDeadlines: UpcomingDeadlineDto[];
+}
+
+// SOP Types
+export interface SaveSopRequest {
+	content: string;
+	wordLimit?: number;
+	prompt?: string;
+}
+
+export interface SaveSopResponse {
+	id: string;
+	wordCount: number;
+	updatedAt: string;
+}
+
+export interface ImprovementDto {
+	point: string;
+	suggestion: string;
+}
+
+export interface SopFeedbackDto {
+	round: number;
+	strengths: string[];
+	improvements: ImprovementDto[];
+	personaSuggestion?: string;
+	structureNote?: string;
+	generatedAt: string;
+}
+
+export interface ApplicationSopResponse {
+	id: string;
+	applicationId: string;
+	wordLimit?: number;
+	prompt?: string;
+	content?: string;
+	wordCount?: number;
+	feedbackRound?: number;
+	lastFeedback?: SopFeedbackDto;
+	updatedAt: string;
+}
+
+// Evaluation Types
+export interface SchoolGapDto {
+	applicationId: string;
+	programName: string;
+	gaps: GapDto[];
+}
+
+export interface CommonGapDto {
+	field: string;
+	count: number;
+	message: string;
+}
+
+export interface EvaluationResponse {
+	schoolGaps: SchoolGapDto[];
+	commonGaps: CommonGapDto[];
+	suggestions?: string;
+	profileCompleteness?: number;
+	missingFields?: string[];
+}
+
+// ============================================
 // Persona Lab
 // ============================================
 
@@ -294,6 +443,7 @@ export type TrackType =
 	| "ACTIVITIES_IMPACT"
 	| "VALUES_TURNING_POINTS";
 
+// Legacy Track Types
 export interface TrackStartResponse {
 	track: string;
 	displayName: string;
@@ -317,18 +467,15 @@ export interface ConversationResponse {
 	trackComplete: boolean;
 }
 
-export interface SynthesisResponse {
+export interface TrackDetailResponse {
 	track: string;
+	displayName: string;
+	description: string;
+	status: string;
+	progress: number;
 	layers: Record<string, any>;
-	success: boolean;
-	message: string;
-}
-
-export interface ArchetypeResponse {
-	archetype: Record<string, any>;
-	success: boolean;
-	message: string;
-	completedTracks: number;
+	coreQuestions: string[];
+	recentMessages: Record<string, any>[];
 }
 
 export interface TrackSummary {
@@ -344,13 +491,129 @@ export interface PersonaResponse {
 	lastActiveTrack: string;
 }
 
-export interface TrackDetailResponse {
-	track: string;
+// New Persona State Types
+export interface TrackDto {
+	id: string;
 	displayName: string;
 	description: string;
+	icon: string;
 	status: string;
-	progress: number;
+	completedAt?: string;
+}
+
+export interface ArchetypeDto {
+	type: string;
+	personalizedSummary: string;
+	revealedAt?: string;
+}
+
+export interface ArchetypeReveal {
+	type: string;
+	personalizedSummary: string;
+}
+
+export interface CanvasNodeDto {
+	id: string;
+	type: string;
+	title: string;
+	content: string;
+	sourceTrackId?: string;
+	createdAt?: string;
+	archetypeType?: string;
+	personalizedSummary?: string;
+}
+
+export interface TrackActionDto {
+	trackId: string;
+	displayName: string;
+	icon: string;
+	status: string;
+}
+
+export interface CanvasActionDto {
+	action: string;
+	node?: CanvasNodeDto;
+	nodeId?: string;
+	archetype?: ArchetypeReveal;
+}
+
+export interface ChatMessageDto {
+	id: string;
+	role: string;
+	content: string;
+	type?: string;
+	timestamp?: string;
+	actions?: TrackActionDto[];
+	canvasActions?: CanvasActionDto[];
+	trackId?: string;
+}
+
+export interface PersonaStateResponse {
+	userId: string;
+	tracks: Record<string, TrackDto>;
+	nodes: CanvasNodeDto[];
+	archetype?: ArchetypeDto;
+	conversationHistory: ChatMessageDto[];
+	currentTrackId?: string;
+	createdAt?: string;
+	updatedAt?: string;
+}
+
+// Track Selection & Navigation
+export interface TrackSelectRequest {
+	trackId: string;
+}
+
+export interface TrackSelectResponse {
+	message: ChatMessageDto;
+	trackStatus: string;
+	currentTrackId?: string;
+}
+
+export interface BackToTrackResponse {
+	message: ChatMessageDto;
+	currentTrackId?: string;
+}
+
+export interface RedoTrackResponse {
+	message: ChatMessageDto;
+	trackStatus: string;
+	currentTrackId?: string;
+	removedNodeIds?: string[];
+}
+
+// Messaging
+export interface MessageRequest {
+	content: string;
+}
+
+export interface ConversationState {
+	coreQuestionIndex: number;
+	followUpIndex: number;
+	totalCoreQuestions: number;
+}
+
+export interface MessageResponse {
+	message: ChatMessageDto;
+	conversationState?: ConversationState;
+	trackStatus: string;
+	currentTrackId?: string;
+	allTracksComplete?: boolean;
+}
+
+// Synthesis & Archetype
+export interface SynthesisResponse {
+	track: string;
 	layers: Record<string, any>;
-	coreQuestions: string[];
-	recentMessages: Record<string, any>[];
+	success: boolean;
+	message: string;
+	nodeCount?: number;
+}
+
+export interface ArchetypeResponse {
+	archetype: Record<string, any>;
+	success: boolean;
+	message: string;
+	completedTracks: number;
+	isComplete?: boolean;
 }

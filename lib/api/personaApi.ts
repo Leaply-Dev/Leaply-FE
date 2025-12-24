@@ -1,6 +1,7 @@
 // Persona Lab API Client
 // Aligned with backend API specification
 
+import { apiClient } from "./client";
 import {
 	createInitialTracks,
 	TRACK_EMOJIS,
@@ -21,9 +22,8 @@ import type {
 	TrackStatus,
 } from "@/lib/types/persona";
 
-// API configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK_API === "true" || true; // Default to mock for demo
+// API configuration - Use feature flag to switch between mock and real API
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 
 // Mock delay to simulate network latency
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -498,92 +498,35 @@ const mockPersonaApi = {
 
 // ============================================
 // Real API Implementation (for production)
+// Uses apiClient for authenticated requests
 // ============================================
 
 const realPersonaApi = {
 	async getPersonaState(): Promise<PersonaState> {
-		const response = await fetch(`${API_BASE_URL}/persona`, {
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			credentials: "include",
-		});
-
-		if (!response.ok) {
-			throw new Error(`Failed to fetch persona state: ${response.statusText}`);
-		}
-
-		return response.json();
+		return apiClient.get<PersonaState>("/v1/persona");
 	},
 
 	async selectTrack(trackId: TrackId): Promise<TrackSelectResponse> {
-		const response = await fetch(`${API_BASE_URL}/persona/track/select`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			credentials: "include",
-			body: JSON.stringify({ trackId }),
+		return apiClient.post<TrackSelectResponse>("/v1/persona/track/select", {
+			trackId,
 		});
-
-		if (!response.ok) {
-			throw new Error(`Failed to select track: ${response.statusText}`);
-		}
-
-		return response.json();
 	},
 
 	async sendMessage(content: string): Promise<MessageResponse> {
-		const response = await fetch(`${API_BASE_URL}/persona/message`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			credentials: "include",
-			body: JSON.stringify({ content }),
+		return apiClient.post<MessageResponse>("/v1/persona/message", {
+			content,
 		});
-
-		if (!response.ok) {
-			throw new Error(`Failed to send message: ${response.statusText}`);
-		}
-
-		return response.json();
 	},
 
 	async goBackToTrackSelection(): Promise<BackToTrackResponse> {
-		const response = await fetch(`${API_BASE_URL}/persona/track/back`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			credentials: "include",
-		});
-
-		if (!response.ok) {
-			throw new Error(`Failed to go back: ${response.statusText}`);
-		}
-
-		return response.json();
+		return apiClient.post<BackToTrackResponse>("/v1/persona/track/back", {});
 	},
 
 	async redoTrack(trackId: TrackId): Promise<RedoTrackResponse> {
-		const response = await fetch(
-			`${API_BASE_URL}/persona/track/${trackId}/redo`,
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				credentials: "include",
-			},
+		return apiClient.post<RedoTrackResponse>(
+			`/v1/persona/track/${trackId}/redo`,
+			{},
 		);
-
-		if (!response.ok) {
-			throw new Error(`Failed to redo track: ${response.statusText}`);
-		}
-
-		return response.json();
 	},
 };
 
