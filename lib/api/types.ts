@@ -189,12 +189,12 @@ export interface ProgramListItemResponse {
 	universityId: string;
 	universityName: string;
 	universityCountry: string;
-	universityCity: string;
+	universityCity?: string;
 	universityLogoUrl?: string;
 	rankingQs?: number;
 	programName: string;
 	degreeType: string;
-	degreeName: string;
+	degreeName?: string; // Can be null from backend
 	majorCategories: string[];
 	durationMonths?: number;
 	deliveryMode?: string;
@@ -202,13 +202,13 @@ export interface ProgramListItemResponse {
 	scholarshipAvailable?: boolean;
 	ieltsMinimum?: number;
 	toeflMinimum?: number;
-	nextDeadline?: string;
-	nextIntake?: string;
-	fitScore?: number;
-	fitCategory?: "reach" | "target" | "safety" | string;
+	nextDeadline?: string; // ISO date string: "2025-01-15"
+	nextIntake?: string; // e.g., "Fall 2025"
+	fitScore?: number; // 0-100, null if not authenticated
+	fitCategory?: "reach" | "target" | "safety";
 	fitReasons?: string[];
 	fitGaps?: string[];
-	isSaved?: boolean;
+	isSaved?: boolean; // null if not authenticated
 }
 
 export interface ProgramListResponse {
