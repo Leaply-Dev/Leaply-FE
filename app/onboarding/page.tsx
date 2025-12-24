@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { OnboardingClient } from "@/components/OnboardingClient";
+import { OnboardingClient } from "@/components/onboarding/OnboardingClient";
 
 const START_YEARS = ["2026", "2027", "2028", "2029"];
 

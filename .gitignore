@@ -8,6 +8,7 @@ out/
 build/
 dist/
 .turbo/
+next-env.d.ts
 
 # Runtime
 .vercel/
