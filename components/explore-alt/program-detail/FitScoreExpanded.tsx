@@ -41,7 +41,8 @@ export function FitScoreExpanded({
 		},
 	};
 
-	const style = fitStyles[program.fitCategory || "target"];
+	const category = (program.fitCategory || "target") as keyof typeof fitStyles;
+	const style = fitStyles[category] || fitStyles.target;
 
 	// Default breakdown if not provided
 	const defaultBreakdown: FitBreakdown[] = breakdown || [

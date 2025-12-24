@@ -248,7 +248,8 @@ export async function getSopFeedback(
 	}
 
 	const response = await apiClient.post<ApiResponse<SopFeedbackDto>>(
-		`/api/v1/applications/${applicationId}/sop/feedback`
+		`/api/v1/applications/${applicationId}/sop/feedback`,
+		{}
 	);
 	return response.data;
 }

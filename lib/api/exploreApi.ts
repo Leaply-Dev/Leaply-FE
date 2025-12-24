@@ -47,10 +47,23 @@ export async function getProgramDetail(
 
 /**
  * Get AI-matched programs (categorized by reach/target/safety)
- * GET /v1/explore/ai-match
+ * GET /v1/explore/programs/matched
  */
-export async function getAiMatch(): Promise<AiMatchResponse> {
-	return apiClient.get<AiMatchResponse>("/v1/explore/ai-match");
+export async function getAiMatch(
+	limitPerCategory?: number,
+): Promise<AiMatchResponse> {
+	const params = limitPerCategory
+		? `?limit_per_category=${limitPerCategory}`
+		: "";
+	return apiClient.get<AiMatchResponse>(`/v1/explore/programs/matched${params}`);
+}
+
+/**
+ * Get user's saved programs
+ * GET /v1/explore/programs/saved
+ */
+export async function getSavedPrograms(): Promise<ProgramListResponse> {
+	return apiClient.get<ProgramListResponse>("/v1/explore/programs/saved");
 }
 
 /**
@@ -94,4 +107,5 @@ export const exploreApi = {
 	getFilterOptions,
 	saveProgram,
 	unsaveProgram,
+	getSavedPrograms,
 };

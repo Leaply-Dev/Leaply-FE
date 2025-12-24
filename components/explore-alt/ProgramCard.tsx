@@ -43,7 +43,8 @@ export function ProgramCard({
 		},
 	};
 
-	const style = fitStyles[program.fitCategory || "target"];
+	const category = (program.fitCategory || "target") as keyof typeof fitStyles;
+	const style = fitStyles[category] || fitStyles.target;
 
 	return (
 		<div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-200 group">
