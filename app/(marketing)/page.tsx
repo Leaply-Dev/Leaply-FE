@@ -442,32 +442,6 @@ export default function HomePage() {
 								</Button>
 							</div>
 						</SlideUp>
-
-						<SlideUp delay={0.2}>
-							<div className="flex flex-wrap justify-center gap-8 md:gap-12 mt-12 pt-8 border-t border-border/50">
-								{stats.map((stat) => {
-									const Icon = stat.icon;
-									return (
-										<div
-											key={stat.labelKey}
-											className="flex items-center gap-3"
-										>
-											<div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-												<Icon className="w-5 h-5 text-primary" />
-											</div>
-											<div className="text-left">
-												<p className="text-2xl font-bold text-foreground">
-													{stat.value}
-												</p>
-												<p className="text-sm text-muted-foreground">
-													{t(stat.labelKey)}
-												</p>
-											</div>
-										</div>
-									);
-								})}
-							</div>
-						</SlideUp>
 					</div>
 				</div>
 			</section>

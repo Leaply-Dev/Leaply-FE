@@ -2,191 +2,338 @@
 
 import { Globe, Search, Sparkles } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
-import { AIMatchCard } from "@/components/AIMatchCard";
-import { ExploreCard } from "@/components/ExploreCard";
-import {
-	FilterQuestionnaire,
-	type FilterState,
-} from "@/components/FilterQuestionnaire";
-import {
-	PageTransition,
-	SlideUp,
-	StaggerContainer,
-	StaggerItem,
-} from "@/components/PageTransition";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { mockUniversities } from "@/lib/data/universities";
-import { useUniversitiesStore } from "@/lib/store/universitiesStore";
-import { useUserStore } from "@/lib/store/userStore";
-import { calculateFitScore } from "@/lib/utils/fitScore";
+import { PageTransition, SlideUp } from "@/components/PageTransition";
+import type {
+	AiMatchResponse,
+	ProgramListItemResponse,
+	ProgramListParams,
+} from "@/lib/api/types";
 
-export default function UniversitiesPage() {
-	const t = useTranslations("explore");
-	const router = useRouter();
-	const { universities, setUniversities } = useUniversitiesStore();
-	const { profile, preferences } = useUserStore();
+// Import explore-alt components
+import { AIMatchSummary } from "@/components/explore-alt/AIMatchSummary";
+import { SwimLanes } from "@/components/explore-alt/AIMatchMode";
+import { HorizontalFilterBar } from "@/components/explore-alt/FilterBar";
+import { ProgramGrid } from "@/components/explore-alt/ExploreAll";
+import MOCK_PROGRAMS_JSON from "@/components/explore-alt/programMockData.json";
+import { exploreApi } from "@/lib/api/exploreApi";
+
+// Feature flag to toggle between mock data and API
+const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+
+const MOCK_PROGRAMS = MOCK_PROGRAMS_JSON as ProgramListItemResponse[];
+
+// Mock AI Match Response based on AiMatchResponse type
+const MOCK_MATCH_DATA: AiMatchResponse = {
+	reach: MOCK_PROGRAMS.filter((p) => p.fitCategory === "reach"),
+	target: MOCK_PROGRAMS.filter((p) => p.fitCategory === "target"),
+	safety: MOCK_PROGRAMS.filter((p) => p.fitCategory === "safety"),
+	recommendation:
+		"Based on your GPA (3.6) and interest in Computer Science, you have a strong profile for target universities in Europe. Consider improving your IELTS score to unlock more prestigious US reach schools.",
+	profileCompleteness: 85,
+	missingFields: ["Work Experience", "Portfolio"],
+	totalMatched: 847,
+};
+
+// ============================================================================
+// COMPONENTS
+// ============================================================================
+
+/**
+ * Hero Section with Search
+ */
+function HeroSection({
+	totalMatched,
+	onSearch,
+}: {
+	totalMatched: number;
+	onSearch: (query: string) => void;
+}) {
+	const [searchQuery, setSearchQuery] = useState("");
+
+	const handleSearch = () => {
+		onSearch(searchQuery);
+	};
+
+	return (
+		<section className="relative bg-background py-16 overflow-hidden">
+			{/* Background Image */}
+			<div className="absolute inset-0 z-0">
+				<Image
+					src="/hero.png"
+					alt="Hero background"
+					fill
+					className="object-cover opacity-20"
+					priority
+					quality={90}
+				/>
+				<div className="absolute inset-0" />
+			</div>
+
+			{/* Content */}
+			<div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+				<SlideUp>
+					<div className="text-center mb-8">
+						<h1 className="text-4xl font-bold text-foreground mb-4">
+							Discover Your Perfect Program
+						</h1>
+						<p className="text-lg text-muted-foreground">
+							{totalMatched} programs across 12 countries matched to your
+							profile
+						</p>
+					</div>
+
+					{/* Search Bar */}
+					<div className="max-w-3xl mx-auto">
+						<div className="flex gap-3 bg-card rounded-xl p-2 shadow-lg border border-border">
+							<div className="flex-1 flex items-center gap-3 px-3">
+								<Search className="w-5 h-5 text-muted-foreground" />
+								<input
+									type="text"
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+									onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+									placeholder="Search programs, universities, or fields..."
+									className="flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground"
+								/>
+							</div>
+							<button
+								type="button"
+								onClick={handleSearch}
+								className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+							>
+								Search
+							</button>
+						</div>
+					</div>
+				</SlideUp>
+			</div>
+		</section>
+	);
+}
+
+/**
+ * Results Header with Sort
+ */
+function ResultsHeader({
+	count,
+	sort,
+	onSortChange,
+}: {
+	count: number;
+	sort: string;
+	onSortChange: (sort: ProgramListParams["sort"]) => void;
+}) {
+	return (
+		<div className="flex items-center justify-between mb-6">
+			<div>
+				<h2 className="text-xl font-bold text-foreground">All Programs</h2>
+				<p className="text-sm text-muted-foreground">{count} programs found</p>
+			</div>
+			<select
+				value={sort}
+				onChange={(e) =>
+					onSortChange(e.target.value as ProgramListParams["sort"])
+				}
+				className="h-10 px-4 rounded-lg border border-border bg-background text-foreground text-sm"
+			>
+				<option value="fit_score">Sort by: Fit Score</option>
+				<option value="ranking_qs">Sort by: QS Ranking</option>
+				<option value="tuition_asc">Sort by: Tuition (Low to High)</option>
+				<option value="tuition_desc">Sort by: Tuition (High to Low)</option>
+				<option value="deadline">Sort by: Deadline</option>
+			</select>
+		</div>
+	);
+}
+
+/**
+ * Loading Skeleton for Program Cards
+ */
+function ProgramCardSkeleton() {
+	return (
+		<div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm animate-pulse">
+			<div className="p-4 border-b border-border">
+				<div className="flex items-center gap-3">
+					<div className="h-12 w-12 rounded-lg bg-muted" />
+					<div className="flex-1 space-y-2">
+						<div className="h-4 bg-muted rounded w-3/4" />
+						<div className="h-3 bg-muted rounded w-1/2" />
+					</div>
+				</div>
+			</div>
+			<div className="p-4 space-y-4">
+				<div className="h-5 bg-muted rounded w-full" />
+				<div className="h-4 bg-muted rounded w-2/3" />
+				<div className="bg-muted/30 rounded-lg p-4 space-y-3">
+					<div className="h-6 bg-muted rounded w-1/3" />
+					<div className="h-2 bg-muted rounded w-full" />
+					<div className="space-y-2">
+						<div className="h-3 bg-muted rounded w-4/5" />
+						<div className="h-3 bg-muted rounded w-3/5" />
+					</div>
+				</div>
+			</div>
+			<div className="p-4 border-t border-border flex justify-between">
+				<div className="h-9 w-9 bg-muted rounded-lg" />
+				<div className="h-9 w-24 bg-muted rounded-lg" />
+			</div>
+		</div>
+	);
+}
+
+// ============================================================================
+// MAIN PAGE COMPONENT
+// ============================================================================
+
+export default function ExploreAltPage() {
 	const [activeMode, setActiveMode] = useState<"ai-match" | "explore-all">(
 		"ai-match",
 	);
-	const [searchInput, setSearchInput] = useState("");
-	const [filterState, setFilterState] = useState<FilterState>({
-		regions: [],
-		majors: [],
-		tuitionRange: null,
-	});
 
+	// State for programs list (Explore All mode)
+	const [programs, setPrograms] = useState<ProgramListItemResponse[]>(
+		USE_MOCK_DATA ? MOCK_PROGRAMS : [],
+	);
+	const [isLoadingPrograms, setIsLoadingPrograms] = useState(!USE_MOCK_DATA);
+	const [programsError, setProgramsError] = useState<string | null>(null);
+	const [searchQuery, setSearchQuery] = useState("");
+	const [sort, setSort] = useState<ProgramListParams["sort"]>("fit_score");
+	const [totalPrograms, setTotalPrograms] = useState(
+		USE_MOCK_DATA ? MOCK_PROGRAMS.length : 0,
+	);
+
+	// State for AI Match mode
+	const [aiMatchData, setAiMatchData] = useState<AiMatchResponse | null>(
+		USE_MOCK_DATA ? MOCK_MATCH_DATA : null,
+	);
+	const [isLoadingAiMatch, setIsLoadingAiMatch] = useState(!USE_MOCK_DATA);
+	const [aiMatchError, setAiMatchError] = useState<string | null>(null);
+
+	// Fetch AI Match data
 	useEffect(() => {
-		// Initialize universities on mount
-		if (universities.length === 0) {
-			setUniversities(mockUniversities);
+		if (USE_MOCK_DATA) {
+			setAiMatchData(MOCK_MATCH_DATA);
+			return;
 		}
-	}, [universities.length, setUniversities]);
 
-	// Get unique regions and majors for filter options
-	const availableRegions = useMemo(() => {
-		const regions = Array.from(
-			new Set(mockUniversities.map((uni) => uni.region)),
-		);
-		return regions.map((region) => ({
-			value: region,
-			label: region,
-			count: mockUniversities.filter((uni) => uni.region === region).length,
-		}));
+		async function fetchAiMatch() {
+			try {
+				setIsLoadingAiMatch(true);
+				setAiMatchError(null);
+				const data = await exploreApi.getAiMatch();
+				setAiMatchData(data);
+			} catch (err) {
+				console.error("Failed to fetch AI match data:", err);
+				setAiMatchError(
+					err instanceof Error ? err.message : "Failed to load AI matches",
+				);
+				// Fallback to mock data in development
+				if (process.env.NODE_ENV === "development") {
+					setAiMatchData(MOCK_MATCH_DATA);
+				}
+			} finally {
+				setIsLoadingAiMatch(false);
+			}
+		}
+
+		fetchAiMatch();
 	}, []);
 
-	const availableMajors = useMemo(() => {
-		return [
-			{ value: "Computer Science", label: "Computer Science" },
-			{ value: "Engineering", label: "Engineering" },
-			{ value: "Business", label: "Business" },
-			{ value: "Medicine", label: "Medicine" },
-			{ value: "Arts", label: "Arts & Humanities" },
-			{ value: "Sciences", label: "Natural Sciences" },
-			{ value: "Social Sciences", label: "Social Sciences" },
-			{ value: "Law", label: "Law" },
-		];
-	}, []);
-
-	// Apply filters and search
-	const filteredUniversities = useMemo(() => {
-		let filtered = [...universities];
-
-		// Search filter
-		if (searchInput) {
-			const query = searchInput.toLowerCase();
-			filtered = filtered.filter(
-				(uni) =>
-					uni.name.toLowerCase().includes(query) ||
-					uni.city.toLowerCase().includes(query) ||
-					uni.country.toLowerCase().includes(query) ||
-					uni.region.toLowerCase().includes(query),
-			);
+	// Fetch programs list (for Explore All mode)
+	useEffect(() => {
+		if (USE_MOCK_DATA) {
+			setPrograms(MOCK_PROGRAMS);
+			setTotalPrograms(MOCK_PROGRAMS.length);
+			return;
 		}
 
-		// Region filter
-		if (filterState.regions.length > 0) {
-			filtered = filtered.filter((uni) =>
-				filterState.regions.includes(uni.region),
-			);
+		async function fetchPrograms() {
+			try {
+				setIsLoadingPrograms(true);
+				setProgramsError(null);
+				const response = await exploreApi.getPrograms({
+					search: searchQuery || undefined,
+					sort,
+				});
+				setPrograms(response.data);
+				setTotalPrograms(response.pagination.total);
+			} catch (err) {
+				console.error("Failed to fetch programs:", err);
+				setProgramsError(
+					err instanceof Error ? err.message : "Failed to load programs",
+				);
+				// Fallback to mock data in development
+				if (process.env.NODE_ENV === "development") {
+					setPrograms(MOCK_PROGRAMS);
+					setTotalPrograms(MOCK_PROGRAMS.length);
+				}
+			} finally {
+				setIsLoadingPrograms(false);
+			}
 		}
 
-		// Tuition filter
-		if (filterState.tuitionRange) {
-			filtered = filtered.filter(
-				(uni) =>
-					uni.averageTuition >= filterState.tuitionRange!.min &&
-					uni.averageTuition <= filterState.tuitionRange!.max,
-			);
+		// Only fetch when in explore-all mode or initial load
+		if (activeMode === "explore-all" || programs.length === 0) {
+			fetchPrograms();
 		}
+	}, [activeMode, searchQuery, sort, programs.length]);
 
-		// Major filter (simplified - in production would match against actual programs)
-		// For now, we'll just keep all universities if major filter is active
-		// as we don't have detailed program data for all universities
+	const handleSaveToggle = async (id: string) => {
+		const program = programs.find((p) => p.id === id);
+		if (!program) return;
 
-		return filtered;
-	}, [universities, searchInput, filterState]);
+		const newSavedState = !program.isSaved;
 
-	// For AI Match mode: filter and sort by fit score
-	const aiMatchedUniversities = useMemo(() => {
-		if (!profile) return [];
-
-		const withScores = filteredUniversities.map((uni) => ({
-			...uni,
-			fitScore: calculateFitScore(uni, profile, preferences),
-		}));
-
-		// Only show universities with fit score > 40
-		return withScores
-			.filter((uni) => uni.fitScore >= 40)
-			.sort((a, b) => b.fitScore - a.fitScore)
-			.slice(0, 12); // Show top 12 matches
-	}, [filteredUniversities, profile, preferences]);
-
-	// For Explore All mode: sort by ranking
-	const exploreAllUniversities = useMemo(() => {
-		return [...filteredUniversities].sort((a, b) => a.ranking - b.ranking);
-	}, [filteredUniversities]);
-
-	const handleAskAI = (_universityId: string, universityName: string) => {
-		// Navigate to chatbot with pre-filled question
-		router.push(
-			`/chatbot?question=${encodeURIComponent(`Tell me more about ${universityName}`)}`,
+		// Optimistic update
+		setPrograms((prev) =>
+			prev.map((p) => (p.id === id ? { ...p, isSaved: newSavedState } : p)),
 		);
+
+		if (!USE_MOCK_DATA) {
+			try {
+				if (newSavedState) {
+					await exploreApi.saveProgram(id);
+				} else {
+					await exploreApi.unsaveProgram(id);
+				}
+			} catch (err) {
+				console.error("Failed to update save status:", err);
+				// Revert on error
+				setPrograms((prev) =>
+					prev.map((p) =>
+						p.id === id ? { ...p, isSaved: !newSavedState } : p,
+					),
+				);
+			}
+		}
 	};
 
-	const _displayUniversities =
-		activeMode === "ai-match" ? aiMatchedUniversities : exploreAllUniversities;
+	const handleSearch = (query: string) => {
+		setSearchQuery(query);
+	};
+
+	const handleSortChange = (newSort: ProgramListParams["sort"]) => {
+		setSort(newSort);
+	};
+
+	// Compute swimlane programs from AI Match or programs
+	const swimLanePrograms = aiMatchData
+		? [
+				...(aiMatchData.reach || []),
+				...(aiMatchData.target || []),
+				...(aiMatchData.safety || []),
+			]
+		: programs;
 
 	return (
 		<PageTransition>
 			{/* Hero Section */}
-			<section className="relative bg-background py-16 overflow-hidden">
-				{/* Background Image */}
-				<div className="absolute inset-0 z-0">
-					<Image
-						src="/hero.png"
-						alt="Hero background"
-						fill
-						className="object-cover opacity-20"
-						priority
-						quality={90}
-					/>
-					{/* Overlay for better text readability */}
-					<div className="absolute inset-0" />
-				</div>
-
-				{/* Content */}
-				<div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<SlideUp>
-						<div className="text-center mb-8">
-							<h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-								{t("title")}
-							</h1>
-							<p className="text-xl text-muted-foreground">{t("subtitle")}</p>
-						</div>
-
-						{/* Search Bar */}
-						<div className="max-w-3xl mx-auto">
-							<div className="flex gap-3 bg-card rounded-xl p-2 shadow-lg">
-								<div className="flex-1 flex items-center gap-3 px-3">
-									<Search className="w-5 h-5 text-muted-foreground" />
-									<Input
-										value={searchInput}
-										onChange={(e) => setSearchInput(e.target.value)}
-										placeholder={t("searchPlaceholder")}
-										className="border-0 focus-visible:ring-0 text-foreground"
-									/>
-								</div>
-							</div>
-						</div>
-					</SlideUp>
-				</div>
-			</section>
+			<HeroSection
+				totalMatched={aiMatchData?.totalMatched || totalPrograms}
+				onSearch={handleSearch}
+			/>
 
 			{/* Main Content */}
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -199,7 +346,7 @@ export default function UniversitiesPage() {
 						}
 						className="w-full"
 					>
-						<div className="flex justify-center mb-2">
+						<div className="flex justify-center mb-6">
 							<TabsList className="grid w-full max-w-md grid-cols-2">
 								<TabsTrigger
 									type="button"
@@ -207,7 +354,7 @@ export default function UniversitiesPage() {
 									className="flex items-center gap-2"
 								>
 									<Sparkles className="w-4 h-4" />
-									{t("aiMatch")}
+									AI Match
 								</TabsTrigger>
 								<TabsTrigger
 									type="button"
@@ -215,129 +362,131 @@ export default function UniversitiesPage() {
 									className="flex items-center gap-2"
 								>
 									<Globe className="w-4 h-4" />
-									{t("exploreAll")}
+									Explore All
 								</TabsTrigger>
 							</TabsList>
 						</div>
 
+						{/* AI Match Mode */}
 						<TabsContent value="ai-match" className="mt-0">
 							<div className="space-y-6">
-								{/* AI Match Description */}
-								<div className="text-center max-w-2xl mx-auto">
-									<p className="text-muted-foreground">
-										{profile ? (
-											<>
-												{t("basedOnProfileFound")}{" "}
-												<span className="font-semibold text-primary">
-													{aiMatchedUniversities.length} {t("universitiesFit")}
-												</span>{" "}
-											</>
-										) : (
-											t("completeProfileForRecommendations")
-										)}
-									</p>
-								</div>
+								{isLoadingAiMatch ? (
+									<>
+										{/* Loading Skeleton for AI Match Summary */}
+										<div className="bg-card border border-border rounded-xl p-6 animate-pulse">
+											<div className="flex items-start gap-4">
+												<div className="w-12 h-12 rounded-full bg-muted" />
+												<div className="flex-1 space-y-3">
+													<div className="h-5 bg-muted rounded w-1/3" />
+													<div className="h-4 bg-muted rounded w-full" />
+													<div className="h-4 bg-muted rounded w-4/5" />
+												</div>
+											</div>
+										</div>
 
-								{/* Results Grid - AI Match Cards */}
-								<StaggerContainer>
-									<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-										{aiMatchedUniversities.map((university) => (
-											<StaggerItem key={university.id}>
-												<AIMatchCard
-													id={university.id}
-													name={university.name}
-													country={university.country}
-													city={university.city}
-													ranking={university.ranking}
-													logo={university.logo}
-													averageTuition={university.averageTuition}
-													overview={university.overview}
-													onAskAI={handleAskAI}
-												/>
-											</StaggerItem>
-										))}
+										{/* Loading Skeleton for Swim Lanes */}
+										<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+											{[1, 2, 3].map((i) => (
+												<div key={i} className="space-y-4">
+													<div className="h-6 bg-muted rounded w-24 mb-4" />
+													<ProgramCardSkeleton />
+													<ProgramCardSkeleton />
+												</div>
+											))}
+										</div>
+									</>
+								) : aiMatchError && !aiMatchData ? (
+									<div className="flex flex-col items-center justify-center py-12 text-center">
+										<div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+											<span className="text-2xl">⚠️</span>
+										</div>
+										<h2 className="text-xl font-semibold text-foreground mb-2">
+											Failed to Load AI Matches
+										</h2>
+										<p className="text-muted-foreground mb-6">{aiMatchError}</p>
+										<button
+											type="button"
+											onClick={() => window.location.reload()}
+											className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+										>
+											Try Again
+										</button>
 									</div>
-								</StaggerContainer>
+								) : (
+									<>
+										{/* AI Match Summary */}
+										<AIMatchSummary
+											recommendation={aiMatchData?.recommendation}
+											totalMatched={aiMatchData?.totalMatched || 0}
+											profileCompleteness={aiMatchData?.profileCompleteness}
+											missingFields={aiMatchData?.missingFields}
+										/>
 
-								{aiMatchedUniversities.length === 0 && (
-									<div className="text-center py-16">
-										<Sparkles className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-										<h3 className="text-xl font-semibold text-foreground mb-2">
-											{profile ? t("noMatchesFound") : t("completeProfile")}
-										</h3>
-										<p className="text-muted-foreground mb-6">
-											{profile
-												? t("tryAdjusting")
-												: t("completeProfileToSeeMatches")}
-										</p>
-										{!profile && (
-											<Button onClick={() => router.push("/onboarding")}>
-												{t("completeProfileButton")}
-											</Button>
-										)}
-									</div>
+										{/* Swim Lanes Layout */}
+										<SwimLanes
+											programs={swimLanePrograms}
+											onSaveToggle={handleSaveToggle}
+										/>
+
+										{/* Recommendation Note */}
+										<div className="text-center py-4">
+											<p className="text-muted-foreground">
+												💡 Recommendation: Apply to 2-3 Safety, 3-4 Target, 1-2
+												Reach
+											</p>
+										</div>
+									</>
 								)}
 							</div>
 						</TabsContent>
 
+						{/* Explore All Mode */}
 						<TabsContent value="explore-all" className="mt-0">
 							<div className="space-y-6">
-								{/* Filter Questionnaire */}
-								<FilterQuestionnaire
-									availableRegions={availableRegions}
-									availableMajors={availableMajors}
-									filters={filterState}
-									onFiltersChange={setFilterState}
-								/>
+								{/* Horizontal Filter Bar */}
+								<HorizontalFilterBar />
 
-								{/* Results Header */}
-								<div className="flex items-center justify-between">
-									<div>
-										<h2 className="text-2xl font-bold text-foreground">
-											{t("allUniversities")}
-										</h2>
-										<p className="text-sm text-muted-foreground mt-1">
-											{t("showing")} {exploreAllUniversities.length}{" "}
-											{t("results")}
-										</p>
-									</div>
-								</div>
+								{/* Main Content Area */}
+								<main className="w-full">
+									{/* Results Header */}
+									<ResultsHeader
+										count={totalPrograms}
+										sort={sort || "fit_score"}
+										onSortChange={handleSortChange}
+									/>
 
-								{/* Results Grid - Explore Cards */}
-								<StaggerContainer>
-									<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-										{exploreAllUniversities.map((university) => (
-											<StaggerItem key={university.id}>
-												<ExploreCard
-													id={university.id}
-													name={university.name}
-													country={university.country}
-													region={university.region}
-													city={university.city}
-													ranking={university.ranking}
-													logo={university.logo}
-													averageTuition={university.averageTuition}
-													overview={university.overview}
-													type={university.type}
-													acceptanceRate={university.acceptanceRate}
-													onAskAI={handleAskAI}
-												/>
-											</StaggerItem>
-										))}
-									</div>
-								</StaggerContainer>
-
-								{exploreAllUniversities.length === 0 && (
-									<div className="text-center py-16">
-										<Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-										<h3 className="text-xl font-semibold text-foreground mb-2">
-											{t("noUniversitiesFound")}
-										</h3>
-										<p className="text-muted-foreground">
-											{t("tryAdjustingFilters")}
-										</p>
-									</div>
-								)}
+									{isLoadingPrograms ? (
+										<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+											{[1, 2, 3, 4, 5, 6].map((i) => (
+												<ProgramCardSkeleton key={i} />
+											))}
+										</div>
+									) : programsError && programs.length === 0 ? (
+										<div className="flex flex-col items-center justify-center py-12 text-center">
+											<div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+												<span className="text-2xl">⚠️</span>
+											</div>
+											<h2 className="text-xl font-semibold text-foreground mb-2">
+												Failed to Load Programs
+											</h2>
+											<p className="text-muted-foreground mb-6">
+												{programsError}
+											</p>
+											<button
+												type="button"
+												onClick={() => window.location.reload()}
+												className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+											>
+												Try Again
+											</button>
+										</div>
+									) : (
+										<ProgramGrid
+											programs={programs}
+											onSaveToggle={handleSaveToggle}
+										/>
+									)}
+								</main>
 							</div>
 						</TabsContent>
 					</Tabs>
