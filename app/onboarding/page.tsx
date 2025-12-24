@@ -8,27 +8,27 @@ export default async function OnboardingPage() {
 
 	// Build translation-aware constants
 	const educationLevels = [
-		{ value: "High School", label: t("step1.levels.highSchool") },
+		{ value: "high_school", label: t("step1.levels.highSchool") },
 		{
-			value: "Undergraduate",
+			value: "undergrad",
 			label: t("step1.levels.undergraduate"),
 		},
-		{ value: "Graduate", label: t("step1.levels.graduate") },
+		{ value: "graduate", label: t("step1.levels.graduate") },
 		{
-			value: "Working Professional",
+			value: "working",
 			label: t("step1.levels.working"),
 		},
 	];
 
 	const programTypes = [
 		{
-			value: "Bachelor's",
+			value: "bachelors",
 			label: t("step1.programs.bachelors"),
 			disabled: true,
 		},
-		{ value: "Master's", label: t("step1.programs.masters") },
-		{ value: "MBA", label: t("step1.programs.mba") },
-		{ value: "PhD", label: t("step1.programs.phd") },
+		{ value: "masters", label: t("step1.programs.masters") },
+		{ value: "mba", label: t("step1.programs.mba") },
+		{ value: "phd", label: t("step1.programs.phd") },
 	];
 
 	const fieldsOfStudy = [

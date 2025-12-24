@@ -180,22 +180,15 @@ export function OnboardingClient({
 	const handlePrefsChange = (updates: Partial<Preferences>) => {
 		setPrefs((prev) => ({ ...prev, ...updates }));
 	};
-
 	const handleStep1Next = async () => {
 		try {
-			// Update profile via API
-			await userService.updateProfile({
-				currentEducationLevel: basicInfo.educationLevel,
-				targetDegree: basicInfo.targetDegree,
-			});
-
 			// Update local store
 			updateProfile({
 				currentEducationLevel: basicInfo.educationLevel,
 				targetDegree: basicInfo.targetDegree,
 			});
 
-			// Update onboarding progress
+			// Update onboarding progress (this also persists profile data on backend)
 			await onboardingService.updateOnboarding({
 				currentLevel: basicInfo.educationLevel as
 					| "high_school"
@@ -218,22 +211,15 @@ export function OnboardingClient({
 			setIsLoading(false);
 		}
 	};
-
 	const handleStep2Next = async () => {
 		try {
-			// Update preferences via API
-			await userService.updatePreferences({
-				fieldOfInterest: prefs.fields,
-				preferredRegions: prefs.regions,
-			});
-
 			// Update local store
 			updatePreferences({
 				fieldOfInterest: prefs.fields,
 				preferredRegions: prefs.regions,
 			});
 
-			// Update onboarding progress
+			// Update onboarding progress (this also persists preferences on backend)
 			await onboardingService.updateOnboarding({
 				targetFields: prefs.fields,
 				targetRegions: prefs.regions,
@@ -248,17 +234,10 @@ export function OnboardingClient({
 			setIsLoading(false);
 		}
 	};
-
 	const handleStep3Next = async () => {
 		try {
 			const formattedTimeline = `${prefs.startYear} ${prefs.startTerm}`;
 			const budgetLabel = constants.budgetOptions[prefs.budgetIndex].label;
-
-			// Update preferences via API
-			await userService.updatePreferences({
-				intendedStartTerm: formattedTimeline,
-				budgetLabel: budgetLabel,
-			});
 
 			// Update local store
 			updatePreferences({
@@ -266,7 +245,7 @@ export function OnboardingClient({
 				budgetLabel: budgetLabel,
 			});
 
-			// Update onboarding progress
+			// Update onboarding progress (this also persists preferences on backend)
 			await onboardingService.updateOnboarding({
 				targetIntake: formattedTimeline,
 				budgetRange: budgetLabel,
@@ -287,23 +266,17 @@ export function OnboardingClient({
 			setCurrentStep(currentStep - 1);
 		}
 	};
-
 	const handleJourneySelect = async (type: JourneyType) => {
 		try {
 			setSelectedJourney(type);
 			setJourneyType(type);
-
-			// Update preferences with journey type via API
-			await userService.updatePreferences({
-				journeyType: type || undefined,
-			});
 
 			// Update local store
 			updatePreferences({
 				journeyType: type || undefined,
 			});
 
-			// Mark onboarding as complete
+			// Mark onboarding as complete (this also persists journey selection)
 			await onboardingService.updateOnboarding({
 				direction: type === "exploring" ? "exploring" : "has_target",
 			});
