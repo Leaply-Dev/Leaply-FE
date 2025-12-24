@@ -143,6 +143,147 @@ export interface OnboardingDataResponse {
 }
 
 // ============================================
+// Explore API
+// ============================================
+
+export interface ProgramListParams {
+	search?: string;
+	majors?: string;
+	countries?: string;
+	regions?: string;
+	degree_types?: string;
+	tuition_max?: number;
+	ielts_max?: number;
+	scholarship_only?: boolean;
+	deadline_within?: number;
+	sort?: "fit_score" | "ranking_qs" | "tuition_asc" | "tuition_desc" | "deadline";
+	sort_dir?: "asc" | "desc";
+	page?: number;
+	size?: number;
+}
+
+export interface PaginationResponse {
+	page: number;
+	size: number;
+	total: number;
+	totalPages: number;
+}
+
+export interface ProgramListItemResponse {
+	id: string;
+	universityId: string;
+	universityName: string;
+	universityCountry: string;
+	universityCity: string;
+	universityLogoUrl?: string;
+	rankingQs?: number;
+	programName: string;
+	degreeType: string;
+	degreeName: string;
+	majorCategories: string[];
+	durationMonths?: number;
+	deliveryMode?: string;
+	tuitionAnnualUsd?: number;
+	scholarshipAvailable?: boolean;
+	ieltsMinimum?: number;
+	toeflMinimum?: number;
+	nextDeadline?: string;
+	nextIntake?: string;
+	fitScore?: number;
+	fitCategory?: "reach" | "target" | "safety";
+	fitReasons?: string[];
+	fitGaps?: string[];
+	isSaved?: boolean;
+}
+
+export interface ProgramListResponse {
+	data: ProgramListItemResponse[];
+	pagination: PaginationResponse;
+	appliedFilters?: Record<string, any>;
+}
+
+export interface TuitionResponse {
+	annualUsd?: number;
+	totalUsd?: number;
+	notes?: string;
+}
+
+export interface RequirementsResponse {
+	gpaMinimum?: number;
+	gpaScale?: number;
+	ieltsMinimum?: number;
+	toeflMinimum?: number;
+	greRequired?: boolean;
+	gmatRequired?: boolean;
+	workExperienceYears?: number;
+	documents?: string[];
+	notes?: string;
+}
+
+export interface ProgramIntakeResponse {
+	id: string;
+	season: string;
+	seasonDisplay: string;
+	applicationStartDate?: string;
+	applicationDeadline?: string;
+	earlyDeadline?: string;
+	startDate?: string;
+	isActive: boolean;
+}
+
+export interface ProgramDetailResponse extends ProgramListItemResponse {
+	universityWebsiteUrl?: string;
+	universityDescription?: string;
+	rankingTimes?: number;
+	rankingNational?: number;
+	language?: string;
+	programDescription?: string;
+	programUrl?: string;
+	admissionsUrl?: string;
+	tuition?: TuitionResponse;
+	applicationFeeUsd?: number;
+	requirements?: RequirementsResponse;
+	intakes?: ProgramIntakeResponse[];
+}
+
+export interface FilterOption {
+	value: string;
+	label: string;
+	count: number;
+}
+
+export interface RangeOption {
+	min: number;
+	max: number;
+	currency?: string;
+}
+
+export interface FilterOptionsResponse {
+	majors: FilterOption[];
+	countries: FilterOption[];
+	regions: FilterOption[];
+	degreeTypes: FilterOption[];
+	tuitionRange?: RangeOption;
+	ieltsRange?: RangeOption;
+}
+
+export interface AiMatchResponse {
+	reach: ProgramListItemResponse[];
+	target: ProgramListItemResponse[];
+	safety: ProgramListItemResponse[];
+	recommendation?: string;
+	profileCompleteness?: number;
+	missingFields?: string[];
+	totalMatched: number;
+}
+
+export interface SaveProgramResponse {
+	success: boolean;
+	message: string;
+	savedCount: number;
+}
+
+// ============================================
 // Persona Lab
 // ============================================
 
