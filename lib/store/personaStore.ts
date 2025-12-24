@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { personaApi } from "@/lib/api/personaApi";
+import { ApiError } from "@/lib/api/client";
 import { createInitialTracks } from "@/lib/constants/tracks";
 import type {
 	ArchetypeType,
@@ -123,8 +124,13 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					});
 				} catch (err) {
 					console.error("PersonaStore: Failed to fetch state:", err);
+					if (err instanceof ApiError) {
+						err.logDetails();
+					}
 					set({
-						error: (err as Error).message || "Failed to load persona data. Please refresh.",
+						error: err instanceof ApiError
+							? err.getUserMessage()
+							: (err as Error).message || "Failed to load persona data. Please refresh.",
 						isLoading: false,
 					});
 				}
@@ -155,8 +161,13 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					}));
 				} catch (err) {
 					console.error(`PersonaStore: Failed to select track ${trackId}:`, err);
+					if (err instanceof ApiError) {
+						err.logDetails();
+					}
 					set({
-						error: (err as Error).message || `Failed to select ${trackId}. Please try again.`,
+						error: err instanceof ApiError
+							? err.getUserMessage()
+							: (err as Error).message || `Failed to select ${trackId}. Please try again.`,
 						isSending: false,
 					});
 				}
@@ -237,12 +248,18 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						};
 					});
 				} catch (err) {
+					console.error("PersonaStore: Failed to send message:", err);
+					if (err instanceof ApiError) {
+						err.logDetails();
+					}
 					// Remove temp message on error
 					set((state) => ({
 						conversationHistory: state.conversationHistory.filter(
 							(m) => !m.id.startsWith("temp-"),
 						),
-						error: (err as Error).message,
+						error: err instanceof ApiError
+							? err.getUserMessage()
+							: (err as Error).message || "Failed to send message. Please try again.",
 						isSending: false,
 					}));
 				}
@@ -262,8 +279,14 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						isSending: false,
 					}));
 				} catch (err) {
+					console.error("PersonaStore: Failed to go back:", err);
+					if (err instanceof ApiError) {
+						err.logDetails();
+					}
 					set({
-						error: (err as Error).message,
+						error: err instanceof ApiError
+							? err.getUserMessage()
+							: (err as Error).message || "Failed to go back. Please try again.",
 						isSending: false,
 					});
 				}
@@ -302,8 +325,14 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						};
 					});
 				} catch (err) {
+					console.error("PersonaStore: Failed to redo track:", err);
+					if (err instanceof ApiError) {
+						err.logDetails();
+					}
 					set({
-						error: (err as Error).message,
+						error: err instanceof ApiError
+							? err.getUserMessage()
+							: (err as Error).message || "Failed to redo track. Please try again.",
 						isSending: false,
 					});
 				}
