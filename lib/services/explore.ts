@@ -37,7 +37,7 @@ export const exploreService = {
 	): Promise<ProgramListResponse> => {
 		const query = buildQueryString(params);
 		return apiClient.get<ProgramListResponse>(
-			`/api/v1/explore/programs${query}`,
+			`/v1/explore/programs${query}`,
 		);
 	},
 
@@ -46,7 +46,7 @@ export const exploreService = {
 	 */
 	getProgramDetail: async (id: string): Promise<ProgramDetailResponse> => {
 		return apiClient.get<ProgramDetailResponse>(
-			`/api/v1/explore/programs/${id}`,
+			`/v1/explore/programs/${id}`,
 		);
 	},
 
@@ -58,7 +58,7 @@ export const exploreService = {
 	 * Get list of programs saved by the user
 	 */
 	getSavedPrograms: async (): Promise<ProgramListResponse> => {
-		return apiClient.get<ProgramListResponse>("/api/v1/explore/programs/saved");
+		return apiClient.get<ProgramListResponse>("/v1/explore/programs/saved");
 	},
 
 	/**
@@ -66,7 +66,7 @@ export const exploreService = {
 	 */
 	saveProgram: async (id: string): Promise<SaveProgramResponse> => {
 		return apiClient.post<SaveProgramResponse>(
-			`/api/v1/explore/programs/${id}/save`,
+			`/v1/explore/programs/${id}/save`,
 			{},
 		);
 	},
@@ -76,7 +76,7 @@ export const exploreService = {
 	 */
 	unsaveProgram: async (id: string): Promise<SaveProgramResponse> => {
 		return apiClient.delete<SaveProgramResponse>(
-			`/api/v1/explore/programs/${id}/save`,
+			`/v1/explore/programs/${id}/save`,
 		);
 	},
 
@@ -92,7 +92,7 @@ export const exploreService = {
 	): Promise<AiMatchResponse> => {
 		const query = limitPerCategory !== 5 ? `?limit_per_category=${limitPerCategory}` : "";
 		return apiClient.get<AiMatchResponse>(
-			`/api/v1/explore/programs/matched${query}`,
+			`/v1/explore/programs/matched${query}`,
 		);
 	},
 
@@ -104,6 +104,6 @@ export const exploreService = {
 	 * Get available filter options with counts
 	 */
 	getFilterOptions: async (): Promise<FilterOptionsResponse> => {
-		return apiClient.get<FilterOptionsResponse>("/api/v1/explore/filters");
+		return apiClient.get<FilterOptionsResponse>("/v1/explore/filters");
 	},
 };
