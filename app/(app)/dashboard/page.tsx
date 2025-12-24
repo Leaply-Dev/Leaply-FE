@@ -15,7 +15,6 @@ import {
 	User,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import {
@@ -62,20 +61,11 @@ function calculateProfileCompletion(
 
 export default function HomePage() {
 	const tHome = useTranslations("home");
-	const router = useRouter();
-	const { profile, preferences, journeyType, isAuthenticated, lastActivity } =
-		useUserStore();
+	const { profile, preferences, journeyType, lastActivity } = useUserStore();
 	const { applications, setApplications } = useApplicationsStore();
 	const [enhancedApplications, setEnhancedApplications] = useState<
 		EnhancedApplication[]
 	>([]);
-
-	// Redirect to login if not authenticated
-	useEffect(() => {
-		if (!isAuthenticated) {
-			router.push("/login");
-		}
-	}, [isAuthenticated, router]);
 
 	// Initialize enhanced applications
 	useEffect(() => {
@@ -85,17 +75,10 @@ export default function HomePage() {
 		}
 	}, [applications.length, setApplications]);
 
-	if (!isAuthenticated) {
-		return null;
-	}
-
 	const profileCompletion = calculateProfileCompletion(profile, preferences);
 	const upcomingDeadlines = enhancedApplications.filter(
 		(app) =>
 			app.decisionDeadline && new Date(app.decisionDeadline) > new Date(),
-	).length;
-	const draftApplications = enhancedApplications.filter(
-		(app) => app.status === "draft",
 	).length;
 	const submittedApplications = enhancedApplications.filter(
 		(app) => app.status === "submitted" || app.status === "under_review",

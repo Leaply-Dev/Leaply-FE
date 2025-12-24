@@ -30,7 +30,7 @@ export function Navbar() {
 	];
 
 	const authNavLinks = [
-		{ href: "/home", labelKey: "home" },
+		{ href: "/dashboard", labelKey: "home" },
 		{ href: "/explore", labelKey: "explore" },
 		{ href: "/dashboard/applications", labelKey: "applications" },
 		{ href: "/persona-lab", labelKey: "personaLab" },
@@ -70,7 +70,7 @@ export function Navbar() {
 				<div className="flex items-center justify-between h-16">
 					{/* Logo */}
 					<Link
-						href={isAuthenticated ? "/home" : "/"}
+						href={isAuthenticated ? "/dashboard" : "/"}
 						className="flex items-center gap-2"
 					>
 						<Image
