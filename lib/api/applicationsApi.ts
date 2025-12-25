@@ -103,7 +103,7 @@ export async function getApplications(): Promise<ApplicationListResponse> {
 
 	const response = await apiClient.get<
 		ApiResponse<ApplicationListResponse>
-	>("/api/v1/applications");
+	>("/v1/applications");
 	return response.data;
 }
 
@@ -123,7 +123,7 @@ export async function createApplication(
 
 	const response = await apiClient.post<
 		ApiResponse<CreateApplicationResponse>
-	>("/api/v1/applications", request);
+	>("/v1/applications", request);
 	return response.data;
 }
 
@@ -145,7 +145,7 @@ export async function updateApplication(
 
 	const response = await apiClient.patch<
 		ApiResponse<UpdateApplicationResponse>
-	>(`/api/v1/applications/${id}`, request);
+	>(`/v1/applications/${id}`, request);
 	return response.data;
 }
 
@@ -165,7 +165,7 @@ export async function deleteApplication(
 
 	const response = await apiClient.delete<
 		ApiResponse<DeleteApplicationResponse>
-	>(`/api/v1/applications/${id}`);
+	>(`/v1/applications/${id}`);
 	return response.data;
 }
 
@@ -186,7 +186,7 @@ export async function getSop(
 
 	const response = await apiClient.get<
 		ApiResponse<ApplicationSopResponse>
-	>(`/api/v1/applications/${applicationId}/sop`);
+	>(`/v1/applications/${applicationId}/sop`);
 	return response.data;
 }
 
@@ -207,7 +207,7 @@ export async function saveSop(
 	}
 
 	const response = await apiClient.put<ApiResponse<SaveSopResponse>>(
-		`/api/v1/applications/${applicationId}/sop`,
+		`/v1/applications/${applicationId}/sop`,
 		request
 	);
 	return response.data;
@@ -248,7 +248,7 @@ export async function getSopFeedback(
 	}
 
 	const response = await apiClient.post<ApiResponse<SopFeedbackDto>>(
-		`/api/v1/applications/${applicationId}/sop/feedback`,
+		`/v1/applications/${applicationId}/sop/feedback`,
 		{}
 	);
 	return response.data;
@@ -268,7 +268,7 @@ export async function getEvaluation(): Promise<EvaluationResponse> {
 	}
 
 	const response = await apiClient.get<ApiResponse<EvaluationResponse>>(
-		"/api/v1/applications/evaluation"
+		"/v1/applications/evaluation"
 	);
 	return response.data;
 }
