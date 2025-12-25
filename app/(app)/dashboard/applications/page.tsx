@@ -1,48 +1,46 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ApplicationDashboard } from "@/components/ApplicationDashboard";
 import { ApplicationSidebar } from "@/components/ApplicationSidebar";
 import { PageTransition } from "@/components/PageTransition";
-import {
-	type EnhancedApplication,
-	mockEnhancedApplications,
-} from "@/lib/data/enhancedApplications";
 import { useApplicationsStore } from "@/lib/store/applicationsStore";
 
 export default function ApplicationsPage() {
 	const t = useTranslations("applications");
-	const { applications, setApplications } = useApplicationsStore();
-	const [selectedApplicationId, setSelectedApplicationId] = useState<
-		string | null
-	>(null);
-	const [enhancedApplications, setEnhancedApplications] = useState<
-		EnhancedApplication[]
-	>([]);
+	const {
+		applications,
+		isLoading,
+		error,
+		selectedApplicationId,
+		fetchApplications,
+		setSelectedApplication,
+		updateApplicationStatus,
+		removeApplication,
+		getSelectedApplication,
+	} = useApplicationsStore();
 
 	useEffect(() => {
-		// Initialize applications with enhanced data
-		setEnhancedApplications(mockEnhancedApplications);
+		fetchApplications();
+	}, [fetchApplications]);
 
-		// Also update the store with base applications
-		if (applications.length === 0) {
-			setApplications(mockEnhancedApplications);
+	const selectedApplication = getSelectedApplication();
+
+	const handleUpdateStatus = async (status: string) => {
+		if (selectedApplicationId) {
+			return await updateApplicationStatus(selectedApplicationId, {
+				status: status as "planning" | "writing" | "submitted",
+			});
 		}
+		return false;
+	};
 
-		// Auto-select first application if none selected
-		if (!selectedApplicationId && mockEnhancedApplications.length > 0) {
-			setSelectedApplicationId(mockEnhancedApplications[0].id);
+	const handleDelete = async () => {
+		if (selectedApplicationId) {
+			return await removeApplication(selectedApplicationId);
 		}
-	}, [applications.length, setApplications, selectedApplicationId]);
-
-	const selectedApplication =
-		enhancedApplications.find((app) => app.id === selectedApplicationId) ||
-		null;
-
-	const handleNewApplication = () => {
-		// TODO: Implement new application creation
-		console.log("New application clicked");
+		return false;
 	};
 
 	return (
@@ -51,10 +49,10 @@ export default function ApplicationsPage() {
 				{/* Sidebar - Fixed width on desktop, full width on mobile */}
 				<div className="w-full lg:w-80 xl:w-96 shrink-0 hidden lg:block h-[calc(100vh-5rem)] sticky top-0">
 					<ApplicationSidebar
-						applications={enhancedApplications}
+						applications={applications}
 						selectedId={selectedApplicationId}
-						onSelectApplication={setSelectedApplicationId}
-						onNewApplication={handleNewApplication}
+						onSelectApplication={setSelectedApplication}
+						isLoading={isLoading}
 					/>
 				</div>
 
@@ -62,10 +60,10 @@ export default function ApplicationsPage() {
 				<div className="lg:hidden w-full min-h-screen">
 					{!selectedApplicationId ? (
 						<ApplicationSidebar
-							applications={enhancedApplications}
+							applications={applications}
 							selectedId={selectedApplicationId}
-							onSelectApplication={setSelectedApplicationId}
-							onNewApplication={handleNewApplication}
+							onSelectApplication={setSelectedApplication}
+							isLoading={isLoading}
 						/>
 					) : (
 						<div className="flex flex-col">
@@ -73,7 +71,7 @@ export default function ApplicationsPage() {
 							<div className="p-4 border-b border-border bg-card lg:hidden sticky top-0 z-10">
 								<button
 									type="button"
-									onClick={() => setSelectedApplicationId(null)}
+									onClick={() => setSelectedApplication(null)}
 									className="flex items-center gap-2 text-sm text-primary hover:text-foreground transition-colors"
 								>
 									<svg
@@ -94,16 +92,31 @@ export default function ApplicationsPage() {
 									{t("backToApplications")}
 								</button>
 							</div>
-							<ApplicationDashboard application={selectedApplication} />
+							<ApplicationDashboard
+								application={selectedApplication}
+								onUpdateStatus={handleUpdateStatus}
+								onDelete={handleDelete}
+							/>
 						</div>
 					)}
 				</div>
 
 				{/* Main Dashboard - Desktop only */}
 				<div className="hidden lg:block flex-1">
-					<ApplicationDashboard application={selectedApplication} />
+					<ApplicationDashboard
+						application={selectedApplication}
+						onUpdateStatus={handleUpdateStatus}
+						onDelete={handleDelete}
+					/>
 				</div>
 			</div>
+
+			{/* Error Toast */}
+			{error && (
+				<div className="fixed bottom-4 right-4 bg-destructive text-destructive-foreground px-4 py-2 rounded-lg shadow-lg">
+					{error}
+				</div>
+			)}
 		</PageTransition>
 	);
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
 	ArrowLeft,
 	Bookmark,
@@ -11,6 +12,8 @@ import {
 	MapPin,
 	Share2,
 	Loader2,
+	Plus,
+	Check,
 } from "lucide-react";
 import { PageTransition, SlideUp } from "@/components/PageTransition";
 import {
@@ -22,6 +25,7 @@ import {
 import { MOCK_PROGRAM_DETAIL } from "@/components/explore-alt/program-detail/mockDetailData";
 import { exploreApi } from "@/lib/api/exploreApi";
 import type { ProgramDetailResponse } from "@/lib/api/types";
+import { useApplicationsStore } from "@/lib/store/applicationsStore";
 
 // Feature flag to toggle between mock data and API
 const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
@@ -32,12 +36,32 @@ export default function ProgramDetailPage({
 	params: Promise<{ id: string }>;
 }) {
 	const resolvedParams = use(params);
+	const router = useRouter();
 	const [program, setProgram] = useState<ProgramDetailResponse | null>(
 		USE_MOCK_DATA ? MOCK_PROGRAM_DETAIL : null,
 	);
 	const [isLoading, setIsLoading] = useState(!USE_MOCK_DATA);
 	const [error, setError] = useState<string | null>(null);
 	const [isSaved, setIsSaved] = useState(false);
+	const [isAddingToApplications, setIsAddingToApplications] = useState(false);
+	const [addedToApplications, setAddedToApplications] = useState(false);
+
+	const { addApplication, applications, fetchApplications } = useApplicationsStore();
+
+	// Fetch applications to check if already added
+	useEffect(() => {
+		fetchApplications();
+	}, [fetchApplications]);
+
+	// Check if program is already in applications
+	useEffect(() => {
+		if (program && applications.length > 0) {
+			const isAlreadyAdded = applications.some(
+				(app) => app.program.id === program.id,
+			);
+			setAddedToApplications(isAlreadyAdded);
+		}
+	}, [program, applications]);
 
 	useEffect(() => {
 		if (USE_MOCK_DATA) {
@@ -88,6 +112,24 @@ export default function ProgramDetailPage({
 				console.error("Failed to update save status:", err);
 				setIsSaved(!newSavedState); // Revert on error
 			}
+		}
+	};
+
+	const handleAddToApplications = async () => {
+		if (!program || addedToApplications || isAddingToApplications) return;
+
+		setIsAddingToApplications(true);
+		try {
+			const applicationId = await addApplication({ programId: program.id });
+			if (applicationId) {
+				setAddedToApplications(true);
+				// Navigate to applications dashboard
+				router.push("/dashboard/applications");
+			}
+		} catch (err) {
+			console.error("Failed to add to applications:", err);
+		} finally {
+			setIsAddingToApplications(false);
 		}
 	};
 
@@ -273,10 +315,32 @@ export default function ProgramDetailPage({
 
 									<button
 										type="button"
-										className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+										onClick={handleAddToApplications}
+										disabled={isAddingToApplications || addedToApplications}
+										className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-colors ${
+											addedToApplications
+												? "bg-green-600 text-white cursor-default"
+												: isAddingToApplications
+													? "bg-primary/70 text-primary-foreground cursor-wait"
+													: "bg-primary text-primary-foreground hover:bg-primary/90"
+										}`}
 									>
-										Start Application
-										<ExternalLink className="w-4 h-4" />
+										{isAddingToApplications ? (
+											<>
+												<Loader2 className="w-4 h-4 animate-spin" />
+												Adding...
+											</>
+										) : addedToApplications ? (
+											<>
+												<Check className="w-4 h-4" />
+												Added to Applications
+											</>
+										) : (
+											<>
+												<Plus className="w-4 h-4" />
+												Add to My Applications
+											</>
+										)}
 									</button>
 
 									<button

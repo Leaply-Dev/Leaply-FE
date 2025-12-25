@@ -1,138 +1,189 @@
 import { create } from "zustand";
-
-export interface Application {
-	id: string;
-	universityId: string;
-	universityName: string;
-	program: string;
-	status:
-		| "draft"
-		| "submitted"
-		| "under_review"
-		| "accepted"
-		| "waitlisted"
-		| "rejected";
-	submissionDate?: string;
-	decisionDeadline?: string;
-	documents: Document[];
-	tasks: Task[];
-	timeline: TimelineEvent[];
-}
-
-export interface Document {
-	id: string;
-	name: string;
-	type: string;
-	uploadDate: string;
-	url?: string;
-}
-
-export interface Task {
-	id: string;
-	applicationId?: string;
-	title: string;
-	description: string;
-	dueDate: string;
-	completed: boolean;
-	priority?: "low" | "medium" | "high";
-}
-
-export interface TimelineEvent {
-	id: string;
-	date: string;
-	event: string;
-	description: string;
-}
-
-export interface Resource {
-	id: string;
-	title: string;
-	summary: string;
-	url: string;
-	type: "article" | "video" | "guide";
-	tags: string[];
-	category: string;
-}
+import {
+	getApplications,
+	createApplication,
+	updateApplication as updateApplicationApi,
+	deleteApplication as deleteApplicationApi,
+} from "@/lib/api/applicationsApi";
+import type {
+	ApplicationResponse,
+	ApplicationListResponse,
+	ApplicationSummaryDto,
+	UpcomingDeadlineDto,
+	CreateApplicationRequest,
+	UpdateApplicationRequest,
+} from "@/lib/api/types";
 
 interface ApplicationsState {
-	applications: Application[];
-	tasks: Task[];
-	resources: Resource[];
+	// Data
+	applications: ApplicationResponse[];
+	summary: ApplicationSummaryDto | null;
+	upcomingDeadlines: UpcomingDeadlineDto[];
 
-	setApplications: (applications: Application[]) => void;
-	addApplication: (application: Application) => void;
-	updateApplication: (id: string, updates: Partial<Application>) => void;
-	deleteApplication: (id: string) => void;
-	getApplicationById: (id: string) => Application | undefined;
+	// UI State
+	isLoading: boolean;
+	error: string | null;
+	selectedApplicationId: string | null;
 
-	setTasks: (tasks: Task[]) => void;
-	addTask: (task: Task) => void;
-	updateTask: (id: string, updates: Partial<Task>) => void;
-	toggleTaskComplete: (id: string) => void;
-	deleteTask: (id: string) => void;
-	getTasksByApplication: (applicationId: string) => Task[];
-
-	setResources: (resources: Resource[]) => void;
-	getResourcesByCategory: (category: string) => Resource[];
+	// Actions
+	fetchApplications: () => Promise<void>;
+	addApplication: (request: CreateApplicationRequest) => Promise<string | null>;
+	updateApplicationStatus: (
+		id: string,
+		request: UpdateApplicationRequest,
+	) => Promise<boolean>;
+	removeApplication: (id: string) => Promise<boolean>;
+	setSelectedApplication: (id: string | null) => void;
+	getSelectedApplication: () => ApplicationResponse | null;
+	clearError: () => void;
 }
 
 export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
+	// Initial state
 	applications: [],
-	tasks: [],
-	resources: [],
+	summary: null,
+	upcomingDeadlines: [],
+	isLoading: false,
+	error: null,
+	selectedApplicationId: null,
 
-	setApplications: (applications) => set({ applications }),
+	// Fetch all applications
+	fetchApplications: async () => {
+		set({ isLoading: true, error: null });
+		try {
+			const response: ApplicationListResponse = await getApplications();
+			set({
+				applications: response.applications,
+				summary: response.summary,
+				upcomingDeadlines: response.upcomingDeadlines,
+				isLoading: false,
+			});
 
-	addApplication: (application) =>
-		set((state) => ({
-			applications: [...state.applications, application],
-		})),
+			// Auto-select first if none selected
+			const state = get();
+			if (!state.selectedApplicationId && response.applications.length > 0) {
+				set({ selectedApplicationId: response.applications[0].id });
+			}
+		} catch (error) {
+			console.error("Failed to fetch applications:", error);
+			set({
+				isLoading: false,
+				error:
+					error instanceof Error
+						? error.message
+						: "Failed to load applications",
+			});
+		}
+	},
 
-	updateApplication: (id, updates) =>
-		set((state) => ({
-			applications: state.applications.map((app) =>
-				app.id === id ? { ...app, ...updates } : app,
-			),
-		})),
+	// Add a new application (from Explore page)
+	addApplication: async (request: CreateApplicationRequest) => {
+		set({ isLoading: true, error: null });
+		try {
+			const response = await createApplication(request);
 
-	deleteApplication: (id) =>
-		set((state) => ({
-			applications: state.applications.filter((app) => app.id !== id),
-		})),
+			// Refresh the list to get the new application with full data
+			await get().fetchApplications();
 
-	getApplicationById: (id) => get().applications.find((app) => app.id === id),
+			// Select the new application
+			set({ selectedApplicationId: response.id });
 
-	setTasks: (tasks) => set({ tasks }),
+			return response.id;
+		} catch (error) {
+			console.error("Failed to create application:", error);
+			set({
+				isLoading: false,
+				error:
+					error instanceof Error
+						? error.message
+						: "Failed to add program to applications",
+			});
+			return null;
+		}
+	},
 
-	addTask: (task) =>
-		set((state) => ({
-			tasks: [...state.tasks, task],
-		})),
+	// Update application status
+	updateApplicationStatus: async (
+		id: string,
+		request: UpdateApplicationRequest,
+	) => {
+		try {
+			await updateApplicationApi(id, request);
 
-	updateTask: (id, updates) =>
-		set((state) => ({
-			tasks: state.tasks.map((task) =>
-				task.id === id ? { ...task, ...updates } : task,
-			),
-		})),
+			// Update local state
+			set((state) => ({
+				applications: state.applications.map((app) =>
+					app.id === id ? { ...app, status: request.status || app.status } : app,
+				),
+			}));
 
-	toggleTaskComplete: (id) =>
-		set((state) => ({
-			tasks: state.tasks.map((task) =>
-				task.id === id ? { ...task, completed: !task.completed } : task,
-			),
-		})),
+			return true;
+		} catch (error) {
+			console.error("Failed to update application:", error);
+			set({
+				error:
+					error instanceof Error
+						? error.message
+						: "Failed to update application",
+			});
+			return false;
+		}
+	},
 
-	deleteTask: (id) =>
-		set((state) => ({
-			tasks: state.tasks.filter((task) => task.id !== id),
-		})),
+	// Remove an application
+	removeApplication: async (id: string) => {
+		try {
+			await deleteApplicationApi(id);
 
-	getTasksByApplication: (applicationId) =>
-		get().tasks.filter((task) => task.applicationId === applicationId),
+			// Update local state
+			set((state) => {
+				const newApplications = state.applications.filter(
+					(app) => app.id !== id,
+				);
+				const newSelectedId =
+					state.selectedApplicationId === id
+						? newApplications[0]?.id || null
+						: state.selectedApplicationId;
 
-	setResources: (resources) => set({ resources }),
+				return {
+					applications: newApplications,
+					selectedApplicationId: newSelectedId,
+					summary: state.summary
+						? { ...state.summary, total: state.summary.total - 1 }
+						: null,
+				};
+			});
 
-	getResourcesByCategory: (category) =>
-		get().resources.filter((resource) => resource.category === category),
+			return true;
+		} catch (error) {
+			console.error("Failed to delete application:", error);
+			set({
+				error:
+					error instanceof Error
+						? error.message
+						: "Failed to remove application",
+			});
+			return false;
+		}
+	},
+
+	// Set selected application
+	setSelectedApplication: (id: string | null) => {
+		set({ selectedApplicationId: id });
+	},
+
+	// Get selected application
+	getSelectedApplication: () => {
+		const state = get();
+		return (
+			state.applications.find(
+				(app) => app.id === state.selectedApplicationId,
+			) || null
+		);
+	},
+
+	// Clear error
+	clearError: () => {
+		set({ error: null });
+	},
 }));

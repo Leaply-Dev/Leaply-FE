@@ -2,24 +2,18 @@
 
 import {
 	AlertCircle,
-	Award,
-	BookOpen,
 	Calendar,
 	CheckCircle2,
 	ChevronRight,
-	Clock,
-	DollarSign,
 	ExternalLink,
 	FileText,
-	Globe,
-	Info,
-	MessageSquare,
-	Sparkles,
 	Target,
-	TrendingUp,
+	Trash2,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,59 +23,81 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
 import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
-import type { EnhancedApplication } from "@/lib/data/enhancedApplications";
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import type { ApplicationResponse } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
 interface ApplicationDashboardProps {
-	application: EnhancedApplication | null;
+	application: ApplicationResponse | null;
+	onUpdateStatus?: (status: string) => Promise<boolean>;
+	onDelete?: () => Promise<boolean>;
 }
 
-const statusConfig = {
-	draft: { label: "Draft", variant: "secondary" as const, icon: FileText },
+const statusConfig: Record<
+	string,
+	{
+		label: string;
+		variant: "default" | "secondary" | "outline" | "destructive";
+		color: string;
+	}
+> = {
+	planning: {
+		label: "Planning",
+		variant: "secondary",
+		color: "text-muted-foreground bg-muted",
+	},
+	writing: {
+		label: "Writing",
+		variant: "outline",
+		color: "text-blue-600 bg-blue-50",
+	},
 	submitted: {
 		label: "Submitted",
-		variant: "info" as const,
-		icon: CheckCircle2,
-	},
-	under_review: {
-		label: "Under Review",
-		variant: "warning" as const,
-		icon: Clock,
+		variant: "default",
+		color: "text-primary bg-primary/10",
 	},
 	accepted: {
 		label: "Accepted",
-		variant: "success" as const,
-		icon: CheckCircle2,
+		variant: "default",
+		color: "text-green-600 bg-green-50",
 	},
-	waitlisted: { label: "Waitlisted", variant: "warning" as const, icon: Clock },
 	rejected: {
 		label: "Rejected",
-		variant: "destructive" as const,
-		icon: AlertCircle,
+		variant: "destructive",
+		color: "text-red-600 bg-red-50",
 	},
+};
+
+const gapSeverityConfig: Record<string, { color: string; icon: typeof AlertCircle }> = {
+	critical: { color: "text-red-600 bg-red-50 border-red-200", icon: AlertCircle },
+	warning: { color: "text-amber-600 bg-amber-50 border-amber-200", icon: AlertCircle },
+	info: { color: "text-blue-600 bg-blue-50 border-blue-200", icon: AlertCircle },
 };
 
 export function ApplicationDashboard({
 	application,
+	onUpdateStatus,
+	onDelete,
 }: ApplicationDashboardProps) {
 	const t = useTranslations("applications");
 	const router = useRouter();
+	const [isDeleting, setIsDeleting] = useState(false);
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
 	if (!application) {
 		return (
@@ -91,653 +107,324 @@ export function ApplicationDashboard({
 					<h3 className="text-xl font-semibold text-foreground mb-2">
 						{t("noApplicationSelected")}
 					</h3>
-					<p className="text-muted-foreground">{t("selectApplication")}</p>
+					<p className="text-muted-foreground mb-4">{t("selectApplication")}</p>
+					<Button asChild>
+						<Link href="/explore">
+							{t("explorePrograms")}
+							<ExternalLink className="w-4 h-4 ml-2" />
+						</Link>
+					</Button>
 				</div>
 			</div>
 		);
 	}
 
-	const statusLabel = t(`status.${application.status}`);
-	const config = { ...statusConfig[application.status], label: statusLabel };
-	const StatusIcon = config.icon;
+	const config = statusConfig[application.status] || statusConfig.planning;
 
-	// Calculate days until next deadline
-	const getNextDeadline = () => {
-		if (application.upcomingDeadlines.length === 0) return null;
-		const nextDeadline = application.upcomingDeadlines[0];
-		const daysUntil = Math.ceil(
-			(new Date(nextDeadline.date).getTime() - Date.now()) /
-				(1000 * 60 * 60 * 24),
-		);
-		return { ...nextDeadline, daysUntil };
+	// Calculate days until deadline
+	const getDaysUntilDeadline = () => {
+		if (!application.program.nextDeadline) return null;
+		const deadline = new Date(application.program.nextDeadline);
+		const now = new Date();
+		const diff = deadline.getTime() - now.getTime();
+		return Math.ceil(diff / (1000 * 60 * 60 * 24));
 	};
 
-	const nextDeadline = getNextDeadline();
+	const daysUntilDeadline = getDaysUntilDeadline();
+
+	const handleStatusChange = async (newStatus: string) => {
+		if (onUpdateStatus) {
+			await onUpdateStatus(newStatus);
+		}
+	};
+
+	const handleDelete = async () => {
+		if (onDelete) {
+			setIsDeleting(true);
+			const success = await onDelete();
+			setIsDeleting(false);
+			if (success) {
+				setDeleteDialogOpen(false);
+			}
+		}
+	};
 
 	return (
 		<div className="flex-1 overflow-y-auto bg-muted/30">
-			<div className="max-w-6xl mx-auto p-6 space-y-6">
+			<div className="max-w-4xl mx-auto p-6 space-y-6">
 				{/* Header */}
 				<div className="flex items-start justify-between">
 					<div>
-						<h1 className="text-3xl font-bold text-foreground mb-2">
-							{application.universityName}
+						<h1 className="text-2xl font-bold text-foreground mb-1">
+							{application.program.universityName}
 						</h1>
 						<p className="text-lg text-muted-foreground">
-							{application.program}
+							{application.program.programName}
 						</p>
+						{application.program.degreeName && (
+							<p className="text-sm text-muted-foreground">
+								{application.program.degreeName}
+							</p>
+						)}
 					</div>
-					<Badge variant={config.variant} className="text-sm">
-						<StatusIcon className="w-4 h-4 mr-1" />
-						{config.label}
-					</Badge>
+					<div className="flex items-center gap-2">
+						<Badge variant={config.variant} className="text-sm">
+							{t(`status.${application.status}`)}
+						</Badge>
+					</div>
 				</div>
 
-				{/* Dashboard Grid - 2 columns on desktop */}
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-					{/* Application Status Card - Top Priority */}
-					<Card className="lg:col-span-2">
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<Target className="w-5 h-5 text-primary" />
-								{t("applicationStatus")}
-							</CardTitle>
-							<CardDescription>{t("trackProgress")}</CardDescription>
-						</CardHeader>
-						<CardContent>
-							{/* Key Metrics Row */}
-							<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-								<div className="bg-linear-to-br from-leaf-green/10 to-light-green/10 rounded-lg p-4">
-									<div className="flex items-center gap-2 mb-1">
-										<Target className="w-4 h-4 text-primary" />
-										<span className="text-xs font-medium text-muted-foreground">
-											{t("completion")}
-										</span>
-									</div>
-									<p className="text-2xl font-bold text-primary">
-										{application.completionPercentage}%
-									</p>
-								</div>
-
-								<div className="bg-chart-2/10 rounded-lg p-4">
-									<div className="flex items-center gap-2 mb-1">
-										<FileText className="w-4 h-4 text-chart-2" />
-										<span className="text-xs font-medium text-muted-foreground">
-											{t("documents")}
-										</span>
-									</div>
-									<p className="text-2xl font-bold text-chart-2">
-										{application.documents.length}
-									</p>
-									<p className="text-xs text-muted-foreground">
-										{t("uploaded")}
-									</p>
-								</div>
-
-								<div className="bg-chart-4/10 rounded-lg p-4">
-									<div className="flex items-center gap-2 mb-1">
-										<CheckCircle2 className="w-4 h-4 text-chart-4" />
-										<span className="text-xs font-medium text-muted-foreground">
-											{t("tasks")}
-										</span>
-									</div>
-									<p className="text-2xl font-bold text-chart-4">
-										{application.tasks.filter((t) => t.completed).length}/
-										{application.tasks.length}
-									</p>
-									<p className="text-xs text-muted-foreground">
-										{t("completed")}
-									</p>
-								</div>
-
-								<div className="bg-purple-100 rounded-lg p-4">
-									<div className="flex items-center gap-2 mb-1">
-										<Calendar className="w-4 h-4 text-purple-600" />
-										<span className="text-xs font-medium text-muted-foreground">
-											{t("deadlines")}
-										</span>
-									</div>
-									<p className="text-2xl font-bold text-purple-600">
-										{application.upcomingDeadlines.length}
-									</p>
-									<p className="text-xs text-muted-foreground">
-										{t("upcoming")}
-									</p>
-								</div>
+				{/* Quick Stats Row */}
+				<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+					{/* Fit Score */}
+					<Card className="bg-gradient-to-br from-primary/5 to-primary/10">
+						<CardContent className="p-4">
+							<div className="flex items-center gap-2 mb-1">
+								<Target className="w-4 h-4 text-primary" />
+								<span className="text-xs font-medium text-muted-foreground">
+									{t("fitScore")}
+								</span>
 							</div>
-
-							{/* Status Details Row */}
-							<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-								{/* Completion Progress */}
-								<div className="space-y-3">
-									<span className="text-sm font-semibold text-foreground">
-										{t("progress")}
-									</span>
-									<Progress
-										value={application.completionPercentage}
-										className="h-3"
-									/>
-									<p className="text-xs text-muted-foreground">
-										{application.completionPercentage === 100
-											? t("applicationComplete")
-											: `${100 - application.completionPercentage}% ${t("remainingToComplete")}`}
-									</p>
-								</div>
-
-								{/* Status */}
-								<div className="space-y-3">
-									<span className="text-sm font-semibold text-foreground">
-										{t("currentStatus")}
-									</span>
-									<div className="flex items-center gap-3">
-										<StatusIcon
-											className={cn(
-												"w-10 h-10 p-2 rounded-lg",
-												config.variant === "success" &&
-													"text-green-600 bg-green-50",
-												config.variant === "warning" &&
-													"text-chart-4 bg-orange-50",
-												config.variant === "info" && "text-chart-2 bg-sky-50",
-												config.variant === "destructive" &&
-													"text-red-600 bg-red-50",
-												config.variant === "secondary" &&
-													"text-muted-foreground bg-muted",
-											)}
-										/>
-										<div>
-											<p className="font-semibold text-foreground">
-												{config.label}
-											</p>
-											<p className="text-xs text-muted-foreground">
-												{application.submissionDate
-													? `${new Date(application.submissionDate).toLocaleDateString()}`
-													: t("notYetSubmitted")}
-											</p>
-										</div>
-									</div>
-								</div>
-
-								{/* Next Deadline */}
-								<div className="space-y-3">
-									<span className="text-sm font-semibold text-foreground">
-										{t("nextDeadline")}
-									</span>
-									{nextDeadline ? (
-										<div
-											className={cn(
-												"p-3 rounded-lg border-l-4",
-												nextDeadline.daysUntil <= 7
-													? "bg-red-50 border-red-500"
-													: "bg-muted border-primary",
-											)}
-										>
-											<p className="font-semibold text-foreground text-sm mb-1">
-												{nextDeadline.title}
-											</p>
-											<div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-												<Calendar className="w-3 h-3" />
-												{new Date(nextDeadline.date).toLocaleDateString()}
-											</div>
-											<p
-												className={cn(
-													"text-xs font-bold",
-													nextDeadline.daysUntil <= 7
-														? "text-red-600"
-														: "text-primary",
-												)}
-											>
-												{nextDeadline.daysUntil} {t("daysRemaining")}
-											</p>
-										</div>
-									) : (
-										<div className="p-3 rounded-lg bg-green-50 border-l-4 border-green-500">
-											<p className="text-sm text-green-700 font-medium">
-												{t("noPendingDeadlines")}
-											</p>
-										</div>
+							<p className="text-2xl font-bold text-primary">
+								{application.fitScore || "—"}%
+							</p>
+							{application.fitCategory && (
+								<Badge
+									variant="outline"
+									className={cn(
+										"mt-1 text-xs capitalize",
+										application.fitCategory === "safety" && "border-green-500",
+										application.fitCategory === "target" && "border-blue-500",
+										application.fitCategory === "reach" && "border-amber-500",
 									)}
-								</div>
-							</div>
-
-							{application.decisionDeadline && (
-								<div className="mt-6 pt-4 border-t border-border">
-									<div className="flex items-center gap-2 text-sm bg-chart-2/10 p-3 rounded-lg">
-										<Info className="w-4 h-4 text-chart-2 shrink-0" />
-										<span className="text-muted-foreground">
-											{t("decisionExpectedBy")}{" "}
-											<span className="font-semibold text-foreground">
-												{new Date(
-													application.decisionDeadline,
-												).toLocaleDateString()}
-											</span>
-										</span>
-									</div>
-								</div>
+								>
+									{application.fitCategory}
+								</Badge>
 							)}
 						</CardContent>
 					</Card>
 
-					{/* Profile Evaluation Card */}
-					<Card className="h-full flex flex-col">
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<TrendingUp className="w-5 h-5 text-primary" />
-								{t("profileEvaluation")}
-							</CardTitle>
-							<CardDescription>{t("yourFitForProgram")}</CardDescription>
-						</CardHeader>
-						<CardContent className="flex-1 flex flex-col">
-							{/* Fit Score */}
-							<div className="text-center mb-4 p-4 bg-linear-to-br from-leaf-green/10 to-light-green/10 rounded-lg">
-								<div className="text-4xl font-bold text-primary mb-1">
-									{application.fitScore}%
-								</div>
-								<p className="text-sm text-muted-foreground">
-									{t("overallFitScore")}
-								</p>
+					{/* Status */}
+					<Card>
+						<CardContent className="p-4">
+							<div className="flex items-center gap-2 mb-1">
+								<CheckCircle2 className="w-4 h-4 text-muted-foreground" />
+								<span className="text-xs font-medium text-muted-foreground">
+									{t("status.label")}
+								</span>
 							</div>
-
-							{/* Strengths */}
-							<div className="mb-4">
-								<h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-1">
-									<CheckCircle2 className="w-4 h-4 text-green-600" />
-									{t("strengths")}
-								</h4>
-								<ul className="space-y-2">
-									{application.strengths.slice(0, 2).map((strength, idx) => (
-										<li
-											key={idx}
-											className="text-sm text-muted-foreground flex gap-2"
-										>
-											<span className="text-green-600 font-bold">•</span>
-											<span>{strength}</span>
-										</li>
-									))}
-								</ul>
-							</div>
-
-							{/* Weaknesses */}
-							<div className="mb-4 flex-1">
-								<h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-1">
-									<AlertCircle className="w-4 h-4 text-chart-4" />
-									{t("areasToConsider")}
-								</h4>
-								<ul className="space-y-2">
-									{application.weaknesses.slice(0, 2).map((weakness, idx) => (
-										<li
-											key={idx}
-											className="text-sm text-muted-foreground flex gap-2"
-										>
-											<span className="text-chart-4 font-bold">•</span>
-											<span>{weakness}</span>
-										</li>
-									))}
-								</ul>
-							</div>
-
-							{/* Expand Dialog */}
-							<Dialog>
-								<DialogTrigger asChild>
-									<Button variant="outline" className="w-full h-10">
-										{t("viewDetailedAnalysis")}
-										<ChevronRight className="w-4 h-4 ml-1" />
-									</Button>
-								</DialogTrigger>
-								<DialogContent className="max-w-2xl">
-									<DialogHeader>
-										<DialogTitle>{t("profileEvaluationDetails")}</DialogTitle>
-										<DialogDescription>
-											{t("comprehensiveAnalysis")} {application.universityName}
-										</DialogDescription>
-									</DialogHeader>
-									<div className="space-y-4">
-										<div className="text-center p-6 bg-linear-to-br from-leaf-green/10 to-light-green/10 rounded-lg">
-											<div className="text-5xl font-bold text-primary mb-2">
-												{application.fitScore}%
-											</div>
-											<p className="text-muted-foreground">
-												{t("overallFitScore")}
-											</p>
-										</div>
-
-										<div>
-											<h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-												<CheckCircle2 className="w-5 h-5 text-green-600" />
-												{t("yourStrengths")}
-											</h4>
-											<ul className="space-y-2">
-												{application.strengths.map((strength, idx) => (
-													<li
-														key={idx}
-														className="text-sm text-muted-foreground flex gap-2"
-													>
-														<span className="text-green-600 font-bold">
-															{idx + 1}.
-														</span>
-														<span>{strength}</span>
-													</li>
-												))}
-											</ul>
-										</div>
-
-										<div>
-											<h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-												<AlertCircle className="w-5 h-5 text-chart-4" />
-												{t("areasToConsider")}
-											</h4>
-											<ul className="space-y-2">
-												{application.weaknesses.map((weakness, idx) => (
-													<li
-														key={idx}
-														className="text-sm text-muted-foreground flex gap-2"
-													>
-														<span className="text-chart-4 font-bold">
-															{idx + 1}.
-														</span>
-														<span>{weakness}</span>
-													</li>
-												))}
-											</ul>
-										</div>
-									</div>
-								</DialogContent>
-							</Dialog>
+							<Select
+								value={application.status}
+								onValueChange={handleStatusChange}
+							>
+								<SelectTrigger className="w-full h-8 text-sm mt-1">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="planning">{t("status.planning")}</SelectItem>
+									<SelectItem value="writing">{t("status.writing")}</SelectItem>
+									<SelectItem value="submitted">{t("status.submitted")}</SelectItem>
+								</SelectContent>
+							</Select>
 						</CardContent>
 					</Card>
 
-					{/* School Info Card */}
-					<Card className="h-full flex flex-col">
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<Globe className="w-5 h-5 text-primary" />
-								{t("schoolInformation")}
-							</CardTitle>
-							<CardDescription>{t("keyDetails")}</CardDescription>
-						</CardHeader>
-						<CardContent className="space-y-3 flex-1 flex flex-col">
-							<div className="grid grid-cols-2 gap-4 flex-1">
-								<div>
-									<p className="text-xs text-muted-foreground mb-1">
-										{t("location")}
-									</p>
-									<p className="text-sm font-semibold text-foreground">
-										{application.universityCountry}
-									</p>
-									<p className="text-xs text-muted-foreground">
-										{application.universityRegion}
-									</p>
-								</div>
-
-								{application.universityRanking && (
-									<div>
-										<p className="text-xs text-muted-foreground mb-1">
-											{t("worldRanking")}
-										</p>
-										<div className="flex items-center gap-1">
-											<Award className="w-4 h-4 text-chart-4" />
-											<p className="text-sm font-semibold text-foreground">
-												#{application.universityRanking}
-											</p>
-										</div>
-									</div>
-								)}
-
-								{application.tuitionRange && (
-									<div className="col-span-2">
-										<p className="text-xs text-muted-foreground mb-1">
-											{t("tuitionRange")}
-										</p>
-										<div className="flex items-center gap-1">
-											<DollarSign className="w-4 h-4 text-primary" />
-											<p className="text-sm font-semibold text-foreground">
-												{application.tuitionRange}
-											</p>
-										</div>
-									</div>
-								)}
-
-								<div className="col-span-2">
-									<p className="text-xs text-muted-foreground mb-1">
-										{t("program")}
-									</p>
-									<div className="flex items-center gap-1">
-										<BookOpen className="w-4 h-4 text-chart-2" />
-										<p className="text-sm font-semibold text-foreground">
-											{application.program}
-										</p>
-									</div>
-								</div>
+					{/* SOP Status */}
+					<Card>
+						<CardContent className="p-4">
+							<div className="flex items-center gap-2 mb-1">
+								<FileText className="w-4 h-4 text-muted-foreground" />
+								<span className="text-xs font-medium text-muted-foreground">
+									{t("sopStatus")}
+								</span>
 							</div>
+							<p className="text-lg font-semibold text-foreground capitalize">
+								{application.sopStatus?.replace("_", " ") || t("notStarted")}
+							</p>
+						</CardContent>
+					</Card>
 
-							<div className="pt-3 border-t border-border mt-auto">
-								<Button
-									variant="outline"
-									className="w-full h-10"
-									onClick={() =>
-										router.push(`/explore/${application.universityId}`)
-									}
-								>
-									{t("viewUniversityDetails")}
-									<ExternalLink className="w-4 h-4 ml-2" />
+					{/* Next Deadline */}
+					<Card
+						className={cn(
+							daysUntilDeadline !== null &&
+								daysUntilDeadline <= 7 &&
+								"border-red-200 bg-red-50",
+						)}
+					>
+						<CardContent className="p-4">
+							<div className="flex items-center gap-2 mb-1">
+								<Calendar className="w-4 h-4 text-muted-foreground" />
+								<span className="text-xs font-medium text-muted-foreground">
+									{t("nextDeadline")}
+								</span>
+							</div>
+							{application.program.nextDeadline ? (
+								<>
+									<p className="text-sm font-semibold text-foreground">
+										{new Date(
+											application.program.nextDeadline,
+										).toLocaleDateString()}
+									</p>
+									{daysUntilDeadline !== null && (
+										<p
+											className={cn(
+												"text-xs font-medium",
+												daysUntilDeadline <= 7
+													? "text-red-600"
+													: daysUntilDeadline <= 30
+														? "text-amber-600"
+														: "text-muted-foreground",
+											)}
+										>
+											{daysUntilDeadline} {t("daysRemaining")}
+										</p>
+									)}
+								</>
+							) : (
+								<p className="text-sm text-muted-foreground">{t("noDeadline")}</p>
+							)}
+						</CardContent>
+					</Card>
+				</div>
+
+				{/* Gaps Analysis */}
+				{application.gaps && application.gaps.length > 0 && (
+					<Card>
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2 text-lg">
+								<AlertCircle className="w-5 h-5 text-amber-500" />
+								{t("gapsToAddress")}
+							</CardTitle>
+							<CardDescription>
+								{t("gapsDescription")}
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<div className="space-y-3">
+								{application.gaps.map((gap, index) => {
+									const severityConfig =
+										gapSeverityConfig[gap.severity] || gapSeverityConfig.info;
+									return (
+										<div
+											key={index}
+											className={cn(
+												"flex items-start gap-3 p-3 rounded-lg border",
+												severityConfig.color,
+											)}
+										>
+											<severityConfig.icon className="w-5 h-5 mt-0.5 shrink-0" />
+											<div>
+												<p className="font-medium text-sm capitalize">
+													{gap.field.replace("_", " ")}
+												</p>
+												<p className="text-sm opacity-80">{gap.message}</p>
+											</div>
+										</div>
+									);
+								})}
+							</div>
+						</CardContent>
+					</Card>
+				)}
+
+				{/* Next Intake */}
+				{application.program.nextIntake && (
+					<Card>
+						<CardHeader>
+							<CardTitle className="text-lg">{t("intakeInfo")}</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className="flex items-center justify-between">
+								<div>
+									<p className="text-sm text-muted-foreground">{t("nextIntake")}</p>
+									<p className="text-lg font-semibold">
+										{application.program.nextIntake}
+									</p>
+								</div>
+								<Button variant="outline" asChild>
+									<Link href={`/explore/${application.program.id}`}>
+										{t("viewProgramDetails")}
+										<ChevronRight className="w-4 h-4 ml-1" />
+									</Link>
 								</Button>
 							</div>
 						</CardContent>
 					</Card>
+				)}
 
-					{/* Next Actions Card */}
-					<Card className="lg:col-span-2">
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<CheckCircle2 className="w-5 h-5 text-primary" />
-								{t("nextActions")}
-							</CardTitle>
-							<CardDescription>{t("tasksToComplete")}</CardDescription>
-						</CardHeader>
-						<CardContent>
-							{application.tasks.length === 0 ? (
-								<p className="text-sm text-muted-foreground">
-									{t("noTasksToComplete")}
-								</p>
-							) : (
-								<div className="space-y-3">
-									{application.tasks
-										.filter((task) => !task.completed)
-										.slice(0, 4)
-										.map((task) => {
-											const daysUntil = Math.ceil(
-												(new Date(task.dueDate).getTime() - Date.now()) /
-													(1000 * 60 * 60 * 24),
-											);
-											const isUrgent = daysUntil <= 7;
+				{/* Actions */}
+				<Card>
+					<CardHeader>
+						<CardTitle className="text-lg">{t("actions")}</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="flex flex-wrap gap-3">
+							<Button asChild>
+								<Link href={`/dashboard/applications/${application.id}/sop`}>
+									<FileText className="w-4 h-4 mr-2" />
+									{application.sopStatus === "not_started" || !application.sopStatus
+										? t("startSop")
+										: t("continueSop")}
+								</Link>
+							</Button>
 
-											return (
-												<div
-													key={task.id}
-													className={cn(
-														"flex items-start gap-3 p-3 rounded-lg border",
-														isUrgent
-															? "border-red-200 bg-red-50"
-															: "border-border bg-card",
-													)}
-												>
-													<Checkbox id={task.id} className="mt-1" />
-													<div className="flex-1 min-w-0">
-														<label
-															htmlFor={task.id}
-															className="font-medium text-sm text-foreground cursor-pointer"
-														>
-															{task.title}
-														</label>
-														<p className="text-xs text-muted-foreground mt-1">
-															{task.description}
-														</p>
-														<div className="flex items-center gap-2 mt-2">
-															<Calendar className="w-3 h-3 text-muted-foreground" />
-															<span className="text-xs text-muted-foreground">
-																{t("due")}:{" "}
-																{new Date(task.dueDate).toLocaleDateString()}
-															</span>
-															{isUrgent && (
-																<Badge
-																	variant="destructive"
-																	className="text-xs"
-																>
-																	{t("urgent")}
-																</Badge>
-															)}
-															{task.priority && (
-																<Badge
-																	variant={
-																		task.priority === "high"
-																			? "warning"
-																			: "secondary"
-																	}
-																	className="text-xs"
-																>
-																	{t(task.priority)}
-																</Badge>
-															)}
-														</div>
-													</div>
-												</div>
-											);
-										})}
+							<Button variant="outline" asChild>
+								<Link href={`/explore/${application.program.id}`}>
+									<ExternalLink className="w-4 h-4 mr-2" />
+									{t("viewProgram")}
+								</Link>
+							</Button>
 
-									{application.tasks.filter((task) => task.completed).length >
-										0 && (
-										<div className="pt-3 border-t border-border">
-											<p className="text-xs text-muted-foreground mb-2">
-												✓{" "}
-												{
-													application.tasks.filter((task) => task.completed)
-														.length
-												}{" "}
-												{t("taskCompleted")}
-											</p>
-										</div>
-									)}
-								</div>
-							)}
-						</CardContent>
-					</Card>
+							<Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+								<DialogTrigger asChild>
+									<Button variant="ghost" className="text-destructive">
+										<Trash2 className="w-4 h-4 mr-2" />
+										{t("removeApplication")}
+									</Button>
+								</DialogTrigger>
+								<DialogContent>
+									<DialogHeader>
+										<DialogTitle>{t("confirmRemove")}</DialogTitle>
+										<DialogDescription>
+											{t("confirmRemoveDescription", {
+												program: application.program.programName,
+												university: application.program.universityName,
+											})}
+										</DialogDescription>
+									</DialogHeader>
+									<DialogFooter>
+										<Button
+											variant="outline"
+											onClick={() => setDeleteDialogOpen(false)}
+										>
+											{t("cancel")}
+										</Button>
+										<Button
+											variant="destructive"
+											onClick={handleDelete}
+											disabled={isDeleting}
+										>
+											{isDeleting ? t("removing") : t("remove")}
+										</Button>
+									</DialogFooter>
+								</DialogContent>
+							</Dialog>
+						</div>
+					</CardContent>
+				</Card>
 
-					{/* Resources Card */}
-					<Card className="lg:col-span-2">
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<BookOpen className="w-5 h-5 text-primary" />
-								{t("helpfulResources")}
-							</CardTitle>
-							<CardDescription>{t("guidesAndTools")}</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-								<TooltipProvider>
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<Button
-												variant="outline"
-												className="justify-start h-18"
-												onClick={() => router.push("/dashboard/resources")}
-											>
-												<FileText className="w-5 h-5 mr-3 text-chart-2 shrink-0" />
-												<div className="text-left">
-													<p className="font-medium text-sm">
-														{t("essayWritingGuide")}
-													</p>
-													<p className="text-xs text-muted-foreground">
-														{t("tipsForStatements")}
-													</p>
-												</div>
-											</Button>
-										</TooltipTrigger>
-										<TooltipContent>
-											<p>{t("learnEffectiveStatements")}</p>
-										</TooltipContent>
-									</Tooltip>
-								</TooltipProvider>
-
-								<TooltipProvider>
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<Button
-												variant="outline"
-												className="justify-start h-18"
-												onClick={() => router.push("/dashboard/resources")}
-											>
-												<MessageSquare className="w-5 h-5 mr-3 text-chart-4 shrink-0" />
-												<div className="text-left">
-													<p className="font-medium text-sm">
-														{t("interviewPreparation")}
-													</p>
-													<p className="text-xs text-muted-foreground">
-														{t("commonQuestions")}
-													</p>
-												</div>
-											</Button>
-										</TooltipTrigger>
-										<TooltipContent>
-											<p>{t("prepareForInterviews")}</p>
-										</TooltipContent>
-									</Tooltip>
-								</TooltipProvider>
-
-								<TooltipProvider>
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<Button
-												variant="outline"
-												className="justify-start h-18"
-												onClick={() => router.push("/dashboard/resources")}
-											>
-												<DollarSign className="w-5 h-5 mr-3 text-green-600 shrink-0" />
-												<div className="text-left">
-													<p className="font-medium text-sm">
-														{t("scholarshipFinder")}
-													</p>
-													<p className="text-xs text-muted-foreground">
-														{t("findFunding")}
-													</p>
-												</div>
-											</Button>
-										</TooltipTrigger>
-										<TooltipContent>
-											<p>{t("discoverScholarships")}</p>
-										</TooltipContent>
-									</Tooltip>
-								</TooltipProvider>
-
-								<TooltipProvider>
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<Button
-												variant="outline"
-												className="justify-start h-18"
-												onClick={() =>
-													router.push(
-														`/chatbot?question=${encodeURIComponent(`Help me with my ${application.universityName} application`)}`,
-													)
-												}
-											>
-												<Sparkles className="w-5 h-5 mr-3 text-primary shrink-0" />
-												<div className="text-left">
-													<p className="font-medium text-sm">
-														{t("askAIAssistant")}
-													</p>
-													<p className="text-xs text-muted-foreground">
-														{t("getPersonalizedAdvice")}
-													</p>
-												</div>
-											</Button>
-										</TooltipTrigger>
-										<TooltipContent>
-											<p>{t("chatWithAI")}</p>
-										</TooltipContent>
-									</Tooltip>
-								</TooltipProvider>
-							</div>
-						</CardContent>
-					</Card>
+				{/* Timestamps */}
+				<div className="text-xs text-muted-foreground text-center">
+					{t("addedOn")}{" "}
+					{new Date(application.createdAt).toLocaleDateString()}
+					{application.updatedAt !== application.createdAt && (
+						<>
+							{" "}
+							• {t("lastUpdated")}{" "}
+							{new Date(application.updatedAt).toLocaleDateString()}
+						</>
+					)}
 				</div>
 			</div>
 		</div>
