@@ -7,12 +7,10 @@ export default async function AppLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<div className="h-screen flex flex-col overflow-hidden">
+		<div className="h-screen flex flex-col">
 			<DataInitializer />
 			<Navbar />
-			<main className="flex-1 flex flex-col min-h-0 overflow-hidden">
-				{children}
-			</main>
+			<main className="flex-1 overflow-y-auto pt-16">{children}</main>
 		</div>
 	);
 }
