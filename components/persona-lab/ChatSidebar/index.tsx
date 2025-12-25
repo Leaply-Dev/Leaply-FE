@@ -53,7 +53,7 @@ export function ChatSidebar() {
 		return (
 			<div className="flex flex-col h-full">
 				<ChatHeader />
-				<div className="flex-1 p-4 space-y-4">
+				<div className="flex-1 min-h-0 p-4 space-y-4">
 					<div className="h-16 bg-muted/50 rounded-lg animate-pulse" />
 					<div className="h-12 bg-muted/30 rounded-lg animate-pulse ml-8" />
 					<div className="h-12 bg-muted/30 rounded-lg animate-pulse ml-8" />
@@ -63,17 +63,20 @@ export function ChatSidebar() {
 	}
 
 	return (
-		<div className="flex flex-col h-full">
-			{/* Header with progress */}
-			<ChatHeader />
+		<div className="flex flex-col h-full overflow-hidden">
+			{/* Sticky header section */}
+			<div className="flex-shrink-0">
+				{/* Header with progress */}
+				<ChatHeader />
 
-			{/* Back to tracks button (show during active track) */}
-			{currentTrackId && (
-				<BackToTracksButton onClick={handleBackToTracks} disabled={isSending} />
-			)}
+				{/* Back to tracks button - always accessible when track is active */}
+				{currentTrackId && (
+					<BackToTracksButton onClick={handleBackToTracks} disabled={isSending} />
+				)}
+			</div>
 
-			{/* Messages */}
-			<ScrollArea className="flex-1 p-3">
+			{/* Messages - fixed height scrollable area */}
+			<ScrollArea className="flex-1 min-h-0 p-3">
 				<div className="space-y-3">
 					{conversationHistory.map((message, index) => (
 						<ChatMessage
@@ -98,13 +101,15 @@ export function ChatSidebar() {
 				</div>
 			</ScrollArea>
 
-			{/* Input - Only show when track is active */}
+			{/* Input - sticky at bottom, only show when track is active */}
 			{currentTrackId && (
-				<MessageInput
-					onSend={handleSendMessage}
-					disabled={isSending}
-					placeholder="Share your thoughts..."
-				/>
+				<div className="flex-shrink-0">
+					<MessageInput
+						onSend={handleSendMessage}
+						disabled={isSending}
+						placeholder="Chia sẻ câu chuyện của bạn..."
+					/>
+				</div>
 			)}
 		</div>
 	);
