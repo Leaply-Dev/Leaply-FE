@@ -2,6 +2,7 @@
 
 import { Handle, Position } from "@xyflow/react";
 import { Lock, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ARCHETYPES } from "@/lib/constants/archetypes";
 import type { ArchetypeType } from "@/lib/types/persona";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ interface ArchetypeNodeProps {
 }
 
 export function ArchetypeNode({ data, selected }: ArchetypeNodeProps) {
+	const t = useTranslations("personaLab");
 	const isLocked = data.state === "locked";
 	const archetype = data.archetypeType ? ARCHETYPES[data.archetypeType] : null;
 	const overallProgress = data.overallProgress ?? 0;
@@ -180,7 +182,7 @@ export function ArchetypeNode({ data, selected }: ArchetypeNodeProps) {
 				{isLocked ? (
 					<>
 						<span className="text-sm font-semibold text-muted-foreground">
-							Your Archetype
+							{t("yourArchetype")}
 						</span>
 						{isMicroView && (
 							<>
@@ -190,11 +192,11 @@ export function ArchetypeNode({ data, selected }: ArchetypeNodeProps) {
 										{completedTracks}/{totalTracks}
 									</span>
 									<span className="text-xs text-muted-foreground">
-										tracks completed
+										{t("tracksCompleted")}
 									</span>
 								</div>
 								<span className="text-xs text-muted-foreground/70 max-w-[160px]">
-									Complete all tracks to discover
+									{t("completeAllTracks")}
 								</span>
 							</>
 						)}
@@ -202,7 +204,7 @@ export function ArchetypeNode({ data, selected }: ArchetypeNodeProps) {
 				) : (
 					<>
 						<span className="text-lg font-bold text-foreground">
-							{archetype?.title || "Your Archetype"}
+							{archetype?.title || t("yourArchetype")}
 						</span>
 						{isMicroView && archetype && (
 							<>

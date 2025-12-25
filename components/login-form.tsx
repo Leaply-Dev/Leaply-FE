@@ -3,6 +3,7 @@
 import { AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +31,7 @@ export function LoginForm({
 	...props
 }: React.ComponentProps<"div">) {
 	const router = useRouter();
+	const t = useTranslations("auth");
 	const login = useUserStore((state) => state.login);
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -72,8 +74,8 @@ export function LoginForm({
 		<div className={cn("flex flex-col gap-6", className)} {...props}>
 			<Card>
 				<CardHeader className="text-center">
-					<CardTitle className="text-xl">Welcome back</CardTitle>
-					<CardDescription>Login with your Google account</CardDescription>
+					<CardTitle className="text-xl">{t("loginTitle")}</CardTitle>
+					<CardDescription>{t("loginSubtitle")}</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<form onSubmit={handleSubmit}>
@@ -91,27 +93,27 @@ export function LoginForm({
 											fill="currentColor"
 										/>
 									</svg>
-									Login with Google
+									{t("loginWithGoogle")}
 								</Button>
 							</Field>
 							<FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
-								Or continue with
+								{t("orContinueWith")}
 							</FieldSeparator>
 
 							{error && (
 								<Alert variant="destructive">
 									<AlertCircle className="h-4 w-4" />
-									<AlertTitle>Error</AlertTitle>
+									<AlertTitle>{t("error")}</AlertTitle>
 									<AlertDescription>{error}</AlertDescription>
 								</Alert>
 							)}
 
 							<Field>
-								<FieldLabel htmlFor="email">Email</FieldLabel>
+								<FieldLabel htmlFor="email">{t("email")}</FieldLabel>
 								<Input
 									id="email"
 									type="email"
-									placeholder="m@example.com"
+									placeholder={t("emailPlaceholder")}
 									required
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
@@ -120,12 +122,12 @@ export function LoginForm({
 							</Field>
 							<Field>
 								<div className="flex items-center">
-									<FieldLabel htmlFor="password">Password</FieldLabel>
+									<FieldLabel htmlFor="password">{t("password")}</FieldLabel>
 									<Link
 										href="/forgot"
 										className="ml-auto text-sm underline-offset-4 hover:underline"
 									>
-										Forgot your password?
+										{t("forgotPassword")}
 									</Link>
 								</div>
 								<Input
@@ -142,11 +144,11 @@ export function LoginForm({
 									{isLoading && (
 										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 									)}
-									{isLoading ? "Logging in..." : "Login"}
+									{isLoading ? t("loggingIn") : t("signIn")}
 								</Button>
 								<FieldDescription className="text-center">
-									Don&apos;t have an account?{" "}
-									<Link href="/register">Sign up</Link>
+									{t("noAccount")}{" "}
+									<Link href="/register">{t("signUp")}</Link>
 								</FieldDescription>
 							</Field>
 						</FieldGroup>
@@ -154,9 +156,9 @@ export function LoginForm({
 				</CardContent>
 			</Card>
 			<FieldDescription className="px-6 text-center">
-				By clicking continue, you agree to our{" "}
-				<Link href="#">Terms of Service</Link> and{" "}
-				<Link href="#">Privacy Policy</Link>.
+				{t("tosAgreement")}{" "}
+				<Link href="/terms">{t("tos")}</Link> {t("and")}{" "}
+				<Link href="/privacy">{t("privacyPolicy")}</Link>.
 			</FieldDescription>
 		</div>
 	);

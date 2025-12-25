@@ -2,6 +2,7 @@
 
 import { Handle, Position } from "@xyflow/react";
 import { ChevronRight, FileText, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { TRACK_COLORS, TRACKS } from "@/lib/constants/tracks";
 import type { TrackId, TrackStatus } from "@/lib/types/persona";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ interface SummaryNodeProps {
 }
 
 export function SummaryNode({ data, selected }: SummaryNodeProps) {
+	const t = useTranslations("personaLab");
 	const colors = TRACK_COLORS[data.trackId];
 	const trackDef = TRACKS[data.trackId];
 	const isLoading = data.isLoading;
@@ -207,10 +209,10 @@ export function SummaryNode({ data, selected }: SummaryNodeProps) {
 									}}
 								>
 									{isCompleted
-										? "Completed"
+										? t("statusCompleted")
 										: isInProgress
-											? "In Progress"
-											: "Not Started"}
+											? t("statusInProgress")
+											: t("statusNotStarted")}
 								</span>
 								{/* Percentage */}
 								{!isNotStarted && (

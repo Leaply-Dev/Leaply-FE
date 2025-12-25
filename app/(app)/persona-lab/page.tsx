@@ -2,6 +2,7 @@
 
 import { ChevronLeft, LayoutGrid, List, MessageSquare } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
 import { motion } from "framer-motion";
 import { PageTransition } from "@/components/PageTransition";
@@ -49,6 +50,7 @@ const PersonaListView = dynamic(
 );
 
 export default function PersonaLabPage() {
+	const t = useTranslations("personaLab");
 	const { viewMode, setViewMode, selectNode } = usePersonaStore();
 	const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
@@ -117,10 +119,10 @@ export default function PersonaLabPage() {
 						<div className="flex items-center justify-between">
 							<div>
 								<h1 className="text-xl font-bold text-foreground">
-									Persona Canvas
+									{t("canvasTitle")}
 								</h1>
 								<p className="text-sm text-muted-foreground">
-									Your unique story visualized
+									{t("canvasSubtitle")}
 								</p>
 							</div>
 
@@ -138,7 +140,7 @@ export default function PersonaLabPage() {
 									)}
 								>
 									<LayoutGrid className="w-4 h-4" />
-									<span className="hidden sm:inline text-sm">Canvas</span>
+									<span className="hidden sm:inline text-sm">{t("viewCanvas")}</span>
 								</Button>
 								<Button
 									variant="ghost"
@@ -152,7 +154,7 @@ export default function PersonaLabPage() {
 									)}
 								>
 									<List className="w-4 h-4" />
-									<span className="hidden sm:inline text-sm">List</span>
+									<span className="hidden sm:inline text-sm">{t("viewList")}</span>
 								</Button>
 							</div>
 						</div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowUp } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -18,8 +19,10 @@ interface MessageInputProps {
 export function MessageInput({
 	onSend,
 	disabled = false,
-	placeholder = "Share your thoughts...",
+	placeholder,
 }: MessageInputProps) {
+	const t = useTranslations("personaLab");
+	const defaultPlaceholder = placeholder ?? t("shareYourStory");
 	const [input, setInput] = useState("");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -74,7 +77,7 @@ export function MessageInput({
 					value={input}
 					onChange={handleChange}
 					onKeyDown={handleKeyDown}
-					placeholder={placeholder}
+					placeholder={defaultPlaceholder}
 					disabled={disabled}
 					className="flex-1 bg-transparent border-0 focus:ring-0 focus:outline-none p-1.5 min-h-9 max-h-[120px] resize-none text-sm placeholder:text-muted-foreground disabled:opacity-50"
 					rows={1}
@@ -108,10 +111,10 @@ export function MessageInput({
 				>
 					{charCount === 0 ? (
 						<span className="text-muted-foreground/50">
-							Min {MIN_CHARS} characters
+							{t("minCharacters", { count: MIN_CHARS })}
 						</span>
 					) : isBelowMin ? (
-						<span>{MIN_CHARS - charCount} more characters needed</span>
+						<span>{t("moreCharactersNeeded", { count: MIN_CHARS - charCount })}</span>
 					) : (
 						<span>
 							{charCount.toLocaleString()}/{MAX_CHARS.toLocaleString()}

@@ -1,11 +1,13 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Progress } from "@/components/ui/progress";
 import { TRACK_COLORS, TRACKS } from "@/lib/constants/tracks";
 import { usePersonaStore } from "@/lib/store/personaStore";
 
 export function ChatHeader() {
+	const t = useTranslations("personaLab");
 	const { tracks, currentTrackId, getTrackProgress } = usePersonaStore();
 	const { completed, total } = getTrackProgress();
 	const overallProgress = (completed / total) * 100;
@@ -22,7 +24,7 @@ export function ChatHeader() {
 					<Sparkles className="w-4 h-4 text-primary" />
 				</div>
 				<div className="flex-1">
-					<h2 className="font-semibold text-sm">Discovery Chat</h2>
+					<h2 className="font-semibold text-sm">{t("discoveryChat")}</h2>
 					{currentTrack && currentTrackColors && (
 						<div className="flex items-center gap-2 mt-1">
 							<span

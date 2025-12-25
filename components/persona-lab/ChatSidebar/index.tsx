@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { usePersonaStore } from "@/lib/store/personaStore";
@@ -10,6 +11,7 @@ import { ChatMessage, TypingIndicator } from "./ChatMessage";
 import { MessageInput } from "./MessageInput";
 
 export function ChatSidebar() {
+	const t = useTranslations("personaLab");
 	const {
 		conversationHistory,
 		currentTrackId,
@@ -106,7 +108,7 @@ export function ChatSidebar() {
 					<MessageInput
 						onSend={handleSendMessage}
 						disabled={isSending}
-						placeholder="Chia sẻ câu chuyện của bạn..."
+						placeholder={t("shareYourStory")}
 					/>
 				</div>
 			)}

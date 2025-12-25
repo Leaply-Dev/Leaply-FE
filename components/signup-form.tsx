@@ -3,6 +3,7 @@
 import { AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +31,7 @@ export function SignupForm({
 	...props
 }: React.ComponentProps<"div">) {
 	const router = useRouter();
+	const t = useTranslations("auth");
 	const login = useUserStore((state) => state.login);
 	const [formData, setFormData] = useState({
 		fullName: "",
@@ -50,7 +52,7 @@ export function SignupForm({
 		setError(null);
 
 		if (formData.password !== formData.confirmPassword) {
-			setError("Passwords do not match");
+			setError(t("passwordsNotMatch"));
 			setIsLoading(false);
 			return;
 		}
@@ -87,8 +89,8 @@ export function SignupForm({
 		<div className={cn("flex flex-col gap-6", className)} {...props}>
 			<Card>
 				<CardHeader className="text-center">
-					<CardTitle className="text-xl">Create your account</CardTitle>
-					<CardDescription>Create your account with Google</CardDescription>
+					<CardTitle className="text-xl">{t("signupTitle")}</CardTitle>
+					<CardDescription>{t("signupSubtitle")}</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<form onSubmit={handleSubmit}>
@@ -106,27 +108,27 @@ export function SignupForm({
 											fill="currentColor"
 										/>
 									</svg>
-									Register with Google
+									{t("registerWithGoogle")}
 								</Button>
 							</Field>
 							<FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
-								Or continue with
+								{t("orContinueWith")}
 							</FieldSeparator>
 
 							{error && (
 								<Alert variant="destructive">
 									<AlertCircle className="h-4 w-4" />
-									<AlertTitle>Error</AlertTitle>
+									<AlertTitle>{t("error")}</AlertTitle>
 									<AlertDescription>{error}</AlertDescription>
 								</Alert>
 							)}
 
 							<Field>
-								<FieldLabel htmlFor="fullName">Full Name</FieldLabel>
+								<FieldLabel htmlFor="fullName">{t("fullName")}</FieldLabel>
 								<Input
 									id="fullName"
 									type="text"
-									placeholder="John Doe"
+									placeholder={t("fullNamePlaceholder")}
 									required
 									value={formData.fullName}
 									onChange={handleChange}
@@ -134,11 +136,11 @@ export function SignupForm({
 								/>
 							</Field>
 							<Field>
-								<FieldLabel htmlFor="email">Email</FieldLabel>
+								<FieldLabel htmlFor="email">{t("email")}</FieldLabel>
 								<Input
 									id="email"
 									type="email"
-									placeholder="m@example.com"
+									placeholder={t("emailPlaceholder")}
 									required
 									value={formData.email}
 									onChange={handleChange}
@@ -148,7 +150,7 @@ export function SignupForm({
 							<Field>
 								<Field className="grid grid-cols-2 gap-4">
 									<Field>
-										<FieldLabel htmlFor="password">Password</FieldLabel>
+										<FieldLabel htmlFor="password">{t("password")}</FieldLabel>
 										<Input
 											id="password"
 											type="password"
@@ -160,7 +162,7 @@ export function SignupForm({
 									</Field>
 									<Field>
 										<FieldLabel htmlFor="confirmPassword">
-											Confirm Password
+											{t("confirmPassword")}
 										</FieldLabel>
 										<Input
 											id="confirmPassword"
@@ -173,7 +175,7 @@ export function SignupForm({
 									</Field>
 								</Field>
 								<FieldDescription>
-									Must be at least 8 characters long.
+									{t("passwordDescription")}
 								</FieldDescription>
 							</Field>
 							<Field>
@@ -181,10 +183,10 @@ export function SignupForm({
 									{isLoading && (
 										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 									)}
-									{isLoading ? "Creating Account..." : "Create Account"}
+									{isLoading ? t("creatingAccount") : t("createAccount")}
 								</Button>
 								<FieldDescription className="text-center">
-									Already have an account? <Link href="/login">Sign in</Link>
+									{t("alreadyHaveAccount")} <Link href="/login">{t("signIn")}</Link>
 								</FieldDescription>
 							</Field>
 						</FieldGroup>
@@ -192,9 +194,9 @@ export function SignupForm({
 				</CardContent>
 			</Card>
 			<FieldDescription className="px-6 text-center">
-				By clicking continue, you agree to our{" "}
-				<Link href="/terms">Terms of Service</Link> and{" "}
-				<Link href="/privacy">Privacy Policy</Link>.
+				{t("tosAgreement")}{" "}
+				<Link href="/terms">{t("tos")}</Link> {t("and")}{" "}
+				<Link href="/privacy">{t("privacyPolicy")}</Link>.
 			</FieldDescription>
 		</div>
 	);
