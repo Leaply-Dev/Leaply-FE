@@ -101,10 +101,7 @@ export async function getApplications(): Promise<ApplicationListResponse> {
 		return MOCK_APPLICATION_LIST;
 	}
 
-	const response = await apiClient.get<
-		ApiResponse<ApplicationListResponse>
-	>("/v1/applications");
-	return response.data;
+	return apiClient.get<ApplicationListResponse>("/v1/applications");
 }
 
 /**
@@ -121,10 +118,7 @@ export async function createApplication(
 		};
 	}
 
-	const response = await apiClient.post<
-		ApiResponse<CreateApplicationResponse>
-	>("/v1/applications", request);
-	return response.data;
+	return apiClient.post<CreateApplicationResponse>("/v1/applications", request);
 }
 
 /**
@@ -143,10 +137,7 @@ export async function updateApplication(
 		};
 	}
 
-	const response = await apiClient.patch<
-		ApiResponse<UpdateApplicationResponse>
-	>(`/v1/applications/${id}`, request);
-	return response.data;
+	return apiClient.patch<UpdateApplicationResponse>(`/v1/applications/${id}`, request);
 }
 
 /**
@@ -163,10 +154,7 @@ export async function deleteApplication(
 		};
 	}
 
-	const response = await apiClient.delete<
-		ApiResponse<DeleteApplicationResponse>
-	>(`/v1/applications/${id}`);
-	return response.data;
+	return apiClient.delete<DeleteApplicationResponse>(`/v1/applications/${id}`);
 }
 
 // ============================================
@@ -184,10 +172,7 @@ export async function getSop(
 		return { ...MOCK_SOP_RESPONSE, applicationId };
 	}
 
-	const response = await apiClient.get<
-		ApiResponse<ApplicationSopResponse>
-	>(`/v1/applications/${applicationId}/sop`);
-	return response.data;
+	return apiClient.get<ApplicationSopResponse>(`/v1/applications/${applicationId}/sop`);
 }
 
 /**
@@ -206,11 +191,7 @@ export async function saveSop(
 		};
 	}
 
-	const response = await apiClient.put<ApiResponse<SaveSopResponse>>(
-		`/v1/applications/${applicationId}/sop`,
-		request
-	);
-	return response.data;
+	return apiClient.put<SaveSopResponse>(`/v1/applications/${applicationId}/sop`, request);
 }
 
 /**
@@ -247,11 +228,7 @@ export async function getSopFeedback(
 		};
 	}
 
-	const response = await apiClient.post<ApiResponse<SopFeedbackDto>>(
-		`/v1/applications/${applicationId}/sop/feedback`,
-		{}
-	);
-	return response.data;
+	return apiClient.post<SopFeedbackDto>(`/v1/applications/${applicationId}/sop/feedback`, {});
 }
 
 // ============================================
@@ -267,8 +244,5 @@ export async function getEvaluation(): Promise<EvaluationResponse> {
 		return MOCK_EVALUATION;
 	}
 
-	const response = await apiClient.get<ApiResponse<EvaluationResponse>>(
-		"/v1/applications/evaluation"
-	);
-	return response.data;
+	return apiClient.get<EvaluationResponse>("/v1/applications/evaluation");
 }
