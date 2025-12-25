@@ -30,11 +30,13 @@ export function ChatSidebar() {
 	}, [fetchPersonaState]);
 
 	// Scroll to bottom on new messages
+	const messageCount = conversationHistory.length;
+	// biome-ignore lint/correctness/useExhaustiveDependencies: messageCount is intentionally used as a trigger
 	useEffect(() => {
 		if (scrollRef.current) {
 			scrollRef.current.scrollIntoView({ behavior: "smooth" });
 		}
-	}, [conversationHistory, isSending]);
+	}, [messageCount]);
 
 	const handleTrackSelect = (trackId: TrackId) => {
 		selectTrack(trackId);
@@ -63,20 +65,17 @@ export function ChatSidebar() {
 	}
 
 	return (
-		<div className="flex flex-col h-full overflow-hidden">
-			{/* Sticky header section */}
-			<div className="flex-shrink-0">
-				{/* Header with progress */}
-				<ChatHeader />
+		<div className="flex flex-col h-full min-h-0 overflow-hidden">
+			{/* Header with progress */}
+			<ChatHeader />
 
-				{/* Back to tracks button - always accessible when track is active */}
-				{currentTrackId && (
-					<BackToTracksButton onClick={handleBackToTracks} disabled={isSending} />
-				)}
-			</div>
+			{/* Back to tracks button (show during active track) */}
+			{currentTrackId && (
+				<BackToTracksButton onClick={handleBackToTracks} disabled={isSending} />
+			)}
 
-			{/* Messages - fixed height scrollable area */}
-			<ScrollArea className="flex-1 min-h-0 p-3">
+			{/* Messages */}
+			<ScrollArea className="flex-1 p-3" type="always">
 				<div className="space-y-3">
 					{conversationHistory.map((message, index) => (
 						<ChatMessage

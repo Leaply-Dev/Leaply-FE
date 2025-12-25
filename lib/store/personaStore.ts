@@ -200,11 +200,6 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					const response = await personaApi.sendMessage(content);
 
 					set((state) => {
-						// Remove temp user message (API returns it in history)
-						const historyWithoutTemp = state.conversationHistory.filter(
-							(m) => !m.id.startsWith("temp-"),
-						);
-
 						// Process canvas actions if any
 						if (response.message.canvasActions) {
 							get().processCanvasActions(response.message.canvasActions);
@@ -240,7 +235,7 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						}
 
 						return {
-							conversationHistory: [...historyWithoutTemp, response.message],
+							conversationHistory: [...state.conversationHistory, response.message],
 							currentTrackId: response.currentTrackId ?? null,
 							tracks: updatedTracks,
 							archetype,

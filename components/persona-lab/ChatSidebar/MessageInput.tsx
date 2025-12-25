@@ -3,6 +3,11 @@
 import { ArrowUp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+// Character limits matching backend validation
+const MIN_CHARS = 10;
+const MAX_CHARS = 5000;
 
 interface MessageInputProps {
 	onSend: (content: string) => void;
@@ -18,7 +23,13 @@ export function MessageInput({
 	const [input, setInput] = useState("");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-	// Auto-resize textarea
+	const charCount = input.trim().length;
+	const isBelowMin = charCount < MIN_CHARS;
+	const isAboveMax = charCount > MAX_CHARS;
+	const canSend = !isBelowMin && !isAboveMax && !disabled;
+
+	// Auto-resize textarea based on content
+	// biome-ignore lint/correctness/useExhaustiveDependencies: input is intentionally a dependency to trigger resize
 	useEffect(() => {
 		const textarea = textareaRef.current;
 		if (textarea) {
@@ -29,7 +40,7 @@ export function MessageInput({
 
 	const handleSend = () => {
 		const trimmed = input.trim();
-		if (!trimmed || disabled) return;
+		if (!canSend || !trimmed) return;
 
 		onSend(trimmed);
 		setInput("");
@@ -47,27 +58,66 @@ export function MessageInput({
 		}
 	};
 
+	const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		const value = e.target.value;
+		// Allow typing but cap at max + some buffer for user feedback
+		if (value.length <= MAX_CHARS + 100) {
+			setInput(value);
+		}
+	};
+
 	return (
 		<div className="p-3 border-t border-border shrink-0">
 			<div className="flex items-end gap-2 bg-muted/30 p-2 rounded-xl border border-border focus-within:border-primary/50 transition-colors">
 				<textarea
 					ref={textareaRef}
 					value={input}
-					onChange={(e) => setInput(e.target.value)}
+					onChange={handleChange}
 					onKeyDown={handleKeyDown}
 					placeholder={placeholder}
 					disabled={disabled}
-					className="flex-1 bg-transparent border-0 focus:ring-0 focus:outline-none p-1.5 min-h-[36px] max-h-[120px] resize-none text-sm placeholder:text-muted-foreground disabled:opacity-50"
+					className="flex-1 bg-transparent border-0 focus:ring-0 focus:outline-none p-1.5 min-h-9 max-h-[120px] resize-none text-sm placeholder:text-muted-foreground disabled:opacity-50"
 					rows={1}
 				/>
 				<Button
 					onClick={handleSend}
-					disabled={!input.trim() || disabled}
+					disabled={!canSend}
 					size="icon"
-					className="h-8 w-8 rounded-lg shrink-0"
+					className={cn(
+						"h-8 w-8 rounded-lg shrink-0 transition-all",
+						!canSend && "opacity-50 cursor-not-allowed",
+					)}
 				>
 					<ArrowUp className="w-4 h-4" />
 				</Button>
+			</div>
+
+			{/* Character counter */}
+			<div className="flex justify-end mt-1.5 px-1">
+				<span
+					className={cn(
+						"text-xs transition-colors",
+						charCount === 0
+							? "text-muted-foreground/50"
+							: isBelowMin
+								? "text-amber-500"
+								: isAboveMax
+									? "text-destructive"
+									: "text-muted-foreground",
+					)}
+				>
+					{charCount === 0 ? (
+						<span className="text-muted-foreground/50">
+							Min {MIN_CHARS} characters
+						</span>
+					) : isBelowMin ? (
+						<span>{MIN_CHARS - charCount} more characters needed</span>
+					) : (
+						<span>
+							{charCount.toLocaleString()}/{MAX_CHARS.toLocaleString()}
+						</span>
+					)}
+				</span>
 			</div>
 		</div>
 	);

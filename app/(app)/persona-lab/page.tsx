@@ -1,8 +1,9 @@
 "use client";
 
-import { LayoutGrid, List } from "lucide-react";
+import { ChevronLeft, LayoutGrid, List, MessageSquare } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
+import { motion } from "framer-motion";
 import { PageTransition } from "@/components/PageTransition";
 import { ChatSidebar } from "@/components/persona-lab/ChatSidebar";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,7 @@ const PersonaListView = dynamic(
 
 export default function PersonaLabPage() {
 	const { viewMode, setViewMode, selectNode } = usePersonaStore();
+	const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
 	const handleNodeSelect = useCallback(
 		(nodeId: string | null) => {
@@ -58,12 +60,55 @@ export default function PersonaLabPage() {
 	);
 
 	return (
-		<PageTransition className="flex-1 flex flex-col min-h-0">
-			<div className="flex flex-1 min-h-0 w-full bg-background overflow-hidden">
+		<PageTransition className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
+			<div className="flex flex-1 min-h-0 h-full w-full bg-background overflow-hidden relative">
 				{/* Left Sidebar - Chat Interface */}
-				<aside className="w-80 min-w-[300px] border-r border-border bg-card/50 backdrop-blur-sm hidden lg:flex flex-col">
-					<ChatSidebar />
-				</aside>
+				<motion.aside
+					initial={false}
+					animate={{
+						width: isSidebarCollapsed ? 0 : 320,
+						opacity: isSidebarCollapsed ? 0 : 1,
+					}}
+					transition={{ type: "spring", stiffness: 300, damping: 30 }}
+					className={cn(
+						"relative border-r border-border bg-card/50 backdrop-blur-sm hidden lg:flex flex-col overflow-hidden z-20",
+						isSidebarCollapsed ? "border-r-0" : "border-r",
+					)}
+				>
+					<div className="w-[320px] h-full flex flex-col">
+						<ChatSidebar />
+					</div>
+				</motion.aside>
+
+				{/* Sidebar Toggle Button */}
+				<motion.div
+					initial={false}
+					animate={{
+						left: isSidebarCollapsed ? 16 : 304,
+						top: isSidebarCollapsed ? "50%" : 16,
+						y: isSidebarCollapsed ? "-50%" : 0,
+					}}
+					transition={{ type: "spring", stiffness: 300, damping: 30 }}
+					className="absolute z-30"
+				>
+					<Button
+						variant="secondary"
+						size="icon"
+						onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+						className={cn(
+							"rounded-full shadow-md border border-border transition-all duration-300 hover:bg-primary/10 group",
+							isSidebarCollapsed
+								? "h-10 w-10 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg"
+								: "h-8 w-8",
+						)}
+					>
+						{isSidebarCollapsed ? (
+							<MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" />
+						) : (
+							<ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+						)}
+					</Button>
+				</motion.div>
 
 				{/* Main Content Area */}
 				<main className="flex-1 min-w-0 flex flex-col min-h-0">
