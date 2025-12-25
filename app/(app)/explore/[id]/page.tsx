@@ -142,7 +142,7 @@ export default function ProgramDetailPage({
 					<div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 						{/* Back Navigation */}
 						<Link
-							href="/explore-alt"
+							href="/explore"
 							className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
 						>
 							<ArrowLeft className="w-4 h-4" />
@@ -194,7 +194,7 @@ export default function ProgramDetailPage({
 					<div className="absolute inset-0 bg-linear-to-b from-primary/5 via-background to-background" />
 					<div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 						<Link
-							href="/explore-alt"
+							href="/explore"
 							className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
 						>
 							<ArrowLeft className="w-4 h-4" />
@@ -241,7 +241,7 @@ export default function ProgramDetailPage({
 					{/* Back Navigation */}
 					<SlideUp>
 						<Link
-							href="/explore-alt"
+							href="/explore"
 							className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
 						>
 							<ArrowLeft className="w-4 h-4" />

@@ -194,7 +194,7 @@ export function ProgramCard({
 					)}
 				</button>
 				<Link
-					href={`/explore-alt/${program.id}`}
+					href={`/explore/${program.id}`}
 					className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-sm"
 				>
 					View Details
