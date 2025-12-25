@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
 	PageTransition,
 	SlideUp,
@@ -28,10 +28,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import {
-	type EnhancedApplication,
-	mockEnhancedApplications,
-} from "@/lib/data/enhancedApplications";
 import { useApplicationsStore } from "@/lib/store/applicationsStore";
 import { useUserStore } from "@/lib/store/userStore";
 
@@ -62,26 +58,19 @@ function calculateProfileCompletion(
 export default function HomePage() {
 	const tHome = useTranslations("home");
 	const { profile, preferences, journeyType, lastActivity } = useUserStore();
-	const { applications, setApplications } = useApplicationsStore();
-	const [enhancedApplications, setEnhancedApplications] = useState<
-		EnhancedApplication[]
-	>([]);
+	const { applications, fetchApplications, upcomingDeadlines, summary } = useApplicationsStore();
 
-	// Initialize enhanced applications
+	// Fetch applications on mount
 	useEffect(() => {
-		setEnhancedApplications(mockEnhancedApplications);
 		if (applications.length === 0) {
-			setApplications(mockEnhancedApplications);
+			fetchApplications();
 		}
-	}, [applications.length, setApplications]);
+	}, [applications.length, fetchApplications]);
 
 	const profileCompletion = calculateProfileCompletion(profile, preferences);
-	const upcomingDeadlines = enhancedApplications.filter(
-		(app) =>
-			app.decisionDeadline && new Date(app.decisionDeadline) > new Date(),
-	).length;
-	const submittedApplications = enhancedApplications.filter(
-		(app) => app.status === "submitted" || app.status === "under_review",
+	const upcomingDeadlinesCount = upcomingDeadlines.length;
+	const submittedApplications = applications.filter(
+		(app) => app.status === "submitted",
 	).length;
 
 	// Get time of day for greeting
@@ -236,7 +225,7 @@ export default function HomePage() {
 											</div>
 											<div className="flex items-baseline gap-2">
 												<span className="text-2xl font-bold text-foreground">
-													{enhancedApplications.length}
+													{applications.length}
 												</span>
 												<span className="text-sm text-muted-foreground">
 													{submittedApplications} {tHome("submitted")}
@@ -259,7 +248,7 @@ export default function HomePage() {
 											</div>
 											<div className="flex items-baseline gap-2">
 												<span className="text-2xl font-bold text-foreground">
-													{upcomingDeadlines}
+													{upcomingDeadlinesCount}
 												</span>
 												<span className="text-sm text-muted-foreground">
 													{tHome("deadlines")}
@@ -313,34 +302,30 @@ export default function HomePage() {
 										</Button>
 									</CardHeader>
 									<CardContent>
-										{enhancedApplications.length > 0 ? (
+										{applications.length > 0 ? (
 											<div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
-												{enhancedApplications.slice(0, 4).map((app) => (
+												{applications.slice(0, 4).map((app) => (
 													<Link
 														key={app.id}
-														href="/dashboard/applications"
+														href={`/dashboard/applications/${app.id}`}
 														className="min-w-[220px] shrink-0"
 													>
 														<Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
 															<CardContent className="p-4">
 																<div className="flex items-start gap-3 mb-3">
 																	<Avatar className="h-10 w-10 shrink-0">
-																		<AvatarImage
-																			src={app.universityLogo}
-																			alt={app.universityName}
-																		/>
 																		<AvatarFallback className="text-xs">
-																			{app.universityName
+																			{app.program.universityName
 																				.substring(0, 2)
 																				.toUpperCase()}
 																		</AvatarFallback>
 																	</Avatar>
 																	<div className="flex-1 min-w-0">
 																		<h4 className="font-medium text-sm text-foreground truncate">
-																			{app.universityName}
+																			{app.program.universityName}
 																		</h4>
 																		<p className="text-xs text-muted-foreground truncate">
-																			{app.program}
+																			{app.program.programName}
 																		</p>
 																	</div>
 																</div>
@@ -348,29 +333,20 @@ export default function HomePage() {
 																	<div className="flex items-center justify-between">
 																		<Badge
 																			variant={
-																				app.status === "submitted" ||
-																				app.status === "under_review"
+																				app.status === "submitted"
 																					? "default"
 																					: "secondary"
 																			}
-																			className="text-xs"
+																			className="text-xs capitalize"
 																		>
-																			{app.status === "submitted"
-																				? tHome("submitted")
-																				: app.status === "under_review"
-																					? tHome("underReview")
-																					: app.status === "draft"
-																						? tHome("draft")
-																						: app.status}
+																			{app.status}
 																		</Badge>
-																		<span className="text-xs font-medium text-foreground">
-																			{app.fitScore}% {tHome("fit")}
-																		</span>
+																		{app.fitScore && (
+																			<span className="text-xs font-medium text-foreground">
+																				{app.fitScore}% {tHome("fit")}
+																			</span>
+																		)}
 																	</div>
-																	<Progress
-																		value={app.completionPercentage}
-																		className="h-1.5"
-																	/>
 																</div>
 															</CardContent>
 														</Card>

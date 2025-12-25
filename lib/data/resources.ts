@@ -1,4 +1,12 @@
-import type { Resource } from "../store/applicationsStore";
+export interface Resource {
+	id: string;
+	title: string;
+	summary: string;
+	url: string;
+	type: "guide" | "article" | "video";
+	tags: string[];
+	category: string;
+}
 
 export const mockResources: Resource[] = [
 	{

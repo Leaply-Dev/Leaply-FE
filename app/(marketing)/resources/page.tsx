@@ -2,7 +2,7 @@
 
 import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { PageContainer } from "@/components/Layout";
 import {
 	PageTransition,
@@ -11,27 +11,18 @@ import {
 } from "@/components/PageTransition";
 import { ResourceCard } from "@/components/ResourceCard";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { mockResources } from "@/lib/data/resources";
-import { useApplicationsStore } from "@/lib/store/applicationsStore";
 
 export default function ResourcesPage() {
 	const t = useTranslations("resources");
-	const { resources, setResources } = useApplicationsStore();
 	const [searchQuery, setSearchQuery] = useState("");
 	const [categoryFilter, setCategoryFilter] = useState("all");
-
-	useEffect(() => {
-		if (resources.length === 0) {
-			setResources(mockResources);
-		}
-	}, [resources.length, setResources]);
 
 	const categories = Array.from(
 		new Set(mockResources.map((r) => r.category)),
 	).sort();
 
-	const filteredResources = resources.filter((resource) => {
+	const filteredResources = mockResources.filter((resource) => {
 		const matchesSearch =
 			resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			resource.summary.toLowerCase().includes(searchQuery.toLowerCase());
@@ -62,10 +53,10 @@ export default function ResourcesPage() {
 							className="pl-10"
 						/>
 					</div>
-					<Select
+					<select
 						value={categoryFilter}
 						onChange={(e) => setCategoryFilter(e.target.value)}
-						className="md:w-48"
+						className="md:w-48 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
 					>
 						<option value="all">{t("allCategories")}</option>
 						{categories.map((category) => (
@@ -73,7 +64,7 @@ export default function ResourcesPage() {
 								{category}
 							</option>
 						))}
-					</Select>
+					</select>
 				</div>
 
 				{/* Results Count */}

@@ -1,7 +1,6 @@
 "use client";
 
 import { FieldDescription, FieldLegend, FieldSet } from "@/components/ui/field";
-import { Select } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { StepContainer } from "../components/StepContainer";
 import { StepNavigation } from "../components/StepNavigation";
@@ -49,9 +48,10 @@ export function Step3Plan({
 						<FieldDescription>
 							{translations.step2b.selectYear}
 						</FieldDescription>
-						<Select
+						<select
 							value={prefs.startYear}
 							onChange={(e) => onPrefsChange({ startYear: e.target.value })}
+							className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							<option value="" disabled>
 								{translations.step2b.selectYearPlaceholder}
@@ -61,16 +61,17 @@ export function Step3Plan({
 									{year}
 								</option>
 							))}
-						</Select>
+						</select>
 					</div>
 
 					<div className="space-y-2">
 						<FieldDescription>
 							{translations.step2b.selectTerm}
 						</FieldDescription>
-						<Select
+						<select
 							value={prefs.startTerm}
 							onChange={(e) => onPrefsChange({ startTerm: e.target.value })}
+							className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							<option value="" disabled>
 								{translations.step2b.selectTermPlaceholder}
@@ -80,7 +81,7 @@ export function Step3Plan({
 									{term}
 								</option>
 							))}
-						</Select>
+						</select>
 					</div>
 				</div>
 			</FieldSet>
