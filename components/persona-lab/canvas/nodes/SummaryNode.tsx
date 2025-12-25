@@ -1,59 +1,108 @@
 "use client";
 
 import { Handle, Position } from "@xyflow/react";
-import { ChevronRight, FileText } from "lucide-react";
-import { getTrackColor } from "@/lib/constants/personaColors";
-import type { TrackId } from "@/lib/store/personaStore";
+import { ChevronRight, FileText, Loader2 } from "lucide-react";
+import { TRACK_COLORS, TRACKS } from "@/lib/constants/tracks";
+import type { TrackId, TrackStatus } from "@/lib/types/persona";
 import { cn } from "@/lib/utils";
 
 export interface SummaryNodeData {
-	track: TrackId;
-	state: "locked" | "unlocked";
-	title?: string;
-	brief?: string;
-	themeTag?: string;
-	unlockHint?: string;
+	trackId: TrackId;
+	status: TrackStatus;
+	completionPercentage?: number;
+	summary?: string;
+	isLoading?: boolean;
 	zoom?: number;
-	isCluster?: boolean;
-	childCount?: number;
 	[key: string]: unknown;
 }
 
 interface SummaryNodeProps {
-	data: SummaryNodeData & { showDetails?: boolean };
+	data: SummaryNodeData;
 	selected?: boolean;
 }
 
 export function SummaryNode({ data, selected }: SummaryNodeProps) {
-	const isLocked = data.state === "locked";
-	const colors = getTrackColor(data.track);
+	const colors = TRACK_COLORS[data.trackId];
+	const trackDef = TRACKS[data.trackId];
+	const isLoading = data.isLoading;
+	const isCompleted = data.status === "completed";
+	const isInProgress = data.status === "in_progress";
+	const isNotStarted = data.status === "not_started";
 
 	const isMacroView = data.zoom && data.zoom < 0.5;
-	const isMicroView = !data.zoom || data.zoom > 0.8;
-	const showDetails = isMicroView;
 
-	// Macro View (Deep Zoom Out)
+	// Get completion percentage (0-100)
+	const percentage = data.completionPercentage ?? 0;
+
+	// Macro View (Deep Zoom Out) - Circle with progress ring
 	if (isMacroView) {
 		return (
 			<div className="group relative flex items-center justify-center">
+				{/* Progress ring */}
+				<svg className="w-14 h-14 -rotate-90">
+					{/* Background circle */}
+					<circle
+						cx="28"
+						cy="28"
+						r="24"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth="4"
+						className="text-muted"
+					/>
+					{/* Progress circle */}
+					<circle
+						cx="28"
+						cy="28"
+						r="24"
+						fill="none"
+						stroke={colors.primary}
+						strokeWidth="4"
+						strokeLinecap="round"
+						strokeDasharray={`${(percentage / 100) * 150.8} 150.8`}
+						className="transition-all duration-500"
+					/>
+				</svg>
+				{/* Center content */}
 				<div
-					className={cn(
-						"w-12 h-12 rounded-full border-4 transition-all duration-500",
-						isLocked ? "bg-muted border-border" : "shadow-lg",
+					className="absolute inset-0 flex items-center justify-center text-xs font-bold"
+					style={{ color: colors.primary }}
+				>
+					{isLoading ? (
+						<Loader2 className="w-4 h-4 animate-spin" />
+					) : (
+						`${percentage}%`
 					)}
-					style={
-						!isLocked
-							? {
-									backgroundColor: colors.primary,
-									borderColor: colors.light,
-									boxShadow: `0 0 20px ${colors.primary}40`,
-								}
-							: {}
-					}
-				/>
-				<div className="absolute top-14 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-background/90 px-2 py-1 rounded text-[10px] font-bold border border-border">
-					{data.title || data.track}
 				</div>
+				{/* Tooltip on hover */}
+				<div className="absolute top-16 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-background/90 px-2 py-1 rounded text-[10px] font-bold border border-border z-10">
+					{trackDef.displayName}
+				</div>
+				{/* Handles */}
+				<Handle
+					type="target"
+					position={Position.Top}
+					id={Position.Top}
+					className="!opacity-0"
+				/>
+				<Handle
+					type="target"
+					position={Position.Left}
+					id={Position.Left}
+					className="!opacity-0"
+				/>
+				<Handle
+					type="target"
+					position={Position.Bottom}
+					id={Position.Bottom}
+					className="!opacity-0"
+				/>
+				<Handle
+					type="target"
+					position={Position.Right}
+					id={Position.Right}
+					className="!opacity-0"
+				/>
 			</div>
 		);
 	}
@@ -64,82 +113,142 @@ export function SummaryNode({ data, selected }: SummaryNodeProps) {
 				"relative rounded-xl border-2 shadow-md transition-all duration-500 cursor-pointer overflow-hidden",
 				"min-w-[180px] max-w-[200px] px-4 py-3",
 				"hover:shadow-xl hover:scale-[1.02]",
-				isLocked ? "bg-muted/50 border-border/50" : "bg-background",
+				"bg-background",
 				selected && "ring-2 ring-offset-2",
-				selected && !isLocked && colors.textClass.replace("text-", "ring-"),
-				!isMicroView && "scale-90 opacity-80",
 			)}
-			style={
-				!isLocked
-					? { borderColor: colors.primary, backgroundColor: colors.light }
-					: undefined
-			}
+			style={{
+				borderColor: isLoading ? "hsl(var(--border))" : colors.primary,
+				backgroundColor: isLoading ? "hsl(var(--muted))" : colors.light,
+			}}
 		>
-			{/* Glow effect for unlocked nodes */}
-			{!isLocked && (
+			{/* Glow effect for completed */}
+			{isCompleted && (
 				<div
-					className="absolute -inset-1 opacity-20 blur-xl transition-all group-hover:opacity-30"
+					className="absolute -inset-1 opacity-20 blur-xl transition-all"
 					style={{ backgroundColor: colors.primary }}
 				/>
 			)}
 
 			<div className="relative z-10 flex items-start gap-3">
-				<div
-					className={cn(
-						"flex items-center justify-center w-8 h-8 rounded-lg shrink-0",
-						isLocked ? "bg-muted" : colors.bgClass,
-					)}
-				>
-					<FileText
+				{/* Icon with progress indicator */}
+				<div className="relative">
+					<div
 						className={cn(
-							"w-4 h-4",
-							isLocked ? "text-muted-foreground" : colors.textClass,
+							"flex items-center justify-center w-10 h-10 rounded-lg shrink-0",
+							isLoading && "animate-pulse bg-muted",
 						)}
-						style={!isLocked ? { color: colors.primary } : undefined}
-					/>
+						style={
+							!isLoading
+								? { backgroundColor: `${colors.primary}20` }
+								: undefined
+						}
+					>
+						{isLoading ? (
+							<Loader2
+								className="w-5 h-5 animate-spin text-muted-foreground"
+							/>
+						) : (
+							<FileText
+								className="w-5 h-5"
+								style={{ color: colors.primary }}
+							/>
+						)}
+					</div>
+					{/* Mini progress ring */}
+					{!isLoading && !isNotStarted && (
+						<svg className="absolute -bottom-1 -right-1 w-5 h-5 -rotate-90">
+							<circle
+								cx="10"
+								cy="10"
+								r="8"
+								fill="hsl(var(--background))"
+								stroke="hsl(var(--border))"
+								strokeWidth="1"
+							/>
+							<circle
+								cx="10"
+								cy="10"
+								r="6"
+								fill="none"
+								stroke={colors.primary}
+								strokeWidth="2"
+								strokeLinecap="round"
+								strokeDasharray={`${(percentage / 100) * 37.7} 37.7`}
+							/>
+						</svg>
+					)}
 				</div>
 
 				<div className="flex-1 min-w-0">
-					{isLocked ? (
+					{isLoading ? (
 						<>
-							<span className="text-sm font-medium text-muted-foreground">
-								Keep sharing...
-							</span>
-							<p className="text-xs text-muted-foreground/70 mt-0.5 line-clamp-1">
-								{data.unlockHint || "Complete this topic"}
-							</p>
+							{/* Loading skeleton */}
+							<div className="h-4 w-24 bg-muted-foreground/20 rounded animate-pulse" />
+							<div className="h-3 w-16 bg-muted-foreground/10 rounded animate-pulse mt-1.5" />
 						</>
 					) : (
 						<>
-							<span className="text-sm font-semibold text-foreground line-clamp-2">
-								{data.title || "Your Story"}
+							<span className="text-sm font-semibold text-foreground line-clamp-1">
+								{trackDef.displayName}
 							</span>
-							{data.themeTag && isMicroView && (
-								<div className="flex flex-wrap gap-1 mt-1.5">
+							<div className="flex items-center gap-2 mt-1">
+								{/* Status badge */}
+								<span
+									className={cn(
+										"inline-block text-[10px] px-1.5 py-0.5 rounded-full font-medium",
+									)}
+									style={{
+										backgroundColor: isCompleted
+											? `${colors.primary}20`
+											: "hsl(var(--muted))",
+										color: isCompleted
+											? colors.primary
+											: "hsl(var(--muted-foreground))",
+									}}
+								>
+									{isCompleted
+										? "Completed"
+										: isInProgress
+											? "In Progress"
+											: "Not Started"}
+								</span>
+								{/* Percentage */}
+								{!isNotStarted && (
 									<span
-										className={cn(
-											"inline-block text-[10px] px-1.5 py-0.5 rounded-full font-medium",
-											colors.bgClass,
-										)}
+										className="text-[10px] font-bold"
 										style={{ color: colors.primary }}
 									>
-										{data.themeTag}
+										{percentage}%
 									</span>
-									{data.isCluster && (
-										<span className="text-[10px] bg-foreground/10 px-1.5 py-0.5 rounded-full font-bold">
-											+{data.childCount} stories
-										</span>
-									)}
-								</div>
+								)}
+							</div>
+							{/* Summary preview */}
+							{data.summary && (
+								<p className="text-[11px] text-muted-foreground mt-2 line-clamp-2 leading-tight">
+									{data.summary}
+								</p>
 							)}
 						</>
 					)}
 				</div>
 
-				{!isLocked && isMicroView && (
+				{!isLoading && (
 					<ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 mt-1" />
 				)}
 			</div>
+
+			{/* Progress bar at bottom */}
+			{!isLoading && !isNotStarted && (
+				<div className="absolute bottom-0 left-0 right-0 h-1 bg-muted">
+					<div
+						className="h-full transition-all duration-500"
+						style={{
+							width: `${percentage}%`,
+							backgroundColor: colors.primary,
+						}}
+					/>
+				</div>
+			)}
 
 			{/* Handles - all sides for flexible connections */}
 			<Handle
@@ -147,28 +256,28 @@ export function SummaryNode({ data, selected }: SummaryNodeProps) {
 				position={Position.Top}
 				id={Position.Top}
 				className="w-2 h-2 !opacity-0"
-				style={{ backgroundColor: isLocked ? "#9ca3af" : colors.primary }}
+				style={{ backgroundColor: colors.primary }}
 			/>
 			<Handle
 				type="target"
 				position={Position.Left}
 				id={Position.Left}
 				className="w-2 h-2 !opacity-0"
-				style={{ backgroundColor: isLocked ? "#9ca3af" : colors.primary }}
+				style={{ backgroundColor: colors.primary }}
 			/>
 			<Handle
-				type="source"
+				type="target"
 				position={Position.Bottom}
 				id={Position.Bottom}
 				className="w-2 h-2 !opacity-0"
-				style={{ backgroundColor: isLocked ? "#9ca3af" : colors.primary }}
+				style={{ backgroundColor: colors.primary }}
 			/>
 			<Handle
-				type="source"
+				type="target"
 				position={Position.Right}
 				id={Position.Right}
 				className="w-2 h-2 !opacity-0"
-				style={{ backgroundColor: isLocked ? "#9ca3af" : colors.primary }}
+				style={{ backgroundColor: colors.primary }}
 			/>
 		</div>
 	);

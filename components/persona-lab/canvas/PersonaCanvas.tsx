@@ -6,23 +6,23 @@ import {
 	Controls,
 	type Edge,
 	type Node,
+	Position,
 	ReactFlow,
 	ReactFlowProvider,
 	useEdgesState,
 	useNodesState,
-	useViewport,
+	useReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ARCHETYPES } from "@/lib/constants/archetypes";
-import { NODE_TYPE_COLORS, TRACK_COLORS } from "@/lib/constants/tracks";
+import { TRACK_COLORS, TRACK_IDS } from "@/lib/constants/tracks";
 import {
 	type CanvasNode as StoreCanvasNode,
 	usePersonaStore,
 } from "@/lib/store/personaStore";
 import type { NodeType, TrackId } from "@/lib/types/persona";
 import { cn } from "@/lib/utils";
-import { CANVAS_CENTER } from "@/lib/utils/canvasLayout";
 import { CanvasControls } from "./CanvasControls";
 import {
 	type NodeType as ModalNodeType,
@@ -33,13 +33,26 @@ import { ArchetypeNode, type ArchetypeNodeData } from "./nodes/ArchetypeNode";
 import { EvidenceNode, type EvidenceNodeData } from "./nodes/EvidenceNode";
 import { InsightNode, type InsightNodeData } from "./nodes/InsightNode";
 import { StoryNode, type StoryNodeData } from "./nodes/StoryNode";
+import { SummaryNode, type SummaryNodeData } from "./nodes/SummaryNode";
 
 // Define node types for React Flow
 const nodeTypes = {
 	archetype: ArchetypeNode,
+	summary: SummaryNode,
 	story: StoryNode,
 	evidence: EvidenceNode,
 	insight: InsightNode,
+};
+
+// Distance from center for summary nodes (diamond layout)
+const SUMMARY_NODE_DISTANCE = 280;
+
+// Track positions in diamond layout: Top, Right, Bottom, Left
+const TRACK_POSITIONS: Record<TrackId, { angle: number; sourceHandle: Position; targetHandle: Position }> = {
+	future_vision: { angle: -90, sourceHandle: Position.Top, targetHandle: Position.Bottom },
+	academic_journey: { angle: 0, sourceHandle: Position.Right, targetHandle: Position.Left },
+	values_turning_points: { angle: 90, sourceHandle: Position.Bottom, targetHandle: Position.Top },
+	activities_impact: { angle: 180, sourceHandle: Position.Left, targetHandle: Position.Right },
 };
 
 interface PersonaCanvasProps {
@@ -58,38 +71,124 @@ export function PersonaCanvas(props: PersonaCanvasProps) {
 function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 	const {
 		nodes: storeNodes,
+		tracks,
 		archetype,
 		visibleLayers,
 		selectNode,
+		isLoading,
 	} = usePersonaStore();
 	const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 	const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
 	const [modalData, setModalData] = useState<NodeDetailData | null>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [currentZoom, setCurrentZoom] = useState(0.8);
+	const initialFitDone = useRef(false);
 
-	const { zoom } = useViewport();
+	const { fitView, getViewport } = useReactFlow();
+
+	// Calculate track completion percentages
+	const trackProgress = useMemo(() => {
+		const progress: Record<TrackId, number> = {
+			future_vision: 0,
+			academic_journey: 0,
+			activities_impact: 0,
+			values_turning_points: 0,
+		};
+
+		for (const trackId of TRACK_IDS) {
+			const track = tracks[trackId];
+			if (track.status === "completed") {
+				progress[trackId] = 100;
+			} else if (track.status === "in_progress") {
+				// Estimate progress based on nodes collected for this track
+				const trackNodes = storeNodes.filter(n => n.sourceTrackId === trackId);
+				progress[trackId] = Math.min(80, trackNodes.length * 20);
+			}
+		}
+
+		return progress;
+	}, [tracks, storeNodes]);
+
+	// Calculate overall progress
+	const overallProgress = useMemo(() => {
+		const values = Object.values(trackProgress);
+		return Math.round(values.reduce((a, b) => a + b, 0) / values.length);
+	}, [trackProgress]);
+
+	const completedTracksCount = useMemo(() => {
+		return Object.values(tracks).filter(t => t.status === "completed").length;
+	}, [tracks]);
 
 	// Generate React Flow nodes from store nodes
 	const generatedData = useMemo(() => {
 		const rfNodes: Node[] = [];
 		const rfEdges: Edge[] = [];
 
-		// Create archetype node (always present, but may be locked)
+		// Center position (will be adjusted by fitView)
+		const CENTER = { x: 0, y: 0 };
+
+		// Create archetype node (always present at center)
 		const archetypeData: ArchetypeNodeData = {
 			state: archetype ? "revealed" : "locked",
 			archetypeType: archetype?.type,
 			personalizedSummary: archetype?.personalizedSummary,
-			zoom,
+			overallProgress,
+			completedTracks: completedTracksCount,
+			totalTracks: 4,
+			zoom: currentZoom,
 		};
 
 		rfNodes.push({
 			id: "archetype",
 			type: "archetype",
-			position: { x: CANVAS_CENTER.x, y: CANVAS_CENTER.y },
+			position: { x: CENTER.x - 100, y: CENTER.y - 80 }, // Offset to center the node
 			data: archetypeData,
 		});
 
-		// Group nodes by track for positioning
+		// Create 4 Summary Nodes in diamond layout
+		for (const trackId of TRACK_IDS) {
+			const trackPos = TRACK_POSITIONS[trackId];
+			const track = tracks[trackId];
+			const radians = (trackPos.angle * Math.PI) / 180;
+
+			const position = {
+				x: CENTER.x + Math.cos(radians) * SUMMARY_NODE_DISTANCE - 100, // Offset to center
+				y: CENTER.y + Math.sin(radians) * SUMMARY_NODE_DISTANCE - 50,
+			};
+
+			const summaryData: SummaryNodeData = {
+				trackId,
+				status: track.status,
+				completionPercentage: trackProgress[trackId],
+				isLoading: isLoading,
+				zoom: currentZoom,
+			};
+
+			rfNodes.push({
+				id: `summary-${trackId}`,
+				type: "summary",
+				position,
+				data: summaryData,
+			});
+
+			// Create edge from archetype to summary node with proper handles
+			const trackColor = TRACK_COLORS[trackId];
+			rfEdges.push({
+				id: `archetype-to-summary-${trackId}`,
+				source: "archetype",
+				target: `summary-${trackId}`,
+				sourceHandle: trackPos.sourceHandle,
+				targetHandle: trackPos.targetHandle,
+				style: {
+					stroke: trackColor.primary,
+					strokeWidth: 2,
+					strokeOpacity: track.status === "completed" ? 0.8 : 0.3,
+				},
+				animated: track.status === "in_progress",
+			});
+		}
+
+		// Group story/evidence/insight nodes by track for positioning
 		const nodesByTrack: Record<TrackId, StoreCanvasNode[]> = {
 			future_vision: [],
 			academic_journey: [],
@@ -97,45 +196,34 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 			values_turning_points: [],
 		};
 
-		// Sort nodes by type and track
 		for (const node of storeNodes) {
 			if (node.sourceTrackId) {
 				nodesByTrack[node.sourceTrackId].push(node);
 			}
 		}
 
-		// Track angle mapping for positioning
-		const trackAngles: Record<TrackId, number> = {
-			future_vision: -90, // top
-			academic_journey: 0, // right
-			values_turning_points: 90, // bottom
-			activities_impact: 180, // left
-		};
-
-		// Create React Flow nodes for each store node
-		let nodeIndex = 0;
-		for (const [trackId, trackNodes] of Object.entries(nodesByTrack) as [
-			TrackId,
-			StoreCanvasNode[],
-		][]) {
-			const baseAngle = trackAngles[trackId];
+		// Create React Flow nodes for each store node (story, evidence, insight)
+		for (const [trackId, trackNodes] of Object.entries(nodesByTrack) as [TrackId, StoreCanvasNode[]][]) {
+			const trackPos = TRACK_POSITIONS[trackId];
 			const trackColor = TRACK_COLORS[trackId];
+			const baseAngle = trackPos.angle;
 
+			// Position nodes in an arc beyond the summary node
 			trackNodes.forEach((storeNode, idx) => {
-				const distance = 200 + idx * 80;
-				const angleSpread = 15;
-				const angle = baseAngle + (idx - trackNodes.length / 2) * angleSpread;
+				// Check if layer is visible
+				const isLayerVisible = visibleLayers[storeNode.type as keyof typeof visibleLayers];
+				if (!isLayerVisible) return;
+
+				// Calculate position - spread nodes in an arc
+				const distance = SUMMARY_NODE_DISTANCE + 150 + idx * 60;
+				const angleSpread = 12;
+				const angle = baseAngle + (idx - (trackNodes.length - 1) / 2) * angleSpread;
 				const radians = (angle * Math.PI) / 180;
 
 				const position = {
-					x: CANVAS_CENTER.x + Math.cos(radians) * distance,
-					y: CANVAS_CENTER.y + Math.sin(radians) * distance,
+					x: CENTER.x + Math.cos(radians) * distance - 80,
+					y: CENTER.y + Math.sin(radians) * distance - 40,
 				};
-
-				// Check if layer is visible
-				const isLayerVisible =
-					visibleLayers[storeNode.type as keyof typeof visibleLayers];
-				if (!isLayerVisible) return;
 
 				// Create node based on type
 				const nodeData: Record<string, unknown> = {
@@ -143,7 +231,7 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 					title: storeNode.title,
 					content: storeNode.content,
 					sourceTrackId: storeNode.sourceTrackId,
-					zoom,
+					zoom: currentZoom,
 				};
 
 				if (storeNode.type === "insight") {
@@ -157,66 +245,25 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 					data: nodeData,
 				});
 
-				// Create edge from archetype to this node
-				if (storeNode.type === "story") {
-					rfEdges.push({
-						id: `archetype-${storeNode.id}`,
-						source: "archetype",
-						target: storeNode.id,
-						style: {
-							stroke: trackColor.primary,
-							strokeWidth: 2,
-							strokeOpacity: 0.3,
-						},
-						animated: false,
-					});
-				}
-
-				nodeIndex++;
-			});
-		}
-
-		// If no nodes exist, create placeholder "seed" nodes
-		if (storeNodes.length === 0) {
-			const placeholders = [
-				{
-					id: "seed-1",
-					title: "Start your discovery journey",
-					trackId: "future_vision" as TrackId,
-					angle: -45,
-				},
-				{
-					id: "seed-2",
-					title: "Share your stories",
-					trackId: "academic_journey" as TrackId,
-					angle: 45,
-				},
-			];
-
-			placeholders.forEach((p, idx) => {
-				const radians = (p.angle * Math.PI) / 180;
-				const distance = 250;
-
-				rfNodes.push({
-					id: p.id,
-					type: "insight",
-					position: {
-						x: CANVAS_CENTER.x + Math.cos(radians) * distance,
-						y: CANVAS_CENTER.y + Math.sin(radians) * distance,
+				// Create edge from summary node to this node with proper handles
+				rfEdges.push({
+					id: `summary-${trackId}-to-${storeNode.id}`,
+					source: `summary-${trackId}`,
+					target: storeNode.id,
+					sourceHandle: trackPos.sourceHandle,
+					targetHandle: trackPos.targetHandle,
+					style: {
+						stroke: trackColor.primary,
+						strokeWidth: 1.5,
+						strokeOpacity: 0.4,
 					},
-					data: {
-						id: p.id,
-						title: p.title,
-						sourceTrackId: p.trackId,
-						isAIGenerated: false,
-						zoom,
-					},
+					animated: false,
 				});
 			});
 		}
 
 		return { nodes: rfNodes, edges: rfEdges };
-	}, [storeNodes, archetype, visibleLayers, zoom]);
+	}, [storeNodes, tracks, archetype, visibleLayers, currentZoom, trackProgress, overallProgress, completedTracksCount, isLoading]);
 
 	const [nodes, setNodes, onNodesChange] = useNodesState(generatedData.nodes);
 	const [edges, setEdges, onEdgesChange] = useEdgesState(generatedData.edges);
@@ -226,6 +273,28 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 		setNodes(generatedData.nodes);
 		setEdges(generatedData.edges);
 	}, [generatedData, setNodes, setEdges]);
+
+	// Initial fit view centered on archetype
+	useEffect(() => {
+		if (!initialFitDone.current && nodes.length > 0) {
+			// Small delay to ensure nodes are rendered
+			const timer = setTimeout(() => {
+				fitView({
+					padding: 0.3,
+					duration: 300,
+					nodes: [{ id: "archetype" }], // Center on archetype
+				});
+				initialFitDone.current = true;
+			}, 100);
+			return () => clearTimeout(timer);
+		}
+	}, [nodes.length, fitView]);
+
+	// Track zoom changes
+	const handleMoveEnd = useCallback(() => {
+		const viewport = getViewport();
+		setCurrentZoom(viewport.zoom);
+	}, [getViewport]);
 
 	// Highlight connections on hover/select
 	const styledEdges = useMemo(() => {
@@ -240,10 +309,11 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				...edge,
 				style: {
 					...edge.style,
-					strokeOpacity: isHighlighted ? 0.8 : 0.2,
-					transition: "stroke-opacity 0.3s ease",
+					strokeOpacity: isHighlighted ? 0.9 : (edge.style?.strokeOpacity ?? 0.3),
+					strokeWidth: isHighlighted ? 3 : (edge.style?.strokeWidth ?? 2),
+					transition: "stroke-opacity 0.3s ease, stroke-width 0.3s ease",
 				},
-				animated: isHighlighted,
+				animated: isHighlighted || edge.animated,
 			};
 		});
 	}, [edges, selectedNodeId, hoveredNodeId]);
@@ -254,13 +324,13 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 			selectNode(node.id);
 			onNodeSelect?.(node.id);
 
-			const nodeData = createModalData(node, storeNodes, archetype);
+			const nodeData = createModalData(node, storeNodes, archetype, tracks);
 			if (nodeData) {
 				setModalData(nodeData);
 				setIsModalOpen(true);
 			}
 		},
-		[onNodeSelect, storeNodes, archetype, selectNode],
+		[onNodeSelect, storeNodes, archetype, selectNode, tracks],
 	);
 
 	const handleNodeMouseEnter = useCallback(
@@ -290,14 +360,23 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 			const node = nodes.find((n) => n.id === nodeId);
 			if (node) {
 				setSelectedNodeId(nodeId);
-				const nodeData = createModalData(node, storeNodes, archetype);
+				const nodeData = createModalData(node, storeNodes, archetype, tracks);
 				if (nodeData) {
 					setModalData(nodeData);
 				}
 			}
 		},
-		[nodes, storeNodes, archetype],
+		[nodes, storeNodes, archetype, tracks],
 	);
+
+	// Re-center on archetype when double-clicking pane
+	const handlePaneDoubleClick = useCallback(() => {
+		fitView({
+			padding: 0.3,
+			duration: 300,
+			nodes: [{ id: "archetype" }],
+		});
+	}, [fitView]);
 
 	return (
 		<div className={cn("w-full h-full relative", className)}>
@@ -310,10 +389,15 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				onPaneClick={handlePaneClick}
 				onNodeMouseEnter={handleNodeMouseEnter}
 				onNodeMouseLeave={handleNodeMouseLeave}
+				onMoveEnd={handleMoveEnd}
+				onDoubleClick={handlePaneDoubleClick}
 				nodeTypes={nodeTypes}
 				fitView
-				fitViewOptions={{ padding: 0.3 }}
-				minZoom={0.3}
+				fitViewOptions={{
+					padding: 0.3,
+					nodes: [{ id: "archetype" }], // Center on archetype
+				}}
+				minZoom={0.2}
 				maxZoom={1.5}
 				defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
 				proOptions={{ hideAttribution: true }}
@@ -355,6 +439,7 @@ function createModalData(
 	node: Node,
 	storeNodes: StoreCanvasNode[],
 	archetype: { type: string; personalizedSummary: string } | null,
+	tracks: Record<TrackId, { status: string; displayName: string }>,
 ): NodeDetailData | null {
 	const nodeType = node.type as string;
 
@@ -376,6 +461,19 @@ function createModalData(
 						"Your unique archetype has been revealed."
 					: "Complete all 4 discovery tracks to reveal your archetype.",
 			themes: archetypeDef?.essayStrengths,
+		};
+	}
+
+	if (nodeType === "summary") {
+		const data = node.data as SummaryNodeData;
+		const track = tracks[data.trackId];
+
+		return {
+			id: node.id,
+			type: "story" as ModalNodeType,
+			trackId: data.trackId,
+			title: track.displayName,
+			content: data.summary || `Track progress: ${data.completionPercentage || 0}%`,
 		};
 	}
 
