@@ -617,3 +617,39 @@ export interface ArchetypeResponse {
 	completedTracks: number;
 	isComplete?: boolean;
 }
+
+// ============================================
+// Home API
+// ============================================
+
+export interface DiscoveryProgressDto {
+	completedTracks: number;
+	totalTracks: number;
+	archetypeRevealed: boolean;
+}
+
+export interface SuggestedActionDto {
+	type: string; // "persona" | "explore" | "profile" | "deadline" | "writing"
+	title: string;
+	description: string;
+	link: string;
+}
+
+export interface RecentApplicationDto {
+	id: string;
+	universityName: string;
+	programName: string;
+	status: string;
+	fitScore?: number;
+}
+
+export interface HomeResponse {
+	firstName: string;
+	profileCompletion: number;
+	journeyType?: string;
+	discovery: DiscoveryProgressDto;
+	applications: ApplicationSummaryDto;
+	recentApplications: RecentApplicationDto[];
+	upcomingDeadlines: UpcomingDeadlineDto[];
+	suggestedAction: SuggestedActionDto;
+}

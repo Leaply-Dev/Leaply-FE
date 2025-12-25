@@ -9,6 +9,7 @@ import {
 	FileText,
 	FolderOpen,
 	GraduationCap,
+	Loader2,
 	School,
 	Sparkles,
 	Target,
@@ -16,62 +17,53 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
 	PageTransition,
 	SlideUp,
 	StaggerContainer,
 	StaggerItem,
 } from "@/components/PageTransition";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { useApplicationsStore } from "@/lib/store/applicationsStore";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getHomeData } from "@/lib/api/homeApi";
+import type { HomeResponse } from "@/lib/api/types";
 import { useUserStore } from "@/lib/store/userStore";
-
-// Calculate profile completion percentage
-function calculateProfileCompletion(
-	profile: ReturnType<typeof useUserStore.getState>["profile"],
-	preferences: ReturnType<typeof useUserStore.getState>["preferences"],
-): number {
-	let filled = 0;
-	const total = 10;
-
-	if (profile?.fullName) filled++;
-	if (profile?.email) filled++;
-	if (profile?.currentEducationLevel) filled++;
-	if (profile?.gpa) filled++;
-	if (profile?.testScores && profile.testScores.length > 0) filled++;
-	if (preferences?.desiredMajors && preferences.desiredMajors.length > 0)
-		filled++;
-	if (preferences?.targetCountries && preferences.targetCountries.length > 0)
-		filled++;
-	if (preferences?.budgetRange) filled++;
-	if (preferences?.timeline) filled++;
-	if (preferences?.priorities && preferences.priorities.length > 0) filled++;
-
-	return Math.round((filled / total) * 100);
-}
 
 export default function HomePage() {
 	const tHome = useTranslations("home");
-	const { profile, preferences, journeyType, lastActivity } = useUserStore();
-	const { applications, fetchApplications, upcomingDeadlines, summary } = useApplicationsStore();
+	const { profile, lastActivity } = useUserStore();
+	const [homeData, setHomeData] = useState<HomeResponse | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
 
-	// Fetch applications on mount
+	// Fetch home data on mount
 	useEffect(() => {
-		if (applications.length === 0) {
-			fetchApplications();
+		async function fetchData() {
+			try {
+				const data = await getHomeData();
+				setHomeData(data);
+			} catch (error) {
+				console.error("Failed to fetch home data:", error);
+			} finally {
+				setIsLoading(false);
+			}
 		}
-	}, [applications.length, fetchApplications]);
+		fetchData();
+	}, []);
 
-	const profileCompletion = calculateProfileCompletion(profile, preferences);
-	const upcomingDeadlinesCount = upcomingDeadlines.length;
-	const submittedApplications = applications.filter(
-		(app) => app.status === "submitted",
-	).length;
+	// Derive values from homeData
+	const profileCompletion = homeData?.profileCompletion ?? 0;
+	const upcomingDeadlinesCount = homeData?.upcomingDeadlines?.length ?? 0;
+	const applicationsCount = homeData?.applications?.total ?? 0;
+	const submittedApplications = homeData?.applications?.byStatus?.submitted ?? 0;
+	const discoveryTracks = homeData?.discovery?.completedTracks ?? 0;
+	const totalTracks = homeData?.discovery?.totalTracks ?? 4;
+	const suggestedAction = homeData?.suggestedAction;
+	const recentApplications = homeData?.recentApplications ?? [];
 
 	// Get time of day for greeting
 	const getGreeting = () => {
@@ -104,7 +96,7 @@ export default function HomePage() {
 						<div className="mb-8">
 							<h1 className="text-3xl font-bold text-foreground mb-2">
 								{getGreeting()},{" "}
-								{profile?.fullName?.split(" ")[0] || tHome("you")}!
+								{homeData?.firstName || profile?.fullName?.split(" ").pop() || tHome("you")}!
 							</h1>
 							<p className="text-lg text-muted-foreground">
 								{tHome("subtitle")}
@@ -119,7 +111,21 @@ export default function HomePage() {
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ delay: 0.2 }}
 						>
-							{journeyType === "exploring" ? (
+							{isLoading ? (
+								<Card className="mb-8">
+									<CardContent className="p-6">
+										<div className="flex items-start gap-4">
+											<Skeleton className="w-14 h-14 rounded-2xl" />
+											<div className="flex-1 space-y-3">
+												<Skeleton className="h-5 w-24" />
+												<Skeleton className="h-6 w-48" />
+												<Skeleton className="h-4 w-64" />
+												<Skeleton className="h-10 w-32" />
+											</div>
+										</div>
+									</CardContent>
+								</Card>
+							) : suggestedAction?.type === "persona" || suggestedAction?.type === "writing" ? (
 								<Card className="mb-8 bg-linear-to-br from-primary/5 via-chart-2/5 to-transparent border-primary/20 overflow-hidden relative">
 									<div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-bl from-primary/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
 									<CardContent className="p-6 relative">
@@ -132,14 +138,42 @@ export default function HomePage() {
 													{tHome("suggestedForYou")}
 												</Badge>
 												<h3 className="text-xl font-semibold text-foreground mb-2">
-													{tHome("startDiscovery")}
+													{suggestedAction?.title || tHome("startDiscovery")}
 												</h3>
 												<p className="text-muted-foreground mb-4">
-													{tHome("startDiscoveryDesc")}
+													{suggestedAction?.description || tHome("startDiscoveryDesc")}
 												</p>
 												<Button asChild>
-													<Link href="/persona-lab">
+													<Link href={suggestedAction?.link || "/persona-lab"}>
 														{tHome("goToPersonaLab")}
+														<ArrowRight className="w-4 h-4 ml-2" />
+													</Link>
+												</Button>
+											</div>
+										</div>
+									</CardContent>
+								</Card>
+							) : suggestedAction?.type === "deadline" ? (
+								<Card className="mb-8 bg-linear-to-br from-chart-4/5 via-primary/5 to-transparent border-chart-4/20 overflow-hidden relative">
+									<div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-bl from-chart-4/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+									<CardContent className="p-6 relative">
+										<div className="flex items-start gap-4">
+											<div className="w-14 h-14 bg-chart-4/10 rounded-2xl flex items-center justify-center shrink-0">
+												<Calendar className="w-7 h-7 text-chart-4" />
+											</div>
+											<div className="flex-1">
+												<Badge className="bg-chart-4/10 text-chart-4 mb-2 hover:bg-chart-4/20">
+													{tHome("suggestedForYou")}
+												</Badge>
+												<h3 className="text-xl font-semibold text-foreground mb-2">
+													{suggestedAction?.title}
+												</h3>
+												<p className="text-muted-foreground mb-4">
+													{suggestedAction?.description}
+												</p>
+												<Button asChild className="bg-chart-4 hover:bg-chart-4/90">
+													<Link href={suggestedAction?.link || "/dashboard/applications"}>
+														{tHome("viewAll")}
 														<ArrowRight className="w-4 h-4 ml-2" />
 													</Link>
 												</Button>
@@ -160,16 +194,16 @@ export default function HomePage() {
 													{tHome("suggestedForYou")}
 												</Badge>
 												<h3 className="text-xl font-semibold text-foreground mb-2">
-													{tHome("addFirstTarget")}
+													{suggestedAction?.title || tHome("addFirstTarget")}
 												</h3>
 												<p className="text-muted-foreground mb-4">
-													{tHome("addFirstTargetDesc")}
+													{suggestedAction?.description || tHome("addFirstTargetDesc")}
 												</p>
 												<Button
 													asChild
 													className="bg-chart-2 hover:bg-chart-2/90"
 												>
-													<Link href="/explore">
+													<Link href={suggestedAction?.link || "/explore"}>
 														{tHome("exploreSchools")}
 														<ArrowRight className="w-4 h-4 ml-2" />
 													</Link>
@@ -200,13 +234,13 @@ export default function HomePage() {
 											<div className="space-y-2">
 												<div className="flex items-baseline justify-between">
 													<span className="text-2xl font-bold text-foreground">
-														{profileCompletion}%
+														{isLoading ? <Skeleton className="h-7 w-12 inline-block" /> : `${profileCompletion}%`}
 													</span>
 													<span className="text-xs text-muted-foreground">
 														{tHome("completed")}
 													</span>
 												</div>
-												<Progress value={profileCompletion} className="h-2" />
+												<Progress value={isLoading ? 0 : profileCompletion} className="h-2" />
 											</div>
 										</CardContent>
 									</Card>
@@ -225,7 +259,7 @@ export default function HomePage() {
 											</div>
 											<div className="flex items-baseline gap-2">
 												<span className="text-2xl font-bold text-foreground">
-													{applications.length}
+													{isLoading ? <Skeleton className="h-7 w-8 inline-block" /> : applicationsCount}
 												</span>
 												<span className="text-sm text-muted-foreground">
 													{submittedApplications} {tHome("submitted")}
@@ -248,7 +282,7 @@ export default function HomePage() {
 											</div>
 											<div className="flex items-baseline gap-2">
 												<span className="text-2xl font-bold text-foreground">
-													{upcomingDeadlinesCount}
+													{isLoading ? <Skeleton className="h-7 w-8 inline-block" /> : upcomingDeadlinesCount}
 												</span>
 												<span className="text-sm text-muted-foreground">
 													{tHome("deadlines")}
@@ -271,10 +305,10 @@ export default function HomePage() {
 											</div>
 											<div className="flex items-baseline gap-2">
 												<span className="text-2xl font-bold text-foreground">
-													0
+													{isLoading ? <Skeleton className="h-7 w-8 inline-block" /> : discoveryTracks}
 												</span>
 												<span className="text-sm text-muted-foreground">
-													/ 4 {tHome("tracks")}
+													/ {totalTracks} {tHome("tracks")}
 												</span>
 											</div>
 										</CardContent>
@@ -302,9 +336,31 @@ export default function HomePage() {
 										</Button>
 									</CardHeader>
 									<CardContent>
-										{applications.length > 0 ? (
+										{isLoading ? (
 											<div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
-												{applications.slice(0, 4).map((app) => (
+												{[1, 2, 3].map((i) => (
+													<div key={i} className="min-w-[220px] shrink-0">
+														<Card className="h-full">
+															<CardContent className="p-4 space-y-3">
+																<div className="flex items-start gap-3">
+																	<Skeleton className="h-10 w-10 rounded-full" />
+																	<div className="flex-1 space-y-2">
+																		<Skeleton className="h-4 w-24" />
+																		<Skeleton className="h-3 w-32" />
+																	</div>
+																</div>
+																<div className="flex justify-between">
+																	<Skeleton className="h-5 w-16" />
+																	<Skeleton className="h-4 w-12" />
+																</div>
+															</CardContent>
+														</Card>
+													</div>
+												))}
+											</div>
+										) : recentApplications.length > 0 ? (
+											<div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
+												{recentApplications.map((app) => (
 													<Link
 														key={app.id}
 														href={`/dashboard/applications/${app.id}`}
@@ -315,17 +371,17 @@ export default function HomePage() {
 																<div className="flex items-start gap-3 mb-3">
 																	<Avatar className="h-10 w-10 shrink-0">
 																		<AvatarFallback className="text-xs">
-																			{app.program.universityName
+																			{app.universityName
 																				.substring(0, 2)
 																				.toUpperCase()}
 																		</AvatarFallback>
 																	</Avatar>
 																	<div className="flex-1 min-w-0">
 																		<h4 className="font-medium text-sm text-foreground truncate">
-																			{app.program.universityName}
+																			{app.universityName}
 																		</h4>
 																		<p className="text-xs text-muted-foreground truncate">
-																			{app.program.programName}
+																			{app.programName}
 																		</p>
 																	</div>
 																</div>
