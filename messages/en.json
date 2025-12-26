@@ -516,11 +516,7 @@
 		"minCharacters": "Min {count} characters",
 		"moreCharactersNeeded": "{count} more characters needed",
 		"yourArchetype": "Your Archetype",
-		"tracksCompleted": "tracks completed",
 		"completeAllTracks": "Complete all tracks to discover",
-		"statusCompleted": "Completed",
-		"statusInProgress": "In Progress",
-		"statusNotStarted": "Not Started",
 		"discovery": "Discovery",
 		"myPersona": "My Persona",
 		"essays": "Essays",
@@ -705,5 +701,27 @@
 		"low": "low",
 		"medium": "medium",
 		"high": "high"
+	},
+	"footer": {
+		"description": "Your AI-powered companion for studying abroad. Discover universities, manage applications, and get personalized guidance.",
+		"copyright": "© {year} Leaply. All rights reserved.",
+		"categories": {
+			"product": "Product",
+			"resources": "Resources",
+			"company": "Company"
+		},
+		"links": {
+			"exploreUniversities": "Explore Universities",
+			"personaLab": "Persona Lab",
+			"aiAssistant": "AI Assistant",
+			"dashboard": "Dashboard",
+			"applicationGuide": "Application Guide",
+			"scholarships": "Scholarships",
+			"faqs": "FAQs",
+			"aboutUs": "About Us",
+			"contact": "Contact",
+			"privacyPolicy": "Privacy Policy",
+			"termsOfService": "Terms of Service"
+		}
 	}
 }

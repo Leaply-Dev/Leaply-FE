@@ -516,11 +516,7 @@
 		"minCharacters": "Tối thiểu {count} ký tự",
 		"moreCharactersNeeded": "Cần thêm {count} ký tự",
 		"yourArchetype": "Archetype của bạn",
-		"tracksCompleted": "tracks hoàn thành",
 		"completeAllTracks": "Hoàn thành tất cả tracks để khám phá",
-		"statusCompleted": "Hoàn thành",
-		"statusInProgress": "Đang làm",
-		"statusNotStarted": "Chưa bắt đầu",
 		"discovery": "Khám phá",
 		"myPersona": "Hồ sơ của tôi",
 		"essays": "Essay",
@@ -705,5 +701,27 @@
 		"low": "thấp",
 		"medium": "trung bình",
 		"high": "cao"
+	},
+	"footer": {
+		"description": "Người bạn đồng hành AI của bạn trong hành trình du học. Khám phá trường đại học, quản lý hồ sơ và nhận hướng dẫn cá nhân hóa.",
+		"copyright": "© {year} Leaply. Tất cả các quyền được bảo lưu.",
+		"categories": {
+			"product": "Sản phẩm",
+			"resources": "Tài nguyên",
+			"company": "Công ty"
+		},
+		"links": {
+			"exploreUniversities": "Khám phá trường",
+			"personaLab": "Persona Lab",
+			"aiAssistant": "Trợ lý AI",
+			"dashboard": "Tổng quan",
+			"applicationGuide": "Hướng dẫn hồ sơ",
+			"scholarships": "Học bổng",
+			"faqs": "Câu hỏi thường gặp",
+			"aboutUs": "Về chúng mình",
+			"contact": "Liên hệ",
+			"privacyPolicy": "Chính sách bảo mật",
+			"termsOfService": "Điều khoản dịch vụ"
+		}
 	}
 }

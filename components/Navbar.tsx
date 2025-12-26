@@ -3,7 +3,7 @@
 import { ChevronDown, LogOut, Menu, User, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { LanguageSwitcher } from "@/components/app/LanguageSwitcher";
@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 
 export function Navbar() {
 	const pathname = usePathname();
+	const router = useRouter();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
@@ -157,6 +158,7 @@ export function Navbar() {
 												onClick={() => {
 													logout();
 													setAvatarDropdownOpen(false);
+													router.push("/login");
 												}}
 												className="flex items-center gap-2 w-full px-4 py-2 text-sm text-destructive hover:bg-muted transition-colors"
 											>
@@ -256,6 +258,7 @@ export function Navbar() {
 											onClick={() => {
 												logout();
 												setMobileMenuOpen(false);
+												router.push("/login");
 											}}
 										>
 											<LogOut className="w-4 h-4 mr-2" />
