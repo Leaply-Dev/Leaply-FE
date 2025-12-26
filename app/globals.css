@@ -5,6 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
 
 :root {
 	--card: oklch(1 0 0);
