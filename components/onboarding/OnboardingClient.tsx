@@ -1,15 +1,15 @@
 "use client";
 
 import { AnimatePresence } from "framer-motion";
+import { AlertCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { OnboardingProgress } from "@/components/OnboardingProgress";
 import { PageTransition } from "@/components/PageTransition";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { onboardingService } from "@/lib/services/onboarding";
 import { userService } from "@/lib/services/user";
 import { type JourneyType, useUserStore } from "@/lib/store/userStore";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, X } from "lucide-react";
 import { OnboardingHeader } from "./OnboardingHeader";
 import {
 	Step1BasicInfo,

@@ -1,6 +1,12 @@
 "use client";
 
-import { ArrowLeft, FileText, Target, Calendar, AlertCircle } from "lucide-react";
+import {
+	AlertCircle,
+	ArrowLeft,
+	Calendar,
+	FileText,
+	Target,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -8,7 +14,13 @@ import { PageContainer } from "@/components/Layout";
 import { PageTransition, SlideUp } from "@/components/PageTransition";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { useApplicationsStore } from "@/lib/store/applicationsStore";
 import { cn } from "@/lib/utils";
 
@@ -132,9 +144,12 @@ export default function ApplicationDetailPage() {
 											variant="outline"
 											className={cn(
 												"mt-1 text-xs capitalize",
-												application.fitCategory === "safety" && "border-green-500",
-												application.fitCategory === "target" && "border-blue-500",
-												application.fitCategory === "reach" && "border-amber-500",
+												application.fitCategory === "safety" &&
+													"border-green-500",
+												application.fitCategory === "target" &&
+													"border-blue-500",
+												application.fitCategory === "reach" &&
+													"border-amber-500",
 											)}
 										>
 											{application.fitCategory}
@@ -173,7 +188,9 @@ export default function ApplicationDetailPage() {
 									{application.program.nextDeadline ? (
 										<>
 											<p className="text-sm font-semibold text-foreground">
-												{new Date(application.program.nextDeadline).toLocaleDateString()}
+												{new Date(
+													application.program.nextDeadline,
+												).toLocaleDateString()}
 											</p>
 											{daysUntilDeadline !== null && (
 												<p
@@ -232,7 +249,8 @@ export default function ApplicationDetailPage() {
 										<div className="space-y-3">
 											{application.gaps.map((gap, index) => {
 												const severityConfig =
-													gapSeverityConfig[gap.severity] || gapSeverityConfig.info;
+													gapSeverityConfig[gap.severity] ||
+													gapSeverityConfig.info;
 												return (
 													<div
 														key={index}
@@ -246,7 +264,9 @@ export default function ApplicationDetailPage() {
 															<p className="font-medium text-sm capitalize">
 																{gap.field.replace("_", " ")}
 															</p>
-															<p className="text-sm opacity-80">{gap.message}</p>
+															<p className="text-sm opacity-80">
+																{gap.message}
+															</p>
 														</div>
 													</div>
 												);
@@ -266,9 +286,12 @@ export default function ApplicationDetailPage() {
 								<CardContent>
 									<div className="flex flex-wrap gap-3">
 										<Button asChild>
-											<Link href={`/dashboard/applications/${application.id}/sop`}>
+											<Link
+												href={`/dashboard/applications/${application.id}/sop`}
+											>
 												<FileText className="w-4 h-4 mr-2" />
-												{application.sopStatus === "not_started" || !application.sopStatus
+												{application.sopStatus === "not_started" ||
+												!application.sopStatus
 													? "Start SOP"
 													: "Continue SOP"}
 											</Link>
@@ -295,16 +318,22 @@ export default function ApplicationDetailPage() {
 								<CardContent className="space-y-4">
 									<div>
 										<p className="text-sm text-muted-foreground">University</p>
-										<p className="font-medium">{application.program.universityName}</p>
+										<p className="font-medium">
+											{application.program.universityName}
+										</p>
 									</div>
 									<div>
 										<p className="text-sm text-muted-foreground">Program</p>
-										<p className="font-medium">{application.program.programName}</p>
+										<p className="font-medium">
+											{application.program.programName}
+										</p>
 									</div>
 									{application.program.degreeName && (
 										<div>
 											<p className="text-sm text-muted-foreground">Degree</p>
-											<p className="font-medium">{application.program.degreeName}</p>
+											<p className="font-medium">
+												{application.program.degreeName}
+											</p>
 										</div>
 									)}
 								</CardContent>
@@ -320,12 +349,18 @@ export default function ApplicationDetailPage() {
 									<div className="space-y-3 text-sm">
 										<div className="flex justify-between">
 											<span className="text-muted-foreground">Added</span>
-											<span>{new Date(application.createdAt).toLocaleDateString()}</span>
+											<span>
+												{new Date(application.createdAt).toLocaleDateString()}
+											</span>
 										</div>
 										{application.updatedAt !== application.createdAt && (
 											<div className="flex justify-between">
-												<span className="text-muted-foreground">Last Updated</span>
-												<span>{new Date(application.updatedAt).toLocaleDateString()}</span>
+												<span className="text-muted-foreground">
+													Last Updated
+												</span>
+												<span>
+													{new Date(application.updatedAt).toLocaleDateString()}
+												</span>
 											</div>
 										)}
 									</div>

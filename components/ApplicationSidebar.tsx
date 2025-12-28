@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Search, FileText, AlertCircle } from "lucide-react";
+import { AlertCircle, FileText, Plus, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
@@ -19,7 +19,10 @@ interface ApplicationSidebarProps {
 
 const statusConfig: Record<
 	string,
-	{ label: string; variant: "default" | "secondary" | "outline" | "destructive" }
+	{
+		label: string;
+		variant: "default" | "secondary" | "outline" | "destructive";
+	}
 > = {
 	planning: { label: "Planning", variant: "secondary" },
 	writing: { label: "Writing", variant: "outline" },

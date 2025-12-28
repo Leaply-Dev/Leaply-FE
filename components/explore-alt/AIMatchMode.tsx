@@ -1,5 +1,5 @@
+import { ChevronDown, ShieldCheck, Sparkles, Target } from "lucide-react";
 import { useState } from "react";
-import { ChevronDown, Sparkles, Target, ShieldCheck } from "lucide-react";
 import type { ProgramListItemResponse } from "@/lib/api/types";
 import { ProgramCard } from "./ProgramCard";
 

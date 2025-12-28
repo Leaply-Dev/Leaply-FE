@@ -70,7 +70,50 @@ export function createInitialTrack(trackId: TrackId): Track {
 		icon: def.icon,
 		status: "not_started" as TrackStatus,
 		completedAt: null,
+		coreQuestionIndex: 0,
+		followUpIndex: 0,
 	};
+}
+
+// Calculate track progress percentage (0-100)
+// Each track has 4 core questions × 3 interactions = 12 total
+export function calculateTrackProgress(track: Track): number {
+	if (track.status === "completed") return 100;
+	if (track.status === "not_started") return 0;
+
+	// Each core question has 3 steps (core + 2 follow-ups)
+	const totalSteps = 4 * 3; // 12 total interactions
+	const completedSteps = track.coreQuestionIndex * 3 + track.followUpIndex;
+
+	return Math.round((completedSteps / totalSteps) * 100);
+}
+
+// Calculate overall progress across all tracks
+export function calculateOverallProgress(
+	tracks: Record<TrackId, Track>,
+): number {
+	const trackList = Object.values(tracks);
+	const totalProgress = trackList.reduce(
+		(sum, track) => sum + calculateTrackProgress(track),
+		0,
+	);
+	return Math.round(totalProgress / trackList.length);
+}
+
+// Get question progress display (e.g., "2/4 questions")
+export function getQuestionProgress(track: Track): {
+	current: number;
+	total: number;
+} {
+	if (track.status === "completed") return { current: 4, total: 4 };
+	if (track.status === "not_started") return { current: 0, total: 4 };
+
+	// Current question is coreQuestionIndex + 1 if we're past the first follow-up
+	const current =
+		track.followUpIndex > 0
+			? track.coreQuestionIndex + 1
+			: track.coreQuestionIndex;
+	return { current, total: 4 };
 }
 
 // Create initial tracks record

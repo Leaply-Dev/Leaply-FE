@@ -22,6 +22,7 @@ export function ChatSidebar() {
 		selectTrack,
 		sendMessage,
 		goBackToTrackSelection,
+		extractKeywords,
 	} = usePersonaStore();
 
 	const scrollRef = useRef<HTMLDivElement>(null);
@@ -46,6 +47,10 @@ export function ChatSidebar() {
 
 	const handleSendMessage = (content: string) => {
 		sendMessage(content);
+		// Extract keywords in parallel for instant canvas feedback
+		if (currentTrackId) {
+			extractKeywords(content, currentTrackId);
+		}
 	};
 
 	const handleBackToTracks = () => {

@@ -20,6 +20,9 @@ export interface Track {
 	icon: string;
 	status: TrackStatus;
 	completedAt: string | null;
+	// Progress tracking (from conversationState)
+	coreQuestionIndex: number; // 0-3 (which core question)
+	followUpIndex: number; // 0-2 (0=core, 1=detail followup, 2=emotion followup)
 }
 
 // ============================================
@@ -133,6 +136,18 @@ export interface TrackSelectResponse {
 	currentTrackId: TrackId;
 }
 
+export interface ArchetypeCandidate {
+	type: ArchetypeType;
+	probability: number; // 0-100
+	evidence?: string; // One-line quote from user's answers
+}
+
+export interface ArchetypeHints {
+	totalQuestionsAnswered: number;
+	confidence: "none" | "early" | "emerging" | "strong" | "final";
+	candidates: ArchetypeCandidate[];
+}
+
 export interface MessageResponse {
 	message: ChatMessage;
 	conversationState?: {
@@ -143,6 +158,17 @@ export interface MessageResponse {
 	trackStatus?: TrackStatus;
 	currentTrackId?: TrackId | null;
 	allTracksComplete?: boolean;
+	archetypeHints?: ArchetypeHints;
+}
+
+export interface KeywordRequest {
+	content: string;
+	trackId: string;
+}
+
+export interface KeywordResponse {
+	keywords: string[];
+	trackId: string;
 }
 
 export interface BackToTrackResponse {

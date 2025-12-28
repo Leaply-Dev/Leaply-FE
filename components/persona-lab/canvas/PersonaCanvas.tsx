@@ -16,7 +16,13 @@ import {
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ARCHETYPES } from "@/lib/constants/archetypes";
-import { TRACK_COLORS, TRACK_IDS } from "@/lib/constants/tracks";
+import {
+	calculateOverallProgress,
+	calculateTrackProgress,
+	getQuestionProgress,
+	TRACK_COLORS,
+	TRACK_IDS,
+} from "@/lib/constants/tracks";
 import {
 	type CanvasNode as StoreCanvasNode,
 	usePersonaStore,
@@ -48,11 +54,30 @@ const nodeTypes = {
 const SUMMARY_NODE_DISTANCE = 280;
 
 // Track positions in diamond layout: Top, Right, Bottom, Left
-const TRACK_POSITIONS: Record<TrackId, { angle: number; sourceHandle: Position; targetHandle: Position }> = {
-	future_vision: { angle: -90, sourceHandle: Position.Top, targetHandle: Position.Bottom },
-	academic_journey: { angle: 0, sourceHandle: Position.Right, targetHandle: Position.Left },
-	values_turning_points: { angle: 90, sourceHandle: Position.Bottom, targetHandle: Position.Top },
-	activities_impact: { angle: 180, sourceHandle: Position.Left, targetHandle: Position.Right },
+const TRACK_POSITIONS: Record<
+	TrackId,
+	{ angle: number; sourceHandle: Position; targetHandle: Position }
+> = {
+	future_vision: {
+		angle: -90,
+		sourceHandle: Position.Top,
+		targetHandle: Position.Bottom,
+	},
+	academic_journey: {
+		angle: 0,
+		sourceHandle: Position.Right,
+		targetHandle: Position.Left,
+	},
+	values_turning_points: {
+		angle: 90,
+		sourceHandle: Position.Bottom,
+		targetHandle: Position.Top,
+	},
+	activities_impact: {
+		angle: 180,
+		sourceHandle: Position.Left,
+		targetHandle: Position.Right,
+	},
 };
 
 interface PersonaCanvasProps {
@@ -73,6 +98,8 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 		nodes: storeNodes,
 		tracks,
 		archetype,
+		archetypeHints,
+		keywords,
 		visibleLayers,
 		selectNode,
 		isLoading,
@@ -86,7 +113,7 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 
 	const { fitView, getViewport } = useReactFlow();
 
-	// Calculate track completion percentages
+	// Calculate track completion percentages using real progress data
 	const trackProgress = useMemo(() => {
 		const progress: Record<TrackId, number> = {
 			future_vision: 0,
@@ -96,27 +123,20 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 		};
 
 		for (const trackId of TRACK_IDS) {
-			const track = tracks[trackId];
-			if (track.status === "completed") {
-				progress[trackId] = 100;
-			} else if (track.status === "in_progress") {
-				// Estimate progress based on nodes collected for this track
-				const trackNodes = storeNodes.filter(n => n.sourceTrackId === trackId);
-				progress[trackId] = Math.min(80, trackNodes.length * 20);
-			}
+			progress[trackId] = calculateTrackProgress(tracks[trackId]);
 		}
 
 		return progress;
-	}, [tracks, storeNodes]);
+	}, [tracks]);
 
 	// Calculate overall progress
-	const overallProgress = useMemo(() => {
-		const values = Object.values(trackProgress);
-		return Math.round(values.reduce((a, b) => a + b, 0) / values.length);
-	}, [trackProgress]);
+	const overallProgress = useMemo(
+		() => calculateOverallProgress(tracks),
+		[tracks],
+	);
 
 	const completedTracksCount = useMemo(() => {
-		return Object.values(tracks).filter(t => t.status === "completed").length;
+		return Object.values(tracks).filter((t) => t.status === "completed").length;
 	}, [tracks]);
 
 	// Generate React Flow nodes from store nodes
@@ -135,6 +155,7 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 			overallProgress,
 			completedTracks: completedTracksCount,
 			totalTracks: 4,
+			archetypeHints,
 			zoom: currentZoom,
 		};
 
@@ -156,11 +177,18 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				y: CENTER.y + Math.sin(radians) * SUMMARY_NODE_DISTANCE - 50,
 			};
 
+			// Get keywords for this track
+			const trackKeywords = keywords
+				.filter((k) => k.trackId === trackId)
+				.map((k) => ({ id: k.id, keyword: k.keyword }));
+
 			const summaryData: SummaryNodeData = {
 				trackId,
 				status: track.status,
 				completionPercentage: trackProgress[trackId],
+				questionProgress: getQuestionProgress(track),
 				isLoading: isLoading,
+				keywords: trackKeywords,
 				zoom: currentZoom,
 			};
 
@@ -203,7 +231,10 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 		}
 
 		// Create React Flow nodes for each store node (story, evidence, insight)
-		for (const [trackId, trackNodes] of Object.entries(nodesByTrack) as [TrackId, StoreCanvasNode[]][]) {
+		for (const [trackId, trackNodes] of Object.entries(nodesByTrack) as [
+			TrackId,
+			StoreCanvasNode[],
+		][]) {
 			const trackPos = TRACK_POSITIONS[trackId];
 			const trackColor = TRACK_COLORS[trackId];
 			const baseAngle = trackPos.angle;
@@ -211,13 +242,15 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 			// Position nodes in an arc beyond the summary node
 			trackNodes.forEach((storeNode, idx) => {
 				// Check if layer is visible
-				const isLayerVisible = visibleLayers[storeNode.type as keyof typeof visibleLayers];
+				const isLayerVisible =
+					visibleLayers[storeNode.type as keyof typeof visibleLayers];
 				if (!isLayerVisible) return;
 
 				// Calculate position - spread nodes in an arc
 				const distance = SUMMARY_NODE_DISTANCE + 150 + idx * 60;
 				const angleSpread = 12;
-				const angle = baseAngle + (idx - (trackNodes.length - 1) / 2) * angleSpread;
+				const angle =
+					baseAngle + (idx - (trackNodes.length - 1) / 2) * angleSpread;
 				const radians = (angle * Math.PI) / 180;
 
 				const position = {
@@ -263,7 +296,19 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 		}
 
 		return { nodes: rfNodes, edges: rfEdges };
-	}, [storeNodes, tracks, archetype, visibleLayers, currentZoom, trackProgress, overallProgress, completedTracksCount, isLoading]);
+	}, [
+		storeNodes,
+		tracks,
+		archetype,
+		archetypeHints,
+		keywords,
+		visibleLayers,
+		currentZoom,
+		trackProgress,
+		overallProgress,
+		completedTracksCount,
+		isLoading,
+	]);
 
 	const [nodes, setNodes, onNodesChange] = useNodesState(generatedData.nodes);
 	const [edges, setEdges, onEdgesChange] = useEdgesState(generatedData.edges);
@@ -309,7 +354,9 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				...edge,
 				style: {
 					...edge.style,
-					strokeOpacity: isHighlighted ? 0.9 : (edge.style?.strokeOpacity ?? 0.3),
+					strokeOpacity: isHighlighted
+						? 0.9
+						: (edge.style?.strokeOpacity ?? 0.3),
 					strokeWidth: isHighlighted ? 3 : (edge.style?.strokeWidth ?? 2),
 					transition: "stroke-opacity 0.3s ease, stroke-width 0.3s ease",
 				},
@@ -473,7 +520,8 @@ function createModalData(
 			type: "story" as ModalNodeType,
 			trackId: data.trackId,
 			title: track.displayName,
-			content: data.summary || `Track progress: ${data.completionPercentage || 0}%`,
+			content:
+				data.summary || `Track progress: ${data.completionPercentage || 0}%`,
 		};
 	}
 

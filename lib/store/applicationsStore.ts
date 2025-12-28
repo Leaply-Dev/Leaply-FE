@@ -1,16 +1,16 @@
 import { create } from "zustand";
 import {
-	getApplications,
 	createApplication,
-	updateApplication as updateApplicationApi,
 	deleteApplication as deleteApplicationApi,
+	getApplications,
+	updateApplication as updateApplicationApi,
 } from "@/lib/api/applicationsApi";
 import type {
-	ApplicationResponse,
 	ApplicationListResponse,
+	ApplicationResponse,
 	ApplicationSummaryDto,
-	UpcomingDeadlineDto,
 	CreateApplicationRequest,
+	UpcomingDeadlineDto,
 	UpdateApplicationRequest,
 } from "@/lib/api/types";
 
@@ -113,7 +113,9 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
 			// Update local state
 			set((state) => ({
 				applications: state.applications.map((app) =>
-					app.id === id ? { ...app, status: request.status || app.status } : app,
+					app.id === id
+						? { ...app, status: request.status || app.status }
+						: app,
 				),
 			}));
 

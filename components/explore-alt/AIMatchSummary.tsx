@@ -1,4 +1,4 @@
-import { Sparkles, AlertCircle } from "lucide-react";
+import { AlertCircle, Sparkles } from "lucide-react";
 
 /**
  * AI Match Summary Component

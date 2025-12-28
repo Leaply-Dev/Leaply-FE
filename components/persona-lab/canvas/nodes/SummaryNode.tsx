@@ -6,13 +6,16 @@ import { useTranslations } from "next-intl";
 import { TRACK_COLORS, TRACKS } from "@/lib/constants/tracks";
 import type { TrackId, TrackStatus } from "@/lib/types/persona";
 import { cn } from "@/lib/utils";
+import { KeywordCloud } from "./KeywordBubble";
 
 export interface SummaryNodeData {
 	trackId: TrackId;
 	status: TrackStatus;
 	completionPercentage?: number;
+	questionProgress?: { current: number; total: number };
 	summary?: string;
 	isLoading?: boolean;
+	keywords?: Array<{ id: string; keyword: string }>; // Keywords for this track
 	zoom?: number;
 	[key: string]: unknown;
 }
@@ -146,14 +149,9 @@ export function SummaryNode({ data, selected }: SummaryNodeProps) {
 						}
 					>
 						{isLoading ? (
-							<Loader2
-								className="w-5 h-5 animate-spin text-muted-foreground"
-							/>
+							<Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
 						) : (
-							<FileText
-								className="w-5 h-5"
-								style={{ color: colors.primary }}
-							/>
+							<FileText className="w-5 h-5" style={{ color: colors.primary }} />
 						)}
 					</div>
 					{/* Mini progress ring */}
@@ -214,13 +212,14 @@ export function SummaryNode({ data, selected }: SummaryNodeProps) {
 											? t("statusInProgress")
 											: t("statusNotStarted")}
 								</span>
-								{/* Percentage */}
-								{!isNotStarted && (
+								{/* Question progress */}
+								{!isNotStarted && data.questionProgress && (
 									<span
-										className="text-[10px] font-bold"
+										className="text-[10px] font-medium"
 										style={{ color: colors.primary }}
 									>
-										{percentage}%
+										{data.questionProgress.current}/
+										{data.questionProgress.total}
 									</span>
 								)}
 							</div>
@@ -250,6 +249,11 @@ export function SummaryNode({ data, selected }: SummaryNodeProps) {
 						}}
 					/>
 				</div>
+			)}
+
+			{/* Keywords floating around the node */}
+			{data.keywords && data.keywords.length > 0 && (
+				<KeywordCloud keywords={data.keywords} trackId={data.trackId} />
 			)}
 
 			{/* Handles - all sides for flexible connections */}

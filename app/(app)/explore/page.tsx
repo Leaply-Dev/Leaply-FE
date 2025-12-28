@@ -3,21 +3,20 @@
 import { Globe, Search, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SwimLanes } from "@/components/explore-alt/AIMatchMode";
+// Import explore-alt components
+import { AIMatchSummary } from "@/components/explore-alt/AIMatchSummary";
+import { ProgramGrid } from "@/components/explore-alt/ExploreAll";
+import { HorizontalFilterBar } from "@/components/explore-alt/FilterBar";
+import MOCK_PROGRAMS_JSON from "@/components/explore-alt/programMockData.json";
 import { PageTransition, SlideUp } from "@/components/PageTransition";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { exploreApi } from "@/lib/api/exploreApi";
 import type {
 	AiMatchResponse,
 	ProgramListItemResponse,
 	ProgramListParams,
 } from "@/lib/api/types";
-
-// Import explore-alt components
-import { AIMatchSummary } from "@/components/explore-alt/AIMatchSummary";
-import { SwimLanes } from "@/components/explore-alt/AIMatchMode";
-import { HorizontalFilterBar } from "@/components/explore-alt/FilterBar";
-import { ProgramGrid } from "@/components/explore-alt/ExploreAll";
-import MOCK_PROGRAMS_JSON from "@/components/explore-alt/programMockData.json";
-import { exploreApi } from "@/lib/api/exploreApi";
 
 // Feature flag to toggle between mock data and API
 const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";

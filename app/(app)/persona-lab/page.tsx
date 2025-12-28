@@ -1,10 +1,10 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { ChevronLeft, LayoutGrid, List, MessageSquare } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
-import { motion } from "framer-motion";
 import { PageTransition } from "@/components/PageTransition";
 import { ChatSidebar } from "@/components/persona-lab/ChatSidebar";
 import { Button } from "@/components/ui/button";
@@ -140,7 +140,9 @@ export default function PersonaLabPage() {
 									)}
 								>
 									<LayoutGrid className="w-4 h-4" />
-									<span className="hidden sm:inline text-sm">{t("viewCanvas")}</span>
+									<span className="hidden sm:inline text-sm">
+										{t("viewCanvas")}
+									</span>
 								</Button>
 								<Button
 									variant="ghost"
@@ -154,7 +156,9 @@ export default function PersonaLabPage() {
 									)}
 								>
 									<List className="w-4 h-4" />
-									<span className="hidden sm:inline text-sm">{t("viewList")}</span>
+									<span className="hidden sm:inline text-sm">
+										{t("viewList")}
+									</span>
 								</Button>
 							</div>
 						</div>

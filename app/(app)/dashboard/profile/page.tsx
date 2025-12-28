@@ -23,12 +23,23 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { PageTransition, SlideUp, StaggerContainer, StaggerItem } from "@/components/PageTransition";
+import {
+	PageTransition,
+	SlideUp,
+	StaggerContainer,
+	StaggerItem,
+} from "@/components/PageTransition";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -67,14 +78,18 @@ const CAMPUS_SETTINGS = [
 
 export default function ProfilePage() {
 	const t = useTranslations("profile");
-	const { profile: storeProfile, updateProfile: updateStoreProfile } = useUserStore();
+	const { profile: storeProfile, updateProfile: updateStoreProfile } =
+		useUserStore();
 
 	const [userData, setUserData] = useState<UserMeResponse | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isEditing, setIsEditing] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 	const [isResettingPassword, setIsResettingPassword] = useState(false);
-	const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+	const [message, setMessage] = useState<{
+		type: "success" | "error";
+		text: string;
+	} | null>(null);
 
 	// Form state
 	const [formData, setFormData] = useState({
@@ -168,9 +183,16 @@ export default function ProfilePage() {
 				currentEducationLevel: formData.currentEducationLevel || undefined,
 				targetDegree: formData.targetDegree || undefined,
 				gpa: formData.gpa ? Number.parseFloat(formData.gpa) : undefined,
-				gpaScale: formData.gpaScale ? Number.parseFloat(formData.gpaScale) : undefined,
-				workExperienceYears: formData.workExperienceYears ? Number.parseInt(formData.workExperienceYears, 10) : undefined,
-				testScores: Object.keys(formData.testScores).length > 0 ? formData.testScores : undefined,
+				gpaScale: formData.gpaScale
+					? Number.parseFloat(formData.gpaScale)
+					: undefined,
+				workExperienceYears: formData.workExperienceYears
+					? Number.parseInt(formData.workExperienceYears, 10)
+					: undefined,
+				testScores:
+					Object.keys(formData.testScores).length > 0
+						? formData.testScores
+						: undefined,
 			};
 
 			await userService.updateProfile(updateData);
@@ -258,7 +280,9 @@ export default function ProfilePage() {
 					{/* Header */}
 					<SlideUp>
 						<div className="mb-8">
-							<h1 className="text-3xl font-bold text-foreground mb-2">{t("title")}</h1>
+							<h1 className="text-3xl font-bold text-foreground mb-2">
+								{t("title")}
+							</h1>
 							<p className="text-lg text-muted-foreground">{t("subtitle")}</p>
 						</div>
 					</SlideUp>
@@ -266,13 +290,17 @@ export default function ProfilePage() {
 					{/* Message Alert */}
 					{message && (
 						<SlideUp>
-							<Alert className={`mb-6 ${message.type === "success" ? "border-green-500" : "border-destructive"}`}>
+							<Alert
+								className={`mb-6 ${message.type === "success" ? "border-green-500" : "border-destructive"}`}
+							>
 								{message.type === "success" ? (
 									<CheckCircle className="h-4 w-4 text-green-500" />
 								) : (
 									<AlertCircle className="h-4 w-4" />
 								)}
-								<AlertDescription className={message.type === "success" ? "text-green-600" : ""}>
+								<AlertDescription
+									className={message.type === "success" ? "text-green-600" : ""}
+								>
 									{message.text}
 								</AlertDescription>
 							</Alert>
@@ -299,24 +327,37 @@ export default function ProfilePage() {
 													<Mail className="h-4 w-4" />
 													<span>{userData?.email}</span>
 													{userData?.emailVerified ? (
-														<Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+														<Badge
+															variant="secondary"
+															className="text-xs bg-green-100 text-green-700"
+														>
 															<Check className="h-3 w-3 mr-1" />
 															{t("emailVerified")}
 														</Badge>
 													) : (
-														<Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-700">
+														<Badge
+															variant="secondary"
+															className="text-xs bg-yellow-100 text-yellow-700"
+														>
 															{t("emailNotVerified")}
 														</Badge>
 													)}
 												</div>
 												<div className="space-y-2">
 													<div className="flex items-center justify-between text-sm">
-														<span className="text-muted-foreground">{t("profileCompletion")}</span>
-														<span className={`font-semibold ${getCompletionColor(userData?.profileCompletion || 0)}`}>
+														<span className="text-muted-foreground">
+															{t("profileCompletion")}
+														</span>
+														<span
+															className={`font-semibold ${getCompletionColor(userData?.profileCompletion || 0)}`}
+														>
 															{userData?.profileCompletion || 0}%
 														</span>
 													</div>
-													<Progress value={userData?.profileCompletion || 0} className="h-2" />
+													<Progress
+														value={userData?.profileCompletion || 0}
+														className="h-2"
+													/>
 													{(userData?.profileCompletion || 0) < 100 && (
 														<p className="text-xs text-muted-foreground">
 															{t("completeProfile")}
@@ -339,11 +380,17 @@ export default function ProfilePage() {
 												{t("personalInformation")}
 											</CardTitle>
 											<CardDescription>
-												{isEditing ? "Edit your personal details" : "Your personal details"}
+												{isEditing
+													? "Edit your personal details"
+													: "Your personal details"}
 											</CardDescription>
 										</div>
 										{!isEditing ? (
-											<Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() => setIsEditing(true)}
+											>
 												<Edit2 className="h-4 w-4 mr-2" />
 												{t("editProfile")}
 											</Button>
@@ -357,11 +404,13 @@ export default function ProfilePage() {
 														// Reset form data
 														setFormData({
 															fullName: userData?.fullName || "",
-															currentEducationLevel: userData?.currentEducationLevel || "",
+															currentEducationLevel:
+																userData?.currentEducationLevel || "",
 															targetDegree: userData?.targetDegree || "",
 															gpa: userData?.gpa?.toString() || "",
 															gpaScale: userData?.gpaScale?.toString() || "4.0",
-															workExperienceYears: userData?.workExperienceYears?.toString() || "",
+															workExperienceYears:
+																userData?.workExperienceYears?.toString() || "",
 															testScores: userData?.testScores || {},
 														});
 													}}
@@ -369,7 +418,11 @@ export default function ProfilePage() {
 													<X className="h-4 w-4 mr-2" />
 													{t("cancel")}
 												</Button>
-												<Button size="sm" onClick={handleSave} disabled={isSaving}>
+												<Button
+													size="sm"
+													onClick={handleSave}
+													disabled={isSaving}
+												>
 													{isSaving ? (
 														<>
 															<Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -393,22 +446,37 @@ export default function ProfilePage() {
 													<Input
 														id="fullName"
 														value={formData.fullName}
-														onChange={(e) => setFormData((prev) => ({ ...prev, fullName: e.target.value }))}
+														onChange={(e) =>
+															setFormData((prev) => ({
+																...prev,
+																fullName: e.target.value,
+															}))
+														}
 														placeholder={t("fullNamePlaceholder")}
 													/>
 												</div>
 												<div className="space-y-2">
-													<Label htmlFor="educationLevel">{t("educationLevel")}</Label>
+													<Label htmlFor="educationLevel">
+														{t("educationLevel")}
+													</Label>
 													<Select
 														value={formData.currentEducationLevel}
-														onValueChange={(value) => setFormData((prev) => ({ ...prev, currentEducationLevel: value }))}
+														onValueChange={(value) =>
+															setFormData((prev) => ({
+																...prev,
+																currentEducationLevel: value,
+															}))
+														}
 													>
 														<SelectTrigger>
 															<SelectValue placeholder={t("selectLevel")} />
 														</SelectTrigger>
 														<SelectContent>
 															{EDUCATION_LEVELS.map((level) => (
-																<SelectItem key={level.value} value={level.value}>
+																<SelectItem
+																	key={level.value}
+																	value={level.value}
+																>
 																	{t(level.labelKey)}
 																</SelectItem>
 															))}
@@ -416,17 +484,27 @@ export default function ProfilePage() {
 													</Select>
 												</div>
 												<div className="space-y-2">
-													<Label htmlFor="targetDegree">{t("targetDegree")}</Label>
+													<Label htmlFor="targetDegree">
+														{t("targetDegree")}
+													</Label>
 													<Select
 														value={formData.targetDegree}
-														onValueChange={(value) => setFormData((prev) => ({ ...prev, targetDegree: value }))}
+														onValueChange={(value) =>
+															setFormData((prev) => ({
+																...prev,
+																targetDegree: value,
+															}))
+														}
 													>
 														<SelectTrigger>
 															<SelectValue placeholder={t("selectLevel")} />
 														</SelectTrigger>
 														<SelectContent>
 															{TARGET_DEGREES.map((degree) => (
-																<SelectItem key={degree.value} value={degree.value}>
+																<SelectItem
+																	key={degree.value}
+																	value={degree.value}
+																>
 																	{t(degree.labelKey)}
 																</SelectItem>
 															))}
@@ -443,18 +521,30 @@ export default function ProfilePage() {
 															min="0"
 															max="10"
 															value={formData.gpa}
-															onChange={(e) => setFormData((prev) => ({ ...prev, gpa: e.target.value }))}
+															onChange={(e) =>
+																setFormData((prev) => ({
+																	...prev,
+																	gpa: e.target.value,
+																}))
+															}
 															placeholder="3.5"
 															className="flex-1"
 														/>
-														<span className="flex items-center text-muted-foreground">/</span>
+														<span className="flex items-center text-muted-foreground">
+															/
+														</span>
 														<Input
 															type="number"
 															step="0.1"
 															min="1"
 															max="10"
 															value={formData.gpaScale}
-															onChange={(e) => setFormData((prev) => ({ ...prev, gpaScale: e.target.value }))}
+															onChange={(e) =>
+																setFormData((prev) => ({
+																	...prev,
+																	gpaScale: e.target.value,
+																}))
+															}
 															placeholder="4.0"
 															className="w-20"
 														/>
@@ -469,11 +559,18 @@ export default function ProfilePage() {
 															min="0"
 															max="50"
 															value={formData.workExperienceYears}
-															onChange={(e) => setFormData((prev) => ({ ...prev, workExperienceYears: e.target.value }))}
+															onChange={(e) =>
+																setFormData((prev) => ({
+																	...prev,
+																	workExperienceYears: e.target.value,
+																}))
+															}
 															placeholder="0"
 															className="w-24"
 														/>
-														<span className="text-muted-foreground">{t("years")}</span>
+														<span className="text-muted-foreground">
+															{t("years")}
+														</span>
 													</div>
 												</div>
 											</div>
@@ -484,8 +581,12 @@ export default function ProfilePage() {
 														<User className="h-4 w-4 text-muted-foreground" />
 													</div>
 													<div>
-														<p className="text-sm text-muted-foreground">{t("fullName")}</p>
-														<p className="font-medium">{userData?.fullName || t("noData")}</p>
+														<p className="text-sm text-muted-foreground">
+															{t("fullName")}
+														</p>
+														<p className="font-medium">
+															{userData?.fullName || t("noData")}
+														</p>
 													</div>
 												</div>
 												<div className="flex items-start gap-3">
@@ -493,8 +594,14 @@ export default function ProfilePage() {
 														<GraduationCap className="h-4 w-4 text-muted-foreground" />
 													</div>
 													<div>
-														<p className="text-sm text-muted-foreground">{t("educationLevel")}</p>
-														<p className="font-medium">{getEducationLabel(userData?.currentEducationLevel)}</p>
+														<p className="text-sm text-muted-foreground">
+															{t("educationLevel")}
+														</p>
+														<p className="font-medium">
+															{getEducationLabel(
+																userData?.currentEducationLevel,
+															)}
+														</p>
 													</div>
 												</div>
 												<div className="flex items-start gap-3">
@@ -502,8 +609,12 @@ export default function ProfilePage() {
 														<Target className="h-4 w-4 text-muted-foreground" />
 													</div>
 													<div>
-														<p className="text-sm text-muted-foreground">{t("targetDegree")}</p>
-														<p className="font-medium">{getDegreeLabel(userData?.targetDegree)}</p>
+														<p className="text-sm text-muted-foreground">
+															{t("targetDegree")}
+														</p>
+														<p className="font-medium">
+															{getDegreeLabel(userData?.targetDegree)}
+														</p>
 													</div>
 												</div>
 												<div className="flex items-start gap-3">
@@ -511,7 +622,9 @@ export default function ProfilePage() {
 														<BookOpen className="h-4 w-4 text-muted-foreground" />
 													</div>
 													<div>
-														<p className="text-sm text-muted-foreground">{t("gpa")}</p>
+														<p className="text-sm text-muted-foreground">
+															{t("gpa")}
+														</p>
 														<p className="font-medium">
 															{userData?.gpa
 																? `${userData.gpa}/${userData?.gpaScale || 4.0}`
@@ -524,7 +637,9 @@ export default function ProfilePage() {
 														<Briefcase className="h-4 w-4 text-muted-foreground" />
 													</div>
 													<div>
-														<p className="text-sm text-muted-foreground">{t("workExperience")}</p>
+														<p className="text-sm text-muted-foreground">
+															{t("workExperience")}
+														</p>
 														<p className="font-medium">
 															{userData?.workExperienceYears
 																? `${userData.workExperienceYears} ${t("years")}`
@@ -547,7 +662,9 @@ export default function ProfilePage() {
 												<BookOpen className="h-5 w-5 text-muted-foreground" />
 												{t("testScores")}
 											</CardTitle>
-											<CardDescription>Your standardized test scores</CardDescription>
+											<CardDescription>
+												Your standardized test scores
+											</CardDescription>
 										</div>
 									</CardHeader>
 									<CardContent>
@@ -561,9 +678,17 @@ export default function ProfilePage() {
 															type="number"
 															step={testType === "IELTS" ? "0.5" : "1"}
 															min="0"
-															max={testType === "IELTS" ? "9" : testType === "TOEFL" ? "120" : "800"}
+															max={
+																testType === "IELTS"
+																	? "9"
+																	: testType === "TOEFL"
+																		? "120"
+																		: "800"
+															}
 															value={formData.testScores[testType] || ""}
-															onChange={(e) => handleTestScoreChange(testType, e.target.value)}
+															onChange={(e) =>
+																handleTestScoreChange(testType, e.target.value)
+															}
 															placeholder={
 																testType === "IELTS"
 																	? "7.0"
@@ -577,17 +702,24 @@ export default function ProfilePage() {
 													</div>
 												))}
 											</div>
-										) : userData?.testScores && Object.keys(userData.testScores).length > 0 ? (
+										) : userData?.testScores &&
+											Object.keys(userData.testScores).length > 0 ? (
 											<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-												{Object.entries(userData.testScores).map(([type, score]) => (
-													<div
-														key={type}
-														className="p-4 rounded-lg bg-muted/50 text-center"
-													>
-														<p className="text-sm text-muted-foreground mb-1">{type}</p>
-														<p className="text-2xl font-bold text-foreground">{score}</p>
-													</div>
-												))}
+												{Object.entries(userData.testScores).map(
+													([type, score]) => (
+														<div
+															key={type}
+															className="p-4 rounded-lg bg-muted/50 text-center"
+														>
+															<p className="text-sm text-muted-foreground mb-1">
+																{type}
+															</p>
+															<p className="text-2xl font-bold text-foreground">
+																{score}
+															</p>
+														</div>
+													),
+												)}
 											</div>
 										) : (
 											<div className="text-center py-8 text-muted-foreground">
@@ -615,7 +747,9 @@ export default function ProfilePage() {
 											<Sparkles className="h-5 w-5 text-muted-foreground" />
 											{t("preferences")}
 										</CardTitle>
-										<CardDescription>Your study abroad preferences</CardDescription>
+										<CardDescription>
+											Your study abroad preferences
+										</CardDescription>
 									</CardHeader>
 									<CardContent>
 										<div className="grid gap-4 sm:grid-cols-2">
@@ -624,16 +758,25 @@ export default function ProfilePage() {
 													<BookOpen className="h-4 w-4 text-muted-foreground" />
 												</div>
 												<div>
-													<p className="text-sm text-muted-foreground">{t("fieldsOfInterest")}</p>
+													<p className="text-sm text-muted-foreground">
+														{t("fieldsOfInterest")}
+													</p>
 													<div className="flex flex-wrap gap-1 mt-1">
-														{userData?.fieldOfInterest && userData.fieldOfInterest.length > 0 ? (
+														{userData?.fieldOfInterest &&
+														userData.fieldOfInterest.length > 0 ? (
 															userData.fieldOfInterest.map((field) => (
-																<Badge key={field} variant="secondary" className="text-xs">
+																<Badge
+																	key={field}
+																	variant="secondary"
+																	className="text-xs"
+																>
 																	{field}
 																</Badge>
 															))
 														) : (
-															<span className="text-muted-foreground">{t("noData")}</span>
+															<span className="text-muted-foreground">
+																{t("noData")}
+															</span>
 														)}
 													</div>
 												</div>
@@ -643,16 +786,25 @@ export default function ProfilePage() {
 													<MapPin className="h-4 w-4 text-muted-foreground" />
 												</div>
 												<div>
-													<p className="text-sm text-muted-foreground">{t("preferredRegions")}</p>
+													<p className="text-sm text-muted-foreground">
+														{t("preferredRegions")}
+													</p>
 													<div className="flex flex-wrap gap-1 mt-1">
-														{userData?.preferredRegions && userData.preferredRegions.length > 0 ? (
+														{userData?.preferredRegions &&
+														userData.preferredRegions.length > 0 ? (
 															userData.preferredRegions.map((region) => (
-																<Badge key={region} variant="secondary" className="text-xs">
+																<Badge
+																	key={region}
+																	variant="secondary"
+																	className="text-xs"
+																>
 																	{region}
 																</Badge>
 															))
 														) : (
-															<span className="text-muted-foreground">{t("noData")}</span>
+															<span className="text-muted-foreground">
+																{t("noData")}
+															</span>
 														)}
 													</div>
 												</div>
@@ -662,8 +814,12 @@ export default function ProfilePage() {
 													<Calendar className="h-4 w-4 text-muted-foreground" />
 												</div>
 												<div>
-													<p className="text-sm text-muted-foreground">{t("intendedStartTerm")}</p>
-													<p className="font-medium">{userData?.intendedStartTerm || t("noData")}</p>
+													<p className="text-sm text-muted-foreground">
+														{t("intendedStartTerm")}
+													</p>
+													<p className="font-medium">
+														{userData?.intendedStartTerm || t("noData")}
+													</p>
 												</div>
 											</div>
 											<div className="flex items-start gap-3">
@@ -671,8 +827,12 @@ export default function ProfilePage() {
 													<Target className="h-4 w-4 text-muted-foreground" />
 												</div>
 												<div>
-													<p className="text-sm text-muted-foreground">{t("budgetRange")}</p>
-													<p className="font-medium">{userData?.budgetLabel || t("noData")}</p>
+													<p className="text-sm text-muted-foreground">
+														{t("budgetRange")}
+													</p>
+													<p className="font-medium">
+														{userData?.budgetLabel || t("noData")}
+													</p>
 												</div>
 											</div>
 											<div className="flex items-start gap-3">
@@ -680,8 +840,12 @@ export default function ProfilePage() {
 													<Sparkles className="h-4 w-4 text-muted-foreground" />
 												</div>
 												<div>
-													<p className="text-sm text-muted-foreground">{t("journeyType")}</p>
-													<p className="font-medium">{getJourneyLabel(userData?.journeyType)}</p>
+													<p className="text-sm text-muted-foreground">
+														{t("journeyType")}
+													</p>
+													<p className="font-medium">
+														{getJourneyLabel(userData?.journeyType)}
+													</p>
 												</div>
 											</div>
 											<div className="flex items-start gap-3">
@@ -689,8 +853,12 @@ export default function ProfilePage() {
 													<MapPin className="h-4 w-4 text-muted-foreground" />
 												</div>
 												<div>
-													<p className="text-sm text-muted-foreground">{t("campusSetting")}</p>
-													<p className="font-medium">{getCampusLabel(userData?.campusSetting)}</p>
+													<p className="text-sm text-muted-foreground">
+														{t("campusSetting")}
+													</p>
+													<p className="font-medium">
+														{getCampusLabel(userData?.campusSetting)}
+													</p>
 												</div>
 											</div>
 										</div>
@@ -702,10 +870,16 @@ export default function ProfilePage() {
 														<Sparkles className="h-4 w-4 text-muted-foreground" />
 													</div>
 													<div>
-														<p className="text-sm text-muted-foreground mb-2">{t("interests")}</p>
+														<p className="text-sm text-muted-foreground mb-2">
+															{t("interests")}
+														</p>
 														<div className="flex flex-wrap gap-1">
 															{userData.interests.map((interest) => (
-																<Badge key={interest} variant="outline" className="text-xs">
+																<Badge
+																	key={interest}
+																	variant="outline"
+																	className="text-xs"
+																>
 																	{interest}
 																</Badge>
 															))}
@@ -726,7 +900,9 @@ export default function ProfilePage() {
 											<Shield className="h-5 w-5 text-muted-foreground" />
 											{t("accountSecurity")}
 										</CardTitle>
-										<CardDescription>Manage your account security settings</CardDescription>
+										<CardDescription>
+											Manage your account security settings
+										</CardDescription>
 									</CardHeader>
 									<CardContent className="space-y-4">
 										<div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">

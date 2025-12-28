@@ -1,9 +1,9 @@
 "use client";
 
 import { Facebook, Instagram, Linkedin, Mail, Twitter } from "lucide-react";
-import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 const socialLinks = [
 	{ icon: Facebook, href: "#", label: "Facebook" },

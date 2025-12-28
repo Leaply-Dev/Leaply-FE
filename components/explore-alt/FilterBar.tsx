@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
 	Calendar,
 	ChevronDown,
@@ -6,6 +5,7 @@ import {
 	GraduationCap,
 	Sparkles,
 } from "lucide-react";
+import { useState } from "react";
 
 /**
  * Horizontal Filter Bar with Chips

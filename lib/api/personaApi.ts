@@ -1,17 +1,19 @@
 // Persona Lab API Client
 // Aligned with backend API specification
 
-import { apiClient } from "./client";
 import {
 	createInitialTracks,
 	TRACK_EMOJIS,
 	TRACKS,
 } from "@/lib/constants/tracks";
 import type {
+	ArchetypeCandidate,
+	ArchetypeHints,
 	ArchetypeType,
 	BackToTrackResponse,
 	CanvasNode,
 	ChatMessage,
+	KeywordResponse,
 	MessageResponse,
 	NodeType,
 	PersonaState,
@@ -21,6 +23,7 @@ import type {
 	TrackSelectResponse,
 	TrackStatus,
 } from "@/lib/types/persona";
+import { apiClient } from "./client";
 
 // API configuration - Use feature flag to switch between mock and real API
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
@@ -157,6 +160,157 @@ function shouldCreateNode(): boolean {
 	return Math.random() > 0.4;
 }
 
+// Calculate total questions answered across all tracks
+function calculateTotalQuestionsAnswered(): number {
+	let total = 0;
+	for (const trackId of Object.keys(mockState.tracks) as TrackId[]) {
+		const status = mockState.tracks[trackId];
+		if (status === "completed") {
+			total += 12; // 4 core × 3 interactions
+		} else if (
+			status === "in_progress" &&
+			trackId === mockState.currentTrackId
+		) {
+			total += mockState.coreQuestionIndex * 3 + mockState.followUpIndex;
+		}
+	}
+	return total;
+}
+
+// Generate archetype hints based on questions answered
+function generateArchetypeHints(): ArchetypeHints | undefined {
+	const totalQ = calculateTotalQuestionsAnswered();
+
+	if (totalQ < 6) {
+		return undefined; // Not enough data
+	}
+
+	const archetypeTypes: ArchetypeType[] = [
+		"innovator",
+		"bridge_builder",
+		"scholar",
+		"advocate",
+		"pioneer",
+		"craftsman",
+		"resilient",
+		"catalyst",
+	];
+
+	// Determine confidence level
+	let confidence: ArchetypeHints["confidence"];
+	let spreadFactor: number;
+	if (totalQ >= 24) {
+		confidence = "final";
+		spreadFactor = 0.4; // Very differentiated
+	} else if (totalQ >= 18) {
+		confidence = "strong";
+		spreadFactor = 0.3;
+	} else if (totalQ >= 12) {
+		confidence = "emerging";
+		spreadFactor = 0.2;
+	} else {
+		confidence = "early";
+		spreadFactor = 0.1; // Close together
+	}
+
+	// Generate pseudo-random but consistent probabilities
+	const seed = totalQ * 7 + mockState.nodes.length * 3;
+	const shuffled = [...archetypeTypes].sort(
+		(a, b) => ((a.charCodeAt(0) + seed) % 13) - ((b.charCodeAt(0) + seed) % 13),
+	);
+
+	// Calculate probabilities with spread based on confidence
+	const base = 100 / 3; // ~33% base for top 3
+	const top3 = shuffled.slice(0, 3);
+	const probabilities = [
+		Math.round(base + spreadFactor * 50),
+		Math.round(base),
+		Math.round(base - spreadFactor * 50),
+	];
+
+	// Mock evidence snippets
+	const evidenceSnippets: Record<ArchetypeType, string> = {
+		innovator: "Your creative approach to problem-solving",
+		bridge_builder: "Your ability to connect different perspectives",
+		scholar: "Your deep intellectual curiosity",
+		advocate: "Your passion for making a difference",
+		pioneer: "Your willingness to explore new paths",
+		craftsman: "Your dedication to mastering your craft",
+		resilient: "Your strength in overcoming challenges",
+		catalyst: "Your ability to inspire change in others",
+	};
+
+	const candidates: ArchetypeCandidate[] = top3.map((type, i) => ({
+		type,
+		probability: probabilities[i],
+		evidence: evidenceSnippets[type],
+	}));
+
+	return {
+		totalQuestionsAnswered: totalQ,
+		confidence,
+		candidates,
+	};
+}
+
+// Simple keyword extraction for mock
+function extractMockKeywords(content: string): string[] {
+	const stopWords = new Set([
+		"tôi",
+		"mình",
+		"là",
+		"có",
+		"được",
+		"của",
+		"và",
+		"với",
+		"trong",
+		"cho",
+		"i",
+		"me",
+		"my",
+		"we",
+		"the",
+		"a",
+		"an",
+		"is",
+		"are",
+		"was",
+		"were",
+		"to",
+		"of",
+		"in",
+		"for",
+		"on",
+		"with",
+		"at",
+		"by",
+		"from",
+		"as",
+	]);
+
+	const words = content
+		.toLowerCase()
+		.replace(
+			/[^\w\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/g,
+			" ",
+		)
+		.split(/\s+/)
+		.filter((w) => w.length >= 3 && !stopWords.has(w));
+
+	// Count frequency
+	const freq: Record<string, number> = {};
+	for (const w of words) {
+		freq[w] = (freq[w] || 0) + 1;
+	}
+
+	// Return top 2
+	return Object.entries(freq)
+		.sort((a, b) => b[1] - a[1])
+		.slice(0, 2)
+		.map(([word]) => word);
+}
+
 function generateMockNode(
 	trackId: TrackId,
 	type: NodeType = "story",
@@ -238,10 +392,12 @@ const mockPersonaApi = {
 
 		const track = TRACKS[trackId];
 		const questions = MOCK_QUESTIONS[trackId] || [];
-		
+
 		if (questions.length === 0) {
 			console.error(`personaApi: No questions found for track ${trackId}`);
-			throw new Error(`Technical error: Missing questions for track ${trackId}`);
+			throw new Error(
+				`Technical error: Missing questions for track ${trackId}`,
+			);
 		}
 
 		const firstQuestion = questions[0];
@@ -369,9 +525,7 @@ const mockPersonaApi = {
 					content: `Tuyệt vời! 🎉 Bạn đã hoàn thành ${TRACKS[trackId].displayName}!\n\nTôi đã thu thập được nhiều insight quý giá. Bạn muốn khám phá track nào tiếp theo?`,
 					type: "track_complete",
 					timestamp: new Date().toISOString(),
-					actions: createTrackActions().filter(
-						(a) => a.status !== "completed",
-					),
+					actions: createTrackActions().filter((a) => a.status !== "completed"),
 					canvasActions:
 						canvasActions.length > 0
 							? canvasActions.map((n) => ({ action: "add" as const, node: n }))
@@ -390,10 +544,14 @@ const mockPersonaApi = {
 			// Move to next core question
 			const questions = MOCK_QUESTIONS[trackId] || [];
 			const nextQuestion = questions[mockState.coreQuestionIndex];
-			
+
 			if (!nextQuestion) {
-				console.error(`personaApi: Question at index ${mockState.coreQuestionIndex} missing for track ${trackId}`);
-				throw new Error("I've run out of questions for this track. Let's try another one!");
+				console.error(
+					`personaApi: Question at index ${mockState.coreQuestionIndex} missing for track ${trackId}`,
+				);
+				throw new Error(
+					"I've run out of questions for this track. Let's try another one!",
+				);
 			}
 
 			const acknowledgment =
@@ -425,6 +583,22 @@ const mockPersonaApi = {
 			},
 			trackStatus: mockState.tracks[trackId],
 			currentTrackId: trackId,
+			archetypeHints: generateArchetypeHints(),
+		};
+	},
+
+	// POST /api/v1/persona/extract-keywords - Extract keywords for canvas
+	async extractKeywords(
+		content: string,
+		trackId: string,
+	): Promise<KeywordResponse> {
+		await delay(300); // Fast response
+
+		const keywords = extractMockKeywords(content);
+
+		return {
+			keywords,
+			trackId,
 		};
 	},
 
@@ -527,6 +701,16 @@ const realPersonaApi = {
 			`/v1/persona/track/${trackId}/redo`,
 			{},
 		);
+	},
+
+	async extractKeywords(
+		content: string,
+		trackId: string,
+	): Promise<KeywordResponse> {
+		return apiClient.post<KeywordResponse>("/v1/persona/extract-keywords", {
+			content,
+			trackId,
+		});
 	},
 };
 

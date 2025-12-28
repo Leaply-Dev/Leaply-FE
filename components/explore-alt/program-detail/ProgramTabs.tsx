@@ -1,13 +1,13 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	BookOpen,
-	ClipboardList,
-	Calendar,
-	GraduationCap,
 	Briefcase,
+	Calendar,
+	ClipboardList,
+	GraduationCap,
 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ProgramDetailResponse } from "@/lib/api/types";
 
 interface ProgramTabsProps {

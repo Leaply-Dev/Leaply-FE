@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -13,7 +14,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
 	Field,
 	FieldDescription,
@@ -174,9 +174,7 @@ export function SignupForm({
 										/>
 									</Field>
 								</Field>
-								<FieldDescription>
-									{t("passwordDescription")}
-								</FieldDescription>
+								<FieldDescription>{t("passwordDescription")}</FieldDescription>
 							</Field>
 							<Field>
 								<Button type="submit" disabled={isLoading}>
@@ -186,7 +184,8 @@ export function SignupForm({
 									{isLoading ? t("creatingAccount") : t("createAccount")}
 								</Button>
 								<FieldDescription className="text-center">
-									{t("alreadyHaveAccount")} <Link href="/login">{t("signIn")}</Link>
+									{t("alreadyHaveAccount")}{" "}
+									<Link href="/login">{t("signIn")}</Link>
 								</FieldDescription>
 							</Field>
 						</FieldGroup>
@@ -194,8 +193,7 @@ export function SignupForm({
 				</CardContent>
 			</Card>
 			<FieldDescription className="px-6 text-center">
-				{t("tosAgreement")}{" "}
-				<Link href="/terms">{t("tos")}</Link> {t("and")}{" "}
+				{t("tosAgreement")} <Link href="/terms">{t("tos")}</Link> {t("and")}{" "}
 				<Link href="/privacy">{t("privacyPolicy")}</Link>.
 			</FieldDescription>
 		</div>

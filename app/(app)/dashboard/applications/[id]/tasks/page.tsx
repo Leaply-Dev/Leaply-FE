@@ -27,8 +27,8 @@ export default function TasksPage() {
 							{t("title")}
 						</h1>
 						<p className="text-muted-foreground text-center max-w-md">
-							Task management feature is coming soon. You&apos;ll be able to track
-							all your application tasks and deadlines here.
+							Task management feature is coming soon. You&apos;ll be able to
+							track all your application tasks and deadlines here.
 						</p>
 					</CardContent>
 				</Card>

@@ -36,18 +36,14 @@ export const exploreService = {
 		params: ProgramListParams = {},
 	): Promise<ProgramListResponse> => {
 		const query = buildQueryString(params);
-		return apiClient.get<ProgramListResponse>(
-			`/v1/explore/programs${query}`,
-		);
+		return apiClient.get<ProgramListResponse>(`/v1/explore/programs${query}`);
 	},
 
 	/**
 	 * Get full program details
 	 */
 	getProgramDetail: async (id: string): Promise<ProgramDetailResponse> => {
-		return apiClient.get<ProgramDetailResponse>(
-			`/v1/explore/programs/${id}`,
-		);
+		return apiClient.get<ProgramDetailResponse>(`/v1/explore/programs/${id}`);
 	},
 
 	// ============================================
@@ -90,7 +86,8 @@ export const exploreService = {
 	getMatchedPrograms: async (
 		limitPerCategory = 5,
 	): Promise<AiMatchResponse> => {
-		const query = limitPerCategory !== 5 ? `?limit_per_category=${limitPerCategory}` : "";
+		const query =
+			limitPerCategory !== 5 ? `?limit_per_category=${limitPerCategory}` : "";
 		return apiClient.get<AiMatchResponse>(
 			`/v1/explore/programs/matched${query}`,
 		);

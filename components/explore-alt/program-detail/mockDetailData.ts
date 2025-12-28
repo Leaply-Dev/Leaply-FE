@@ -18,7 +18,11 @@ export const MOCK_PROGRAM_DETAIL: ProgramDetailResponse = {
 		"The Master of Science in Computer Science (MSCS) program at MIT is designed to prepare students for leadership roles in the computing industry and academia. Students work closely with world-renowned faculty on cutting-edge research in areas including artificial intelligence, systems, theory, and graphics.",
 	degreeType: "Master",
 	degreeName: "MS",
-	majorCategories: ["Computer Science", "Technology", "Artificial Intelligence"],
+	majorCategories: [
+		"Computer Science",
+		"Technology",
+		"Artificial Intelligence",
+	],
 	durationMonths: 24,
 	deliveryMode: "On Campus",
 	language: "English",

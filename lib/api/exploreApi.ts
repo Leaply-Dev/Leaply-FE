@@ -55,7 +55,9 @@ export async function getAiMatch(
 	const params = limitPerCategory
 		? `?limit_per_category=${limitPerCategory}`
 		: "";
-	return apiClient.get<AiMatchResponse>(`/v1/explore/programs/matched${params}`);
+	return apiClient.get<AiMatchResponse>(
+		`/v1/explore/programs/matched${params}`,
+	);
 }
 
 /**

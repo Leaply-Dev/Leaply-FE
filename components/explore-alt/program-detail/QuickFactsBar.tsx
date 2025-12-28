@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, DollarSign, GraduationCap, FileText } from "lucide-react";
+import { Clock, DollarSign, FileText, GraduationCap } from "lucide-react";
 import type { ProgramDetailResponse } from "@/lib/api/types";
 
 interface QuickFactsBarProps {

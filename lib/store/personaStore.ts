@@ -1,9 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { personaApi } from "@/lib/api/personaApi";
 import { ApiError } from "@/lib/api/client";
+import { personaApi } from "@/lib/api/personaApi";
 import { createInitialTracks } from "@/lib/constants/tracks";
 import type {
+	ArchetypeHints,
 	ArchetypeType,
 	CanvasAction,
 	CanvasNode,
@@ -29,6 +30,14 @@ export interface VisibleLayers {
 	archetype: boolean;
 }
 
+// Keyword for canvas display
+export interface CanvasKeyword {
+	id: string;
+	keyword: string;
+	trackId: TrackId;
+	createdAt: string;
+}
+
 // Store State
 interface PersonaStoreState {
 	// === Data State (from API) ===
@@ -41,6 +50,10 @@ interface PersonaStoreState {
 	} | null;
 	conversationHistory: ChatMessage[];
 
+	// === Phase 2 & 3 Enhancements ===
+	archetypeHints: ArchetypeHints | null;
+	keywords: CanvasKeyword[]; // Keywords per track for canvas
+
 	// === UI State ===
 	currentTrackId: TrackId | null;
 	isLoading: boolean;
@@ -49,6 +62,7 @@ interface PersonaStoreState {
 	viewMode: ViewMode;
 	visibleLayers: VisibleLayers;
 	selectedNodeId: string | null;
+	isExtractingKeywords: boolean;
 
 	// === Actions ===
 
@@ -68,6 +82,12 @@ interface PersonaStoreState {
 	selectNode: (nodeId: string | null) => void;
 	processCanvasActions: (actions: CanvasAction[]) => void;
 
+	// Keywords & Archetype Hints (Phase 2 & 3)
+	extractKeywords: (content: string, trackId: TrackId) => Promise<void>;
+	addKeywords: (keywords: string[], trackId: TrackId) => void;
+	updateArchetypeHints: (hints: ArchetypeHints) => void;
+	getKeywordsForTrack: (trackId: TrackId) => CanvasKeyword[];
+
 	// Computed helpers
 	getCompletedTrackCount: () => number;
 	getAvailableTracks: () => Track[];
@@ -85,9 +105,12 @@ const initialState = {
 	nodes: [] as CanvasNode[],
 	archetype: null,
 	conversationHistory: [] as ChatMessage[],
+	archetypeHints: null as ArchetypeHints | null,
+	keywords: [] as CanvasKeyword[],
 	currentTrackId: null,
 	isLoading: false,
 	isSending: false,
+	isExtractingKeywords: false,
 	error: null,
 	viewMode: "canvas" as ViewMode,
 	visibleLayers: {
@@ -128,9 +151,11 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						err.logDetails();
 					}
 					set({
-						error: err instanceof ApiError
-							? err.getUserMessage()
-							: (err as Error).message || "Failed to load persona data. Please refresh.",
+						error:
+							err instanceof ApiError
+								? err.getUserMessage()
+								: (err as Error).message ||
+									"Failed to load persona data. Please refresh.",
 						isLoading: false,
 					});
 				}
@@ -160,14 +185,19 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						isSending: false,
 					}));
 				} catch (err) {
-					console.error(`PersonaStore: Failed to select track ${trackId}:`, err);
+					console.error(
+						`PersonaStore: Failed to select track ${trackId}:`,
+						err,
+					);
 					if (err instanceof ApiError) {
 						err.logDetails();
 					}
 					set({
-						error: err instanceof ApiError
-							? err.getUserMessage()
-							: (err as Error).message || `Failed to select ${trackId}. Please try again.`,
+						error:
+							err instanceof ApiError
+								? err.getUserMessage()
+								: (err as Error).message ||
+									`Failed to select ${trackId}. Please try again.`,
 						isSending: false,
 					});
 				}
@@ -205,16 +235,24 @@ export const usePersonaStore = create<PersonaStoreState>()(
 							get().processCanvasActions(response.message.canvasActions);
 						}
 
-						// Update track status if provided
+						// Update track status and progress if provided
 						const updatedTracks = { ...state.tracks };
-						if (response.trackStatus && response.currentTrackId) {
-							updatedTracks[response.currentTrackId] = {
-								...updatedTracks[response.currentTrackId],
-								status: response.trackStatus,
+						if (response.currentTrackId) {
+							const trackId = response.currentTrackId;
+							updatedTracks[trackId] = {
+								...updatedTracks[trackId],
+								status: response.trackStatus ?? updatedTracks[trackId].status,
 								completedAt:
 									response.trackStatus === "completed"
 										? new Date().toISOString()
-										: null,
+										: updatedTracks[trackId].completedAt,
+								// Update progress from conversationState
+								coreQuestionIndex:
+									response.conversationState?.coreQuestionIndex ??
+									updatedTracks[trackId].coreQuestionIndex,
+								followUpIndex:
+									response.conversationState?.followUpIndex ??
+									updatedTracks[trackId].followUpIndex,
 							};
 						}
 
@@ -235,10 +273,14 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						}
 
 						return {
-							conversationHistory: [...state.conversationHistory, response.message],
+							conversationHistory: [
+								...state.conversationHistory,
+								response.message,
+							],
 							currentTrackId: response.currentTrackId ?? null,
 							tracks: updatedTracks,
 							archetype,
+							archetypeHints: response.archetypeHints ?? state.archetypeHints,
 							isSending: false,
 						};
 					});
@@ -252,9 +294,11 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						conversationHistory: state.conversationHistory.filter(
 							(m) => !m.id.startsWith("temp-"),
 						),
-						error: err instanceof ApiError
-							? err.getUserMessage()
-							: (err as Error).message || "Failed to send message. Please try again.",
+						error:
+							err instanceof ApiError
+								? err.getUserMessage()
+								: (err as Error).message ||
+									"Failed to send message. Please try again.",
 						isSending: false,
 					}));
 				}
@@ -279,9 +323,11 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						err.logDetails();
 					}
 					set({
-						error: err instanceof ApiError
-							? err.getUserMessage()
-							: (err as Error).message || "Failed to go back. Please try again.",
+						error:
+							err instanceof ApiError
+								? err.getUserMessage()
+								: (err as Error).message ||
+									"Failed to go back. Please try again.",
 						isSending: false,
 					});
 				}
@@ -325,9 +371,11 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						err.logDetails();
 					}
 					set({
-						error: err instanceof ApiError
-							? err.getUserMessage()
-							: (err as Error).message || "Failed to redo track. Please try again.",
+						error:
+							err instanceof ApiError
+								? err.getUserMessage()
+								: (err as Error).message ||
+									"Failed to redo track. Please try again.",
 						isSending: false,
 					});
 				}
@@ -378,6 +426,61 @@ export const usePersonaStore = create<PersonaStoreState>()(
 				});
 			},
 
+			// Keywords & Archetype Hints (Phase 2 & 3)
+			extractKeywords: async (content: string, trackId: TrackId) => {
+				set({ isExtractingKeywords: true });
+				try {
+					const response = await personaApi.extractKeywords(content, trackId);
+					if (response.keywords && response.keywords.length > 0) {
+						get().addKeywords(response.keywords, trackId);
+					}
+				} catch (err) {
+					console.error("PersonaStore: Failed to extract keywords:", err);
+					// Don't show error to user - keywords are optional enhancement
+				} finally {
+					set({ isExtractingKeywords: false });
+				}
+			},
+
+			addKeywords: (newKeywords: string[], trackId: TrackId) => {
+				set((state) => {
+					const MAX_KEYWORDS_PER_TRACK = 10;
+					const existingForTrack = state.keywords.filter(
+						(k) => k.trackId === trackId,
+					);
+					const otherKeywords = state.keywords.filter(
+						(k) => k.trackId !== trackId,
+					);
+
+					// Add new keywords
+					const newCanvasKeywords: CanvasKeyword[] = newKeywords.map((kw) => ({
+						id: `kw-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+						keyword: kw,
+						trackId,
+						createdAt: new Date().toISOString(),
+					}));
+
+					// Combine and limit to max
+					let trackKeywords = [...existingForTrack, ...newCanvasKeywords];
+					if (trackKeywords.length > MAX_KEYWORDS_PER_TRACK) {
+						// Remove oldest keywords
+						trackKeywords = trackKeywords.slice(-MAX_KEYWORDS_PER_TRACK);
+					}
+
+					return {
+						keywords: [...otherKeywords, ...trackKeywords],
+					};
+				});
+			},
+
+			updateArchetypeHints: (hints: ArchetypeHints) => {
+				set({ archetypeHints: hints });
+			},
+
+			getKeywordsForTrack: (trackId: TrackId) => {
+				return get().keywords.filter((k) => k.trackId === trackId);
+			},
+
 			// Computed helpers
 			getCompletedTrackCount: () => {
 				const { tracks } = get();
@@ -409,13 +512,15 @@ export const usePersonaStore = create<PersonaStoreState>()(
 			clearError: () => set({ error: null }),
 		}),
 		{
-			name: "leaply-persona-store-v2",
+			name: "leaply-persona-store-v3",
 			partialize: (state) => ({
 				// Only persist essential data
 				tracks: state.tracks,
 				nodes: state.nodes,
 				archetype: state.archetype,
 				conversationHistory: state.conversationHistory,
+				archetypeHints: state.archetypeHints,
+				keywords: state.keywords,
 				currentTrackId: state.currentTrackId,
 				viewMode: state.viewMode,
 				visibleLayers: state.visibleLayers,

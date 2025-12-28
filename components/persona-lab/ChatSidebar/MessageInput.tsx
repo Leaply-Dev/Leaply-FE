@@ -114,7 +114,9 @@ export function MessageInput({
 							{t("minCharacters", { count: MIN_CHARS })}
 						</span>
 					) : isBelowMin ? (
-						<span>{t("moreCharactersNeeded", { count: MIN_CHARS - charCount })}</span>
+						<span>
+							{t("moreCharactersNeeded", { count: MIN_CHARS - charCount })}
+						</span>
 					) : (
 						<span>
 							{charCount.toLocaleString()}/{MAX_CHARS.toLocaleString()}

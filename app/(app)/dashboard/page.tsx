@@ -59,7 +59,8 @@ export default function HomePage() {
 	const profileCompletion = homeData?.profileCompletion ?? 0;
 	const upcomingDeadlinesCount = homeData?.upcomingDeadlines?.length ?? 0;
 	const applicationsCount = homeData?.applications?.total ?? 0;
-	const submittedApplications = homeData?.applications?.byStatus?.submitted ?? 0;
+	const submittedApplications =
+		homeData?.applications?.byStatus?.submitted ?? 0;
 	const discoveryTracks = homeData?.discovery?.completedTracks ?? 0;
 	const totalTracks = homeData?.discovery?.totalTracks ?? 4;
 	const suggestedAction = homeData?.suggestedAction;
@@ -96,7 +97,10 @@ export default function HomePage() {
 						<div className="mb-8">
 							<h1 className="text-3xl font-bold text-foreground mb-2">
 								{getGreeting()},{" "}
-								{homeData?.firstName || profile?.fullName?.split(" ").pop() || tHome("you")}!
+								{homeData?.firstName ||
+									profile?.fullName?.split(" ").pop() ||
+									tHome("you")}
+								!
 							</h1>
 							<p className="text-lg text-muted-foreground">
 								{tHome("subtitle")}
@@ -125,7 +129,8 @@ export default function HomePage() {
 										</div>
 									</CardContent>
 								</Card>
-							) : suggestedAction?.type === "persona" || suggestedAction?.type === "writing" ? (
+							) : suggestedAction?.type === "persona" ||
+								suggestedAction?.type === "writing" ? (
 								<Card className="mb-8 bg-linear-to-br from-primary/5 via-chart-2/5 to-transparent border-primary/20 overflow-hidden relative">
 									<div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-bl from-primary/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
 									<CardContent className="p-6 relative">
@@ -141,7 +146,8 @@ export default function HomePage() {
 													{suggestedAction?.title || tHome("startDiscovery")}
 												</h3>
 												<p className="text-muted-foreground mb-4">
-													{suggestedAction?.description || tHome("startDiscoveryDesc")}
+													{suggestedAction?.description ||
+														tHome("startDiscoveryDesc")}
 												</p>
 												<Button asChild>
 													<Link href={suggestedAction?.link || "/persona-lab"}>
@@ -171,8 +177,15 @@ export default function HomePage() {
 												<p className="text-muted-foreground mb-4">
 													{suggestedAction?.description}
 												</p>
-												<Button asChild className="bg-chart-4 hover:bg-chart-4/90">
-													<Link href={suggestedAction?.link || "/dashboard/applications"}>
+												<Button
+													asChild
+													className="bg-chart-4 hover:bg-chart-4/90"
+												>
+													<Link
+														href={
+															suggestedAction?.link || "/dashboard/applications"
+														}
+													>
 														{tHome("viewAll")}
 														<ArrowRight className="w-4 h-4 ml-2" />
 													</Link>
@@ -197,7 +210,8 @@ export default function HomePage() {
 													{suggestedAction?.title || tHome("addFirstTarget")}
 												</h3>
 												<p className="text-muted-foreground mb-4">
-													{suggestedAction?.description || tHome("addFirstTargetDesc")}
+													{suggestedAction?.description ||
+														tHome("addFirstTargetDesc")}
 												</p>
 												<Button
 													asChild
@@ -234,13 +248,20 @@ export default function HomePage() {
 											<div className="space-y-2">
 												<div className="flex items-baseline justify-between">
 													<span className="text-2xl font-bold text-foreground">
-														{isLoading ? <Skeleton className="h-7 w-12 inline-block" /> : `${profileCompletion}%`}
+														{isLoading ? (
+															<Skeleton className="h-7 w-12 inline-block" />
+														) : (
+															`${profileCompletion}%`
+														)}
 													</span>
 													<span className="text-xs text-muted-foreground">
 														{tHome("completed")}
 													</span>
 												</div>
-												<Progress value={isLoading ? 0 : profileCompletion} className="h-2" />
+												<Progress
+													value={isLoading ? 0 : profileCompletion}
+													className="h-2"
+												/>
 											</div>
 										</CardContent>
 									</Card>
@@ -259,7 +280,11 @@ export default function HomePage() {
 											</div>
 											<div className="flex items-baseline gap-2">
 												<span className="text-2xl font-bold text-foreground">
-													{isLoading ? <Skeleton className="h-7 w-8 inline-block" /> : applicationsCount}
+													{isLoading ? (
+														<Skeleton className="h-7 w-8 inline-block" />
+													) : (
+														applicationsCount
+													)}
 												</span>
 												<span className="text-sm text-muted-foreground">
 													{submittedApplications} {tHome("submitted")}
@@ -282,7 +307,11 @@ export default function HomePage() {
 											</div>
 											<div className="flex items-baseline gap-2">
 												<span className="text-2xl font-bold text-foreground">
-													{isLoading ? <Skeleton className="h-7 w-8 inline-block" /> : upcomingDeadlinesCount}
+													{isLoading ? (
+														<Skeleton className="h-7 w-8 inline-block" />
+													) : (
+														upcomingDeadlinesCount
+													)}
 												</span>
 												<span className="text-sm text-muted-foreground">
 													{tHome("deadlines")}
@@ -305,7 +334,11 @@ export default function HomePage() {
 											</div>
 											<div className="flex items-baseline gap-2">
 												<span className="text-2xl font-bold text-foreground">
-													{isLoading ? <Skeleton className="h-7 w-8 inline-block" /> : discoveryTracks}
+													{isLoading ? (
+														<Skeleton className="h-7 w-8 inline-block" />
+													) : (
+														discoveryTracks
+													)}
 												</span>
 												<span className="text-sm text-muted-foreground">
 													/ {totalTracks} {tHome("tracks")}

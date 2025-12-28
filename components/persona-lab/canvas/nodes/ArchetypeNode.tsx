@@ -1,10 +1,10 @@
 "use client";
 
 import { Handle, Position } from "@xyflow/react";
-import { Lock, Sparkles } from "lucide-react";
+import { Lock, Sparkles, TrendingUp } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ARCHETYPES } from "@/lib/constants/archetypes";
-import type { ArchetypeType } from "@/lib/types/persona";
+import type { ArchetypeHints, ArchetypeType } from "@/lib/types/persona";
 import { cn } from "@/lib/utils";
 
 export interface ArchetypeNodeData {
@@ -14,9 +14,18 @@ export interface ArchetypeNodeData {
 	overallProgress?: number; // 0-100 percentage
 	completedTracks?: number; // 0-4 completed tracks
 	totalTracks?: number; // 4 total tracks
+	archetypeHints?: ArchetypeHints | null; // Progressive hints
 	zoom?: number;
 	[key: string]: unknown;
 }
+
+// Confidence level labels
+const CONFIDENCE_LABELS: Record<string, string> = {
+	early: "Early Signal",
+	emerging: "Emerging Pattern",
+	strong: "Strong Signal",
+	final: "Confirmed",
+};
 
 interface ArchetypeNodeProps {
 	data: ArchetypeNodeData;
@@ -30,6 +39,8 @@ export function ArchetypeNode({ data, selected }: ArchetypeNodeProps) {
 	const overallProgress = data.overallProgress ?? 0;
 	const completedTracks = data.completedTracks ?? 0;
 	const totalTracks = data.totalTracks ?? 4;
+	const hints = data.archetypeHints;
+	const hasHints = hints && hints.candidates && hints.candidates.length > 0;
 
 	const isMacroView = data.zoom && data.zoom < 0.5;
 	const isMicroView = !data.zoom || data.zoom > 0.6;
@@ -186,18 +197,85 @@ export function ArchetypeNode({ data, selected }: ArchetypeNodeProps) {
 						</span>
 						{isMicroView && (
 							<>
-								{/* Progress indicator */}
-								<div className="flex items-center gap-2">
-									<span className="text-lg font-bold text-primary">
-										{completedTracks}/{totalTracks}
-									</span>
-									<span className="text-xs text-muted-foreground">
-										{t("tracksCompleted")}
-									</span>
-								</div>
-								<span className="text-xs text-muted-foreground/70 max-w-[160px]">
-									{t("completeAllTracks")}
-								</span>
+								{/* Show hints if available */}
+								{hasHints ? (
+									<div className="w-full space-y-2 mt-1">
+										{/* Confidence badge */}
+										<div className="flex items-center justify-center gap-1.5">
+											<TrendingUp className="w-3 h-3 text-primary" />
+											<span className="text-[10px] font-medium text-primary">
+												{CONFIDENCE_LABELS[hints.confidence] ||
+													hints.confidence}
+											</span>
+										</div>
+
+										{/* Probability bars */}
+										<div className="space-y-1.5">
+											{hints.candidates.map((candidate, idx) => {
+												const archetypeDef = ARCHETYPES[candidate.type];
+												return (
+													<div key={candidate.type} className="space-y-0.5">
+														<div className="flex items-center justify-between text-[10px]">
+															<span
+																className={cn(
+																	"font-medium truncate max-w-[100px]",
+																	idx === 0
+																		? "text-foreground"
+																		: "text-muted-foreground",
+																)}
+															>
+																{archetypeDef?.title || candidate.type}
+															</span>
+															<span
+																className={cn(
+																	"font-bold",
+																	idx === 0
+																		? "text-primary"
+																		: "text-muted-foreground",
+																)}
+															>
+																{candidate.probability}%
+															</span>
+														</div>
+														<div className="h-1.5 bg-muted rounded-full overflow-hidden">
+															<div
+																className={cn(
+																	"h-full rounded-full transition-all duration-500",
+																	idx === 0
+																		? "bg-primary"
+																		: idx === 1
+																			? "bg-primary/60"
+																			: "bg-primary/30",
+																)}
+																style={{ width: `${candidate.probability}%` }}
+															/>
+														</div>
+														{idx === 0 && candidate.evidence && (
+															<p className="text-[9px] text-muted-foreground/70 italic truncate">
+																↳ {candidate.evidence}
+															</p>
+														)}
+													</div>
+												);
+											})}
+										</div>
+									</div>
+								) : (
+									<>
+										{/* Progress indicator (no hints yet) */}
+										<div className="flex items-center gap-2">
+											<span className="text-lg font-bold text-primary">
+												{completedTracks}/{totalTracks}
+											</span>
+											<span className="text-xs text-muted-foreground">
+												{t("tracksCompleted")}
+											</span>
+										</div>
+										<span className="text-xs text-muted-foreground/70 max-w-[160px]">
+											{t("completeAllTracks")}
+										</span>
+									</>
+								)}
 							</>
 						)}
 					</>

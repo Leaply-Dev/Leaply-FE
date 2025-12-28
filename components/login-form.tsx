@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -13,7 +14,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
 	Field,
 	FieldDescription,
@@ -147,8 +147,7 @@ export function LoginForm({
 									{isLoading ? t("loggingIn") : t("signIn")}
 								</Button>
 								<FieldDescription className="text-center">
-									{t("noAccount")}{" "}
-									<Link href="/register">{t("signUp")}</Link>
+									{t("noAccount")} <Link href="/register">{t("signUp")}</Link>
 								</FieldDescription>
 							</Field>
 						</FieldGroup>
@@ -156,8 +155,7 @@ export function LoginForm({
 				</CardContent>
 			</Card>
 			<FieldDescription className="px-6 text-center">
-				{t("tosAgreement")}{" "}
-				<Link href="/terms">{t("tos")}</Link> {t("and")}{" "}
+				{t("tosAgreement")} <Link href="/terms">{t("tos")}</Link> {t("and")}{" "}
 				<Link href="/privacy">{t("privacyPolicy")}</Link>.
 			</FieldDescription>
 		</div>

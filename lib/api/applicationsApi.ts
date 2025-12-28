@@ -1,17 +1,17 @@
-import { apiClient, ApiError } from "./client";
+import { ApiError, apiClient } from "./client";
 import type {
 	ApiResponse,
 	ApplicationListResponse,
+	ApplicationSopResponse,
 	CreateApplicationRequest,
 	CreateApplicationResponse,
-	UpdateApplicationRequest,
-	UpdateApplicationResponse,
 	DeleteApplicationResponse,
-	ApplicationSopResponse,
+	EvaluationResponse,
 	SaveSopRequest,
 	SaveSopResponse,
 	SopFeedbackDto,
-	EvaluationResponse,
+	UpdateApplicationRequest,
+	UpdateApplicationResponse,
 } from "./types";
 
 const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
@@ -108,7 +108,7 @@ export async function getApplications(): Promise<ApplicationListResponse> {
  * Create a new application
  */
 export async function createApplication(
-	request: CreateApplicationRequest
+	request: CreateApplicationRequest,
 ): Promise<CreateApplicationResponse> {
 	if (USE_MOCK_DATA) {
 		await new Promise((resolve) => setTimeout(resolve, 300));
@@ -126,7 +126,7 @@ export async function createApplication(
  */
 export async function updateApplication(
 	id: string,
-	request: UpdateApplicationRequest
+	request: UpdateApplicationRequest,
 ): Promise<UpdateApplicationResponse> {
 	if (USE_MOCK_DATA) {
 		await new Promise((resolve) => setTimeout(resolve, 300));
@@ -137,14 +137,17 @@ export async function updateApplication(
 		};
 	}
 
-	return apiClient.patch<UpdateApplicationResponse>(`/v1/applications/${id}`, request);
+	return apiClient.patch<UpdateApplicationResponse>(
+		`/v1/applications/${id}`,
+		request,
+	);
 }
 
 /**
  * Delete an application
  */
 export async function deleteApplication(
-	id: string
+	id: string,
 ): Promise<DeleteApplicationResponse> {
 	if (USE_MOCK_DATA) {
 		await new Promise((resolve) => setTimeout(resolve, 300));
@@ -165,14 +168,16 @@ export async function deleteApplication(
  * Get SOP for an application
  */
 export async function getSop(
-	applicationId: string
+	applicationId: string,
 ): Promise<ApplicationSopResponse> {
 	if (USE_MOCK_DATA) {
 		await new Promise((resolve) => setTimeout(resolve, 300));
 		return { ...MOCK_SOP_RESPONSE, applicationId };
 	}
 
-	return apiClient.get<ApplicationSopResponse>(`/v1/applications/${applicationId}/sop`);
+	return apiClient.get<ApplicationSopResponse>(
+		`/v1/applications/${applicationId}/sop`,
+	);
 }
 
 /**
@@ -180,7 +185,7 @@ export async function getSop(
  */
 export async function saveSop(
 	applicationId: string,
-	request: SaveSopRequest
+	request: SaveSopRequest,
 ): Promise<SaveSopResponse> {
 	if (USE_MOCK_DATA) {
 		await new Promise((resolve) => setTimeout(resolve, 300));
@@ -191,28 +196,27 @@ export async function saveSop(
 		};
 	}
 
-	return apiClient.put<SaveSopResponse>(`/v1/applications/${applicationId}/sop`, request);
+	return apiClient.put<SaveSopResponse>(
+		`/v1/applications/${applicationId}/sop`,
+		request,
+	);
 }
 
 /**
  * Get AI feedback on SOP
  */
 export async function getSopFeedback(
-	applicationId: string
+	applicationId: string,
 ): Promise<SopFeedbackDto> {
 	if (USE_MOCK_DATA) {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 		return {
 			round: 1,
-			strengths: [
-				"Clear articulation of goals",
-				"Good connection to program",
-			],
+			strengths: ["Clear articulation of goals", "Good connection to program"],
 			improvements: [
 				{
 					point: "Specificity",
-					suggestion:
-						"Add more specific examples from your experience",
+					suggestion: "Add more specific examples from your experience",
 				},
 				{
 					point: "Program fit",
@@ -228,7 +232,10 @@ export async function getSopFeedback(
 		};
 	}
 
-	return apiClient.post<SopFeedbackDto>(`/v1/applications/${applicationId}/sop/feedback`, {});
+	return apiClient.post<SopFeedbackDto>(
+		`/v1/applications/${applicationId}/sop/feedback`,
+		{},
+	);
 }
 
 // ============================================

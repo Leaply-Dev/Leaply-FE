@@ -201,7 +201,12 @@ export interface ProgramListParams {
 	ielts_max?: number;
 	scholarship_only?: boolean;
 	deadline_within?: number;
-	sort?: "fit_score" | "ranking_qs" | "tuition_asc" | "tuition_desc" | "deadline";
+	sort?:
+		| "fit_score"
+		| "ranking_qs"
+		| "tuition_asc"
+		| "tuition_desc"
+		| "deadline";
 	sort_dir?: "asc" | "desc";
 	page?: number;
 	size?: number;

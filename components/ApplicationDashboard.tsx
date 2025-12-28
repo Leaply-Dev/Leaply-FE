@@ -83,10 +83,22 @@ const statusConfig: Record<
 	},
 };
 
-const gapSeverityConfig: Record<string, { color: string; icon: typeof AlertCircle }> = {
-	critical: { color: "text-red-600 bg-red-50 border-red-200", icon: AlertCircle },
-	warning: { color: "text-amber-600 bg-amber-50 border-amber-200", icon: AlertCircle },
-	info: { color: "text-blue-600 bg-blue-50 border-blue-200", icon: AlertCircle },
+const gapSeverityConfig: Record<
+	string,
+	{ color: string; icon: typeof AlertCircle }
+> = {
+	critical: {
+		color: "text-red-600 bg-red-50 border-red-200",
+		icon: AlertCircle,
+	},
+	warning: {
+		color: "text-amber-600 bg-amber-50 border-amber-200",
+		icon: AlertCircle,
+	},
+	info: {
+		color: "text-blue-600 bg-blue-50 border-blue-200",
+		icon: AlertCircle,
+	},
 };
 
 export function ApplicationDashboard({
@@ -221,9 +233,13 @@ export function ApplicationDashboard({
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="planning">{t("status.planning")}</SelectItem>
+									<SelectItem value="planning">
+										{t("status.planning")}
+									</SelectItem>
 									<SelectItem value="writing">{t("status.writing")}</SelectItem>
-									<SelectItem value="submitted">{t("status.submitted")}</SelectItem>
+									<SelectItem value="submitted">
+										{t("status.submitted")}
+									</SelectItem>
 								</SelectContent>
 							</Select>
 						</CardContent>
@@ -282,7 +298,9 @@ export function ApplicationDashboard({
 									)}
 								</>
 							) : (
-								<p className="text-sm text-muted-foreground">{t("noDeadline")}</p>
+								<p className="text-sm text-muted-foreground">
+									{t("noDeadline")}
+								</p>
 							)}
 						</CardContent>
 					</Card>
@@ -296,9 +314,7 @@ export function ApplicationDashboard({
 								<AlertCircle className="w-5 h-5 text-amber-500" />
 								{t("gapsToAddress")}
 							</CardTitle>
-							<CardDescription>
-								{t("gapsDescription")}
-							</CardDescription>
+							<CardDescription>{t("gapsDescription")}</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<div className="space-y-3">
@@ -337,7 +353,9 @@ export function ApplicationDashboard({
 						<CardContent>
 							<div className="flex items-center justify-between">
 								<div>
-									<p className="text-sm text-muted-foreground">{t("nextIntake")}</p>
+									<p className="text-sm text-muted-foreground">
+										{t("nextIntake")}
+									</p>
 									<p className="text-lg font-semibold">
 										{application.program.nextIntake}
 									</p>
@@ -363,7 +381,8 @@ export function ApplicationDashboard({
 							<Button asChild>
 								<Link href={`/dashboard/applications/${application.id}/sop`}>
 									<FileText className="w-4 h-4 mr-2" />
-									{application.sopStatus === "not_started" || !application.sopStatus
+									{application.sopStatus === "not_started" ||
+									!application.sopStatus
 										? t("startSop")
 										: t("continueSop")}
 								</Link>
@@ -376,7 +395,10 @@ export function ApplicationDashboard({
 								</Link>
 							</Button>
 
-							<Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+							<Dialog
+								open={deleteDialogOpen}
+								onOpenChange={setDeleteDialogOpen}
+							>
 								<DialogTrigger asChild>
 									<Button variant="ghost" className="text-destructive">
 										<Trash2 className="w-4 h-4 mr-2" />
@@ -416,8 +438,7 @@ export function ApplicationDashboard({
 
 				{/* Timestamps */}
 				<div className="text-xs text-muted-foreground text-center">
-					{t("addedOn")}{" "}
-					{new Date(application.createdAt).toLocaleDateString()}
+					{t("addedOn")} {new Date(application.createdAt).toLocaleDateString()}
 					{application.updatedAt !== application.createdAt && (
 						<>
 							{" "}

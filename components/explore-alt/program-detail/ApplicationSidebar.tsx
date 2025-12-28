@@ -46,10 +46,7 @@ export function ApplicationSidebar({ program }: ApplicationSidebarProps) {
 				<div className="p-4">
 					<ul className="space-y-3">
 						{checklistItems.map((item) => (
-							<li
-								key={item}
-								className="flex items-center gap-3 text-sm"
-							>
+							<li key={item} className="flex items-center gap-3 text-sm">
 								<Circle className="w-4 h-4 text-muted-foreground" />
 								<span className="text-foreground">{item}</span>
 							</li>

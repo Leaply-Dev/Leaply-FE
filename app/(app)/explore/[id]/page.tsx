@@ -1,28 +1,28 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
 	ArrowLeft,
 	Bookmark,
 	BookmarkCheck,
-	ExternalLink,
-	MapPin,
-	Share2,
-	Loader2,
-	Plus,
 	Check,
+	ExternalLink,
+	Loader2,
+	MapPin,
+	Plus,
+	Share2,
 } from "lucide-react";
-import { PageTransition, SlideUp } from "@/components/PageTransition";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { use, useEffect, useState } from "react";
 import {
-	FitScoreExpanded,
-	QuickFactsBar,
 	ApplicationSidebar,
+	FitScoreExpanded,
 	ProgramTabs,
+	QuickFactsBar,
 } from "@/components/explore-alt/program-detail";
 import { MOCK_PROGRAM_DETAIL } from "@/components/explore-alt/program-detail/mockDetailData";
+import { PageTransition, SlideUp } from "@/components/PageTransition";
 import { exploreApi } from "@/lib/api/exploreApi";
 import type { ProgramDetailResponse } from "@/lib/api/types";
 import { useApplicationsStore } from "@/lib/store/applicationsStore";
@@ -46,7 +46,8 @@ export default function ProgramDetailPage({
 	const [isAddingToApplications, setIsAddingToApplications] = useState(false);
 	const [addedToApplications, setAddedToApplications] = useState(false);
 
-	const { addApplication, applications, fetchApplications } = useApplicationsStore();
+	const { addApplication, applications, fetchApplications } =
+		useApplicationsStore();
 
 	// Fetch applications to check if already added
 	useEffect(() => {
