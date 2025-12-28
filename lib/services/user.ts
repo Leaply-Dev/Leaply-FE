@@ -2,11 +2,24 @@ import { apiClient } from "@/lib/api/client";
 import type {
 	PreferencesResponse,
 	ProfileResponse,
+	ResetPasswordRequest,
 	UpdatePreferencesRequest,
 	UpdateProfileRequest,
+	UserMeResponse,
 } from "@/lib/api/types";
 
 export const userService = {
+	// ============================================
+	// Combined User Info
+	// ============================================
+
+	/**
+	 * Get current user complete info (account + profile + preferences)
+	 */
+	getMe: async (): Promise<UserMeResponse> => {
+		return apiClient.get<UserMeResponse>("/v1/user/me");
+	},
+
 	// ============================================
 	// Profile Management
 	// ============================================
@@ -45,5 +58,16 @@ export const userService = {
 		data: UpdatePreferencesRequest,
 	): Promise<PreferencesResponse> => {
 		return apiClient.patch<PreferencesResponse>("/v1/user/preferences", data);
+	},
+
+	// ============================================
+	// Password Management
+	// ============================================
+
+	/**
+	 * Request password reset email
+	 */
+	requestPasswordReset: async (data: ResetPasswordRequest): Promise<string> => {
+		return apiClient.post<string>("/v1/user/reset-password", data);
 	},
 };

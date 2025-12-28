@@ -112,6 +112,36 @@ export interface PreferencesResponse {
 	interests?: string[];
 }
 
+export interface UserMeResponse {
+	// Account info
+	userId: string;
+	email: string;
+	emailVerified?: boolean;
+	createdAt?: string;
+	// Profile info
+	fullName?: string;
+	currentEducationLevel?: string;
+	targetDegree?: string;
+	gpa?: number;
+	gpaScale?: number;
+	testScores?: Record<string, string>;
+	workExperienceYears?: number;
+	profileCompletion?: number;
+	// Preferences
+	fieldOfInterest?: string[];
+	preferredRegions?: string[];
+	intendedStartTerm?: string;
+	budgetLabel?: string;
+	journeyType?: string;
+	programType?: string;
+	campusSetting?: string;
+	interests?: string[];
+}
+
+export interface ResetPasswordRequest {
+	email: string;
+}
+
 export interface UpdatePreferencesRequest {
 	fieldOfInterest?: string[];
 	preferredRegions?: string[];
