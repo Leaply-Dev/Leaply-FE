@@ -87,8 +87,8 @@ export function Navbar() {
 					<div className="hidden md:flex items-center gap-6">
 						{navLinks.map((link) => {
 							const isActive =
-								link.href === "/"
-									? pathname === "/"
+								link.href === "/" || link.href === "/dashboard"
+									? pathname === link.href
 									: pathname === link.href || pathname?.startsWith(link.href);
 							return (
 								<Link
@@ -204,8 +204,8 @@ export function Navbar() {
 						<div className="flex flex-col gap-4">
 							{navLinks.map((link) => {
 								const isActive =
-									link.href === "/"
-										? pathname === "/"
+									link.href === "/" || link.href === "/dashboard"
+										? pathname === link.href
 										: pathname === link.href || pathname?.startsWith(link.href);
 								return (
 									<Link
