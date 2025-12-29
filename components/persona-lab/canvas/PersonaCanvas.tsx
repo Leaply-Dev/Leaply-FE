@@ -59,12 +59,129 @@ const nodeTypes = {
 // Distance from center for summary nodes (diamond layout)
 const SUMMARY_NODE_DISTANCE = 280;
 
-// Progressive disclosure - distances FROM the parent node (not from center)
-const COLLAPSED_PILL_OFFSET = 80; // How far pills sit from their parent topic card
-const COLLAPSED_PILL_ARC = 50; // Arc spread in pixels for collapsed pills
-const EXPANDED_NODE_OFFSET = 140; // How far expanded stories sit from topic card
-const EXPANDED_NODE_ARC = 80; // Arc spread for expanded stories
-const LAYER3_OFFSET = 100; // How far evidence/insight sits from expanded story
+// Spacing configuration for dynamic positioning
+const SPACING_CONFIG = {
+	// Minimum gap between sibling nodes (perpendicular to direction)
+	minNodeGap: 16,
+	// Base gap between parent and child nodes (along direction)
+	baseParentGap: 40,
+	// Extra gap per layer depth (compounds outward)
+	layerGapIncrement: 10,
+	// Minimum offset from parent center to child center
+	minOffset: 60,
+	// Maximum arc spread angle (degrees) to prevent nodes going too wide
+	maxArcAngle: 45,
+};
+
+// Default node dimensions for collapsed pills
+const COLLAPSED_PILL_DIMS = { width: 140, height: 36 };
+
+/**
+ * Calculate dynamic offset from parent node based on:
+ * - Parent node dimensions (in the direction of travel)
+ * - Child node dimensions
+ * - Layer depth (deeper = further out)
+ */
+function calculateParentOffset(
+	parentDims: { width: number; height: number },
+	childDims: { width: number; height: number },
+	directionAngle: number,
+	layerDepth: number = 0,
+): number {
+	// Calculate how much of parent/child extends in the direction of travel
+	const radians = (directionAngle * Math.PI) / 180;
+	const abscos = Math.abs(Math.cos(radians));
+	const abssin = Math.abs(Math.sin(radians));
+
+	// Effective "radius" of parent in the direction we're traveling
+	const parentExtent =
+		(parentDims.width / 2) * abscos + (parentDims.height / 2) * abssin;
+	// Effective "radius" of child in the direction we're coming from
+	const childExtent =
+		(childDims.width / 2) * abscos + (childDims.height / 2) * abssin;
+
+	// Total offset = parent extent + gap + child extent + layer bonus
+	const baseGap =
+		SPACING_CONFIG.baseParentGap +
+		layerDepth * SPACING_CONFIG.layerGapIncrement;
+	return Math.max(
+		SPACING_CONFIG.minOffset,
+		parentExtent + baseGap + childExtent,
+	);
+}
+
+/**
+ * Calculate perpendicular spread for sibling nodes.
+ * Ensures nodes don't overlap by considering their actual dimensions.
+ */
+function calculatePerpSpread(
+	nodeCount: number,
+	childDims: { width: number; height: number },
+	directionAngle: number,
+): { totalSpread: number; nodeSpacing: number } {
+	if (nodeCount <= 1) {
+		return { totalSpread: 0, nodeSpacing: 0 };
+	}
+
+	// Calculate how much each node extends perpendicular to direction
+	const radians = (directionAngle * Math.PI) / 180;
+	// Perpendicular direction (90° rotated)
+	const perpAbsCos = Math.abs(Math.sin(radians)); // sin because perpendicular
+	const perpAbsSin = Math.abs(Math.cos(radians));
+
+	// Effective width of node in perpendicular direction
+	const nodeExtent =
+		(childDims.width / 2) * perpAbsCos + (childDims.height / 2) * perpAbsSin;
+
+	// Space needed between node centers = 2 * extent + gap
+	const nodeSpacing = nodeExtent * 2 + SPACING_CONFIG.minNodeGap;
+	const totalSpread = nodeSpacing * (nodeCount - 1);
+
+	return { totalSpread, nodeSpacing };
+}
+
+/**
+ * Calculate position for a child node relative to its parent.
+ * Returns the center position of the child node.
+ */
+function calculateChildPosition(
+	parentCenter: { x: number; y: number },
+	parentDims: { width: number; height: number },
+	childDims: { width: number; height: number },
+	directionAngle: number,
+	siblingIndex: number,
+	siblingCount: number,
+	layerDepth: number = 0,
+): { x: number; y: number } {
+	const radians = (directionAngle * Math.PI) / 180;
+
+	// Direction vectors
+	const dirX = Math.cos(radians);
+	const dirY = Math.sin(radians);
+	const perpX = -dirY; // Perpendicular for spreading
+	const perpY = dirX;
+
+	// Calculate offset from parent
+	const offset = calculateParentOffset(
+		parentDims,
+		childDims,
+		directionAngle,
+		layerDepth,
+	);
+
+	// Calculate perpendicular spread
+	const { nodeSpacing } = calculatePerpSpread(
+		siblingCount,
+		childDims,
+		directionAngle,
+	);
+	const perpOffset = (siblingIndex - (siblingCount - 1) / 2) * nodeSpacing;
+
+	return {
+		x: parentCenter.x + dirX * offset + perpX * perpOffset,
+		y: parentCenter.y + dirY * offset + perpY * perpOffset,
+	};
+}
 
 // Track positions in diamond layout: Top, Right, Bottom, Left
 const TRACK_POSITIONS: Record<
@@ -112,31 +229,6 @@ const EDGE_STYLES = {
 		strokeDasharray: "2 4",
 		strokeWidth: 2,
 		strokeLinecap: "round" as const,
-	},
-};
-
-// Animation variants for nodes appearing from parent
-const nodeAnimationVariants = {
-	hidden: {
-		scale: 0.3,
-		opacity: 0,
-	},
-	visible: {
-		scale: 1,
-		opacity: 1,
-		transition: {
-			type: "spring",
-			stiffness: 300,
-			damping: 25,
-			duration: 0.5,
-		},
-	},
-	exit: {
-		scale: 0.5,
-		opacity: 0,
-		transition: {
-			duration: 0.2,
-		},
 	},
 };
 
@@ -223,24 +315,6 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 	const completedTracksCount = useMemo(() => {
 		return Object.values(tracks).filter((t) => t.status === "completed").length;
 	}, [tracks]);
-
-	// Calculate track positions for ELK layout
-	const trackPositionsForElk = useMemo(() => {
-		const CENTER = { x: 0, y: 0 };
-		const positions: Record<TrackId, { x: number; y: number; angle: number }> =
-			{} as Record<TrackId, { x: number; y: number; angle: number }>;
-
-		for (const trackId of TRACK_IDS) {
-			const trackPos = TRACK_POSITIONS[trackId];
-			const radians = (trackPos.angle * Math.PI) / 180;
-			positions[trackId] = {
-				x: CENTER.x + Math.cos(radians) * SUMMARY_NODE_DISTANCE,
-				y: CENTER.y + Math.sin(radians) * SUMMARY_NODE_DISTANCE,
-				angle: trackPos.angle,
-			};
-		}
-		return positions;
-	}, []);
 
 	// Generate fixed nodes (archetype + summary) and initial child nodes
 	const generatedData = useMemo(() => {
@@ -376,53 +450,42 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 
 			// Process story nodes - position them OUTSIDE the summary card
 			const storyNodes = nodesByLayer.story;
+			// Summary card dimensions (approximate from SummaryNode)
+			const summaryDims = { width: 200, height: 100 };
+
 			storyNodes.forEach((storeNode, idx) => {
 				const isLayerVisible =
 					visibleLayers[storeNode.type as keyof typeof visibleLayers];
 				if (!isLayerVisible) return;
 
 				const isCollapsed = !isTrackExpanded;
-				const offset = isCollapsed
-					? COLLAPSED_PILL_OFFSET
-					: EXPANDED_NODE_OFFSET;
-				const arcSpread = isCollapsed ? COLLAPSED_PILL_ARC : EXPANDED_NODE_ARC;
 
-				// Calculate perpendicular spread (tangent to the circle)
-				const nodeCount = storyNodes.length;
-				const perpOffset =
-					(idx - (nodeCount - 1) / 2) *
-					(arcSpread / Math.max(nodeCount - 1, 1));
-
-				// Direction vector pointing outward from center through summary
-				const dirX = Math.cos(baseRadians);
-				const dirY = Math.sin(baseRadians);
-
-				// Perpendicular vector for spreading nodes along arc
-				const perpX = -dirY;
-				const perpY = dirX;
-
-				// Position: start from summary center, go outward by offset, spread perpendicular
+				// Use actual dimensions for the child node
 				const dims = isCollapsed
-					? { width: 140, height: 36 }
+					? COLLAPSED_PILL_DIMS
 					: (NODE_DIMENSIONS.story ?? { width: 200, height: 100 });
 
+				// Calculate position dynamically based on node count and dimensions
+				const childCenter = calculateChildPosition(
+					summaryCenter,
+					summaryDims,
+					dims,
+					baseAngle,
+					idx,
+					storyNodes.length,
+					0, // Layer depth 0 for stories
+				);
+
+				// Convert center position to top-left for React Flow
 				const position = {
-					x:
-						summaryCenter.x +
-						dirX * offset +
-						perpX * perpOffset -
-						dims.width / 2,
-					y:
-						summaryCenter.y +
-						dirY * offset +
-						perpY * perpOffset -
-						dims.height / 2,
+					x: childCenter.x - dims.width / 2,
+					y: childCenter.y - dims.height / 2,
 				};
 
 				// Parent position for animation (relative offset from position to summary)
 				const parentOffset = {
-					x: summaryCenter.x - (position.x + dims.width / 2),
-					y: summaryCenter.y - (position.y + dims.height / 2),
+					x: summaryCenter.x - childCenter.x,
+					y: summaryCenter.y - childCenter.y,
 				};
 
 				const nodeData: StoryNodeData = {
@@ -479,22 +542,21 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				);
 				if (!expandedStoryNode) continue;
 
+				// Get expanded story's dimensions and calculate its center position
+				const expandedStoryDims =
+					NODE_DIMENSIONS.story ?? { width: 200, height: 100 };
 				const expandedIdx = storyNodes.indexOf(expandedStoryNode);
-				const nodeCount = storyNodes.length;
-				const perpOffset =
-					(expandedIdx - (nodeCount - 1) / 2) *
-					(EXPANDED_NODE_ARC / Math.max(nodeCount - 1, 1));
 
-				const dirX = Math.cos(baseRadians);
-				const dirY = Math.sin(baseRadians);
-				const perpX = -dirY;
-				const perpY = dirX;
-
-				// Expanded story position
-				const storyCenter = {
-					x: summaryCenter.x + dirX * EXPANDED_NODE_OFFSET + perpX * perpOffset,
-					y: summaryCenter.y + dirY * EXPANDED_NODE_OFFSET + perpY * perpOffset,
-				};
+				// Calculate the expanded story's center using the same function
+				const storyCenter = calculateChildPosition(
+					summaryCenter,
+					summaryDims,
+					expandedStoryDims,
+					baseAngle,
+					expandedIdx,
+					storyNodes.length,
+					0,
+				);
 
 				// Layer 3 nodes spread outward from the expanded story
 				const layer3Nodes = [...nodesByLayer.evidence, ...nodesByLayer.insight];
@@ -504,31 +566,30 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 						visibleLayers[storeNode.type as keyof typeof visibleLayers];
 					if (!isLayerVisible) return;
 
-					const l3Count = layer3Nodes.length;
-					const l3PerpOffset =
-						(idx - (l3Count - 1) / 2) * (60 / Math.max(l3Count - 1, 1));
-
 					const dims =
 						NODE_DIMENSIONS[storeNode.type as keyof typeof NODE_DIMENSIONS] ??
 						NODE_DIMENSIONS.story;
 
-					// Position further outward from story
+					// Calculate layer 3 position dynamically from the expanded story
+					const childCenter = calculateChildPosition(
+						storyCenter,
+						expandedStoryDims,
+						dims,
+						baseAngle,
+						idx,
+						layer3Nodes.length,
+						1, // Layer depth 1 for evidence/insight (further out)
+					);
+
+					// Convert center to top-left
 					const position = {
-						x:
-							storyCenter.x +
-							dirX * LAYER3_OFFSET +
-							perpX * l3PerpOffset -
-							dims.width / 2,
-						y:
-							storyCenter.y +
-							dirY * LAYER3_OFFSET +
-							perpY * l3PerpOffset -
-							dims.height / 2,
+						x: childCenter.x - dims.width / 2,
+						y: childCenter.y - dims.height / 2,
 					};
 
 					const parentOffset = {
-						x: storyCenter.x - (position.x + dims.width / 2),
-						y: storyCenter.y - (position.y + dims.height / 2),
+						x: storyCenter.x - childCenter.x,
+						y: storyCenter.y - childCenter.y,
 					};
 
 					const nodeData: Record<string, unknown> = {
