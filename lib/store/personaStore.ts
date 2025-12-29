@@ -64,6 +64,10 @@ interface PersonaStoreState {
 	selectedNodeId: string | null;
 	isExtractingKeywords: boolean;
 
+	// === Canvas Expansion State (Progressive Disclosure) ===
+	expandedTrackId: TrackId | null;
+	expandedStoryId: string | null;
+
 	// === Actions ===
 
 	// Initial load
@@ -81,6 +85,10 @@ interface PersonaStoreState {
 	setVisibleLayers: (layers: VisibleLayers) => void;
 	selectNode: (nodeId: string | null) => void;
 	processCanvasActions: (actions: CanvasAction[]) => void;
+
+	// Canvas expansion (progressive disclosure)
+	setExpandedTrack: (trackId: TrackId | null) => void;
+	setExpandedStory: (storyId: string | null) => void;
 
 	// Keywords & Archetype Hints (Phase 2 & 3)
 	extractKeywords: (content: string, trackId: TrackId) => Promise<void>;
@@ -120,6 +128,8 @@ const initialState = {
 		archetype: true,
 	},
 	selectedNodeId: null,
+	expandedTrackId: null,
+	expandedStoryId: null,
 };
 
 export const usePersonaStore = create<PersonaStoreState>()(
@@ -396,6 +406,14 @@ export const usePersonaStore = create<PersonaStoreState>()(
 
 			selectNode: (nodeId) => set({ selectedNodeId: nodeId }),
 
+			// Canvas expansion (progressive disclosure)
+			setExpandedTrack: (trackId) =>
+				set({
+					expandedTrackId: trackId,
+					expandedStoryId: null, // Reset story expansion when changing tracks
+				}),
+			setExpandedStory: (storyId) => set({ expandedStoryId: storyId }),
+
 			processCanvasActions: (actions: CanvasAction[]) => {
 				set((state) => {
 					let nodes = [...state.nodes];
@@ -524,6 +542,8 @@ export const usePersonaStore = create<PersonaStoreState>()(
 				currentTrackId: state.currentTrackId,
 				viewMode: state.viewMode,
 				visibleLayers: state.visibleLayers,
+				expandedTrackId: state.expandedTrackId,
+				expandedStoryId: state.expandedStoryId,
 			}),
 		},
 	),

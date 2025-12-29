@@ -59,6 +59,12 @@ const nodeTypes = {
 // Distance from center for summary nodes (diamond layout)
 const SUMMARY_NODE_DISTANCE = 280;
 
+// Progressive disclosure distances
+const COLLAPSED_PILL_DISTANCE = 140; // Close to topic when collapsed
+const COLLAPSED_PILL_SPREAD = 14; // Tight angular spread (degrees)
+const EXPANDED_NODE_DISTANCE = 220; // Further when expanded
+const EXPANDED_NODE_SPREAD = 20; // Wider spread (degrees)
+
 // Track positions in diamond layout: Top, Right, Bottom, Left
 const TRACK_POSITIONS: Record<
 	TrackId,
@@ -176,6 +182,10 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 		visibleLayers,
 		selectNode,
 		isLoading,
+		expandedTrackId,
+		expandedStoryId,
+		setExpandedTrack,
+		setExpandedStory,
 	} = usePersonaStore();
 	const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 	const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
@@ -274,6 +284,10 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				.filter((k) => k.trackId === trackId)
 				.map((k) => ({ id: k.id, keyword: k.keyword }));
 
+			// Determine expansion state for this track
+			const isThisTrackExpanded = expandedTrackId === trackId;
+			const isDimmed = expandedTrackId !== null && !isThisTrackExpanded;
+
 			const summaryData: SummaryNodeData = {
 				trackId,
 				status: track.status,
@@ -282,6 +296,8 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				isLoading: isLoading,
 				keywords: trackKeywords,
 				zoom: currentZoom,
+				isExpanded: isThisTrackExpanded,
+				isDimmed,
 			};
 
 			rfNodes.push({
@@ -322,7 +338,7 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 			}
 		}
 
-		// Create child nodes with layer-based positioning (will be refined by ELK)
+		// Create child nodes with progressive disclosure
 		for (const [trackId, trackNodes] of Object.entries(nodesByTrack) as [
 			TrackId,
 			StoreCanvasNode[],
@@ -331,7 +347,19 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 			const trackColor = TRACK_COLORS[trackId];
 			const baseAngle = trackPos.angle;
 
-			// Group nodes by layer type for proper spacing
+			// Calculate summary node position for parent reference
+			const summaryRadians = (trackPos.angle * Math.PI) / 180;
+			const summaryPosition = {
+				x: CENTER.x + Math.cos(summaryRadians) * SUMMARY_NODE_DISTANCE - 100,
+				y: CENTER.y + Math.sin(summaryRadians) * SUMMARY_NODE_DISTANCE - 50,
+			};
+
+			// If another track is expanded, don't render this track's children
+			if (expandedTrackId && expandedTrackId !== trackId) continue;
+
+			const isTrackExpanded = expandedTrackId === trackId;
+
+			// Group nodes by layer type
 			const nodesByLayer: Record<string, StoreCanvasNode[]> = {
 				story: [],
 				evidence: [],
@@ -344,24 +372,124 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				}
 			}
 
-			// Position nodes by layer (concentric zones around track)
-			for (const [layerType, layerNodes] of Object.entries(nodesByLayer)) {
-				const layerDistance =
-					LAYER_DISTANCES[layerType as keyof typeof LAYER_DISTANCES] ?? 200;
-				const layerDepth =
-					LAYER_DEPTHS[layerType as keyof typeof LAYER_DEPTHS] ?? 0;
+			// Process story nodes - always show (collapsed or expanded)
+			const storyNodes = nodesByLayer.story;
+			storyNodes.forEach((storeNode, idx) => {
+				// Check if layer is visible
+				const isLayerVisible =
+					visibleLayers[storeNode.type as keyof typeof visibleLayers];
+				if (!isLayerVisible) return;
 
-				layerNodes.forEach((storeNode, idx) => {
-					// Check if layer is visible
+				const isCollapsed = !isTrackExpanded;
+				const distance = isCollapsed
+					? COLLAPSED_PILL_DISTANCE
+					: EXPANDED_NODE_DISTANCE;
+				const spread = isCollapsed
+					? COLLAPSED_PILL_SPREAD
+					: EXPANDED_NODE_SPREAD;
+
+				// Calculate position
+				const nodeCount = storyNodes.length;
+				const angleOffset = (idx - (nodeCount - 1) / 2) * spread;
+				const angle = baseAngle + angleOffset;
+				const radians = (angle * Math.PI) / 180;
+
+				// Use smaller dimensions for collapsed pills
+				const dims = isCollapsed
+					? { width: 140, height: 36 }
+					: (NODE_DIMENSIONS.story ?? { width: 200, height: 100 });
+
+				const position = {
+					x: CENTER.x + Math.cos(radians) * distance - dims.width / 2,
+					y: CENTER.y + Math.sin(radians) * distance - dims.height / 2,
+				};
+
+				const nodeData: StoryNodeData = {
+					id: storeNode.id,
+					title: storeNode.title,
+					content: storeNode.content,
+					sourceTrackId: storeNode.sourceTrackId,
+					layer: "story",
+					layerDepth: LAYER_DEPTHS.story ?? 0,
+					zoom: currentZoom,
+					isCollapsed,
+					isExpanded: expandedStoryId === storeNode.id,
+					parentPosition: {
+						x: summaryPosition.x - position.x + dims.width / 2,
+						y: summaryPosition.y - position.y + dims.height / 2,
+					},
+				};
+
+				rfNodes.push({
+					id: storeNode.id,
+					type: "story",
+					position,
+					data: nodeData,
+				});
+
+				// Create edge from summary to story
+				const handleForChild = getHandleForAngle(angle);
+				rfEdges.push({
+					id: `summary-${trackId}-to-${storeNode.id}`,
+					source: `summary-${trackId}`,
+					target: storeNode.id,
+					sourceHandle: trackPos.sourceHandle,
+					targetHandle: handleForChild.target,
+					style: {
+						stroke: trackColor.primary,
+						strokeOpacity: isCollapsed ? 0.25 : 0.4,
+						...EDGE_STYLES.trackToChild,
+					},
+					markerEnd: isCollapsed
+						? undefined
+						: {
+								type: MarkerType.ArrowClosed,
+								width: 12,
+								height: 12,
+								color: `${trackColor.primary}60`,
+							},
+					animated: false,
+				});
+			});
+
+			// Process evidence and insight nodes - only show when a story is expanded
+			if (expandedStoryId && isTrackExpanded) {
+				// Find the expanded story's position
+				const expandedStoryNode = storyNodes.find(
+					(n) => n.id === expandedStoryId,
+				);
+				if (!expandedStoryNode) continue;
+
+				const expandedStoryIdx = storyNodes.indexOf(expandedStoryNode);
+				const storyAngleOffset =
+					(expandedStoryIdx - (storyNodes.length - 1) / 2) *
+					EXPANDED_NODE_SPREAD;
+				const storyAngle = baseAngle + storyAngleOffset;
+				const storyRadians = (storyAngle * Math.PI) / 180;
+				const storyPosition = {
+					x:
+						CENTER.x +
+						Math.cos(storyRadians) * EXPANDED_NODE_DISTANCE -
+						(NODE_DIMENSIONS.story?.width ?? 200) / 2,
+					y:
+						CENTER.y +
+						Math.sin(storyRadians) * EXPANDED_NODE_DISTANCE -
+						(NODE_DIMENSIONS.story?.height ?? 100) / 2,
+				};
+
+				// Evidence and insight nodes spread out from the expanded story
+				const layer3Nodes = [...nodesByLayer.evidence, ...nodesByLayer.insight];
+				const layer3Distance = EXPANDED_NODE_DISTANCE + 120; // Further out
+
+				layer3Nodes.forEach((storeNode, idx) => {
 					const isLayerVisible =
 						visibleLayers[storeNode.type as keyof typeof visibleLayers];
 					if (!isLayerVisible) return;
 
-					// Calculate position in arc around track at layer distance
-					const nodeCount = layerNodes.length;
-					const angleSpread = Math.min(15, 40 / Math.max(nodeCount, 1));
-					const angleOffset = (idx - (nodeCount - 1) / 2) * angleSpread;
-					const angle = baseAngle + angleOffset;
+					const nodeCount = layer3Nodes.length;
+					const layer3Spread = 12;
+					const angleOffset = (idx - (nodeCount - 1) / 2) * layer3Spread;
+					const angle = storyAngle + angleOffset;
 					const radians = (angle * Math.PI) / 180;
 
 					const dims =
@@ -369,19 +497,23 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 						NODE_DIMENSIONS.story;
 
 					const position = {
-						x: CENTER.x + Math.cos(radians) * layerDistance - dims.width / 2,
-						y: CENTER.y + Math.sin(radians) * layerDistance - dims.height / 2,
+						x: CENTER.x + Math.cos(radians) * layer3Distance - dims.width / 2,
+						y: CENTER.y + Math.sin(radians) * layer3Distance - dims.height / 2,
 					};
 
-					// Create node with layer metadata
 					const nodeData: Record<string, unknown> = {
 						id: storeNode.id,
 						title: storeNode.title,
 						content: storeNode.content,
 						sourceTrackId: storeNode.sourceTrackId,
-						layer: layerType,
-						layerDepth,
+						layer: storeNode.type,
+						layerDepth:
+							LAYER_DEPTHS[storeNode.type as keyof typeof LAYER_DEPTHS] ?? 0,
 						zoom: currentZoom,
+						parentPosition: {
+							x: storyPosition.x - position.x + dims.width / 2,
+							y: storyPosition.y - position.y + dims.height / 2,
+						},
 					};
 
 					if (storeNode.type === "insight") {
@@ -395,16 +527,13 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 						data: nodeData,
 					});
 
-					// Create edge from summary node to child - use track-to-child style
-					// Calculate which handle to use based on node angle relative to track
-					const childAngle = angle;
-					const handleForChild = getHandleForAngle(childAngle);
-
+					// Edge from expanded story to layer 3 node
+					const handleForChild = getHandleForAngle(angle);
 					rfEdges.push({
-						id: `summary-${trackId}-to-${storeNode.id}`,
-						source: `summary-${trackId}`,
+						id: `${expandedStoryId}-to-${storeNode.id}`,
+						source: expandedStoryId,
 						target: storeNode.id,
-						sourceHandle: trackPos.sourceHandle,
+						sourceHandle: Position.Right,
 						targetHandle: handleForChild.target,
 						style: {
 							stroke: trackColor.primary,
@@ -413,9 +542,9 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 						},
 						markerEnd: {
 							type: MarkerType.ArrowClosed,
-							width: 12,
-							height: 12,
-							color: `${trackColor.primary}60`,
+							width: 10,
+							height: 10,
+							color: `${trackColor.primary}50`,
 						},
 						animated: false,
 					});
@@ -436,6 +565,8 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 		overallProgress,
 		completedTracksCount,
 		isLoading,
+		expandedTrackId,
+		expandedStoryId,
 	]);
 
 	// Track node IDs for change detection
@@ -501,6 +632,30 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 
 	const handleNodeClick = useCallback(
 		(_event: React.MouseEvent, node: Node) => {
+			// Handle summary node clicks - toggle track expansion
+			if (node.type === "summary") {
+				const data = node.data as SummaryNodeData;
+				const trackId = data.trackId;
+				setExpandedTrack(expandedTrackId === trackId ? null : trackId);
+				return; // Don't open modal for summary clicks
+			}
+
+			// Handle story node clicks - expand or toggle layer 3
+			if (node.type === "story") {
+				const data = node.data as StoryNodeData;
+				if (data.isCollapsed) {
+					// Collapsed pill clicked - expand the track
+					if (data.sourceTrackId) {
+						setExpandedTrack(data.sourceTrackId);
+					}
+				} else {
+					// Expanded story clicked - toggle layer 3 visibility
+					setExpandedStory(expandedStoryId === node.id ? null : node.id);
+				}
+				return;
+			}
+
+			// For other nodes (evidence, insight, archetype), open modal
 			setSelectedNodeId(node.id);
 			selectNode(node.id);
 			onNodeSelect?.(node.id);
@@ -511,7 +666,17 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				setIsModalOpen(true);
 			}
 		},
-		[onNodeSelect, storeNodes, archetype, selectNode, tracks],
+		[
+			onNodeSelect,
+			storeNodes,
+			archetype,
+			selectNode,
+			tracks,
+			expandedTrackId,
+			expandedStoryId,
+			setExpandedTrack,
+			setExpandedStory,
+		],
 	);
 
 	const handleNodeMouseEnter = useCallback(
@@ -550,14 +715,16 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 		[nodes, storeNodes, archetype, tracks],
 	);
 
-	// Re-center on archetype when double-clicking pane
+	// Re-center on archetype when double-clicking pane and reset expansion
 	const handlePaneDoubleClick = useCallback(() => {
+		setExpandedTrack(null);
+		setExpandedStory(null);
 		fitView({
 			padding: 0.3,
 			duration: 300,
 			nodes: [{ id: "archetype" }],
 		});
-	}, [fitView]);
+	}, [fitView, setExpandedTrack, setExpandedStory]);
 
 	return (
 		<div className={cn("w-full h-full relative", className)}>

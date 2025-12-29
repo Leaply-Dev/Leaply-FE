@@ -17,6 +17,7 @@ export interface InsightNodeData {
 	layer?: string;
 	layerDepth?: number;
 	zoom?: number;
+	parentPosition?: { x: number; y: number };
 	[key: string]: unknown;
 }
 
@@ -28,26 +29,29 @@ interface InsightNodeProps {
 // Insight nodes are colored amber/yellow (by type)
 const insightColors = NODE_TYPE_COLORS.insight;
 
-// Animation variants for insight node appearance (with sparkle effect)
-const insightVariants = {
-	initial: {
-		scale: 0.3,
-		opacity: 0,
-		rotate: -10,
-	},
-	animate: {
-		scale: 1,
-		opacity: 1,
-		rotate: 0,
-		transition: {
-			type: "spring" as const,
-			stiffness: 400,
-			damping: 20,
-		},
-	},
-};
-
 function InsightNodeComponent({ data, selected }: InsightNodeProps) {
+	// Dynamic animation based on parent position
+	const insightVariants = {
+		initial: {
+			scale: 0.3,
+			opacity: 0,
+			x: data.parentPosition?.x ?? 0,
+			y: data.parentPosition?.y ?? 0,
+			rotate: -10,
+		},
+		animate: {
+			scale: 1,
+			opacity: 1,
+			x: 0,
+			y: 0,
+			rotate: 0,
+			transition: {
+				type: "spring" as const,
+				stiffness: 400,
+				damping: 20,
+			},
+		},
+	};
 	const trackColors = data.sourceTrackId
 		? TRACK_COLORS[data.sourceTrackId]
 		: null;

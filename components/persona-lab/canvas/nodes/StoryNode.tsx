@@ -16,6 +16,9 @@ export interface StoryNodeData {
 	layer?: string;
 	layerDepth?: number;
 	zoom?: number;
+	isCollapsed?: boolean;
+	isExpanded?: boolean;
+	parentPosition?: { x: number; y: number };
 	[key: string]: unknown;
 }
 
@@ -51,6 +54,73 @@ function StoryNodeComponent({ data, selected }: StoryNodeProps) {
 
 	const isMacroView = data.zoom && data.zoom < 0.5;
 	const isMicroView = !data.zoom || data.zoom > 0.7;
+	const isCollapsed = data.isCollapsed ?? false;
+	const isExpanded = data.isExpanded ?? false;
+
+	// Collapsed Pill State - small compact node
+	if (isCollapsed) {
+		return (
+			<motion.div
+				className={cn(
+					"flex items-center gap-2 px-3 py-2 rounded-full border-2 cursor-pointer",
+					"bg-background shadow-sm hover:shadow-md transition-all",
+					"max-w-[140px]",
+					selected && "ring-2 ring-emerald-500 ring-offset-1",
+				)}
+				style={{
+					borderColor: `${storyColors.primary}50`,
+					backgroundColor: `${storyColors.primary}06`,
+				}}
+				initial={{
+					scale: 0.3,
+					opacity: 0,
+					x: data.parentPosition?.x ?? 0,
+					y: data.parentPosition?.y ?? 0,
+				}}
+				animate={{
+					scale: 1,
+					opacity: 1,
+					x: 0,
+					y: 0,
+				}}
+				whileHover={{ scale: 1.05 }}
+				transition={{ type: "spring", stiffness: 350, damping: 28 }}
+			>
+				<FileText
+					className="w-3.5 h-3.5 shrink-0"
+					style={{ color: storyColors.primary }}
+				/>
+				<span className="text-xs font-medium truncate text-foreground">
+					{data.title}
+				</span>
+				{/* Hidden handles for edges */}
+				<Handle
+					type="target"
+					position={Position.Top}
+					id={Position.Top}
+					className="!opacity-0"
+				/>
+				<Handle
+					type="target"
+					position={Position.Left}
+					id={Position.Left}
+					className="!opacity-0"
+				/>
+				<Handle
+					type="target"
+					position={Position.Bottom}
+					id={Position.Bottom}
+					className="!opacity-0"
+				/>
+				<Handle
+					type="target"
+					position={Position.Right}
+					id={Position.Right}
+					className="!opacity-0"
+				/>
+			</motion.div>
+		);
+	}
 
 	// Macro View (Deep Zoom Out) - Show colored circle
 	if (isMacroView) {
@@ -100,10 +170,14 @@ function StoryNodeComponent({ data, selected }: StoryNodeProps) {
 				"bg-background",
 				selected && "ring-2 ring-offset-2 ring-emerald-500",
 				!isMicroView && "scale-95 opacity-90",
+				isExpanded &&
+					"ring-2 ring-emerald-400/50 shadow-lg shadow-emerald-500/20",
 			)}
 			style={{
-				borderColor: storyColors.primary,
-				backgroundColor: `${storyColors.primary}08`,
+				borderColor: isExpanded ? storyColors.primary : storyColors.primary,
+				backgroundColor: isExpanded
+					? `${storyColors.primary}12`
+					: `${storyColors.primary}08`,
 			}}
 			variants={nodeVariants}
 			initial="initial"

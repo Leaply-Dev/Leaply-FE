@@ -17,6 +17,8 @@ export interface SummaryNodeData {
 	isLoading?: boolean;
 	keywords?: Array<{ id: string; keyword: string }>; // Keywords for this track
 	zoom?: number;
+	isExpanded?: boolean;
+	isDimmed?: boolean;
 	[key: string]: unknown;
 }
 
@@ -33,6 +35,8 @@ export function SummaryNode({ data, selected }: SummaryNodeProps) {
 	const isCompleted = data.status === "completed";
 	const isInProgress = data.status === "in_progress";
 	const isNotStarted = data.status === "not_started";
+	const isExpanded = data.isExpanded ?? false;
+	const isDimmed = data.isDimmed ?? false;
 
 	const isMacroView = data.zoom && data.zoom < 0.5;
 
@@ -115,11 +119,13 @@ export function SummaryNode({ data, selected }: SummaryNodeProps) {
 	return (
 		<div
 			className={cn(
-				"relative rounded-xl border-2 shadow-md transition-all duration-500 cursor-pointer overflow-hidden",
+				"relative rounded-xl border-2 shadow-md transition-all duration-300 cursor-pointer overflow-hidden",
 				"min-w-[180px] max-w-[200px] px-4 py-3",
 				"hover:shadow-xl hover:scale-[1.02]",
 				"bg-background",
 				selected && "ring-2 ring-offset-2",
+				isExpanded && "scale-105 shadow-xl ring-2 ring-offset-2",
+				isDimmed && "opacity-40 scale-95 hover:opacity-60",
 			)}
 			style={{
 				borderColor: isLoading ? "hsl(var(--border))" : colors.primary,
@@ -234,7 +240,12 @@ export function SummaryNode({ data, selected }: SummaryNodeProps) {
 				</div>
 
 				{!isLoading && (
-					<ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 mt-1" />
+					<ChevronRight
+						className={cn(
+							"w-4 h-4 text-muted-foreground shrink-0 mt-1 transition-transform duration-300",
+							isExpanded && "rotate-90",
+						)}
+					/>
 				)}
 			</div>
 

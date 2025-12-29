@@ -16,6 +16,7 @@ export interface EvidenceNodeData {
 	layer?: string;
 	layerDepth?: number;
 	zoom?: number;
+	parentPosition?: { x: number; y: number };
 	[key: string]: unknown;
 }
 
@@ -27,26 +28,27 @@ interface EvidenceNodeProps {
 // Evidence nodes are colored grey/stone (by type)
 const evidenceColors = NODE_TYPE_COLORS.evidence;
 
-// Animation variants for evidence node appearance
-const evidenceVariants = {
-	initial: {
-		scale: 0.4,
-		opacity: 0,
-		y: -10,
-	},
-	animate: {
-		scale: 1,
-		opacity: 1,
-		y: 0,
-		transition: {
-			type: "spring" as const,
-			stiffness: 320,
-			damping: 22,
-		},
-	},
-};
-
 function EvidenceNodeComponent({ data, selected }: EvidenceNodeProps) {
+	// Dynamic animation based on parent position
+	const evidenceVariants = {
+		initial: {
+			scale: 0.3,
+			opacity: 0,
+			x: data.parentPosition?.x ?? 0,
+			y: data.parentPosition?.y ?? -10,
+		},
+		animate: {
+			scale: 1,
+			opacity: 1,
+			x: 0,
+			y: 0,
+			transition: {
+				type: "spring" as const,
+				stiffness: 320,
+				damping: 22,
+			},
+		},
+	};
 	const trackColors = data.sourceTrackId
 		? TRACK_COLORS[data.sourceTrackId]
 		: null;
