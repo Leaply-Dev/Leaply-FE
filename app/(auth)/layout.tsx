@@ -11,7 +11,9 @@ export const metadata = {
 	description:
 		"Discover universities, manage applications, and get personalized guidance for studying abroad with Leaply.",
 	icons: {
-		icon: "/icon.ico",
+		icon: "/favicon.ico",
+		shortcut: "/favicon.ico",
+		apple: "/favicon.ico",
 	},
 };
 

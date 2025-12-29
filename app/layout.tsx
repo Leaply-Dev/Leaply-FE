@@ -10,6 +10,11 @@ export const metadata: Metadata = {
 	title: "Leaply - Study Abroad Simplified",
 	description:
 		"Your personal study abroad mentor. Find your perfect university match with AI-powered recommendations.",
+	icons: {
+		icon: "/favicon.ico",
+		shortcut: "/favicon.ico",
+		apple: "/favicon.ico",
+	},
 };
 
 export default async function RootLayout({
