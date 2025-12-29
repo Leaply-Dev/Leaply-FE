@@ -93,6 +93,7 @@ export function calculateOverallProgress(
 	tracks: Record<TrackId, Track>,
 ): number {
 	const trackList = Object.values(tracks);
+	if (trackList.length === 0) return 0;
 	const totalProgress = trackList.reduce(
 		(sum, track) => sum + calculateTrackProgress(track),
 		0,

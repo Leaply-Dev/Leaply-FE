@@ -274,7 +274,7 @@ export function PersonaListView() {
 								Your Archetype
 							</h2>
 							<p className="text-sm text-muted-foreground/70 mt-1">
-								{completedCount}/{total} topics completed
+								{completedCount ?? 0}/{total || 4} topics completed
 							</p>
 						</>
 					)}
