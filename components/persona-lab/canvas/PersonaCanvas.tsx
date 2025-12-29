@@ -59,11 +59,12 @@ const nodeTypes = {
 // Distance from center for summary nodes (diamond layout)
 const SUMMARY_NODE_DISTANCE = 280;
 
-// Progressive disclosure distances
-const COLLAPSED_PILL_DISTANCE = 140; // Close to topic when collapsed
-const COLLAPSED_PILL_SPREAD = 14; // Tight angular spread (degrees)
-const EXPANDED_NODE_DISTANCE = 220; // Further when expanded
-const EXPANDED_NODE_SPREAD = 20; // Wider spread (degrees)
+// Progressive disclosure - distances FROM the parent node (not from center)
+const COLLAPSED_PILL_OFFSET = 80; // How far pills sit from their parent topic card
+const COLLAPSED_PILL_ARC = 50; // Arc spread in pixels for collapsed pills
+const EXPANDED_NODE_OFFSET = 140; // How far expanded stories sit from topic card
+const EXPANDED_NODE_ARC = 80; // Arc spread for expanded stories
+const LAYER3_OFFSET = 100; // How far evidence/insight sits from expanded story
 
 // Track positions in diamond layout: Top, Right, Bottom, Left
 const TRACK_POSITIONS: Record<
@@ -339,6 +340,7 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 		}
 
 		// Create child nodes with progressive disclosure
+		// Key insight: position children OUTSIDE their parent, extending away from center
 		for (const [trackId, trackNodes] of Object.entries(nodesByTrack) as [
 			TrackId,
 			StoreCanvasNode[],
@@ -346,12 +348,12 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 			const trackPos = TRACK_POSITIONS[trackId];
 			const trackColor = TRACK_COLORS[trackId];
 			const baseAngle = trackPos.angle;
+			const baseRadians = (baseAngle * Math.PI) / 180;
 
-			// Calculate summary node position for parent reference
-			const summaryRadians = (trackPos.angle * Math.PI) / 180;
-			const summaryPosition = {
-				x: CENTER.x + Math.cos(summaryRadians) * SUMMARY_NODE_DISTANCE - 100,
-				y: CENTER.y + Math.sin(summaryRadians) * SUMMARY_NODE_DISTANCE - 50,
+			// Calculate summary node CENTER position (for reference)
+			const summaryCenter = {
+				x: CENTER.x + Math.cos(baseRadians) * SUMMARY_NODE_DISTANCE,
+				y: CENTER.y + Math.sin(baseRadians) * SUMMARY_NODE_DISTANCE,
 			};
 
 			// If another track is expanded, don't render this track's children
@@ -372,36 +374,55 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				}
 			}
 
-			// Process story nodes - always show (collapsed or expanded)
+			// Process story nodes - position them OUTSIDE the summary card
 			const storyNodes = nodesByLayer.story;
 			storyNodes.forEach((storeNode, idx) => {
-				// Check if layer is visible
 				const isLayerVisible =
 					visibleLayers[storeNode.type as keyof typeof visibleLayers];
 				if (!isLayerVisible) return;
 
 				const isCollapsed = !isTrackExpanded;
-				const distance = isCollapsed
-					? COLLAPSED_PILL_DISTANCE
-					: EXPANDED_NODE_DISTANCE;
-				const spread = isCollapsed
-					? COLLAPSED_PILL_SPREAD
-					: EXPANDED_NODE_SPREAD;
+				const offset = isCollapsed
+					? COLLAPSED_PILL_OFFSET
+					: EXPANDED_NODE_OFFSET;
+				const arcSpread = isCollapsed ? COLLAPSED_PILL_ARC : EXPANDED_NODE_ARC;
 
-				// Calculate position
+				// Calculate perpendicular spread (tangent to the circle)
 				const nodeCount = storyNodes.length;
-				const angleOffset = (idx - (nodeCount - 1) / 2) * spread;
-				const angle = baseAngle + angleOffset;
-				const radians = (angle * Math.PI) / 180;
+				const perpOffset =
+					(idx - (nodeCount - 1) / 2) *
+					(arcSpread / Math.max(nodeCount - 1, 1));
 
-				// Use smaller dimensions for collapsed pills
+				// Direction vector pointing outward from center through summary
+				const dirX = Math.cos(baseRadians);
+				const dirY = Math.sin(baseRadians);
+
+				// Perpendicular vector for spreading nodes along arc
+				const perpX = -dirY;
+				const perpY = dirX;
+
+				// Position: start from summary center, go outward by offset, spread perpendicular
 				const dims = isCollapsed
 					? { width: 140, height: 36 }
 					: (NODE_DIMENSIONS.story ?? { width: 200, height: 100 });
 
 				const position = {
-					x: CENTER.x + Math.cos(radians) * distance - dims.width / 2,
-					y: CENTER.y + Math.sin(radians) * distance - dims.height / 2,
+					x:
+						summaryCenter.x +
+						dirX * offset +
+						perpX * perpOffset -
+						dims.width / 2,
+					y:
+						summaryCenter.y +
+						dirY * offset +
+						perpY * perpOffset -
+						dims.height / 2,
+				};
+
+				// Parent position for animation (relative offset from position to summary)
+				const parentOffset = {
+					x: summaryCenter.x - (position.x + dims.width / 2),
+					y: summaryCenter.y - (position.y + dims.height / 2),
 				};
 
 				const nodeData: StoryNodeData = {
@@ -414,10 +435,7 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 					zoom: currentZoom,
 					isCollapsed,
 					isExpanded: expandedStoryId === storeNode.id,
-					parentPosition: {
-						x: summaryPosition.x - position.x + dims.width / 2,
-						y: summaryPosition.y - position.y + dims.height / 2,
-					},
+					parentPosition: parentOffset,
 				};
 
 				rfNodes.push({
@@ -427,17 +445,19 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 					data: nodeData,
 				});
 
-				// Create edge from summary to story
-				const handleForChild = getHandleForAngle(angle);
+				// Edge from summary to story - determine best handles
+				const edgeSourceHandle = trackPos.sourceHandle;
+				const edgeTargetHandle = getHandleForAngle(baseAngle + 180).target; // Opposite direction
+
 				rfEdges.push({
 					id: `summary-${trackId}-to-${storeNode.id}`,
 					source: `summary-${trackId}`,
 					target: storeNode.id,
-					sourceHandle: trackPos.sourceHandle,
-					targetHandle: handleForChild.target,
+					sourceHandle: edgeSourceHandle,
+					targetHandle: edgeTargetHandle,
 					style: {
 						stroke: trackColor.primary,
-						strokeOpacity: isCollapsed ? 0.25 : 0.4,
+						strokeOpacity: isCollapsed ? 0.3 : 0.5,
 						...EDGE_STYLES.trackToChild,
 					},
 					markerEnd: isCollapsed
@@ -454,51 +474,61 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 
 			// Process evidence and insight nodes - only show when a story is expanded
 			if (expandedStoryId && isTrackExpanded) {
-				// Find the expanded story's position
 				const expandedStoryNode = storyNodes.find(
 					(n) => n.id === expandedStoryId,
 				);
 				if (!expandedStoryNode) continue;
 
-				const expandedStoryIdx = storyNodes.indexOf(expandedStoryNode);
-				const storyAngleOffset =
-					(expandedStoryIdx - (storyNodes.length - 1) / 2) *
-					EXPANDED_NODE_SPREAD;
-				const storyAngle = baseAngle + storyAngleOffset;
-				const storyRadians = (storyAngle * Math.PI) / 180;
-				const storyPosition = {
-					x:
-						CENTER.x +
-						Math.cos(storyRadians) * EXPANDED_NODE_DISTANCE -
-						(NODE_DIMENSIONS.story?.width ?? 200) / 2,
-					y:
-						CENTER.y +
-						Math.sin(storyRadians) * EXPANDED_NODE_DISTANCE -
-						(NODE_DIMENSIONS.story?.height ?? 100) / 2,
+				const expandedIdx = storyNodes.indexOf(expandedStoryNode);
+				const nodeCount = storyNodes.length;
+				const perpOffset =
+					(expandedIdx - (nodeCount - 1) / 2) *
+					(EXPANDED_NODE_ARC / Math.max(nodeCount - 1, 1));
+
+				const dirX = Math.cos(baseRadians);
+				const dirY = Math.sin(baseRadians);
+				const perpX = -dirY;
+				const perpY = dirX;
+
+				// Expanded story position
+				const storyCenter = {
+					x: summaryCenter.x + dirX * EXPANDED_NODE_OFFSET + perpX * perpOffset,
+					y: summaryCenter.y + dirY * EXPANDED_NODE_OFFSET + perpY * perpOffset,
 				};
 
-				// Evidence and insight nodes spread out from the expanded story
+				// Layer 3 nodes spread outward from the expanded story
 				const layer3Nodes = [...nodesByLayer.evidence, ...nodesByLayer.insight];
-				const layer3Distance = EXPANDED_NODE_DISTANCE + 120; // Further out
 
 				layer3Nodes.forEach((storeNode, idx) => {
 					const isLayerVisible =
 						visibleLayers[storeNode.type as keyof typeof visibleLayers];
 					if (!isLayerVisible) return;
 
-					const nodeCount = layer3Nodes.length;
-					const layer3Spread = 12;
-					const angleOffset = (idx - (nodeCount - 1) / 2) * layer3Spread;
-					const angle = storyAngle + angleOffset;
-					const radians = (angle * Math.PI) / 180;
+					const l3Count = layer3Nodes.length;
+					const l3PerpOffset =
+						(idx - (l3Count - 1) / 2) * (60 / Math.max(l3Count - 1, 1));
 
 					const dims =
 						NODE_DIMENSIONS[storeNode.type as keyof typeof NODE_DIMENSIONS] ??
 						NODE_DIMENSIONS.story;
 
+					// Position further outward from story
 					const position = {
-						x: CENTER.x + Math.cos(radians) * layer3Distance - dims.width / 2,
-						y: CENTER.y + Math.sin(radians) * layer3Distance - dims.height / 2,
+						x:
+							storyCenter.x +
+							dirX * LAYER3_OFFSET +
+							perpX * l3PerpOffset -
+							dims.width / 2,
+						y:
+							storyCenter.y +
+							dirY * LAYER3_OFFSET +
+							perpY * l3PerpOffset -
+							dims.height / 2,
+					};
+
+					const parentOffset = {
+						x: storyCenter.x - (position.x + dims.width / 2),
+						y: storyCenter.y - (position.y + dims.height / 2),
 					};
 
 					const nodeData: Record<string, unknown> = {
@@ -510,10 +540,7 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 						layerDepth:
 							LAYER_DEPTHS[storeNode.type as keyof typeof LAYER_DEPTHS] ?? 0,
 						zoom: currentZoom,
-						parentPosition: {
-							x: storyPosition.x - position.x + dims.width / 2,
-							y: storyPosition.y - position.y + dims.height / 2,
-						},
+						parentPosition: parentOffset,
 					};
 
 					if (storeNode.type === "insight") {
@@ -528,16 +555,15 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 					});
 
 					// Edge from expanded story to layer 3 node
-					const handleForChild = getHandleForAngle(angle);
 					rfEdges.push({
 						id: `${expandedStoryId}-to-${storeNode.id}`,
 						source: expandedStoryId,
 						target: storeNode.id,
-						sourceHandle: Position.Right,
-						targetHandle: handleForChild.target,
+						sourceHandle: trackPos.sourceHandle,
+						targetHandle: getHandleForAngle(baseAngle + 180).target,
 						style: {
 							stroke: trackColor.primary,
-							strokeOpacity: 0.35,
+							strokeOpacity: 0.4,
 							...EDGE_STYLES.trackToChild,
 						},
 						markerEnd: {
