@@ -5,6 +5,7 @@ import {
 	BackgroundVariant,
 	Controls,
 	type Edge,
+	MarkerType,
 	type Node,
 	Position,
 	ReactFlow,
@@ -23,6 +24,11 @@ import {
 	TRACK_COLORS,
 	TRACK_IDS,
 } from "@/lib/constants/tracks";
+import {
+	LAYER_DEPTHS,
+	LAYER_DISTANCES,
+	NODE_DIMENSIONS,
+} from "@/lib/hooks/useElkLayout";
 import {
 	type CanvasNode as StoreCanvasNode,
 	usePersonaStore,
@@ -80,6 +86,73 @@ const TRACK_POSITIONS: Record<
 	},
 };
 
+// Edge styles for different hierarchy levels
+const EDGE_STYLES = {
+	// Archetype to Track: dashed, prominent
+	archetypeToTrack: {
+		strokeDasharray: "8 4",
+		strokeWidth: 2.5,
+		strokeLinecap: "round" as const,
+	},
+	// Track to Child: solid, thinner, with marker
+	trackToChild: {
+		strokeDasharray: undefined,
+		strokeWidth: 1.5,
+		strokeLinecap: "round" as const,
+	},
+	// Cross-track link: dotted, distinct color
+	crossTrack: {
+		strokeDasharray: "2 4",
+		strokeWidth: 2,
+		strokeLinecap: "round" as const,
+	},
+};
+
+// Animation variants for nodes appearing from parent
+const nodeAnimationVariants = {
+	hidden: {
+		scale: 0.3,
+		opacity: 0,
+	},
+	visible: {
+		scale: 1,
+		opacity: 1,
+		transition: {
+			type: "spring",
+			stiffness: 300,
+			damping: 25,
+			duration: 0.5,
+		},
+	},
+	exit: {
+		scale: 0.5,
+		opacity: 0,
+		transition: {
+			duration: 0.2,
+		},
+	},
+};
+
+// Helper function to determine handle position based on angle
+function getHandleForAngle(angle: number): {
+	source: Position;
+	target: Position;
+} {
+	// Normalize angle to 0-360
+	const normalizedAngle = ((angle % 360) + 360) % 360;
+
+	if (normalizedAngle >= 315 || normalizedAngle < 45) {
+		return { source: Position.Right, target: Position.Left };
+	}
+	if (normalizedAngle >= 45 && normalizedAngle < 135) {
+		return { source: Position.Bottom, target: Position.Top };
+	}
+	if (normalizedAngle >= 135 && normalizedAngle < 225) {
+		return { source: Position.Left, target: Position.Right };
+	}
+	return { source: Position.Top, target: Position.Bottom };
+}
+
 interface PersonaCanvasProps {
 	className?: string;
 	onNodeSelect?: (nodeId: string | null) => void;
@@ -110,6 +183,7 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [currentZoom, setCurrentZoom] = useState(0.8);
 	const initialFitDone = useRef(false);
+	const previousNodeIds = useRef<Set<string>>(new Set());
 
 	const { fitView, getViewport } = useReactFlow();
 
@@ -139,7 +213,25 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 		return Object.values(tracks).filter((t) => t.status === "completed").length;
 	}, [tracks]);
 
-	// Generate React Flow nodes from store nodes
+	// Calculate track positions for ELK layout
+	const trackPositionsForElk = useMemo(() => {
+		const CENTER = { x: 0, y: 0 };
+		const positions: Record<TrackId, { x: number; y: number; angle: number }> =
+			{} as Record<TrackId, { x: number; y: number; angle: number }>;
+
+		for (const trackId of TRACK_IDS) {
+			const trackPos = TRACK_POSITIONS[trackId];
+			const radians = (trackPos.angle * Math.PI) / 180;
+			positions[trackId] = {
+				x: CENTER.x + Math.cos(radians) * SUMMARY_NODE_DISTANCE,
+				y: CENTER.y + Math.sin(radians) * SUMMARY_NODE_DISTANCE,
+				angle: trackPos.angle,
+			};
+		}
+		return positions;
+	}, []);
+
+	// Generate fixed nodes (archetype + summary) and initial child nodes
 	const generatedData = useMemo(() => {
 		const rfNodes: Node[] = [];
 		const rfEdges: Edge[] = [];
@@ -162,18 +254,18 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 		rfNodes.push({
 			id: "archetype",
 			type: "archetype",
-			position: { x: CENTER.x - 100, y: CENTER.y - 80 }, // Offset to center the node
+			position: { x: CENTER.x - 100, y: CENTER.y - 80 },
 			data: archetypeData,
 		});
 
-		// Create 4 Summary Nodes in diamond layout
+		// Create 4 Summary Nodes in diamond layout (fixed positions)
 		for (const trackId of TRACK_IDS) {
 			const trackPos = TRACK_POSITIONS[trackId];
 			const track = tracks[trackId];
 			const radians = (trackPos.angle * Math.PI) / 180;
 
 			const position = {
-				x: CENTER.x + Math.cos(radians) * SUMMARY_NODE_DISTANCE - 100, // Offset to center
+				x: CENTER.x + Math.cos(radians) * SUMMARY_NODE_DISTANCE - 100,
 				y: CENTER.y + Math.sin(radians) * SUMMARY_NODE_DISTANCE - 50,
 			};
 
@@ -199,7 +291,7 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				data: summaryData,
 			});
 
-			// Create edge from archetype to summary node with proper handles
+			// Edge from archetype to summary - use hierarchical style
 			const trackColor = TRACK_COLORS[trackId];
 			rfEdges.push({
 				id: `archetype-to-summary-${trackId}`,
@@ -209,14 +301,14 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 				targetHandle: trackPos.targetHandle,
 				style: {
 					stroke: trackColor.primary,
-					strokeWidth: 2,
-					strokeOpacity: track.status === "completed" ? 0.8 : 0.3,
+					strokeOpacity: track.status === "completed" ? 0.7 : 0.25,
+					...EDGE_STYLES.archetypeToTrack,
 				},
 				animated: track.status === "in_progress",
 			});
 		}
 
-		// Group story/evidence/insight nodes by track for positioning
+		// Group story/evidence/insight nodes by track
 		const nodesByTrack: Record<TrackId, StoreCanvasNode[]> = {
 			future_vision: [],
 			academic_journey: [],
@@ -230,7 +322,7 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 			}
 		}
 
-		// Create React Flow nodes for each store node (story, evidence, insight)
+		// Create child nodes with layer-based positioning (will be refined by ELK)
 		for (const [trackId, trackNodes] of Object.entries(nodesByTrack) as [
 			TrackId,
 			StoreCanvasNode[],
@@ -239,60 +331,96 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 			const trackColor = TRACK_COLORS[trackId];
 			const baseAngle = trackPos.angle;
 
-			// Position nodes in an arc beyond the summary node
-			trackNodes.forEach((storeNode, idx) => {
-				// Check if layer is visible
-				const isLayerVisible =
-					visibleLayers[storeNode.type as keyof typeof visibleLayers];
-				if (!isLayerVisible) return;
+			// Group nodes by layer type for proper spacing
+			const nodesByLayer: Record<string, StoreCanvasNode[]> = {
+				story: [],
+				evidence: [],
+				insight: [],
+			};
 
-				// Calculate position - spread nodes in an arc
-				const distance = SUMMARY_NODE_DISTANCE + 150 + idx * 60;
-				const angleSpread = 12;
-				const angle =
-					baseAngle + (idx - (trackNodes.length - 1) / 2) * angleSpread;
-				const radians = (angle * Math.PI) / 180;
-
-				const position = {
-					x: CENTER.x + Math.cos(radians) * distance - 80,
-					y: CENTER.y + Math.sin(radians) * distance - 40,
-				};
-
-				// Create node based on type
-				const nodeData: Record<string, unknown> = {
-					id: storeNode.id,
-					title: storeNode.title,
-					content: storeNode.content,
-					sourceTrackId: storeNode.sourceTrackId,
-					zoom: currentZoom,
-				};
-
-				if (storeNode.type === "insight") {
-					(nodeData as InsightNodeData).isAIGenerated = true;
+			for (const node of trackNodes) {
+				if (node.type in nodesByLayer) {
+					nodesByLayer[node.type].push(node);
 				}
+			}
 
-				rfNodes.push({
-					id: storeNode.id,
-					type: storeNode.type,
-					position,
-					data: nodeData,
-				});
+			// Position nodes by layer (concentric zones around track)
+			for (const [layerType, layerNodes] of Object.entries(nodesByLayer)) {
+				const layerDistance =
+					LAYER_DISTANCES[layerType as keyof typeof LAYER_DISTANCES] ?? 200;
+				const layerDepth =
+					LAYER_DEPTHS[layerType as keyof typeof LAYER_DEPTHS] ?? 0;
 
-				// Create edge from summary node to this node with proper handles
-				rfEdges.push({
-					id: `summary-${trackId}-to-${storeNode.id}`,
-					source: `summary-${trackId}`,
-					target: storeNode.id,
-					sourceHandle: trackPos.sourceHandle,
-					targetHandle: trackPos.targetHandle,
-					style: {
-						stroke: trackColor.primary,
-						strokeWidth: 1.5,
-						strokeOpacity: 0.4,
-					},
-					animated: false,
+				layerNodes.forEach((storeNode, idx) => {
+					// Check if layer is visible
+					const isLayerVisible =
+						visibleLayers[storeNode.type as keyof typeof visibleLayers];
+					if (!isLayerVisible) return;
+
+					// Calculate position in arc around track at layer distance
+					const nodeCount = layerNodes.length;
+					const angleSpread = Math.min(15, 40 / Math.max(nodeCount, 1));
+					const angleOffset = (idx - (nodeCount - 1) / 2) * angleSpread;
+					const angle = baseAngle + angleOffset;
+					const radians = (angle * Math.PI) / 180;
+
+					const dims =
+						NODE_DIMENSIONS[storeNode.type as keyof typeof NODE_DIMENSIONS] ??
+						NODE_DIMENSIONS.story;
+
+					const position = {
+						x: CENTER.x + Math.cos(radians) * layerDistance - dims.width / 2,
+						y: CENTER.y + Math.sin(radians) * layerDistance - dims.height / 2,
+					};
+
+					// Create node with layer metadata
+					const nodeData: Record<string, unknown> = {
+						id: storeNode.id,
+						title: storeNode.title,
+						content: storeNode.content,
+						sourceTrackId: storeNode.sourceTrackId,
+						layer: layerType,
+						layerDepth,
+						zoom: currentZoom,
+					};
+
+					if (storeNode.type === "insight") {
+						(nodeData as InsightNodeData).isAIGenerated = true;
+					}
+
+					rfNodes.push({
+						id: storeNode.id,
+						type: storeNode.type,
+						position,
+						data: nodeData,
+					});
+
+					// Create edge from summary node to child - use track-to-child style
+					// Calculate which handle to use based on node angle relative to track
+					const childAngle = angle;
+					const handleForChild = getHandleForAngle(childAngle);
+
+					rfEdges.push({
+						id: `summary-${trackId}-to-${storeNode.id}`,
+						source: `summary-${trackId}`,
+						target: storeNode.id,
+						sourceHandle: trackPos.sourceHandle,
+						targetHandle: handleForChild.target,
+						style: {
+							stroke: trackColor.primary,
+							strokeOpacity: 0.35,
+							...EDGE_STYLES.trackToChild,
+						},
+						markerEnd: {
+							type: MarkerType.ArrowClosed,
+							width: 12,
+							height: 12,
+							color: `${trackColor.primary}60`,
+						},
+						animated: false,
+					});
 				});
-			});
+			}
 		}
 
 		return { nodes: rfNodes, edges: rfEdges };
@@ -309,6 +437,12 @@ function PersonaCanvasInner({ className, onNodeSelect }: PersonaCanvasProps) {
 		completedTracksCount,
 		isLoading,
 	]);
+
+	// Track node IDs for change detection
+	useEffect(() => {
+		const currentIds = new Set(storeNodes.map((n) => n.id));
+		previousNodeIds.current = currentIds;
+	}, [storeNodes]);
 
 	const [nodes, setNodes, onNodesChange] = useNodesState(generatedData.nodes);
 	const [edges, setEdges, onEdgesChange] = useEdgesState(generatedData.edges);

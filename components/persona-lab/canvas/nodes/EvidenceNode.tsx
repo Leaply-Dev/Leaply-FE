@@ -1,7 +1,9 @@
 "use client";
 
 import { Handle, Position } from "@xyflow/react";
+import { motion } from "framer-motion";
 import { BookOpen, ChevronRight } from "lucide-react";
+import { memo } from "react";
 import { NODE_TYPE_COLORS, TRACK_COLORS } from "@/lib/constants/tracks";
 import type { TrackId } from "@/lib/types/persona";
 import { cn } from "@/lib/utils";
@@ -11,6 +13,8 @@ export interface EvidenceNodeData {
 	title: string;
 	content?: string;
 	sourceTrackId: TrackId | null;
+	layer?: string;
+	layerDepth?: number;
 	zoom?: number;
 	[key: string]: unknown;
 }
@@ -23,7 +27,26 @@ interface EvidenceNodeProps {
 // Evidence nodes are colored grey/stone (by type)
 const evidenceColors = NODE_TYPE_COLORS.evidence;
 
-export function EvidenceNode({ data, selected }: EvidenceNodeProps) {
+// Animation variants for evidence node appearance
+const evidenceVariants = {
+	initial: {
+		scale: 0.4,
+		opacity: 0,
+		y: -10,
+	},
+	animate: {
+		scale: 1,
+		opacity: 1,
+		y: 0,
+		transition: {
+			type: "spring" as const,
+			stiffness: 320,
+			damping: 22,
+		},
+	},
+};
+
+function EvidenceNodeComponent({ data, selected }: EvidenceNodeProps) {
 	const trackColors = data.sourceTrackId
 		? TRACK_COLORS[data.sourceTrackId]
 		: null;
@@ -52,7 +75,7 @@ export function EvidenceNode({ data, selected }: EvidenceNodeProps) {
 	}
 
 	return (
-		<div
+		<motion.div
 			className={cn(
 				"relative rounded-lg border shadow-sm transition-all duration-300 cursor-pointer",
 				"min-w-[130px] max-w-[160px] px-3 py-2.5",
@@ -65,6 +88,9 @@ export function EvidenceNode({ data, selected }: EvidenceNodeProps) {
 				borderColor: evidenceColors.primary,
 				backgroundColor: `${evidenceColors.primary}08`,
 			}}
+			variants={evidenceVariants}
+			initial="initial"
+			animate="animate"
 		>
 			<div className="flex items-center gap-2">
 				{/* Icon */}
@@ -150,6 +176,9 @@ export function EvidenceNode({ data, selected }: EvidenceNodeProps) {
 				className="w-1.5 h-1.5 !opacity-0"
 				style={{ backgroundColor: evidenceColors.primary }}
 			/>
-		</div>
+		</motion.div>
 	);
 }
+
+// Memoize for performance
+export const EvidenceNode = memo(EvidenceNodeComponent);

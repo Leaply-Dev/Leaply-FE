@@ -1,7 +1,9 @@
 "use client";
 
 import { Handle, Position } from "@xyflow/react";
-import { ChevronRight, Lightbulb, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
+import { ChevronRight, Sparkles } from "lucide-react";
+import { memo } from "react";
 import { NODE_TYPE_COLORS, TRACK_COLORS } from "@/lib/constants/tracks";
 import type { TrackId } from "@/lib/types/persona";
 import { cn } from "@/lib/utils";
@@ -12,6 +14,8 @@ export interface InsightNodeData {
 	content?: string;
 	sourceTrackId: TrackId | null;
 	isAIGenerated?: boolean;
+	layer?: string;
+	layerDepth?: number;
 	zoom?: number;
 	[key: string]: unknown;
 }
@@ -24,7 +28,26 @@ interface InsightNodeProps {
 // Insight nodes are colored amber/yellow (by type)
 const insightColors = NODE_TYPE_COLORS.insight;
 
-export function InsightNode({ data, selected }: InsightNodeProps) {
+// Animation variants for insight node appearance (with sparkle effect)
+const insightVariants = {
+	initial: {
+		scale: 0.3,
+		opacity: 0,
+		rotate: -10,
+	},
+	animate: {
+		scale: 1,
+		opacity: 1,
+		rotate: 0,
+		transition: {
+			type: "spring" as const,
+			stiffness: 400,
+			damping: 20,
+		},
+	},
+};
+
+function InsightNodeComponent({ data, selected }: InsightNodeProps) {
 	const trackColors = data.sourceTrackId
 		? TRACK_COLORS[data.sourceTrackId]
 		: null;
@@ -53,7 +76,7 @@ export function InsightNode({ data, selected }: InsightNodeProps) {
 	}
 
 	return (
-		<div
+		<motion.div
 			className={cn(
 				"relative rounded-lg transition-all duration-300 cursor-pointer",
 				"min-w-[130px] max-w-[150px] px-3 py-2.5",
@@ -63,6 +86,9 @@ export function InsightNode({ data, selected }: InsightNodeProps) {
 				selected && "ring-2 ring-amber-400 ring-offset-1",
 				!isMicroView && "scale-90 opacity-80",
 			)}
+			variants={insightVariants}
+			initial="initial"
+			animate="animate"
 		>
 			<div className="flex items-center gap-2">
 				{/* Icon */}
@@ -131,6 +157,9 @@ export function InsightNode({ data, selected }: InsightNodeProps) {
 				id={Position.Right}
 				className="w-1.5 h-1.5 !opacity-0 !bg-amber-500"
 			/>
-		</div>
+		</motion.div>
 	);
 }
+
+// Memoize for performance
+export const InsightNode = memo(InsightNodeComponent);

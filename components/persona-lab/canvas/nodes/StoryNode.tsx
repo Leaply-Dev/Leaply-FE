@@ -1,7 +1,9 @@
 "use client";
 
 import { Handle, Position } from "@xyflow/react";
+import { motion } from "framer-motion";
 import { ChevronRight, FileText } from "lucide-react";
+import { memo } from "react";
 import { NODE_TYPE_COLORS, TRACK_COLORS } from "@/lib/constants/tracks";
 import type { TrackId } from "@/lib/types/persona";
 import { cn } from "@/lib/utils";
@@ -11,9 +13,28 @@ export interface StoryNodeData {
 	title: string;
 	content?: string;
 	sourceTrackId: TrackId | null;
+	layer?: string;
+	layerDepth?: number;
 	zoom?: number;
 	[key: string]: unknown;
 }
+
+// Animation variants for node appearance
+const nodeVariants = {
+	initial: {
+		scale: 0.5,
+		opacity: 0,
+	},
+	animate: {
+		scale: 1,
+		opacity: 1,
+		transition: {
+			type: "spring" as const,
+			stiffness: 350,
+			damping: 25,
+		},
+	},
+};
 
 interface StoryNodeProps {
 	data: StoryNodeData;
@@ -23,7 +44,7 @@ interface StoryNodeProps {
 // Story nodes are colored emerald/teal (by type)
 const storyColors = NODE_TYPE_COLORS.story;
 
-export function StoryNode({ data, selected }: StoryNodeProps) {
+function StoryNodeComponent({ data, selected }: StoryNodeProps) {
 	const trackColors = data.sourceTrackId
 		? TRACK_COLORS[data.sourceTrackId]
 		: null;
@@ -34,7 +55,12 @@ export function StoryNode({ data, selected }: StoryNodeProps) {
 	// Macro View (Deep Zoom Out) - Show colored circle
 	if (isMacroView) {
 		return (
-			<div className="group relative flex items-center justify-center">
+			<motion.div
+				className="group relative flex items-center justify-center"
+				variants={nodeVariants}
+				initial="initial"
+				animate="animate"
+			>
 				<div
 					className={cn(
 						"w-10 h-10 rounded-full border-3 transition-all duration-500 shadow-md",
@@ -61,12 +87,12 @@ export function StoryNode({ data, selected }: StoryNodeProps) {
 					id={Position.Bottom}
 					className="!opacity-0"
 				/>
-			</div>
+			</motion.div>
 		);
 	}
 
 	return (
-		<div
+		<motion.div
 			className={cn(
 				"relative rounded-xl border-2 shadow-md transition-all duration-300 cursor-pointer overflow-hidden",
 				"min-w-[160px] max-w-[200px] px-4 py-3",
@@ -79,6 +105,9 @@ export function StoryNode({ data, selected }: StoryNodeProps) {
 				borderColor: storyColors.primary,
 				backgroundColor: `${storyColors.primary}08`,
 			}}
+			variants={nodeVariants}
+			initial="initial"
+			animate="animate"
 		>
 			{/* Subtle glow */}
 			<div
@@ -169,6 +198,9 @@ export function StoryNode({ data, selected }: StoryNodeProps) {
 				className="w-2 h-2 !opacity-0"
 				style={{ backgroundColor: storyColors.primary }}
 			/>
-		</div>
+		</motion.div>
 	);
 }
+
+// Memoize for performance
+export const StoryNode = memo(StoryNodeComponent);
