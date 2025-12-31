@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, LayoutGrid, List, MessageSquare } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
 import { ChatSidebar } from "@/components/persona-lab/ChatSidebar";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePersonaStore } from "@/lib/store/personaStore";
 import { cn } from "@/lib/utils";
 
-// Dynamic import for PersonaCanvas to avoid SSR issues with React Flow
+// Feature flag for new concentric graph (set via env or default to false)
+const USE_NEW_GRAPH = process.env.NEXT_PUBLIC_USE_NEW_GRAPH === "true";
+
+// Dynamic import for old PersonaCanvas (legacy)
 const PersonaCanvas = dynamic(
 	() =>
 		import("@/components/persona-lab/canvas/PersonaCanvas").then(
@@ -31,7 +34,26 @@ const PersonaCanvas = dynamic(
 	},
 );
 
-// Dynamic import for simplified list view
+// Dynamic import for new ConcentricGraphCanvas
+const ConcentricGraphCanvas = dynamic(
+	() =>
+		import("@/components/persona-lab/canvas/ConcentricGraphCanvas").then(
+			(mod) => mod.ConcentricGraphCanvas,
+		),
+	{
+		ssr: false,
+		loading: () => (
+			<div className="flex-1 flex items-center justify-center bg-muted/20">
+				<div className="text-center space-y-4">
+					<Skeleton className="w-32 h-32 rounded-full mx-auto" />
+					<Skeleton className="w-24 h-3 mx-auto" />
+				</div>
+			</div>
+		),
+	},
+);
+
+// Dynamic import for old simplified list view
 const PersonaListView = dynamic(
 	() =>
 		import("@/components/persona-lab/PersonaListView").then(
@@ -49,10 +71,49 @@ const PersonaListView = dynamic(
 	},
 );
 
+// Dynamic import for new GraphListView (mobile)
+const GraphListView = dynamic(
+	() =>
+		import("@/components/persona-lab/canvas/GraphListView").then(
+			(mod) => mod.GraphListView,
+		),
+	{
+		ssr: false,
+		loading: () => (
+			<div className="p-6 space-y-4">
+				<Skeleton className="h-16 w-full rounded-xl" />
+				<Skeleton className="h-20 w-full rounded-xl" />
+				<Skeleton className="h-20 w-full rounded-xl" />
+			</div>
+		),
+	},
+);
+
+// Hook for responsive mobile detection
+function useIsMobile(breakpoint = 768) {
+	const [isMobile, setIsMobile] = useState(false);
+
+	useEffect(() => {
+		const checkMobile = () => {
+			setIsMobile(window.innerWidth < breakpoint);
+		};
+
+		// Initial check
+		checkMobile();
+
+		// Add listener
+		window.addEventListener("resize", checkMobile);
+		return () => window.removeEventListener("resize", checkMobile);
+	}, [breakpoint]);
+
+	return isMobile;
+}
+
 export default function PersonaLabPage() {
 	const t = useTranslations("personaLab");
 	const { viewMode, setViewMode, selectNode } = usePersonaStore();
 	const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+	const isMobile = useIsMobile(768);
 
 	const handleNodeSelect = useCallback(
 		(nodeId: string | null) => {
@@ -60,6 +121,36 @@ export default function PersonaLabPage() {
 		},
 		[selectNode],
 	);
+
+	// Render the appropriate canvas/list component based on feature flag and viewport
+	const renderContent = () => {
+		if (USE_NEW_GRAPH) {
+			// New concentric graph
+			if (isMobile) {
+				// Mobile: always show list view
+				return <GraphListView className="w-full h-full" />;
+			}
+
+			// Desktop: respect view mode toggle
+			if (viewMode === "list") {
+				return <GraphListView className="w-full h-full" />;
+			}
+
+			return <ConcentricGraphCanvas className="w-full h-full" />;
+		}
+
+		// Legacy canvas
+		if (viewMode === "canvas") {
+			return (
+				<PersonaCanvas
+					className="w-full h-full"
+					onNodeSelect={handleNodeSelect}
+				/>
+			);
+		}
+
+		return <PersonaListView />;
+	};
 
 	return (
 		<PageTransition className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
@@ -166,14 +257,7 @@ export default function PersonaLabPage() {
 
 					{/* Content */}
 					<div className="flex-1 min-h-0">
-						{viewMode === "canvas" ? (
-							<PersonaCanvas
-								className="w-full h-full"
-								onNodeSelect={handleNodeSelect}
-							/>
-						) : (
-							<PersonaListView />
-						)}
+						{renderContent()}
 					</div>
 				</main>
 			</div>

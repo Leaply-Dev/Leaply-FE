@@ -14,6 +14,11 @@ import type {
 	TrackId,
 	TrackStatus,
 } from "@/lib/types/persona";
+import type {
+	GraphMeta,
+	PersonaEdgeDto,
+	PersonaNodeDto,
+} from "@/lib/types/persona-graph";
 
 // Re-export types for backward compatibility
 export type { TrackId, TrackStatus, Track, ChatMessage, CanvasNode, NodeType };
@@ -68,6 +73,15 @@ interface PersonaStoreState {
 	expandedTrackId: TrackId | null;
 	expandedStoryId: string | null;
 
+	// === New Graph State (4-layer concentric graph) ===
+	graphNodes: PersonaNodeDto[];
+	graphEdges: PersonaEdgeDto[];
+	graphMeta: GraphMeta | null;
+	isGraphLoading: boolean;
+	selectedGraphNodeId: string | null;
+	hoveredNodeId: string | null;
+	showAllDetails: boolean;
+
 	// === Actions ===
 
 	// Initial load
@@ -102,6 +116,12 @@ interface PersonaStoreState {
 	isArchetypeRevealed: () => boolean;
 	getTrackProgress: () => { completed: number; total: number };
 
+	// === New Graph Actions ===
+	fetchPersonaGraph: () => Promise<void>;
+	selectGraphNode: (nodeId: string | null) => void;
+	setHoveredNode: (nodeId: string | null) => void;
+	setShowAllDetails: (show: boolean) => void;
+
 	// Utility
 	resetPersona: () => void;
 	clearError: () => void;
@@ -130,6 +150,14 @@ const initialState = {
 	selectedNodeId: null,
 	expandedTrackId: null,
 	expandedStoryId: null,
+	// New graph state
+	graphNodes: [] as PersonaNodeDto[],
+	graphEdges: [] as PersonaEdgeDto[],
+	graphMeta: null as GraphMeta | null,
+	isGraphLoading: false,
+	selectedGraphNodeId: null as string | null,
+	hoveredNodeId: null as string | null,
+	showAllDetails: false,
 };
 
 export const usePersonaStore = create<PersonaStoreState>()(
@@ -524,6 +552,49 @@ export const usePersonaStore = create<PersonaStoreState>()(
 				return { completed, total: trackList.length };
 			},
 
+			// === New Graph Actions ===
+
+			// Fetch persona graph data from API
+			fetchPersonaGraph: async () => {
+				set({ isGraphLoading: true, error: null });
+				console.log("PersonaStore: Fetching persona graph...");
+				try {
+					const graphData = await personaApi.getPersonaGraph();
+					console.log("PersonaStore: Graph data received:", graphData);
+					set({
+						graphNodes: graphData.nodes,
+						graphEdges: graphData.edges,
+						graphMeta: graphData.meta,
+						isGraphLoading: false,
+					});
+				} catch (err) {
+					console.error("PersonaStore: Failed to fetch graph:", err);
+					if (err instanceof ApiError) {
+						err.logDetails();
+					}
+					set({
+						error:
+							err instanceof ApiError
+								? err.getUserMessage()
+								: (err as Error).message ||
+									"Failed to load graph data. Please refresh.",
+						isGraphLoading: false,
+					});
+				}
+			},
+
+			// Select a node in the graph (for detail panel)
+			selectGraphNode: (nodeId: string | null) =>
+				set({ selectedGraphNodeId: nodeId }),
+
+			// Set hovered node (for layer 3 visibility)
+			setHoveredNode: (nodeId: string | null) =>
+				set({ hoveredNodeId: nodeId }),
+
+			// Toggle show all details (layer 3 nodes)
+			setShowAllDetails: (show: boolean) =>
+				set({ showAllDetails: show }),
+
 			// Utility
 			resetPersona: () => set(initialState),
 
@@ -544,6 +615,10 @@ export const usePersonaStore = create<PersonaStoreState>()(
 				visibleLayers: state.visibleLayers,
 				expandedTrackId: state.expandedTrackId,
 				expandedStoryId: state.expandedStoryId,
+				// New graph state (persist nodes/edges for offline)
+				graphNodes: state.graphNodes,
+				graphEdges: state.graphEdges,
+				graphMeta: state.graphMeta,
 			}),
 		},
 	),
@@ -562,3 +637,19 @@ export const selectArchetype = (state: PersonaStoreState) => state.archetype;
 export const selectVisibleLayers = (state: PersonaStoreState) =>
 	state.visibleLayers;
 export const selectViewMode = (state: PersonaStoreState) => state.viewMode;
+
+// New graph selectors
+export const selectGraphNodes = (state: PersonaStoreState) => state.graphNodes;
+export const selectGraphEdges = (state: PersonaStoreState) => state.graphEdges;
+export const selectGraphMeta = (state: PersonaStoreState) => state.graphMeta;
+export const selectIsGraphLoading = (state: PersonaStoreState) =>
+	state.isGraphLoading;
+export const selectSelectedGraphNodeId = (state: PersonaStoreState) =>
+	state.selectedGraphNodeId;
+export const selectHoveredNodeId = (state: PersonaStoreState) =>
+	state.hoveredNodeId;
+export const selectShowAllDetails = (state: PersonaStoreState) =>
+	state.showAllDetails;
+
+// Re-export graph types for convenience
+export type { PersonaNodeDto, PersonaEdgeDto, GraphMeta };

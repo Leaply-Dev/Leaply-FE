@@ -23,6 +23,12 @@ import type {
 	TrackSelectResponse,
 	TrackStatus,
 } from "@/lib/types/persona";
+import type {
+	GraphMeta,
+	PersonaEdgeDto,
+	PersonaGraphResponse,
+	PersonaNodeDto,
+} from "@/lib/types/persona-graph";
 import { apiClient } from "./client";
 
 // API configuration - Use feature flag to switch between mock and real API
@@ -351,6 +357,199 @@ function generateMockNode(
 }
 
 // ============================================
+// Mock Graph Data Generator
+// ============================================
+
+function generateMockGraphData(): PersonaGraphResponse {
+	const nodes: PersonaNodeDto[] = [];
+	const edges: PersonaEdgeDto[] = [];
+
+	// Layer 0: Profile Summary (center)
+	const completedTracks = Object.values(mockState.tracks).filter(
+		(s) => s === "completed",
+	).length;
+	const hasProfile = completedTracks >= 2;
+
+	if (hasProfile) {
+		const profileNode: PersonaNodeDto = {
+			id: "profile-summary-1",
+			type: "profile_summary",
+			layer: 0,
+			title: "Hồ sơ cá nhân",
+			content:
+				"Bạn là người có tư duy sáng tạo, luôn tìm kiếm cách tiếp cận mới cho những vấn đề phức tạp. Với nền tảng học thuật vững chắc và kinh nghiệm hoạt động ngoại khóa phong phú.",
+			tags: ["leadership", "innovation", "impact"],
+			primaryArchetype: "innovator",
+			secondaryArchetype: "bridge_builder",
+			archetypeSummary:
+				"The Innovator with Bridge Builder tendencies - creating novel solutions while connecting diverse perspectives.",
+			sourceTrackId: null,
+			sourceQuestionId: null,
+			confidence: 0.85,
+			createdAt: new Date().toISOString(),
+		};
+		nodes.push(profileNode);
+	}
+
+	// Layer 1: Essay Angles (inner ring)
+	const essayAngles: PersonaNodeDto[] = [
+		{
+			id: "angle-1",
+			type: "essay_angle",
+			layer: 1,
+			title: "Người tiên phong đổi mới",
+			content:
+				"Từ những trải nghiệm của bạn, nổi bật lên hình ảnh một người luôn dẫn đầu trong việc tìm kiếm giải pháp sáng tạo.",
+			tags: ["innovation", "leadership", "problem-solving"],
+			sourceTrackId: "future_vision",
+			sourceQuestionId: null,
+			confidence: 0.82,
+			createdAt: new Date().toISOString(),
+		},
+		{
+			id: "angle-2",
+			type: "essay_angle",
+			layer: 1,
+			title: "Cầu nối văn hóa",
+			content:
+				"Khả năng kết nối các quan điểm khác nhau và tạo ra sự hiểu biết chung là một điểm mạnh đáng chú ý.",
+			tags: ["culture", "communication", "diversity"],
+			sourceTrackId: "activities_impact",
+			sourceQuestionId: null,
+			confidence: 0.78,
+			createdAt: new Date().toISOString(),
+		},
+		{
+			id: "angle-3",
+			type: "essay_angle",
+			layer: 1,
+			title: "Học giả tò mò",
+			content:
+				"Sự đam mê học hỏi và khám phá tri thức mới thể hiện qua mọi câu chuyện bạn chia sẻ.",
+			tags: ["curiosity", "learning", "academic"],
+			sourceTrackId: "academic_journey",
+			sourceQuestionId: null,
+			confidence: 0.75,
+			createdAt: new Date().toISOString(),
+		},
+	];
+
+	// Only add angles if we have some completed tracks
+	if (completedTracks >= 1) {
+		nodes.push(...essayAngles.slice(0, Math.min(completedTracks + 1, 3)));
+	}
+
+	// Layer 2: Key Stories (outer ring) - convert existing nodes
+	const storyNodes: PersonaNodeDto[] = mockState.nodes
+		.filter((n) => n.type === "story")
+		.map((n, idx) => ({
+			id: `story-${n.id}`,
+			type: "key_story" as const,
+			layer: 2 as const,
+			title: n.title,
+			content: n.content,
+			tags: ["experience", "growth"],
+			sourceTrackId: n.sourceTrackId,
+			sourceQuestionId: null,
+			confidence: 0.7 + Math.random() * 0.2,
+			createdAt: n.createdAt,
+		}));
+
+	nodes.push(...storyNodes);
+
+	// Layer 3: Details (outermost) - convert evidence/insight nodes
+	const detailNodes: PersonaNodeDto[] = mockState.nodes
+		.filter((n) => n.type === "evidence" || n.type === "insight")
+		.map((n) => ({
+			id: `detail-${n.id}`,
+			type: "detail" as const,
+			layer: 3 as const,
+			title: n.title,
+			content: n.content,
+			tags: n.type === "evidence" ? ["evidence", "fact"] : ["insight", "reflection"],
+			sourceTrackId: n.sourceTrackId,
+			sourceQuestionId: null,
+			confidence: 0.6 + Math.random() * 0.3,
+			createdAt: n.createdAt,
+		}));
+
+	nodes.push(...detailNodes);
+
+	// Generate edges
+	// Profile -> Angles
+	if (hasProfile) {
+		for (const angle of nodes.filter((n) => n.type === "essay_angle")) {
+			edges.push({
+				id: `edge-profile-${angle.id}`,
+				source: "profile-summary-1",
+				target: angle.id,
+				strength: 0.8 + Math.random() * 0.2,
+				createdAt: new Date().toISOString(),
+			});
+		}
+	}
+
+	// Angles -> Stories (based on sourceTrackId)
+	for (const angle of nodes.filter((n) => n.type === "essay_angle")) {
+		const relatedStories = storyNodes.filter(
+			(s) => s.sourceTrackId === angle.sourceTrackId,
+		);
+		for (const story of relatedStories) {
+			edges.push({
+				id: `edge-${angle.id}-${story.id}`,
+				source: angle.id,
+				target: story.id,
+				strength: 0.6 + Math.random() * 0.3,
+				createdAt: new Date().toISOString(),
+			});
+		}
+	}
+
+	// Stories -> Details (pair details with stories from same track)
+	for (const story of storyNodes) {
+		const relatedDetails = detailNodes.filter(
+			(d) => d.sourceTrackId === story.sourceTrackId,
+		);
+		// Connect to first 2 related details
+		for (const detail of relatedDetails.slice(0, 2)) {
+			edges.push({
+				id: `edge-${story.id}-${detail.id}`,
+				source: story.id,
+				target: detail.id,
+				strength: 0.5 + Math.random() * 0.4,
+				createdAt: new Date().toISOString(),
+			});
+		}
+	}
+
+	// Calculate metadata
+	const nodeCountByLayer: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0 };
+	for (const node of nodes) {
+		nodeCountByLayer[node.layer] = (nodeCountByLayer[node.layer] || 0) + 1;
+	}
+
+	const allTags = nodes.flatMap((n) => n.tags);
+	const tagCounts: Record<string, number> = {};
+	for (const tag of allTags) {
+		tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+	}
+	const topTags = Object.entries(tagCounts)
+		.sort((a, b) => b[1] - a[1])
+		.slice(0, 5)
+		.map(([tag]) => tag);
+
+	const meta: GraphMeta = {
+		nodeCountByLayer,
+		topTags,
+		hasProfileSummary: hasProfile,
+		totalNodes: nodes.length,
+		totalEdges: edges.length,
+	};
+
+	return { nodes, edges, meta };
+}
+
+// ============================================
 // Mock API Implementation
 // ============================================
 
@@ -668,6 +867,12 @@ const mockPersonaApi = {
 			removedNodeIds,
 		};
 	},
+
+	// GET /api/v1/persona/graph - Fetch persona graph with nodes and edges
+	async getPersonaGraph(): Promise<PersonaGraphResponse> {
+		await delay(600);
+		return generateMockGraphData();
+	},
 };
 
 // ============================================
@@ -712,6 +917,10 @@ const realPersonaApi = {
 			trackId,
 		});
 	},
+
+	async getPersonaGraph(): Promise<PersonaGraphResponse> {
+		return apiClient.get<PersonaGraphResponse>("/v1/persona/graph");
+	},
 };
 
 // ============================================
@@ -727,4 +936,5 @@ export type {
 	MessageResponse,
 	BackToTrackResponse,
 	RedoTrackResponse,
+	PersonaGraphResponse,
 };
