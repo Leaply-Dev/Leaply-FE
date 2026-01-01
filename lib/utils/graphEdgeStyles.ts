@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { LayerNumber, PersonaEdgeDto, PersonaNodeDto } from "@/lib/types/persona-graph";
-import { LAYOUT_CONFIG } from "@/lib/hooks/useConcentricLayout";
+import { LAYOUT_CONFIG } from "@/lib/hooks/useForceLayout";
 
 /**
  * Edge styling utilities for the persona graph

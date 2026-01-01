@@ -14,7 +14,7 @@ import {
 import { usePersonaStore } from "@/lib/store/personaStore";
 import { ARCHETYPES } from "@/lib/constants/archetypes";
 import { TRACK_COLORS } from "@/lib/constants/tracks";
-import { LAYOUT_CONFIG } from "@/lib/hooks/useConcentricLayout";
+import { LAYOUT_CONFIG } from "@/lib/hooks/useForceLayout";
 import type { PersonaNodeDto, LayerNumber } from "@/lib/types/persona-graph";
 import { cn } from "@/lib/utils";
 

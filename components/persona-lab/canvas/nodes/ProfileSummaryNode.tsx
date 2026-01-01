@@ -7,7 +7,7 @@ import { memo } from "react";
 import { ARCHETYPES } from "@/lib/constants/archetypes";
 import type { GraphNodeData } from "@/lib/types/persona-graph";
 import { cn } from "@/lib/utils";
-import { LAYOUT_CONFIG } from "@/lib/hooks/useConcentricLayout";
+import { LAYOUT_CONFIG } from "@/lib/hooks/useForceLayout";
 
 // Layer 0 color
 const PROFILE_COLOR = LAYOUT_CONFIG.colors[0]; // Indigo

@@ -6,7 +6,7 @@ import { FileText, Quote, MessageCircle, Sparkles } from "lucide-react";
 import { memo } from "react";
 import type { GraphNodeData } from "@/lib/types/persona-graph";
 import { cn } from "@/lib/utils";
-import { LAYOUT_CONFIG } from "@/lib/hooks/useConcentricLayout";
+import { LAYOUT_CONFIG } from "@/lib/hooks/useForceLayout";
 
 // Layer 3 color
 const DETAIL_COLOR = LAYOUT_CONFIG.colors[3]; // Slate

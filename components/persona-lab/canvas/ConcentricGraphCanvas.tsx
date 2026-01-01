@@ -17,7 +17,7 @@ import {
 import "@xyflow/react/dist/style.css";
 
 import { usePersonaStore } from "@/lib/store/personaStore";
-import { useConcentricLayout } from "@/lib/hooks/useConcentricLayout";
+import { useForceLayout } from "@/lib/hooks/useForceLayout";
 import { graphNodeTypes } from "./nodes/graphNodeTypes";
 import { GraphControls } from "./GraphControls";
 import { NodeDetailPanel } from "./NodeDetailPanel";
@@ -51,8 +51,8 @@ function ConcentricGraphCanvasInner({ className }: ConcentricGraphCanvasProps) {
     tracks,
   } = usePersonaStore();
 
-  // Layout hook
-  const { calculateLayout } = useConcentricLayout();
+  // Force-directed layout hook (Obsidian-style)
+  const { calculateLayout } = useForceLayout();
 
   // Ensure there's always a center node (layer 0)
   const nodesWithCenter = useMemo(() => {
