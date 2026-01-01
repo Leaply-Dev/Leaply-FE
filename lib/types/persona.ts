@@ -100,6 +100,7 @@ export interface ArchetypeDefinition {
 	bgClass: string;
 	textClass: string;
 	borderClass: string;
+	emoji: string;
 }
 
 // ============================================

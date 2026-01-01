@@ -2,9 +2,16 @@
 
 import { Handle, Position } from "@xyflow/react";
 import { motion } from "framer-motion";
-import { Lightbulb, Target } from "lucide-react";
+import {
+  Lightbulb,
+  Target,
+  Compass,
+  Rocket,
+  Heart,
+  Star,
+  Zap,
+} from "lucide-react";
 import { memo } from "react";
-import { TRACK_COLORS } from "@/lib/constants/tracks";
 import type { GraphNodeData } from "@/lib/types/persona-graph";
 import { cn } from "@/lib/utils";
 import { LAYOUT_CONFIG } from "@/lib/hooks/useConcentricLayout";
@@ -14,159 +21,172 @@ const ANGLE_COLOR = LAYOUT_CONFIG.colors[1]; // Purple
 
 // Animation variants
 const nodeVariants = {
-	initial: {
-		scale: 0.5,
-		opacity: 0,
-	},
-	animate: {
-		scale: 1,
-		opacity: 1,
-		transition: {
-			type: "spring" as const,
-			stiffness: 350,
-			damping: 25,
-		},
-	},
+  initial: {
+    scale: 0.5,
+    opacity: 0,
+  },
+  animate: {
+    scale: 1,
+    opacity: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 350,
+      damping: 25,
+    },
+  },
 };
 
+// Truncate text with ellipsis
+function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength - 1) + "…";
+}
+
+// Get icon based on tags or title
+function getIconForNode(
+  tags: string[] | undefined,
+  title: string,
+): React.ElementType {
+  const tagSet = new Set(tags?.map((t) => t.toLowerCase()) || []);
+  const titleLower = title.toLowerCase();
+
+  if (
+    tagSet.has("leadership") ||
+    tagSet.has("leader") ||
+    titleLower.includes("lead")
+  ) {
+    return Star;
+  }
+  if (
+    tagSet.has("passion") ||
+    tagSet.has("love") ||
+    titleLower.includes("passion")
+  ) {
+    return Heart;
+  }
+  if (
+    tagSet.has("future") ||
+    tagSet.has("goal") ||
+    titleLower.includes("future")
+  ) {
+    return Rocket;
+  }
+  if (
+    tagSet.has("challenge") ||
+    tagSet.has("growth") ||
+    titleLower.includes("challenge")
+  ) {
+    return Zap;
+  }
+  if (
+    tagSet.has("journey") ||
+    tagSet.has("path") ||
+    titleLower.includes("journey")
+  ) {
+    return Compass;
+  }
+  if (tagSet.has("idea") || tagSet.has("insight")) {
+    return Lightbulb;
+  }
+
+  return Target; // Default icon
+}
+
 interface EssayAngleNodeProps {
-	data: GraphNodeData;
-	selected?: boolean;
+  data: GraphNodeData;
+  selected?: boolean;
 }
 
 /**
  * EssayAngleNode - Layer 1 (Inner Ring)
  *
- * Medium-sized nodes representing narrative themes/angles for essays.
- * Shows title, tags, and source track indicator.
+ * Obsidian-style circular node for narrative themes/angles.
+ * Shows relevant icon inside, external label below.
  */
 function EssayAngleNodeComponent({ data, selected }: EssayAngleNodeProps) {
-	const isMacroView = data.zoom && data.zoom < 0.5;
-	const isMicroView = !data.zoom || data.zoom > 0.6;
+  const size = LAYOUT_CONFIG.nodeSize[1];
+  const labelOffset = LAYOUT_CONFIG.labelOffset[1];
+  const fontSize = LAYOUT_CONFIG.labelFontSize[1];
+  const maxChars = LAYOUT_CONFIG.labelMaxChars[1];
 
-	const trackColors = data.sourceTrackId
-		? TRACK_COLORS[data.sourceTrackId]
-		: null;
+  const Icon = getIconForNode(data.tags, data.title);
+  const truncatedLabel = truncateText(data.title, maxChars);
 
-	// Macro View - Show colored circle
-	if (isMacroView) {
-		return (
-			<motion.div
-				className="group relative flex items-center justify-center"
-				variants={nodeVariants}
-				initial="initial"
-				animate="animate"
-			>
-				<div
-					className={cn(
-						"w-14 h-14 rounded-full border-3 flex items-center justify-center",
-						"transition-all duration-500 shadow-lg",
-						selected && "ring-3 ring-purple-400 ring-offset-2",
-					)}
-					style={{
-						backgroundColor: ANGLE_COLOR,
-						borderColor: `${ANGLE_COLOR}60`,
-					}}
-				>
-					<Lightbulb className="w-6 h-6 text-white" />
-				</div>
-				{/* Tooltip on hover */}
-				<div className="absolute top-16 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-background/95 px-2 py-1 rounded-md text-[10px] font-medium border border-border z-10 shadow-md max-w-[120px] truncate">
-					{data.title}
-				</div>
-				{/* Handles */}
-				<Handle type="target" position={Position.Top} id="top" className="!opacity-0" />
-				<Handle type="source" position={Position.Bottom} id="bottom" className="!opacity-0" />
-				<Handle type="target" position={Position.Left} id="left" className="!opacity-0" />
-				<Handle type="source" position={Position.Right} id="right" className="!opacity-0" />
-			</motion.div>
-		);
-	}
+  return (
+    <motion.div
+      className="relative flex flex-col items-center"
+      variants={nodeVariants}
+      initial="initial"
+      animate="animate"
+    >
+      {/* Circular node */}
+      <div
+        className={cn(
+          "rounded-full flex items-center justify-center cursor-pointer",
+          "transition-all duration-300 ease-out",
+          "shadow-md hover:shadow-lg",
+          selected && "ring-3 ring-white/50 ring-offset-2 ring-offset-background",
+          data.isHovered && "scale-110",
+          data.isHighlighted && "ring-2 ring-purple-400/60",
+        )}
+        style={{
+          width: size,
+          height: size,
+          backgroundColor: ANGLE_COLOR,
+          boxShadow: `0 0 15px ${ANGLE_COLOR}30`,
+        }}
+      >
+        <Icon className="w-6 h-6 text-white" />
+      </div>
 
-	// Full View - Detailed card
-	return (
-		<motion.div
-			className={cn(
-				"relative rounded-xl border-2 shadow-md transition-all duration-300 cursor-pointer overflow-hidden",
-				"min-w-[100px] max-w-[130px] p-3",
-				"bg-background",
-				"hover:shadow-lg hover:scale-[1.02]",
-				selected && "ring-2 ring-offset-2 ring-purple-500",
-				data.isHovered && "shadow-lg scale-[1.02]",
-				data.isHighlighted && "ring-2 ring-purple-400/50",
-			)}
-			style={{
-				borderColor: ANGLE_COLOR,
-				backgroundColor: `${ANGLE_COLOR}08`,
-			}}
-			variants={nodeVariants}
-			initial="initial"
-			animate="animate"
-		>
-			{/* Subtle glow */}
-			<div
-				className="absolute -inset-1 opacity-10 blur-lg transition-all"
-				style={{ backgroundColor: ANGLE_COLOR }}
-			/>
+      {/* External label below node */}
+      <div
+        className="absolute text-center pointer-events-none"
+        style={{
+          top: size / 2 + labelOffset / 2,
+          width: 100,
+          left: "50%",
+          transform: "translateX(-50%)",
+        }}
+      >
+        <p
+          className={cn(
+            "font-medium text-foreground",
+            "drop-shadow-sm leading-tight",
+          )}
+          style={{ fontSize }}
+        >
+          {truncatedLabel}
+        </p>
+      </div>
 
-			<div className="relative z-10">
-				{/* Header with icon */}
-				<div className="flex items-start gap-2">
-					<div
-						className="flex items-center justify-center w-7 h-7 rounded-lg shrink-0"
-						style={{ backgroundColor: `${ANGLE_COLOR}15` }}
-					>
-						<Target className="w-3.5 h-3.5" style={{ color: ANGLE_COLOR }} />
-					</div>
-
-					<div className="flex-1 min-w-0">
-						<h4 className="text-xs font-semibold text-foreground line-clamp-2 leading-tight">
-							{data.title}
-						</h4>
-					</div>
-				</div>
-
-				{/* Tags */}
-				{isMicroView && data.tags && data.tags.length > 0 && (
-					<div className="flex flex-wrap gap-1 mt-2">
-						{data.tags.slice(0, 2).map((tag) => (
-							<span
-								key={tag}
-								className="text-[9px] px-1.5 py-0.5 rounded-full font-medium"
-								style={{
-									backgroundColor: `${ANGLE_COLOR}15`,
-									color: ANGLE_COLOR,
-								}}
-							>
-								{tag}
-							</span>
-						))}
-					</div>
-				)}
-
-				{/* Source track indicator */}
-				{isMicroView && trackColors && data.sourceTrackId && (
-					<div className="mt-2 pt-2 border-t border-border/50">
-						<div className="flex items-center gap-1">
-							<div
-								className="w-1.5 h-1.5 rounded-full"
-								style={{ backgroundColor: trackColors.primary }}
-							/>
-							<span className="text-[8px] text-muted-foreground truncate">
-								{data.sourceTrackId.replace(/_/g, " ")}
-							</span>
-						</div>
-					</div>
-				)}
-			</div>
-
-			{/* Handles */}
-			<Handle type="target" position={Position.Top} id="top" className="w-2 h-2 !opacity-0" />
-			<Handle type="source" position={Position.Bottom} id="bottom" className="w-2 h-2 !opacity-0" />
-			<Handle type="target" position={Position.Left} id="left" className="w-2 h-2 !opacity-0" />
-			<Handle type="source" position={Position.Right} id="right" className="w-2 h-2 !opacity-0" />
-		</motion.div>
-	);
+      {/* Handles */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="top"
+        className="!opacity-0 !w-1.5 !h-1.5"
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="bottom"
+        className="!opacity-0 !w-1.5 !h-1.5"
+      />
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left"
+        className="!opacity-0 !w-1.5 !h-1.5"
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right"
+        className="!opacity-0 !w-1.5 !h-1.5"
+      />
+    </motion.div>
+  );
 }
 
 export const EssayAngleNode = memo(EssayAngleNodeComponent);

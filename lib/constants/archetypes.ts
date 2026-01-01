@@ -19,6 +19,7 @@ export const ARCHETYPES: Record<ArchetypeType, ArchetypeDefinition> = {
 		bgClass: "bg-emerald-500/10",
 		textClass: "text-emerald-600",
 		borderClass: "border-emerald-300",
+		emoji: "💡",
 	},
 	bridge_builder: {
 		type: "bridge_builder",
@@ -35,6 +36,7 @@ export const ARCHETYPES: Record<ArchetypeType, ArchetypeDefinition> = {
 		bgClass: "bg-blue-500/10",
 		textClass: "text-blue-600",
 		borderClass: "border-blue-300",
+		emoji: "🌉",
 	},
 	scholar: {
 		type: "scholar",
@@ -51,6 +53,7 @@ export const ARCHETYPES: Record<ArchetypeType, ArchetypeDefinition> = {
 		bgClass: "bg-violet-500/10",
 		textClass: "text-violet-600",
 		borderClass: "border-violet-300",
+		emoji: "📚",
 	},
 	advocate: {
 		type: "advocate",
@@ -67,6 +70,7 @@ export const ARCHETYPES: Record<ArchetypeType, ArchetypeDefinition> = {
 		bgClass: "bg-pink-500/10",
 		textClass: "text-pink-600",
 		borderClass: "border-pink-300",
+		emoji: "🎯",
 	},
 	pioneer: {
 		type: "pioneer",
@@ -83,6 +87,7 @@ export const ARCHETYPES: Record<ArchetypeType, ArchetypeDefinition> = {
 		bgClass: "bg-amber-500/10",
 		textClass: "text-amber-600",
 		borderClass: "border-amber-300",
+		emoji: "🚀",
 	},
 	craftsman: {
 		type: "craftsman",
@@ -99,6 +104,7 @@ export const ARCHETYPES: Record<ArchetypeType, ArchetypeDefinition> = {
 		bgClass: "bg-indigo-500/10",
 		textClass: "text-indigo-600",
 		borderClass: "border-indigo-300",
+		emoji: "🎨",
 	},
 	resilient: {
 		type: "resilient",
@@ -115,6 +121,7 @@ export const ARCHETYPES: Record<ArchetypeType, ArchetypeDefinition> = {
 		bgClass: "bg-red-500/10",
 		textClass: "text-red-600",
 		borderClass: "border-red-300",
+		emoji: "🔥",
 	},
 	catalyst: {
 		type: "catalyst",
@@ -131,6 +138,7 @@ export const ARCHETYPES: Record<ArchetypeType, ArchetypeDefinition> = {
 		bgClass: "bg-teal-500/10",
 		textClass: "text-teal-600",
 		borderClass: "border-teal-300",
+		emoji: "⚡",
 	},
 } as const;
 

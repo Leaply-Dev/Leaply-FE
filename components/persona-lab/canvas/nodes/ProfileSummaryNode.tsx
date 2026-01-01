@@ -2,7 +2,7 @@
 
 import { Handle, Position } from "@xyflow/react";
 import { motion } from "framer-motion";
-import { Lock, Sparkles, User } from "lucide-react";
+import { Lock, Sparkles } from "lucide-react";
 import { memo } from "react";
 import { ARCHETYPES } from "@/lib/constants/archetypes";
 import type { GraphNodeData } from "@/lib/types/persona-graph";
@@ -14,211 +14,183 @@ const PROFILE_COLOR = LAYOUT_CONFIG.colors[0]; // Indigo
 
 // Animation variants for node appearance
 const nodeVariants = {
-	initial: {
-		scale: 0.5,
-		opacity: 0,
-	},
-	animate: {
-		scale: 1,
-		opacity: 1,
-		transition: {
-			type: "spring" as const,
-			stiffness: 300,
-			damping: 25,
-		},
-	},
+  initial: {
+    scale: 0.5,
+    opacity: 0,
+  },
+  animate: {
+    scale: 1,
+    opacity: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 300,
+      damping: 25,
+    },
+  },
 };
 
+// Truncate text with ellipsis
+function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength - 1) + "…";
+}
+
 interface ProfileSummaryNodeProps {
-	data: GraphNodeData;
-	selected?: boolean;
+  data: GraphNodeData;
+  selected?: boolean;
 }
 
 /**
  * ProfileSummaryNode - Layer 0 (Center)
  *
- * The largest node at the center of the graph.
- * Shows archetype information when revealed.
+ * Obsidian-style circular node at the center of the graph.
+ * Shows archetype emoji when revealed, lock when locked.
+ * External label displayed below the circle.
  */
-function ProfileSummaryNodeComponent({ data, selected }: ProfileSummaryNodeProps) {
-	const isMacroView = data.zoom && data.zoom < 0.5;
-	const hasArchetype = !!data.primaryArchetype;
+function ProfileSummaryNodeComponent({
+  data,
+  selected,
+}: ProfileSummaryNodeProps) {
+  const hasArchetype = !!data.primaryArchetype;
+  const primaryDef = data.primaryArchetype
+    ? ARCHETYPES[data.primaryArchetype]
+    : null;
 
-	const primaryDef = data.primaryArchetype
-		? ARCHETYPES[data.primaryArchetype]
-		: null;
-	const secondaryDef = data.secondaryArchetype
-		? ARCHETYPES[data.secondaryArchetype]
-		: null;
+  const size = LAYOUT_CONFIG.nodeSize[0];
+  const labelOffset = LAYOUT_CONFIG.labelOffset[0];
+  const fontSize = LAYOUT_CONFIG.labelFontSize[0];
+  const maxChars = LAYOUT_CONFIG.labelMaxChars[0];
 
-	// Macro View - Show large colored circle with icon
-	if (isMacroView) {
-		return (
-			<motion.div
-				className="group relative flex items-center justify-center"
-				variants={nodeVariants}
-				initial="initial"
-				animate="animate"
-			>
-				<div
-					className={cn(
-						"w-24 h-24 rounded-full border-4 flex items-center justify-center",
-						"transition-all duration-500 shadow-xl",
-						selected && "ring-4 ring-indigo-400 ring-offset-2",
-					)}
-					style={{
-						backgroundColor: hasArchetype
-							? primaryDef?.color || PROFILE_COLOR
-							: `${PROFILE_COLOR}20`,
-						borderColor: hasArchetype
-							? `${primaryDef?.color}80` || `${PROFILE_COLOR}80`
-							: `${PROFILE_COLOR}40`,
-					}}
-				>
-					{hasArchetype ? (
-						<Sparkles className="w-10 h-10 text-white" />
-					) : (
-						<Lock className="w-10 h-10 text-indigo-400" />
-					)}
-				</div>
-				{/* Handles - all directions for center node */}
-				<Handle type="source" position={Position.Top} id="top" className="!opacity-0" />
-				<Handle type="source" position={Position.Right} id="right" className="!opacity-0" />
-				<Handle type="source" position={Position.Bottom} id="bottom" className="!opacity-0" />
-				<Handle type="source" position={Position.Left} id="left" className="!opacity-0" />
-			</motion.div>
-		);
-	}
+  // Get emoji or icon for the node
+  const getNodeContent = () => {
+    if (hasArchetype && primaryDef) {
+      // Use archetype emoji if available
+      return (
+        <span className="text-3xl" role="img" aria-label={primaryDef.title}>
+          {primaryDef.emoji || "✨"}
+        </span>
+      );
+    }
+    // Locked state
+    return <Lock className="w-8 h-8 text-white/80" />;
+  };
 
-	// Full View - Show detailed profile card
-	return (
-		<motion.div
-			className={cn(
-				"relative rounded-2xl border-3 shadow-xl transition-all duration-300 overflow-hidden",
-				"min-w-[150px] max-w-[180px] p-5",
-				"bg-background",
-				"flex flex-col items-center text-center",
-				selected && "ring-4 ring-offset-2 ring-indigo-500",
-				data.isHovered && "shadow-2xl scale-[1.02]",
-			)}
-			style={{
-				borderColor: hasArchetype
-					? primaryDef?.color || PROFILE_COLOR
-					: PROFILE_COLOR,
-				backgroundColor: hasArchetype
-					? `${primaryDef?.color}08` || `${PROFILE_COLOR}08`
-					: `${PROFILE_COLOR}06`,
-			}}
-			variants={nodeVariants}
-			initial="initial"
-			animate="animate"
-		>
-			{/* Glow effect */}
-			<div
-				className="absolute -inset-2 opacity-20 blur-xl rounded-full"
-				style={{
-					backgroundColor: hasArchetype
-						? primaryDef?.color || PROFILE_COLOR
-						: PROFILE_COLOR,
-				}}
-			/>
+  // Get display label
+  const label = hasArchetype && primaryDef ? primaryDef.title : "Archetype";
+  const truncatedLabel = truncateText(label, maxChars);
 
-			{/* Content */}
-			<div className="relative z-10 flex flex-col items-center gap-3">
-				{/* Icon/Avatar */}
-				<div
-					className={cn(
-						"w-14 h-14 rounded-full flex items-center justify-center",
-						"border-2 shadow-md",
-					)}
-					style={{
-						backgroundColor: hasArchetype
-							? primaryDef?.color || PROFILE_COLOR
-							: `${PROFILE_COLOR}15`,
-						borderColor: hasArchetype
-							? `${primaryDef?.color}60` || `${PROFILE_COLOR}60`
-							: `${PROFILE_COLOR}30`,
-					}}
-				>
-					{hasArchetype ? (
-						<Sparkles className="w-7 h-7 text-white" />
-					) : (
-						<User className="w-7 h-7" style={{ color: PROFILE_COLOR }} />
-					)}
-				</div>
+  return (
+    <motion.div
+      className="relative flex flex-col items-center"
+      variants={nodeVariants}
+      initial="initial"
+      animate="animate"
+    >
+      {/* Circular node */}
+      <div
+        className={cn(
+          "rounded-full flex items-center justify-center cursor-pointer",
+          "transition-all duration-300 ease-out",
+          "shadow-lg hover:shadow-xl",
+          selected && "ring-4 ring-white/50 ring-offset-2 ring-offset-background",
+          data.isHovered && "scale-105",
+        )}
+        style={{
+          width: size,
+          height: size,
+          backgroundColor: hasArchetype
+            ? primaryDef?.color || PROFILE_COLOR
+            : PROFILE_COLOR,
+          boxShadow: `0 0 ${hasArchetype ? 30 : 20}px ${
+            hasArchetype ? primaryDef?.color || PROFILE_COLOR : PROFILE_COLOR
+          }40`,
+        }}
+      >
+        {/* Glow effect for revealed archetype */}
+        {hasArchetype && (
+          <div
+            className="absolute inset-0 rounded-full animate-pulse opacity-30"
+            style={{
+              background: `radial-gradient(circle, ${
+                primaryDef?.color || PROFILE_COLOR
+              }60 0%, transparent 70%)`,
+            }}
+          />
+        )}
 
-				{/* Title */}
-				<div>
-					{hasArchetype && primaryDef ? (
-						<>
-							<h3
-								className="text-base font-bold"
-								style={{ color: primaryDef.color }}
-							>
-								{primaryDef.title}
-							</h3>
-							{secondaryDef && (
-								<p className="text-xs text-muted-foreground mt-0.5">
-									+ {secondaryDef.title}
-								</p>
-							)}
-						</>
-					) : (
-						<>
-							<h3 className="text-sm font-semibold text-foreground">
-								{data.title || "Hồ sơ cá nhân"}
-							</h3>
-							<p className="text-xs text-muted-foreground mt-1">
-								Hoàn thành thêm tracks để khám phá
-							</p>
-						</>
-					)}
-				</div>
+        {/* Content */}
+        <div className="relative z-10 flex items-center justify-center">
+          {getNodeContent()}
+        </div>
+      </div>
 
-				{/* Tags */}
-				{data.tags && data.tags.length > 0 && (
-					<div className="flex flex-wrap justify-center gap-1 mt-1">
-						{data.tags.slice(0, 3).map((tag) => (
-							<span
-								key={tag}
-								className="text-[9px] px-1.5 py-0.5 rounded-full font-medium"
-								style={{
-									backgroundColor: `${PROFILE_COLOR}15`,
-									color: PROFILE_COLOR,
-								}}
-							>
-								{tag}
-							</span>
-						))}
-					</div>
-				)}
+      {/* External label below node */}
+      <div
+        className="absolute text-center pointer-events-none"
+        style={{
+          top: size / 2 + labelOffset / 2,
+          width: 120,
+          left: "50%",
+          transform: "translateX(-50%)",
+        }}
+      >
+        <p
+          className={cn(
+            "font-semibold text-foreground whitespace-nowrap",
+            "drop-shadow-sm",
+          )}
+          style={{ fontSize }}
+        >
+          {truncatedLabel}
+        </p>
+        {hasArchetype && primaryDef && (
+          <p
+            className="text-muted-foreground mt-0.5"
+            style={{ fontSize: fontSize - 2 }}
+          >
+            {primaryDef.tagline
+              ? truncateText(primaryDef.tagline, maxChars + 5)
+              : ""}
+          </p>
+        )}
+        {!hasArchetype && (
+          <p
+            className="text-muted-foreground mt-0.5 flex items-center justify-center gap-1"
+            style={{ fontSize: fontSize - 2 }}
+          >
+            <Lock className="w-3 h-3" />
+            Hoàn thành tracks
+          </p>
+        )}
+      </div>
 
-				{/* Confidence indicator */}
-				{hasArchetype && data.confidence > 0 && (
-					<div className="w-full mt-2">
-						<div className="h-1 bg-muted rounded-full overflow-hidden">
-							<div
-								className="h-full rounded-full transition-all"
-								style={{
-									width: `${data.confidence * 100}%`,
-									backgroundColor: primaryDef?.color || PROFILE_COLOR,
-								}}
-							/>
-						</div>
-						<p className="text-[9px] text-muted-foreground mt-0.5">
-							{Math.round(data.confidence * 100)}% confidence
-						</p>
-					</div>
-				)}
-			</div>
-
-			{/* Handles - source from all directions */}
-			<Handle type="source" position={Position.Top} id="top" className="w-2 h-2 !opacity-0" />
-			<Handle type="source" position={Position.Right} id="right" className="w-2 h-2 !opacity-0" />
-			<Handle type="source" position={Position.Bottom} id="bottom" className="w-2 h-2 !opacity-0" />
-			<Handle type="source" position={Position.Left} id="left" className="w-2 h-2 !opacity-0" />
-		</motion.div>
-	);
+      {/* Handles - source from all directions for center node */}
+      <Handle
+        type="source"
+        position={Position.Top}
+        id="top"
+        className="!opacity-0 !w-2 !h-2"
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right"
+        className="!opacity-0 !w-2 !h-2"
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="bottom"
+        className="!opacity-0 !w-2 !h-2"
+      />
+      <Handle
+        type="source"
+        position={Position.Left}
+        id="left"
+        className="!opacity-0 !w-2 !h-2"
+      />
+    </motion.div>
+  );
 }
 
 export const ProfileSummaryNode = memo(ProfileSummaryNodeComponent);

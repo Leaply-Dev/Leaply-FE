@@ -13,30 +13,30 @@ import type {
 // Re-export layer config for convenience
 export { LAYER_CONFIGS } from "@/lib/types/persona-graph";
 
-// Layout configuration
+// Layout configuration - Obsidian-style circular nodes
 export const LAYOUT_CONFIG = {
 	// Ring radii for each layer
 	layerRadius: {
 		0: 0, // Center
-		1: 200, // Inner ring
-		2: 380, // Outer ring
-		3: 520, // Outermost ring (details)
+		1: 180, // Inner ring (closer for circular nodes)
+		2: 320, // Outer ring
+		3: 420, // Outermost ring (details)
 	} as Record<LayerNumber, number>,
 
-	// Node sizes for each layer (width)
+	// Node sizes for each layer (diameter for circular nodes)
 	nodeSize: {
-		0: 160, // Profile - largest
-		1: 110, // Angles - medium
-		2: 80, // Stories - smaller
-		3: 50, // Details - smallest
+		0: 90, // Profile - 80-100px diameter
+		1: 55, // Angles - 50-60px diameter
+		2: 40, // Stories - 35-45px diameter
+		3: 24, // Details - 20-25px diameter
 	} as Record<LayerNumber, number>,
 
-	// Node heights (aspect ratio adjustment)
+	// Node heights (same as width for circles)
 	nodeHeight: {
-		0: 140,
-		1: 90,
-		2: 65,
-		3: 40,
+		0: 90, // Circle - same as width
+		1: 55,
+		2: 40,
+		3: 24,
 	} as Record<LayerNumber, number>,
 
 	// Colors per layer
@@ -52,7 +52,31 @@ export const LAYOUT_CONFIG = {
 	centerY: 0,
 
 	// Minimum angle between nodes on same ring (degrees)
-	minAngleSpacing: 15,
+	minAngleSpacing: 20,
+
+	// Label configuration for external labels
+	labelOffset: {
+		0: 60, // Distance from node center to label
+		1: 42,
+		2: 32,
+		3: 22,
+	} as Record<LayerNumber, number>,
+
+	// Font sizes for labels
+	labelFontSize: {
+		0: 12,
+		1: 10,
+		2: 9,
+		3: 8,
+	} as Record<LayerNumber, number>,
+
+	// Max label characters before truncation
+	labelMaxChars: {
+		0: 20,
+		1: 15,
+		2: 12,
+		3: 10,
+	} as Record<LayerNumber, number>,
 };
 
 interface LayoutResult {
@@ -340,21 +364,25 @@ export function useConcentricLayout() {
 				};
 			});
 
-			// Convert to React Flow edges
+			// Convert to React Flow edges - curved bezier style
 			const edges: Edge[] = apiEdges.map((edge) => {
 				const sourceNode = apiNodes.find((n) => n.id === edge.source);
+				const targetNode = apiNodes.find((n) => n.id === edge.target);
 				const sourceLayer = sourceNode?.layer ?? 1;
+				const isDetailEdge = targetNode?.layer === 3;
 
 				return {
 					id: edge.id,
 					source: edge.source,
 					target: edge.target,
-					type: "default",
+					type: "smoothstep", // Curved bezier edges
 					animated: false,
 					style: {
 						stroke: LAYOUT_CONFIG.colors[sourceLayer as LayerNumber],
-						strokeWidth: 1 + edge.strength * 2,
-						opacity: 0.3 + edge.strength * 0.4,
+						// Thinner, more subtle strokes
+						strokeWidth: isDetailEdge ? 0.5 + edge.strength * 0.5 : 0.75 + edge.strength * 1,
+						// Lower opacity for subtlety
+						opacity: isDetailEdge ? 0.15 + edge.strength * 0.25 : 0.2 + edge.strength * 0.3,
 					},
 				};
 			});
