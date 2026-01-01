@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
 			},
 		],
 	},
-	// Exclude global-error from static generation
+	// Skip static generation for error pages
 	experimental: {
 		staticGenerationRetryCount: 0,
 	},
