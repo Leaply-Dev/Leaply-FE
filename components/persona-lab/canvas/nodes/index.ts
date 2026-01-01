@@ -1,8 +1,7 @@
-// New node types for the refactored Persona Lab
-export { ArchetypeNode, type ArchetypeNodeData } from "./ArchetypeNode";
-// Legacy exports for backward compatibility
+// Node types for the Obsidian-style Persona Lab graph
+export { ProfileSummaryNode } from "./ProfileSummaryNode";
+export { EssayAngleNode } from "./EssayAngleNode";
+export { KeyStoryNode } from "./KeyStoryNode";
+export { DetailNode } from "./DetailNode";
 export { CoreNode, type CoreNodeData } from "./CoreNode";
-export { EvidenceNode, type EvidenceNodeData } from "./EvidenceNode";
-export { InsightNode, type InsightNodeData } from "./InsightNode";
-export { StoryNode, type StoryNodeData } from "./StoryNode";
-export { SummaryNode, type SummaryNodeData } from "./SummaryNode";
+export { KeywordBubble } from "./KeywordBubble";

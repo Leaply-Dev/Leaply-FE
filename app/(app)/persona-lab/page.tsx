@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, LayoutGrid, List, MessageSquare } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
 import { ChatSidebar } from "@/components/persona-lab/ChatSidebar";
 import { Button } from "@/components/ui/button";
@@ -12,29 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePersonaStore } from "@/lib/store/personaStore";
 import { cn } from "@/lib/utils";
 
-// Feature flag for new concentric graph (set via env or default to false)
-const USE_NEW_GRAPH = process.env.NEXT_PUBLIC_USE_NEW_GRAPH === "true";
-
-// Dynamic import for old PersonaCanvas (legacy)
-const PersonaCanvas = dynamic(
-	() =>
-		import("@/components/persona-lab/canvas/PersonaCanvas").then(
-			(mod) => mod.PersonaCanvas,
-		),
-	{
-		ssr: false,
-		loading: () => (
-			<div className="flex-1 flex items-center justify-center bg-muted/20">
-				<div className="text-center space-y-4">
-					<Skeleton className="w-32 h-32 rounded-full mx-auto" />
-					<Skeleton className="w-24 h-3 mx-auto" />
-				</div>
-			</div>
-		),
-	},
-);
-
-// Dynamic import for new ConcentricGraphCanvas
+// Dynamic import for ConcentricGraphCanvas
 const ConcentricGraphCanvas = dynamic(
 	() =>
 		import("@/components/persona-lab/canvas/ConcentricGraphCanvas").then(
@@ -53,25 +31,7 @@ const ConcentricGraphCanvas = dynamic(
 	},
 );
 
-// Dynamic import for old simplified list view
-const PersonaListView = dynamic(
-	() =>
-		import("@/components/persona-lab/PersonaListView").then(
-			(mod) => mod.PersonaListView,
-		),
-	{
-		ssr: false,
-		loading: () => (
-			<div className="p-6 space-y-4">
-				<Skeleton className="h-20 w-full rounded-xl" />
-				<Skeleton className="h-20 w-full rounded-xl" />
-				<Skeleton className="h-20 w-full rounded-xl" />
-			</div>
-		),
-	},
-);
-
-// Dynamic import for new GraphListView (mobile)
+// Dynamic import for GraphListView (mobile/list mode)
 const GraphListView = dynamic(
 	() =>
 		import("@/components/persona-lab/canvas/GraphListView").then(
@@ -111,45 +71,23 @@ function useIsMobile(breakpoint = 768) {
 
 export default function PersonaLabPage() {
 	const t = useTranslations("personaLab");
-	const { viewMode, setViewMode, selectNode } = usePersonaStore();
+	const { viewMode, setViewMode } = usePersonaStore();
 	const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 	const isMobile = useIsMobile(768);
 
-	const handleNodeSelect = useCallback(
-		(nodeId: string | null) => {
-			selectNode(nodeId);
-		},
-		[selectNode],
-	);
-
-	// Render the appropriate canvas/list component based on feature flag and viewport
+	// Render the appropriate canvas/list component based on viewport and view mode
 	const renderContent = () => {
-		if (USE_NEW_GRAPH) {
-			// New concentric graph
-			if (isMobile) {
-				// Mobile: always show list view
-				return <GraphListView className="w-full h-full" />;
-			}
-
-			// Desktop: respect view mode toggle
-			if (viewMode === "list") {
-				return <GraphListView className="w-full h-full" />;
-			}
-
-			return <ConcentricGraphCanvas className="w-full h-full" />;
+		// Mobile: always show list view
+		if (isMobile) {
+			return <GraphListView className="w-full h-full" />;
 		}
 
-		// Legacy canvas
-		if (viewMode === "canvas") {
-			return (
-				<PersonaCanvas
-					className="w-full h-full"
-					onNodeSelect={handleNodeSelect}
-				/>
-			);
+		// Desktop: respect view mode toggle
+		if (viewMode === "list") {
+			return <GraphListView className="w-full h-full" />;
 		}
 
-		return <PersonaListView />;
+		return <ConcentricGraphCanvas className="w-full h-full" />;
 	};
 
 	return (

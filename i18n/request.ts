@@ -2,8 +2,15 @@ import { cookies } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 
 export default getRequestConfig(async () => {
-	const store = await cookies();
-	const locale = store.get("locale")?.value || "vi";
+	let locale = "vi";
+
+	try {
+		const store = await cookies();
+		locale = store.get("locale")?.value || "vi";
+	} catch {
+		// During prerendering (e.g., global-error), cookies() is not available
+		// Fall back to default locale
+	}
 
 	return {
 		locale,
