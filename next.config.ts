@@ -19,10 +19,6 @@ const nextConfig: NextConfig = {
 			},
 		],
 	},
-	// Skip static generation for error pages
-	experimental: {
-		staticGenerationRetryCount: 0,
-	},
 };
 
 const withNextIntl = createNextIntlPlugin();
