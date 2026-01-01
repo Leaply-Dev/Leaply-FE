@@ -41,15 +41,16 @@ export function ApplicationSidebar({
 	const router = useRouter();
 	const [searchQuery, setSearchQuery] = useState("");
 
-	// Filter applications based on search
+	// Filter applications based on search (handle undefined safely)
 	const filteredApplications = useMemo(() => {
-		if (!searchQuery) return applications;
+		const apps = applications ?? [];
+		if (!searchQuery) return apps;
 
 		const query = searchQuery.toLowerCase();
-		return applications.filter(
+		return apps.filter(
 			(app) =>
-				app.program.universityName.toLowerCase().includes(query) ||
-				app.program.programName.toLowerCase().includes(query),
+				app.program?.universityName?.toLowerCase().includes(query) ||
+				app.program?.programName?.toLowerCase().includes(query),
 		);
 	}, [applications, searchQuery]);
 
@@ -109,7 +110,7 @@ export function ApplicationSidebar({
 						{t("title")}
 					</h2>
 					<span className="text-sm text-muted-foreground">
-						{applications.length}
+						{applications?.length ?? 0}
 					</span>
 				</div>
 

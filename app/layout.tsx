@@ -4,6 +4,9 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import "./globals.css";
 
+// Force dynamic rendering for all pages to avoid prerender issues
+export const dynamic = "force-dynamic";
+
 const raleway = Raleway({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {

@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
 			},
 		],
 	},
+	// Exclude global-error from static generation
+	experimental: {
+		staticGenerationRetryCount: 0,
+	},
 };
 
 const withNextIntl = createNextIntlPlugin();
