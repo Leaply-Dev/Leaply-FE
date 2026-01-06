@@ -85,6 +85,7 @@ async function apiFetch<T>(
 	const config: RequestInit = {
 		method,
 		headers: requestHeaders,
+		credentials: "include", // Include cookies for OAuth
 		...customConfig,
 	};
 

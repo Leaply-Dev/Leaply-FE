@@ -704,6 +704,7 @@
 		"loggingIn": "Logging in...",
 		"creatingAccount": "Creating Account...",
 		"error": "Error",
+		"oauthFailed": "Login failed, please try again",
 		"passwordsNotMatch": "Passwords do not match",
 		"fullName": "Full Name",
 		"fullNamePlaceholder": "John Doe",

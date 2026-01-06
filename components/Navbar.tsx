@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+
 export function Navbar() {
 	const pathname = usePathname();
 	const router = useRouter();
@@ -63,6 +65,22 @@ export function Navbar() {
 			.join("")
 			.toUpperCase()
 			.slice(0, 2);
+	};
+
+	// Handle logout - call backend to clear httpOnly cookies
+	const handleLogout = async () => {
+		try {
+			await fetch(`${API_URL}/oauth/logout`, {
+				method: "POST",
+				credentials: "include",
+			});
+		} catch (error) {
+			console.error("Logout API error:", error);
+		} finally {
+			// Always clear local state even if API call fails
+			logout();
+			router.push("/login");
+		}
 	};
 
 	return (
@@ -156,9 +174,8 @@ export function Navbar() {
 											<button
 												type="button"
 												onClick={() => {
-													logout();
 													setAvatarDropdownOpen(false);
-													router.push("/login");
+													handleLogout();
 												}}
 												className="flex items-center gap-2 w-full px-4 py-2 text-sm text-destructive hover:bg-muted transition-colors"
 											>
@@ -256,9 +273,8 @@ export function Navbar() {
 											variant="ghost"
 											size="sm"
 											onClick={() => {
-												logout();
 												setMobileMenuOpen(false);
-												router.push("/login");
+												handleLogout();
 											}}
 										>
 											<LogOut className="w-4 h-4 mr-2" />
