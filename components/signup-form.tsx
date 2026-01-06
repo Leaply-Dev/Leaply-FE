@@ -76,8 +76,8 @@ export function SignupForm({
 
 			login(userProfile, response.token, response.onboardingCompleted);
 
-			// Register always leads to onboarding or dashboard for new users
-			router.push("/onboarding");
+			// Redirect to verify-email page for email verification prompt
+			router.push("/verify-email");
 		} catch (err) {
 			console.error("Registration failed", err);
 			setError(err instanceof Error ? err.message : "Failed to create account");

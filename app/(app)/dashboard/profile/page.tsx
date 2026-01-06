@@ -53,6 +53,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { UserMeResponse } from "@/lib/api/types";
+import { authService } from "@/lib/services/auth";
 import { userService } from "@/lib/services/user";
 import { useUserStore } from "@/lib/store/userStore";
 
@@ -86,6 +87,7 @@ export default function ProfilePage() {
 	const [isEditing, setIsEditing] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 	const [isResettingPassword, setIsResettingPassword] = useState(false);
+	const [isSendingVerification, setIsSendingVerification] = useState(false);
 	const [message, setMessage] = useState<{
 		type: "success" | "error";
 		text: string;
@@ -237,6 +239,24 @@ export default function ProfilePage() {
 		}
 	};
 
+	// Handle send verification email
+	const handleSendVerification = async () => {
+		if (!userData?.email) return;
+
+		setIsSendingVerification(true);
+		setMessage(null);
+
+		try {
+			await authService.resendVerification(userData.email);
+			setMessage({ type: "success", text: t("verificationSent") });
+		} catch (error) {
+			console.error("Failed to send verification email:", error);
+			setMessage({ type: "error", text: t("verificationError") });
+		} finally {
+			setIsSendingVerification(false);
+		}
+	};
+
 	// Handle test score change
 	const handleTestScoreChange = (type: string, value: string) => {
 		setFormData((prev) => ({
@@ -323,7 +343,7 @@ export default function ProfilePage() {
 												<h2 className="text-2xl font-bold text-foreground mb-1">
 													{userData?.fullName || t("noData")}
 												</h2>
-												<div className="flex items-center gap-2 text-muted-foreground mb-3">
+												<div className="flex items-center gap-2 text-muted-foreground mb-3 flex-wrap">
 													<Mail className="h-4 w-4" />
 													<span>{userData?.email}</span>
 													{userData?.emailVerified ? (
@@ -335,12 +355,26 @@ export default function ProfilePage() {
 															{t("emailVerified")}
 														</Badge>
 													) : (
-														<Badge
-															variant="secondary"
-															className="text-xs bg-yellow-100 text-yellow-700"
-														>
-															{t("emailNotVerified")}
-														</Badge>
+														<>
+															<Badge
+																variant="secondary"
+																className="text-xs bg-yellow-100 text-yellow-700"
+															>
+																{t("emailNotVerified")}
+															</Badge>
+															<Button
+																variant="link"
+																size="sm"
+																className="h-auto p-0 text-xs text-primary"
+																onClick={handleSendVerification}
+																disabled={isSendingVerification}
+															>
+																{isSendingVerification ? (
+																	<Loader2 className="h-3 w-3 animate-spin mr-1" />
+																) : null}
+																{t("verifyNow")}
+															</Button>
+														</>
 													)}
 												</div>
 												<div className="space-y-2">

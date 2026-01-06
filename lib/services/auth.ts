@@ -7,6 +7,23 @@ import type {
 	UserContextResponse,
 } from "@/lib/api/types";
 
+export interface VerifyEmailRequest {
+	token: string;
+}
+
+export interface ResendVerificationRequest {
+	email: string;
+}
+
+export interface ForgotPasswordRequest {
+	email: string;
+}
+
+export interface ResetPasswordRequest {
+	token: string;
+	newPassword: string;
+}
+
 export const authService = {
 	login: async (credentials: LoginRequest): Promise<AuthResponse> => {
 		return apiClient.post<AuthResponse>("/v1/auth/login", credentials);
@@ -23,5 +40,23 @@ export const authService = {
 
 	getCurrentUser: async (): Promise<UserContextResponse> => {
 		return apiClient.get<UserContextResponse>("/v1/auth/me");
+	},
+
+	// Email verification
+	verifyEmail: async (token: string): Promise<string> => {
+		return apiClient.post<string>("/v1/auth/verify-email", { token });
+	},
+
+	resendVerification: async (email: string): Promise<string> => {
+		return apiClient.post<string>("/v1/auth/resend-verification", { email });
+	},
+
+	// Password reset
+	forgotPassword: async (email: string): Promise<string> => {
+		return apiClient.post<string>("/v1/auth/forgot-password", { email });
+	},
+
+	resetPassword: async (token: string, newPassword: string): Promise<string> => {
+		return apiClient.post<string>("/v1/auth/reset-password", { token, newPassword });
 	},
 };
