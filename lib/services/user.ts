@@ -2,7 +2,6 @@ import { apiClient } from "@/lib/api/client";
 import type {
 	PreferencesResponse,
 	ProfileResponse,
-	ResetPasswordRequest,
 	UpdatePreferencesRequest,
 	UpdateProfileRequest,
 	UserMeResponse,
@@ -58,16 +57,5 @@ export const userService = {
 		data: UpdatePreferencesRequest,
 	): Promise<PreferencesResponse> => {
 		return apiClient.patch<PreferencesResponse>("/v1/user/preferences", data);
-	},
-
-	// ============================================
-	// Password Management
-	// ============================================
-
-	/**
-	 * Request password reset email
-	 */
-	requestPasswordReset: async (data: ResetPasswordRequest): Promise<string> => {
-		return apiClient.post<string>("/v1/user/reset-password", data);
 	},
 };

@@ -138,10 +138,6 @@ export interface UserMeResponse {
 	interests?: string[];
 }
 
-export interface ResetPasswordRequest {
-	email: string;
-}
-
 export interface UpdatePreferencesRequest {
 	fieldOfInterest?: string[];
 	preferredRegions?: string[];

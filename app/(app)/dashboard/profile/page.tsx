@@ -229,7 +229,7 @@ export default function ProfilePage() {
 		setMessage(null);
 
 		try {
-			await userService.requestPasswordReset({ email: userData.email });
+			await authService.forgotPassword(userData.email);
 			setMessage({ type: "success", text: t("resetPasswordSent") });
 		} catch (error) {
 			console.error("Failed to request password reset:", error);
