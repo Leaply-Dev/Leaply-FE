@@ -33,7 +33,7 @@ const story1: StoryFragment = {
 		emotion: "Thực dụng, có chút e ngại về aging trong tech",
 	},
 	tags: {
-		identity_facets: ["strategic_thinking", "technical", "pragmatic"],
+		identity_facets: ["analytical", "technical", "resilient"],
 		value_signals: ["pragmatism", "autonomy", "sustainability"],
 		skill_evidence: ["technical_depth", "strategic_thinking", "system_design"],
 		narrative_type: "transformation",
@@ -105,7 +105,7 @@ const story3: StoryFragment = {
 		emotion: "Exhausted but self-aware",
 	},
 	tags: {
-		identity_facets: ["resilient", "strategic_thinking", "entrepreneurial"],
+		identity_facets: ["resilient", "analytical", "entrepreneurial"],
 		value_signals: ["sustainability", "autonomy", "quality"],
 		skill_evidence: ["execution", "learning_agility"],
 		narrative_type: "overcoming_obstacle",
@@ -140,7 +140,7 @@ const story4: StoryFragment = {
 		emotion: "Ambitious, calculated",
 	},
 	tags: {
-		identity_facets: ["entrepreneurial", "strategic_thinking", "collaborative"],
+		identity_facets: ["entrepreneurial", "analytical", "collaborative"],
 		value_signals: ["impact", "autonomy", "innovation"],
 		skill_evidence: ["strategic_thinking", "communication"],
 		narrative_type: "hero_journey",
@@ -209,7 +209,7 @@ const story6: StoryFragment = {
 		emotion: "Brutally honest, grounded",
 	},
 	tags: {
-		identity_facets: ["entrepreneurial", "pragmatic", "analytical"],
+		identity_facets: ["entrepreneurial", "resilient", "analytical"],
 		value_signals: ["efficiency", "impact", "accessibility"],
 		skill_evidence: ["problem_solving", "strategic_thinking"],
 		narrative_type: "discovery",
@@ -239,7 +239,7 @@ const pattern1: PatternCluster = {
 	cluster_name: "Pragmatic Architect",
 	member_stories: ["story_1", "story_2", "story_5", "story_6"],
 	shared_tags: {
-		identity_facets: ["pragmatic", "analytical", "strategic_thinking"],
+		identity_facets: ["resilient", "analytical", "analytical"],
 		value_signals: ["efficiency", "pragmatism", "impact"],
 		skill_evidence: ["system_design", "strategic_thinking"],
 	},
@@ -279,7 +279,7 @@ const pattern2: PatternCluster = {
 	cluster_name: "Burnout-Aware Builder",
 	member_stories: ["story_1", "story_3"],
 	shared_tags: {
-		identity_facets: ["resilient", "strategic_thinking"],
+		identity_facets: ["resilient", "analytical"],
 		value_signals: ["sustainability", "autonomy"],
 		skill_evidence: ["execution", "learning_agility"],
 	},

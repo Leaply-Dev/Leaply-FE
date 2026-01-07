@@ -398,7 +398,7 @@ function generateMockGraphData(): PersonaGraphResponse {
 			type: "essay_angle",
 			layer: 1,
 			title: "Người tiên phong đổi mới",
-			content:
+			description:
 				"Từ những trải nghiệm của bạn, nổi bật lên hình ảnh một người luôn dẫn đầu trong việc tìm kiếm giải pháp sáng tạo.",
 			tags: ["innovation", "leadership", "problem-solving"],
 			sourceTrackId: "future_vision",
@@ -411,7 +411,7 @@ function generateMockGraphData(): PersonaGraphResponse {
 			type: "essay_angle",
 			layer: 1,
 			title: "Cầu nối văn hóa",
-			content:
+			description:
 				"Khả năng kết nối các quan điểm khác nhau và tạo ra sự hiểu biết chung là một điểm mạnh đáng chú ý.",
 			tags: ["culture", "communication", "diversity"],
 			sourceTrackId: "activities_impact",
@@ -424,7 +424,7 @@ function generateMockGraphData(): PersonaGraphResponse {
 			type: "essay_angle",
 			layer: 1,
 			title: "Học giả tò mò",
-			content:
+			description:
 				"Sự đam mê học hỏi và khám phá tri thức mới thể hiện qua mọi câu chuyện bạn chia sẻ.",
 			tags: ["curiosity", "learning", "academic"],
 			sourceTrackId: "academic_journey",
@@ -447,7 +447,7 @@ function generateMockGraphData(): PersonaGraphResponse {
 			type: "key_story" as const,
 			layer: 2 as const,
 			title: n.title,
-			content: n.content,
+			description: n.content,
 			tags: ["experience", "growth"],
 			sourceTrackId: n.sourceTrackId,
 			sourceQuestionId: null,
@@ -465,7 +465,7 @@ function generateMockGraphData(): PersonaGraphResponse {
 			type: "detail" as const,
 			layer: 3 as const,
 			title: n.title,
-			content: n.content,
+			description: n.content,
 			tags:
 				n.type === "evidence"
 					? ["evidence", "fact"]
