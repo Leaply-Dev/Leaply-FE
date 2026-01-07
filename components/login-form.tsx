@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { GoogleLoginButton } from "@/components/GoogleLoginButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +23,6 @@ import {
 	FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { GoogleLoginButton } from "@/components/GoogleLoginButton";
 import { authService } from "@/lib/services/auth";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";

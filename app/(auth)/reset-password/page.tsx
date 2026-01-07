@@ -74,8 +74,11 @@ export default function ResetPasswordPage() {
 		},
 	];
 
-	const isPasswordValid = passwordRequirements.every((req) => req.test(newPassword));
-	const doPasswordsMatch = newPassword === confirmPassword && confirmPassword.length > 0;
+	const isPasswordValid = passwordRequirements.every((req) =>
+		req.test(newPassword),
+	);
+	const doPasswordsMatch =
+		newPassword === confirmPassword && confirmPassword.length > 0;
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -128,8 +131,12 @@ export default function ResetPasswordPage() {
 							<CheckCircle2 className="h-12 w-12 text-green-600" />
 						</div>
 						<div className="text-center">
-							<h3 className="text-xl font-semibold text-green-600">{t("success")}</h3>
-							<p className="mt-2 text-muted-foreground">{t("successMessage")}</p>
+							<h3 className="text-xl font-semibold text-green-600">
+								{t("success")}
+							</h3>
+							<p className="mt-2 text-muted-foreground">
+								{t("successMessage")}
+							</p>
 						</div>
 						<Button onClick={handleGoToLogin} className="mt-4 w-full">
 							{t("goToLogin")}
@@ -144,8 +151,12 @@ export default function ResetPasswordPage() {
 							<XCircle className="h-12 w-12 text-red-600" />
 						</div>
 						<div className="text-center">
-							<h3 className="text-xl font-semibold text-red-600">{t("invalidToken")}</h3>
-							<p className="mt-2 text-muted-foreground">{t("invalidTokenMessage")}</p>
+							<h3 className="text-xl font-semibold text-red-600">
+								{t("invalidToken")}
+							</h3>
+							<p className="mt-2 text-muted-foreground">
+								{t("invalidTokenMessage")}
+							</p>
 							{error && <p className="mt-1 text-sm text-red-500">{error}</p>}
 						</div>
 						<Link href="/forgot-password" className="mt-4 w-full">
@@ -172,7 +183,9 @@ export default function ResetPasswordPage() {
 							)}
 
 							<Field>
-								<FieldLabel htmlFor="newPassword">{t("newPassword")}</FieldLabel>
+								<FieldLabel htmlFor="newPassword">
+									{t("newPassword")}
+								</FieldLabel>
 								<Input
 									id="newPassword"
 									type="password"
@@ -196,7 +209,7 @@ export default function ResetPasswordPage() {
 												key={req.key}
 												className={cn(
 													"flex items-center gap-2 text-sm transition-colors",
-													isMet ? "text-green-600" : "text-muted-foreground"
+													isMet ? "text-green-600" : "text-muted-foreground",
 												)}
 											>
 												{isMet ? (
@@ -212,7 +225,9 @@ export default function ResetPasswordPage() {
 							</div>
 
 							<Field>
-								<FieldLabel htmlFor="confirmPassword">{t("confirmPassword")}</FieldLabel>
+								<FieldLabel htmlFor="confirmPassword">
+									{t("confirmPassword")}
+								</FieldLabel>
 								<Input
 									id="confirmPassword"
 									type="password"
@@ -256,7 +271,10 @@ export default function ResetPasswordPage() {
 	return (
 		<div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
 			<div className="flex w-full max-w-sm flex-col gap-6">
-				<Link href="/" className="flex items-center gap-2 self-center font-medium">
+				<Link
+					href="/"
+					className="flex items-center gap-2 self-center font-medium"
+				>
 					<Image
 						src="/Logo.png"
 						alt="Leaply"
@@ -270,9 +288,7 @@ export default function ResetPasswordPage() {
 						<CardTitle className="text-xl">{t("title")}</CardTitle>
 						<CardDescription>{t("subtitle")}</CardDescription>
 					</CardHeader>
-					<CardContent>
-						{renderContent()}
-					</CardContent>
+					<CardContent>{renderContent()}</CardContent>
 				</Card>
 			</div>
 		</div>

@@ -41,6 +41,7 @@ Thumbs.db
 .vscode
 .agent
 .serena
+
 # Generated Claude Code configurations
 .claude/
 /docs

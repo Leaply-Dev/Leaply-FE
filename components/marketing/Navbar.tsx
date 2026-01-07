@@ -112,10 +112,7 @@ export function Navbar() {
 							})}
 							<div className="pt-4 border-t border-border flex flex-col gap-2">
 								<Button variant="outline" size="sm" className="w-full" asChild>
-									<Link
-										href="/login"
-										onClick={() => setMobileMenuOpen(false)}
-									>
+									<Link href="/login" onClick={() => setMobileMenuOpen(false)}>
 										{tNav("login")}
 									</Link>
 								</Button>

@@ -56,7 +56,13 @@ export const authService = {
 		return apiClient.post<string>("/v1/auth/forgot-password", { email });
 	},
 
-	resetPassword: async (token: string, newPassword: string): Promise<string> => {
-		return apiClient.post<string>("/v1/auth/reset-password", { token, newPassword });
+	resetPassword: async (
+		token: string,
+		newPassword: string,
+	): Promise<string> => {
+		return apiClient.post<string>("/v1/auth/reset-password", {
+			token,
+			newPassword,
+		});
 	},
 };

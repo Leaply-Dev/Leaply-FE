@@ -443,7 +443,10 @@ export default function HomePage() {
 							</div>
 							<p className="text-sm text-muted-foreground mt-4">
 								{t("alreadyHaveAccount")}{" "}
-								<Link href="/login" className="text-primary hover:underline font-medium">
+								<Link
+									href="/login"
+									className="text-primary hover:underline font-medium"
+								>
 									{tNav("login")}
 								</Link>
 							</p>

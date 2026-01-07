@@ -13,11 +13,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import {
-	Field,
-	FieldGroup,
-	FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authService } from "@/lib/services/auth";
 
@@ -87,12 +83,22 @@ export default function ForgotPasswordPage() {
 							<CheckCircle2 className="h-12 w-12 text-green-600" />
 						</div>
 						<div className="text-center">
-							<h3 className="text-xl font-semibold text-green-600">{t("emailSent")}</h3>
-							<p className="mt-2 text-muted-foreground">{t("emailSentMessage")}</p>
-							<p className="mt-2 text-sm text-muted-foreground">{t("checkSpam")}</p>
+							<h3 className="text-xl font-semibold text-green-600">
+								{t("emailSent")}
+							</h3>
+							<p className="mt-2 text-muted-foreground">
+								{t("emailSentMessage")}
+							</p>
+							<p className="mt-2 text-sm text-muted-foreground">
+								{t("checkSpam")}
+							</p>
 						</div>
 						<div className="mt-4 flex w-full flex-col gap-2">
-							<Button onClick={handleTryAgain} variant="outline" className="w-full">
+							<Button
+								onClick={handleTryAgain}
+								variant="outline"
+								className="w-full"
+							>
 								{t("tryAgain")}
 							</Button>
 							<Link href="/login">
@@ -153,7 +159,10 @@ export default function ForgotPasswordPage() {
 	return (
 		<div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
 			<div className="flex w-full max-w-sm flex-col gap-6">
-				<Link href="/" className="flex items-center gap-2 self-center font-medium">
+				<Link
+					href="/"
+					className="flex items-center gap-2 self-center font-medium"
+				>
 					<Image
 						src="/Logo.png"
 						alt="Leaply"
@@ -167,9 +176,7 @@ export default function ForgotPasswordPage() {
 						<CardTitle className="text-xl">{t("title")}</CardTitle>
 						<CardDescription>{t("subtitle")}</CardDescription>
 					</CardHeader>
-					<CardContent>
-						{renderContent()}
-					</CardContent>
+					<CardContent>{renderContent()}</CardContent>
 				</Card>
 			</div>
 		</div>

@@ -376,7 +376,7 @@ function generateMockGraphData(): PersonaGraphResponse {
 			type: "profile_summary",
 			layer: 0,
 			title: "Hồ sơ cá nhân",
-			content:
+			description:
 				"Bạn là người có tư duy sáng tạo, luôn tìm kiếm cách tiếp cận mới cho những vấn đề phức tạp. Với nền tảng học thuật vững chắc và kinh nghiệm hoạt động ngoại khóa phong phú.",
 			tags: ["leadership", "innovation", "impact"],
 			primaryArchetype: "innovator",
@@ -466,7 +466,10 @@ function generateMockGraphData(): PersonaGraphResponse {
 			layer: 3 as const,
 			title: n.title,
 			content: n.content,
-			tags: n.type === "evidence" ? ["evidence", "fact"] : ["insight", "reflection"],
+			tags:
+				n.type === "evidence"
+					? ["evidence", "fact"]
+					: ["insight", "reflection"],
 			sourceTrackId: n.sourceTrackId,
 			sourceQuestionId: null,
 			confidence: 0.6 + Math.random() * 0.3,

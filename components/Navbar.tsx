@@ -1,5 +1,6 @@
 "use client";
 
+import Cookies from "js-cookie";
 import { ChevronDown, LogOut, Menu, User, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,7 +12,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
-import Cookies from "js-cookie";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 

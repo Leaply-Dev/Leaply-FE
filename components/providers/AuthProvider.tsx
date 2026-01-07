@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useUserStore } from "@/lib/store/userStore";
 import { authService } from "@/lib/services/auth";
+import { useUserStore } from "@/lib/store/userStore";
 
 /**
  * Decode JWT token payload without verification (client-side only)

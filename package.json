@@ -44,6 +44,7 @@
 		"postcss": "^8.4.0",
 		"react": "19.2.1",
 		"react-dom": "19.2.1",
+		"react-force-graph-2d": "^1.29.0",
 		"server-only": "^0.0.1",
 		"sharp": "^0.34.5",
 		"tailwind-merge": "^3.4.0",
