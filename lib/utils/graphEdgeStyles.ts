@@ -1,6 +1,10 @@
 import type { CSSProperties } from "react";
-import type { LayerNumber, PersonaEdgeDto, PersonaNodeDto } from "@/lib/types/persona-graph";
 import { LAYOUT_CONFIG } from "@/lib/hooks/useForceLayout";
+import type {
+	LayerNumber,
+	PersonaEdgeDto,
+	PersonaNodeDto,
+} from "@/lib/types/persona-graph";
 
 /**
  * Edge styling utilities for the persona graph
@@ -86,7 +90,11 @@ export function getAnimatedEdgeStyle(
  * Edge class names for different states
  */
 export function getEdgeClassName(options: EdgeStyleOptions = {}): string {
-	const { isHighlighted = false, isSelected = false, isAnimated = false } = options;
+	const {
+		isHighlighted = false,
+		isSelected = false,
+		isAnimated = false,
+	} = options;
 
 	const classes: string[] = ["graph-edge"];
 

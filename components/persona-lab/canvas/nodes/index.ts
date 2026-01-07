@@ -1,7 +1,8 @@
 // Node types for the Obsidian-style Persona Lab graph
-export { ProfileSummaryNode } from "./ProfileSummaryNode";
+
+export { CoreNode, type CoreNodeData } from "./CoreNode";
+export { DetailNode } from "./DetailNode";
 export { EssayAngleNode } from "./EssayAngleNode";
 export { KeyStoryNode } from "./KeyStoryNode";
-export { DetailNode } from "./DetailNode";
-export { CoreNode, type CoreNodeData } from "./CoreNode";
 export { KeywordBubble } from "./KeywordBubble";
+export { ProfileSummaryNode } from "./ProfileSummaryNode";

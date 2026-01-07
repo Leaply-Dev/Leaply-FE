@@ -1,17 +1,17 @@
 "use client";
 
-import { useCallback, useRef, useState, useEffect } from "react";
+import type { Edge, Node } from "@xyflow/react";
 import {
-	forceSimulation,
-	forceLink,
-	forceManyBody,
 	forceCenter,
 	forceCollide,
+	forceLink,
+	forceManyBody,
+	forceSimulation,
 	type Simulation,
-	type SimulationNodeDatum,
 	type SimulationLinkDatum,
+	type SimulationNodeDatum,
 } from "d3-force";
-import type { Node, Edge } from "@xyflow/react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type {
 	GraphNodeData,
 	LayerNumber,
@@ -114,7 +114,9 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 	} = options;
 
 	const simulationRef = useRef<Simulation<ForceNode, ForceLink> | null>(null);
-	const [positions, setPositions] = useState<Map<string, { x: number; y: number }>>(new Map());
+	const [positions, setPositions] = useState<
+		Map<string, { x: number; y: number }>
+	>(new Map());
 
 	/**
 	 * Find parent node ID for a given node based on edges
@@ -124,7 +126,7 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 			const edge = edges.find((e) => e.target === nodeId);
 			return edge?.source || null;
 		},
-		[]
+		[],
 	);
 
 	/**
@@ -136,7 +138,7 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 			edges: PersonaEdgeDto[],
 			selectedId: string | null,
 			hoveredId: string | null,
-			showAll: boolean
+			showAll: boolean,
 		): boolean => {
 			if (node.layer !== 3) return true;
 			if (showAll) return true;
@@ -146,14 +148,17 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 
 			return parentId === selectedId || parentId === hoveredId;
 		},
-		[findParentNodeId]
+		[findParentNodeId],
 	);
 
 	/**
 	 * Create edges including center-to-all-stories connections
 	 */
 	const createEdgesWithCenterConnections = useCallback(
-		(apiNodes: PersonaNodeDto[], apiEdges: PersonaEdgeDto[]): PersonaEdgeDto[] => {
+		(
+			apiNodes: PersonaNodeDto[],
+			apiEdges: PersonaEdgeDto[],
+		): PersonaEdgeDto[] => {
 			const edges = [...apiEdges];
 
 			// Find center node (layer 0)
@@ -167,7 +172,7 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 				const exists = edges.some(
 					(e) =>
 						(e.source === centerNode.id && e.target === storyNode.id) ||
-						(e.target === centerNode.id && e.source === storyNode.id)
+						(e.target === centerNode.id && e.source === storyNode.id),
 				);
 				if (!exists) {
 					edges.push({
@@ -182,7 +187,7 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 
 			return edges;
 		},
-		[]
+		[],
 	);
 
 	/**
@@ -193,7 +198,7 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 			apiNodes: PersonaNodeDto[],
 			apiEdges: PersonaEdgeDto[],
 			centerX: number,
-			centerY: number
+			centerY: number,
 		): Map<string, { x: number; y: number }> => {
 			// Create edges with center connections
 			const allEdges = createEdgesWithCenterConnections(apiNodes, apiEdges);
@@ -235,14 +240,17 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 
 			// Calculate link distance based on layers
 			const getLinkDistance = (link: ForceLink): number => {
-				const sourceNode = typeof link.source === "string"
-					? nodeMap.get(link.source)
-					: link.source as ForceNode;
-				const targetNode = typeof link.target === "string"
-					? nodeMap.get(link.target)
-					: link.target as ForceNode;
+				const sourceNode =
+					typeof link.source === "string"
+						? nodeMap.get(link.source)
+						: (link.source as ForceNode);
+				const targetNode =
+					typeof link.target === "string"
+						? nodeMap.get(link.target)
+						: (link.target as ForceNode);
 
-				if (!sourceNode || !targetNode) return LAYOUT_CONFIG.forces.linkDistance;
+				if (!sourceNode || !targetNode)
+					return LAYOUT_CONFIG.forces.linkDistance;
 
 				// Shorter distance for center connections
 				if (sourceNode.layer === 0 || targetNode.layer === 0) {
@@ -262,29 +270,29 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 					forceLink<ForceNode, ForceLink>(forceLinks)
 						.id((d) => d.id)
 						.distance(getLinkDistance)
-						.strength(LAYOUT_CONFIG.forces.linkStrength)
+						.strength(LAYOUT_CONFIG.forces.linkStrength),
 				)
 				.force(
 					"charge",
-					forceManyBody<ForceNode>()
-						.strength((d) => {
-							// Stronger repulsion for larger nodes
-							const baseStrength = LAYOUT_CONFIG.forces.chargeStrength;
-							if (d.layer === 0) return baseStrength * 2;
-							if (d.layer === 3) return baseStrength * 0.3;
-							return baseStrength;
-						})
+					forceManyBody<ForceNode>().strength((d) => {
+						// Stronger repulsion for larger nodes
+						const baseStrength = LAYOUT_CONFIG.forces.chargeStrength;
+						if (d.layer === 0) return baseStrength * 2;
+						if (d.layer === 3) return baseStrength * 0.3;
+						return baseStrength;
+					}),
 				)
 				.force(
 					"center",
-					forceCenter<ForceNode>(centerX, centerY)
-						.strength(LAYOUT_CONFIG.forces.centerStrength)
+					forceCenter<ForceNode>(centerX, centerY).strength(
+						LAYOUT_CONFIG.forces.centerStrength,
+					),
 				)
 				.force(
 					"collide",
 					forceCollide<ForceNode>()
 						.radius((d) => LAYOUT_CONFIG.nodeSize[d.layer] / 2 + 15)
-						.strength(0.8)
+						.strength(0.8),
 				)
 				.alphaDecay(LAYOUT_CONFIG.forces.alphaDecay)
 				.velocityDecay(LAYOUT_CONFIG.forces.velocityDecay);
@@ -305,7 +313,7 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 
 			return newPositions;
 		},
-		[createEdgesWithCenterConnections]
+		[createEdgesWithCenterConnections],
 	);
 
 	/**
@@ -322,7 +330,7 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 				hoveredNodeId?: string | null;
 				showAllDetails?: boolean;
 				zoom?: number;
-			} = {}
+			} = {},
 		): LayoutResult => {
 			const {
 				centerX = width / 2,
@@ -341,8 +349,17 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 
 			// Convert to React Flow nodes
 			const nodes: Node<GraphNodeData>[] = apiNodes.map((node) => {
-				const position = nodePositions.get(node.id) || { x: centerX, y: centerY };
-				const isVisible = isDetailNodeVisible(node, apiEdges, selId, hovId, showAll);
+				const position = nodePositions.get(node.id) || {
+					x: centerX,
+					y: centerY,
+				};
+				const isVisible = isDetailNodeVisible(
+					node,
+					apiEdges,
+					selId,
+					hovId,
+					showAll,
+				);
 
 				// Count children for layer 2 nodes
 				let childCount = 0;
@@ -411,7 +428,7 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 			runSimulation,
 			createEdgesWithCenterConnections,
 			isDetailNodeVisible,
-		]
+		],
 	);
 
 	/**
@@ -429,12 +446,12 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 				hoveredNodeId?: string | null;
 				showAllDetails?: boolean;
 				zoom?: number;
-			} = {}
+			} = {},
 		): LayoutResult => {
 			const allNodes = [...existingNodes, newNode];
 			return calculateLayout(allNodes, existingEdges, layoutOptions);
 		},
-		[calculateLayout]
+		[calculateLayout],
 	);
 
 	/**
@@ -445,7 +462,7 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 			width: LAYOUT_CONFIG.nodeSize[layer],
 			height: LAYOUT_CONFIG.nodeSize[layer],
 		}),
-		[]
+		[],
 	);
 
 	/**

@@ -1,12 +1,12 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Sparkles, Target, BookOpen, FileText } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { BookOpen, FileText, Sparkles, Target, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ARCHETYPES } from "@/lib/constants/archetypes";
 import { TRACK_COLORS } from "@/lib/constants/tracks";
 import { LAYOUT_CONFIG } from "@/lib/hooks/useForceLayout";
-import type { PersonaNodeDto, LayerNumber } from "@/lib/types/persona-graph";
-import { Button } from "@/components/ui/button";
+import type { LayerNumber, PersonaNodeDto } from "@/lib/types/persona-graph";
 import { cn } from "@/lib/utils";
 
 interface NodeDetailPanelProps {
@@ -96,13 +96,13 @@ export function NodeDetailPanel({ node, onClose }: NodeDetailPanelProps) {
 
 				{/* Content */}
 				<div className="flex-1 overflow-y-auto p-4 space-y-4">
-					{/* Main content */}
+					{/* Description */}
 					<div>
 						<h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
 							Nội dung
 						</h4>
 						<p className="text-sm text-foreground leading-relaxed">
-							{node.content}
+							{node.description}
 						</p>
 					</div>
 
@@ -189,7 +189,10 @@ export function NodeDetailPanel({ node, onClose }: NodeDetailPanelProps) {
 										}}
 									/>
 								</div>
-								<span className="text-sm font-medium" style={{ color: layerColor }}>
+								<span
+									className="text-sm font-medium"
+									style={{ color: layerColor }}
+								>
 									{Math.round(node.confidence * 100)}%
 								</span>
 							</div>

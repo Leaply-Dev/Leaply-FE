@@ -11,10 +11,10 @@
  */
 
 import type { NodeTypes } from "@xyflow/react";
-import { ProfileSummaryNode } from "./ProfileSummaryNode";
+import { DetailNode } from "./DetailNode";
 import { EssayAngleNode } from "./EssayAngleNode";
 import { KeyStoryNode } from "./KeyStoryNode";
-import { DetailNode } from "./DetailNode";
+import { ProfileSummaryNode } from "./ProfileSummaryNode";
 
 /**
  * Node types mapping for React Flow
@@ -44,8 +44,8 @@ export function getNodeTypeLabel(type: string): string {
 	return NODE_TYPE_LABELS[type] ?? type;
 }
 
-// Re-export individual node components for direct use
-export { ProfileSummaryNode } from "./ProfileSummaryNode";
+export { DetailNode } from "./DetailNode";
 export { EssayAngleNode } from "./EssayAngleNode";
 export { KeyStoryNode } from "./KeyStoryNode";
-export { DetailNode } from "./DetailNode";
+// Re-export individual node components for direct use
+export { ProfileSummaryNode } from "./ProfileSummaryNode";

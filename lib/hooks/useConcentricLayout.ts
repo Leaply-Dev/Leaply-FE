@@ -1,13 +1,13 @@
 "use client";
 
+import type { Edge, Node } from "@xyflow/react";
 import { useCallback, useMemo } from "react";
-import type { Node, Edge } from "@xyflow/react";
 import type {
 	GraphNodeData,
+	LAYER_CONFIGS,
 	LayerNumber,
 	PersonaEdgeDto,
 	PersonaNodeDto,
-	LAYER_CONFIGS,
 } from "@/lib/types/persona-graph";
 
 // Re-export layer config for convenience
@@ -240,8 +240,7 @@ export function useConcentricLayout() {
 				const detailRadius = 80; // Distance from parent
 
 				details.forEach((detail, index) => {
-					const offsetAngle =
-						spreadAngle * (index - (details.length - 1) / 2);
+					const offsetAngle = spreadAngle * (index - (details.length - 1) / 2);
 					const angle = parentAngle + offsetAngle;
 					const pos = polarToCartesian(
 						angle,
@@ -380,9 +379,13 @@ export function useConcentricLayout() {
 					style: {
 						stroke: LAYOUT_CONFIG.colors[sourceLayer as LayerNumber],
 						// Thinner, more subtle strokes
-						strokeWidth: isDetailEdge ? 0.5 + edge.strength * 0.5 : 0.75 + edge.strength * 1,
+						strokeWidth: isDetailEdge
+							? 0.5 + edge.strength * 0.5
+							: 0.75 + edge.strength * 1,
 						// Lower opacity for subtlety
-						opacity: isDetailEdge ? 0.15 + edge.strength * 0.25 : 0.2 + edge.strength * 0.3,
+						opacity: isDetailEdge
+							? 0.15 + edge.strength * 0.25
+							: 0.2 + edge.strength * 0.3,
 					},
 				};
 			});
