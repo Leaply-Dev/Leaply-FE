@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
+import Cookies from "js-cookie";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
@@ -79,6 +80,8 @@ export function Navbar() {
 		} finally {
 			// Always clear local state even if API call fails
 			logout();
+			// Clear auth state cookie explicitly to prevent stale routing
+			Cookies.remove("leaply-auth-state", { path: "/" });
 			router.push("/login");
 		}
 	};

@@ -441,6 +441,12 @@ export default function HomePage() {
 									</Link>
 								</Button>
 							</div>
+							<p className="text-sm text-muted-foreground mt-4">
+								{t("alreadyHaveAccount")}{" "}
+								<Link href="/login" className="text-primary hover:underline font-medium">
+									{tNav("login")}
+								</Link>
+							</p>
 						</SlideUp>
 					</div>
 				</div>

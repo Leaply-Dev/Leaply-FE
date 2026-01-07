@@ -181,7 +181,8 @@
 		"ctaFree": "Hoàn toàn miễn phí",
 		"ctaTitle": "Hành trình của bạn bắt đầu từ đây",
 		"ctaSubtitle": "Hàng ngàn bạn trẻ đã bắt đầu hành trình. Bạn sẵn sàng chưa?",
-		"ctaCreateAccount": "Tạo tài khoản miễn phí"
+		"ctaCreateAccount": "Tạo tài khoản miễn phí",
+		"alreadyHaveAccount": "Đã có tài khoản?"
 	},
 	"features": {
 		"heroTitle": "Công cụ thực sự",

@@ -168,6 +168,18 @@ async function apiFetch<T>(
 				handleUnauthorized();
 			}
 
+			// Handle 403 Forbidden - treat as invalid session on auth-related endpoints
+			// This handles cases like deleted accounts where the backend returns 403
+			if (response.status === 403) {
+				const isAuthRelatedEndpoint =
+					path.includes("/user/") ||
+					path.includes("/onboarding") ||
+					path.includes("/auth/");
+				if (isAuthRelatedEndpoint) {
+					handleUnauthorized();
+				}
+			}
+
 			const apiError = new ApiError(
 				data?.message || "An error occurred",
 				response.status,

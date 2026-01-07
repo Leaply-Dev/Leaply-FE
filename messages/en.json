@@ -181,7 +181,8 @@
 		"ctaFree": "100% free to start",
 		"ctaTitle": "Your journey starts here",
 		"ctaSubtitle": "Thousands of students have already taken the first step. Ready to join them?",
-		"ctaCreateAccount": "Create free account"
+		"ctaCreateAccount": "Create free account",
+		"alreadyHaveAccount": "Already have an account?"
 	},
 	"features": {
 		"heroTitle": "Tools that actually",
