@@ -124,7 +124,7 @@ export function LoginForm({
 										href="/forgot-password"
 										className="ml-auto text-sm underline-offset-4 hover:underline"
 									>
-										{t("forgotPassword")}
+										{t("forgotPasswordLink")}
 									</Link>
 								</div>
 								<Input
