@@ -181,7 +181,7 @@ export function SignupForm({
 				</CardContent>
 			</Card>
 			<FieldDescription className="px-6 text-center">
-				{t("tosAgreement")} <Link href="/terms">{t("tos")}</Link> {t("and")}{" "}
+				{t("tosAgreement")} <Link href="/tos">{t("tos")}</Link> {t("and")}{" "}
 				<Link href="/privacy">{t("privacyPolicy")}</Link>.
 			</FieldDescription>
 		</div>
