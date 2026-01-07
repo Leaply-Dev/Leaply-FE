@@ -258,12 +258,12 @@ export default function ResetPasswordPage() {
 			<div className="flex w-full max-w-sm flex-col gap-6">
 				<Link href="/" className="flex items-center gap-2 self-center font-medium">
 					<Image
-						src="/images/leaply-logo.png"
+						src="/Logo.png"
 						alt="Leaply"
-						width={32}
-						height={32}
+						width={120}
+						height={40}
+						className="h-10 w-auto"
 					/>
-					Leaply
 				</Link>
 				<Card>
 					<CardHeader className="text-center">
