@@ -4,6 +4,21 @@ import type { ApiResponse } from "./types";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 const isDev = process.env.NODE_ENV === "development";
 
+/**
+ * Handle 401 Unauthorized responses by logging out the user
+ */
+function handleUnauthorized() {
+	if (typeof window !== "undefined") {
+		const { logout, isAuthenticated } = useUserStore.getState();
+		if (isAuthenticated) {
+			console.warn("Session expired or invalid. Logging out...");
+			logout();
+			// Redirect to login page
+			window.location.href = "/login?expired=true";
+		}
+	}
+}
+
 type RequestMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
 interface FetchOptions extends RequestInit {
@@ -148,6 +163,11 @@ async function apiFetch<T>(
 		}
 
 		if (!response.ok || !data?.success) {
+			// Handle 401 Unauthorized - auto logout
+			if (response.status === 401) {
+				handleUnauthorized();
+			}
+
 			const apiError = new ApiError(
 				data?.message || "An error occurred",
 				response.status,

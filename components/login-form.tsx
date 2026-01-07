@@ -40,11 +40,15 @@ export function LoginForm({
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	// Check for OAuth error in URL params
+	// Check for OAuth error or session expired in URL params
 	useEffect(() => {
 		const oauthError = searchParams.get("error");
+		const expired = searchParams.get("expired");
+
 		if (oauthError === "oauth_failed") {
 			setError(t("oauthFailed"));
+		} else if (expired === "true") {
+			setError(t("sessionExpired"));
 		}
 	}, [searchParams, t]);
 

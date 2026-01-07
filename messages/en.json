@@ -708,6 +708,7 @@
 		"creatingAccount": "Creating Account...",
 		"error": "Error",
 		"oauthFailed": "Login failed, please try again",
+		"sessionExpired": "Your session has expired. Please log in again.",
 		"passwordsNotMatch": "Passwords do not match",
 		"fullName": "Full Name",
 		"fullNamePlaceholder": "John Doe",

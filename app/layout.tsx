@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Raleway } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
+import { Providers } from "@/components/providers/Providers";
 import "./globals.css";
 
 // Force dynamic rendering for all pages to avoid prerender issues
@@ -29,7 +30,9 @@ export default async function RootLayout({
 	return (
 		<html lang={locale}>
 			<body className={raleway.variable}>
-				<NextIntlClientProvider>{children}</NextIntlClientProvider>
+				<NextIntlClientProvider>
+					<Providers>{children}</Providers>
+				</NextIntlClientProvider>
 			</body>
 		</html>
 	);
