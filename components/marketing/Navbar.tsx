@@ -12,7 +12,6 @@ import { cn } from "@/lib/utils";
 
 export function Navbar() {
 	const tNav = useTranslations("nav");
-	const tLanding = useTranslations("landing");
 	const pathname = usePathname();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -60,11 +59,14 @@ export function Navbar() {
 						})}
 					</div>
 
-					{/* Language Switcher + CTA Button */}
+					{/* Language Switcher + Auth Buttons */}
 					<div className="hidden md:flex items-center gap-3">
 						<LanguageSwitcher />
+						<Button variant="ghost" size="sm" asChild>
+							<Link href="/login">{tNav("login")}</Link>
+						</Button>
 						<Button size="sm" asChild>
-							<Link href="/register">{tLanding("ctaStart")}</Link>
+							<Link href="/register">{tNav("getStarted")}</Link>
 						</Button>
 					</div>
 
@@ -108,13 +110,21 @@ export function Navbar() {
 									</Link>
 								);
 							})}
-							<div className="pt-4 border-t border-border">
+							<div className="pt-4 border-t border-border flex flex-col gap-2">
+								<Button variant="outline" size="sm" className="w-full" asChild>
+									<Link
+										href="/login"
+										onClick={() => setMobileMenuOpen(false)}
+									>
+										{tNav("login")}
+									</Link>
+								</Button>
 								<Button size="sm" className="w-full" asChild>
 									<Link
 										href="/register"
 										onClick={() => setMobileMenuOpen(false)}
 									>
-										{tLanding("ctaStart")}
+										{tNav("getStarted")}
 									</Link>
 								</Button>
 							</div>
