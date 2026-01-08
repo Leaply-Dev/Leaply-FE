@@ -45,7 +45,7 @@ export function OnboardingHeader() {
 		} finally {
 			logout();
 			Cookies.remove("leaply-auth-state", { path: "/" });
-			router.push("/login");
+			router.push("/");
 		}
 	};
 

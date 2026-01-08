@@ -82,7 +82,7 @@ export function Navbar() {
 			logout();
 			// Clear auth state cookie explicitly to prevent stale routing
 			Cookies.remove("leaply-auth-state", { path: "/" });
-			router.push("/login");
+			router.push("/");
 		}
 	};
 

@@ -13,8 +13,8 @@ function handleUnauthorized() {
 		if (isAuthenticated) {
 			console.warn("Session expired or invalid. Logging out...");
 			logout();
-			// Redirect to login page
-			window.location.href = "/login?expired=true";
+			// Redirect to landing page
+			window.location.href = "/?expired=true";
 		}
 	}
 }

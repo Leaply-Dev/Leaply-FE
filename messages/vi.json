@@ -711,6 +711,7 @@
 		"error": "Lỗi",
 		"oauthFailed": "Đăng nhập thất bại, vui lòng thử lại",
 		"sessionExpired": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+		"sessionExpiredMessage": "Để bảo mật, bạn đã được đăng xuất. Vui lòng đăng nhập lại để tiếp tục.",
 		"passwordsNotMatch": "Mật khẩu không khớp",
 		"fullName": "Họ và tên",
 		"fullNamePlaceholder": "Nguyễn Văn A",

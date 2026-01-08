@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import {
+	AlertCircle,
 	ArrowRight,
 	Bot,
 	Brain,
@@ -17,13 +18,15 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
 	SlideUp,
 	StaggerContainer,
 	StaggerItem,
 } from "@/components/PageTransition";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -296,6 +299,23 @@ function ParallaxVisual() {
 export default function HomePage() {
 	const t = useTranslations("landing");
 	const tNav = useTranslations("nav");
+	const tAuth = useTranslations("auth");
+	const searchParams = useSearchParams();
+	const [showExpiredAlert, setShowExpiredAlert] = useState(false);
+
+	// Check for session expired parameter
+	useEffect(() => {
+		const expired = searchParams.get("expired");
+		if (expired === "true") {
+			setShowExpiredAlert(true);
+			// Auto-hide after 10 seconds
+			const timer = setTimeout(() => {
+				setShowExpiredAlert(false);
+			}, 10000);
+			return () => clearTimeout(timer);
+		}
+	}, [searchParams]);
+
 	const marqueeUniversities = [
 		...featuredUniversities,
 		...featuredUniversities,
@@ -370,6 +390,41 @@ export default function HomePage() {
 
 	return (
 		<div className="min-h-screen">
+			{/* Session Expired Alert */}
+			{showExpiredAlert && (
+				<div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4">
+					<Alert variant="destructive" className="shadow-lg">
+						<AlertCircle className="h-4 w-4" />
+						<AlertTitle>{tAuth("sessionExpired")}</AlertTitle>
+						<AlertDescription>
+							{tAuth("sessionExpiredMessage")}
+						</AlertDescription>
+						<button
+							type="button"
+							onClick={() => setShowExpiredAlert(false)}
+							className="absolute top-2 right-2 p-1 rounded-md hover:bg-destructive/10 transition-colors"
+							aria-label="Close"
+						>
+							<span className="sr-only">Close</span>
+							<svg
+								className="h-4 w-4"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<title>Close notification</title>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d="M6 18L18 6M6 6l12 12"
+								/>
+							</svg>
+						</button>
+					</Alert>
+				</div>
+			)}
+
 			{/* Hero Section */}
 			<section className="relative bg-background py-20 md:py-32 overflow-hidden">
 				<div className="absolute inset-0 z-0">
