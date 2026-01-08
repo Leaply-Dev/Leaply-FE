@@ -45,3 +45,4 @@ Thumbs.db
 # Generated Claude Code configurations
 .claude/
 /docs
+.vercel
