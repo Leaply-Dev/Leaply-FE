@@ -9,7 +9,8 @@
 		"login": "Log in",
 		"getStarted": "Get Started",
 		"profile": "Profile",
-		"logout": "Log out"
+		"logout": "Log out",
+		"goToDashboard": "Go to Dashboard"
 	},
 	"onboarding": {
 		"steps": {

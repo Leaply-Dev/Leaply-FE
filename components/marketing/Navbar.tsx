@@ -8,12 +8,14 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { LanguageSwitcher } from "@/components/app/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
+import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
 	const tNav = useTranslations("nav");
 	const pathname = usePathname();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+	const isAuthenticated = useUserStore((state) => state.isAuthenticated);
 
 	// Nav links with translations
 	const navLinks = [
@@ -62,12 +64,20 @@ export function Navbar() {
 					{/* Language Switcher + Auth Buttons */}
 					<div className="hidden md:flex items-center gap-3">
 						<LanguageSwitcher />
-						<Button variant="ghost" size="sm" asChild>
-							<Link href="/login">{tNav("login")}</Link>
-						</Button>
-						<Button size="sm" asChild>
-							<Link href="/register">{tNav("getStarted")}</Link>
-						</Button>
+						{isAuthenticated ? (
+							<Button size="sm" asChild>
+								<Link href="/dashboard">{tNav("goToDashboard")}</Link>
+							</Button>
+						) : (
+							<>
+								<Button variant="ghost" size="sm" asChild>
+									<Link href="/login">{tNav("login")}</Link>
+								</Button>
+								<Button size="sm" asChild>
+									<Link href="/register">{tNav("getStarted")}</Link>
+								</Button>
+							</>
+						)}
 					</div>
 
 					{/* Mobile Menu Button */}
@@ -111,19 +121,40 @@ export function Navbar() {
 								);
 							})}
 							<div className="pt-4 border-t border-border flex flex-col gap-2">
-								<Button variant="outline" size="sm" className="w-full" asChild>
-									<Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-										{tNav("login")}
-									</Link>
-								</Button>
-								<Button size="sm" className="w-full" asChild>
-									<Link
-										href="/register"
-										onClick={() => setMobileMenuOpen(false)}
-									>
-										{tNav("getStarted")}
-									</Link>
-								</Button>
+								{isAuthenticated ? (
+									<Button size="sm" className="w-full" asChild>
+										<Link
+											href="/dashboard"
+											onClick={() => setMobileMenuOpen(false)}
+										>
+											{tNav("goToDashboard")}
+										</Link>
+									</Button>
+								) : (
+									<>
+										<Button
+											variant="outline"
+											size="sm"
+											className="w-full"
+											asChild
+										>
+											<Link
+												href="/login"
+												onClick={() => setMobileMenuOpen(false)}
+											>
+												{tNav("login")}
+											</Link>
+										</Button>
+										<Button size="sm" className="w-full" asChild>
+											<Link
+												href="/register"
+												onClick={() => setMobileMenuOpen(false)}
+											>
+												{tNav("getStarted")}
+											</Link>
+										</Button>
+									</>
+								)}
 							</div>
 						</div>
 					</div>

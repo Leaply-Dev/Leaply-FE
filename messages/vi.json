@@ -9,7 +9,8 @@
 		"login": "Đăng nhập",
 		"getStarted": "Bắt đầu",
 		"profile": "Tài khoản",
-		"logout": "Đăng xuất"
+		"logout": "Đăng xuất",
+		"goToDashboard": "Đến trang Quản lý"
 	},
 	"onboarding": {
 		"steps": {
