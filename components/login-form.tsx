@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { authService } from "@/lib/services/auth";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
+import { type LoginFormData, loginSchema } from "@/lib/validations/auth";
 
 export function LoginForm({
 	className,
@@ -39,6 +40,9 @@ export function LoginForm({
 	const [password, setPassword] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [fieldErrors, setFieldErrors] = useState<
+		Partial<Record<keyof LoginFormData, string>>
+	>({});
 
 	// Check for OAuth error or session expired in URL params
 	useEffect(() => {
@@ -56,9 +60,13 @@ export function LoginForm({
 		e.preventDefault();
 		setIsLoading(true);
 		setError(null);
+		setFieldErrors({});
 
 		try {
-			const response = await authService.login({ email, password });
+			// Validate form data with Zod
+			const formData = loginSchema.parse({ email, password });
+
+			const response = await authService.login(formData);
 
 			// Transform AuthResponse to UserProfile format expected by store
 			const userProfile = {
@@ -76,9 +84,26 @@ export function LoginForm({
 			}
 		} catch (err) {
 			console.error("Login failed", err);
-			setError(
-				err instanceof Error ? err.message : "Invalid email or password",
-			);
+
+			// Handle Zod validation errors
+			if (err && typeof err === "object" && "errors" in err) {
+				const zodError = err as {
+					errors: Array<{ path: string[]; message: string }>;
+				};
+				const errors: Partial<Record<keyof LoginFormData, string>> = {};
+				zodError.errors.forEach((error) => {
+					const field = error.path[0] as keyof LoginFormData;
+					if (field) {
+						errors[field] = error.message;
+					}
+				});
+				setFieldErrors(errors);
+				setError("Please fix the errors below");
+			} else {
+				setError(
+					err instanceof Error ? err.message : "Invalid email or password",
+				);
+			}
 		} finally {
 			setIsLoading(false);
 		}
@@ -119,7 +144,13 @@ export function LoginForm({
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 									disabled={isLoading}
+									className={fieldErrors.email ? "border-destructive" : ""}
 								/>
+								{fieldErrors.email && (
+									<p className="text-sm text-destructive">
+										{fieldErrors.email}
+									</p>
+								)}
 							</Field>
 							<Field>
 								<div className="flex items-center">
@@ -138,7 +169,13 @@ export function LoginForm({
 									value={password}
 									onChange={(e) => setPassword(e.target.value)}
 									disabled={isLoading}
+									className={fieldErrors.password ? "border-destructive" : ""}
 								/>
+								{fieldErrors.password && (
+									<p className="text-sm text-destructive">
+										{fieldErrors.password}
+									</p>
+								)}
 							</Field>
 							<Field>
 								<Button type="submit" disabled={isLoading}>

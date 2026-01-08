@@ -3,7 +3,6 @@
 import { Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { authService } from "@/lib/services/auth";
 import { useUserStore } from "@/lib/store/userStore";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
@@ -39,10 +38,12 @@ export default function OAuthSuccessPage() {
 						fullName: userContext.profile?.fullName || "",
 					};
 
-					// Login to store (token is null since we use cookies now)
+					// Login to store with COOKIE_AUTH marker
+					// Backend sets httpOnly cookies (access_token, refresh_token)
+					// Frontend cannot access these cookies, so we use a marker token
 					login(
 						userProfile,
-						"", // No token needed for cookie-based auth
+						"COOKIE_AUTH", // Special marker for cookie-based authentication
 						userContext.user.isOnboardingComplete,
 					);
 

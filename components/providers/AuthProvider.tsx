@@ -34,10 +34,20 @@ interface AuthProviderProps {
 }
 
 /**
+ * Special token marker for cookie-based authentication (OAuth)
+ * Backend sets httpOnly cookies that frontend cannot access
+ */
+const COOKIE_AUTH_TOKEN = "COOKIE_AUTH";
+
+/**
  * AuthProvider validates the stored auth token on app load
- * - Checks if token is expired locally
- * - Validates token with backend by calling /auth/me
- * - Auto-logout if token is invalid or expired
+ * Supports two authentication methods:
+ * 1. Token-based (email/password): JWT in localStorage, sent via Bearer header
+ * 2. Cookie-based (OAuth): httpOnly cookies, validated via backend
+ *
+ * - For token-based: Checks if JWT is expired locally, validates with backend
+ * - For cookie-based: Always validates with backend (cannot read httpOnly cookies)
+ * - Auto-logout if authentication is invalid or expired
  */
 export function AuthProvider({ children }: AuthProviderProps) {
 	const { token, isAuthenticated, logout, login, profile } = useUserStore();
@@ -50,23 +60,40 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 		async function validateAuth() {
 			// Skip if not authenticated
-			if (!isAuthenticated || !token) return;
+			if (!isAuthenticated) return;
 
-			// Check if token is expired locally first (fast check)
-			if (isTokenExpired(token)) {
-				console.warn("JWT token expired. Logging out...");
-				logout();
-				return;
+			// Detect authentication type
+			const isCookieAuth =
+				!token || token === "" || token === COOKIE_AUTH_TOKEN;
+
+			// For token-based auth (email/password), check JWT expiry locally first
+			if (!isCookieAuth) {
+				if (isTokenExpired(token)) {
+					console.warn("JWT token expired. Logging out...");
+					logout();
+					return;
+				}
 			}
 
-			// Validate with backend
+			// Validate with backend (required for cookie-based, optional for token-based)
 			try {
 				const userContext = await authService.getCurrentUser();
-				// Update profile if needed
-				if (userContext.user && profile) {
-					// Token is valid, user exists
-					console.log("Auth validated successfully");
+
+				// For cookie-based auth, ensure token marker is set
+				if (isCookieAuth && token !== COOKIE_AUTH_TOKEN && userContext.user) {
+					// Update token to marker without triggering logout
+					login(
+						profile || {
+							id: userContext.user.id,
+							email: userContext.user.email,
+							fullName: "",
+						},
+						COOKIE_AUTH_TOKEN,
+						userContext.user.isOnboardingComplete,
+					);
 				}
+
+				console.log("Auth validated successfully");
 			} catch (error) {
 				// 401 errors are handled by apiClient which will logout
 				// Other errors might be network issues, don't logout

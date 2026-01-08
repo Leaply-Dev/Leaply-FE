@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { authService } from "@/lib/services/auth";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
+import { type RegisterFormData, registerSchema } from "@/lib/validations/auth";
 
 export function SignupForm({
 	className,
@@ -42,6 +43,9 @@ export function SignupForm({
 	});
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [fieldErrors, setFieldErrors] = useState<
+		Partial<Record<keyof RegisterFormData, string>>
+	>({});
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -51,27 +55,24 @@ export function SignupForm({
 		e.preventDefault();
 		setIsLoading(true);
 		setError(null);
-
-		if (formData.password !== formData.confirmPassword) {
-			setError(t("passwordsNotMatch"));
-			setIsLoading(false);
-			return;
-		}
+		setFieldErrors({});
 
 		try {
+			// Validate form data with Zod
+			const validatedData = registerSchema.parse(formData);
+
 			// Register returns AuthResponse which includes token
 			const response = await authService.register({
-				fullName: formData.fullName,
-				email: formData.email,
-				password: formData.password,
-				// fullName isn't in RegisterRequest yet, keeping it local or enhancing endpoint later
+				fullName: validatedData.fullName,
+				email: validatedData.email,
+				password: validatedData.password,
 			});
 
 			// Transform to UserProfile
 			const userProfile = {
 				id: response.userId,
 				email: response.email,
-				fullName: formData.fullName, // Capture full name from form
+				fullName: validatedData.fullName,
 			};
 
 			login(userProfile, response.token, response.onboardingCompleted);
@@ -80,7 +81,26 @@ export function SignupForm({
 			router.push("/verify-email");
 		} catch (err) {
 			console.error("Registration failed", err);
-			setError(err instanceof Error ? err.message : "Failed to create account");
+
+			// Handle Zod validation errors
+			if (err && typeof err === "object" && "errors" in err) {
+				const zodError = err as {
+					errors: Array<{ path: string[]; message: string }>;
+				};
+				const errors: Partial<Record<keyof RegisterFormData, string>> = {};
+				zodError.errors.forEach((error) => {
+					const field = error.path[0] as keyof RegisterFormData;
+					if (field) {
+						errors[field] = error.message;
+					}
+				});
+				setFieldErrors(errors);
+				setError("Please fix the errors below");
+			} else {
+				setError(
+					err instanceof Error ? err.message : "Failed to create account",
+				);
+			}
 		} finally {
 			setIsLoading(false);
 		}
@@ -121,7 +141,13 @@ export function SignupForm({
 									value={formData.fullName}
 									onChange={handleChange}
 									disabled={isLoading}
+									className={fieldErrors.fullName ? "border-destructive" : ""}
 								/>
+								{fieldErrors.fullName && (
+									<p className="text-sm text-destructive">
+										{fieldErrors.fullName}
+									</p>
+								)}
 							</Field>
 							<Field>
 								<FieldLabel htmlFor="email">{t("email")}</FieldLabel>
@@ -133,7 +159,13 @@ export function SignupForm({
 									value={formData.email}
 									onChange={handleChange}
 									disabled={isLoading}
+									className={fieldErrors.email ? "border-destructive" : ""}
 								/>
+								{fieldErrors.email && (
+									<p className="text-sm text-destructive">
+										{fieldErrors.email}
+									</p>
+								)}
 							</Field>
 							<Field>
 								<Field className="grid grid-cols-2 gap-4">
@@ -146,7 +178,15 @@ export function SignupForm({
 											value={formData.password}
 											onChange={handleChange}
 											disabled={isLoading}
+											className={
+												fieldErrors.password ? "border-destructive" : ""
+											}
 										/>
+										{fieldErrors.password && (
+											<p className="text-sm text-destructive">
+												{fieldErrors.password}
+											</p>
+										)}
 									</Field>
 									<Field>
 										<FieldLabel htmlFor="confirmPassword">
@@ -159,7 +199,15 @@ export function SignupForm({
 											value={formData.confirmPassword}
 											onChange={handleChange}
 											disabled={isLoading}
+											className={
+												fieldErrors.confirmPassword ? "border-destructive" : ""
+											}
 										/>
+										{fieldErrors.confirmPassword && (
+											<p className="text-sm text-destructive">
+												{fieldErrors.confirmPassword}
+											</p>
+										)}
 									</Field>
 								</Field>
 								<FieldDescription>{t("passwordDescription")}</FieldDescription>
