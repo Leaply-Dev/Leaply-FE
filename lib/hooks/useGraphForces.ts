@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { ForceGraphMethods } from "react-force-graph-2d";
+import type {
+	ForceGraphLink,
+	ForceGraphNode,
+} from "@/lib/types/persona-canvas";
 import { transformGraphData } from "@/lib/utils/graphTransform";
-import type { ForceGraphNode, ForceGraphLink } from "@/lib/types/persona-canvas";
 
 /**
  * Hook to manage graph data and D3 force configuration

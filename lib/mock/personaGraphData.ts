@@ -19,7 +19,8 @@ import type {
 const story1: StoryFragment = {
 	id: "story_1",
 	title: "10-Year Architect Path",
-	description: "Strategic career planning from senior engineer to software architect, recognizing the reality of aging in tech and proactively pivoting from hands-on coding to architectural decision-making before technical skills become outdated.",
+	description:
+		"Strategic career planning from senior engineer to software architect, recognizing the reality of aging in tech and proactively pivoting from hands-on coding to architectural decision-making before technical skills become outdated.",
 	track: "future_vision",
 	story_type: "insight",
 	raw_text:
@@ -53,7 +54,8 @@ const story1: StoryFragment = {
 const story2: StoryFragment = {
 	id: "story_2",
 	title: "Paper Document Pain",
-	description: "Discovering a massive market opportunity through personal frustration with university's paper-based document management system. Converting daily annoyance with inefficient bureaucracy into a vision for enterprise knowledge management solutions with OCR capabilities.",
+	description:
+		"Discovering a massive market opportunity through personal frustration with university's paper-based document management system. Converting daily annoyance with inefficient bureaucracy into a vision for enterprise knowledge management solutions with OCR capabilities.",
 	track: "future_vision",
 	story_type: "turning_point",
 	raw_text:
@@ -91,7 +93,8 @@ const story2: StoryFragment = {
 const story3: StoryFragment = {
 	id: "story_3",
 	title: "Weekly Burnout Cycle",
-	description: "Working at a 5-person startup with extreme intensity, experiencing burnout once per week. Recognizing the need for a strategic pause through a master's program to prevent complete exhaustion while expanding international network and maintaining career sustainability.",
+	description:
+		"Working at a 5-person startup with extreme intensity, experiencing burnout once per week. Recognizing the need for a strategic pause through a master's program to prevent complete exhaustion while expanding international network and maintaining career sustainability.",
 	track: "future_vision",
 	story_type: "challenge",
 	raw_text:
@@ -125,7 +128,8 @@ const story3: StoryFragment = {
 const story4: StoryFragment = {
 	id: "story_4",
 	title: "Global Network Strategy",
-	description: "Viewing master's education as a strategic investment to access global tech ecosystem, connect with industry leaders and VCs through alumni networks, and learn international work culture. Understanding that network advantage is critical for startup scaling beyond local market limitations.",
+	description:
+		"Viewing master's education as a strategic investment to access global tech ecosystem, connect with industry leaders and VCs through alumni networks, and learn international work culture. Understanding that network advantage is critical for startup scaling beyond local market limitations.",
 	track: "future_vision",
 	story_type: "achievement",
 	raw_text:
@@ -160,7 +164,8 @@ const story4: StoryFragment = {
 const story5: StoryFragment = {
 	id: "story_5",
 	title: "Lean Team Philosophy",
-	description: "Strong conviction that optimal team size is around 20 people for maximum impact. Believing that small, efficient teams can drive significant change while maintaining cost-effectiveness and operational excellence, rejecting the notion that big impact requires big teams.",
+	description:
+		"Strong conviction that optimal team size is around 20 people for maximum impact. Believing that small, efficient teams can drive significant change while maintaining cost-effectiveness and operational excellence, rejecting the notion that big impact requires big teams.",
 	track: "future_vision",
 	story_type: "insight",
 	raw_text:
@@ -194,7 +199,8 @@ const story5: StoryFragment = {
 const story6: StoryFragment = {
 	id: "story_6",
 	title: "Selfish Altruism Vision",
-	description: "Honest admission that the drive to digitize legacy enterprises stems from personal frustration with signing endless paper forms. Transforming personal annoyance into market opportunity by aligning enterprise digitization with government initiatives, proving that selfish motivations can create altruistic outcomes at scale.",
+	description:
+		"Honest admission that the drive to digitize legacy enterprises stems from personal frustration with signing endless paper forms. Transforming personal annoyance into market opportunity by aligning enterprise digitization with government initiatives, proving that selfish motivations can create altruistic outcomes at scale.",
 	track: "future_vision",
 	story_type: "turning_point",
 	raw_text:

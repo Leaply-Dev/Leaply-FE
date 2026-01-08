@@ -2,10 +2,12 @@
 // Data Transformation
 // ============================================================================
 
-import type { ForceGraphNode, ForceGraphLink } from "@/lib/types/persona-canvas";
-import { NODE_CONFIG, EDGE_CONFIG } from "@/lib/config/graphConfig";
+import { EDGE_CONFIG, NODE_CONFIG } from "@/lib/config/graphConfig";
 import { mockPersonaGraph } from "@/lib/mock/personaGraphData";
-
+import type {
+	ForceGraphLink,
+	ForceGraphNode,
+} from "@/lib/types/persona-canvas";
 
 export function transformGraphData(): {
 	nodes: ForceGraphNode[];

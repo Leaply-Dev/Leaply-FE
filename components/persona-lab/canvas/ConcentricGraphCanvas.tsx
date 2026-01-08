@@ -39,8 +39,13 @@ export function ConcentricGraphCanvas({
 		toggleNodeTypeVisibility,
 	} = useGraphInteraction({ graphData, fgRef, dimensions });
 
-	const { showLabels, handleZoomIn, handleZoomOut, handleFitView, toggleLabels } =
-		useGraphControls(fgRef);
+	const {
+		showLabels,
+		handleZoomIn,
+		handleZoomOut,
+		handleFitView,
+		toggleLabels,
+	} = useGraphControls(fgRef);
 
 	const { paintNode, paintLink, paintNodePointerArea, nodeTooltip } =
 		useGraphRenderers({

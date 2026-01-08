@@ -1,7 +1,11 @@
 import { useCallback } from "react";
 import type { LinkObject, NodeObject } from "react-force-graph-2d";
-import type { ForceGraphNode, ForceGraphLink, NodeType } from "@/lib/types/persona-canvas";
 import { EDGE_CONFIG, NODE_CONFIG } from "@/lib/config/graphConfig";
+import type {
+	ForceGraphLink,
+	ForceGraphNode,
+	NodeType,
+} from "@/lib/types/persona-canvas";
 
 interface UseGraphRenderersProps {
 	selectedNode: ForceGraphNode | null;

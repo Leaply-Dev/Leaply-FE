@@ -1,6 +1,10 @@
 import { useCallback, useState } from "react";
 import type { NodeObject } from "react-force-graph-2d";
-import type { ForceGraphNode, ForceGraphLink, NodeType } from "@/lib/types/persona-canvas";
+import type {
+	ForceGraphLink,
+	ForceGraphNode,
+	NodeType,
+} from "@/lib/types/persona-canvas";
 
 interface UseGraphInteractionProps {
 	graphData: {
@@ -11,10 +15,16 @@ interface UseGraphInteractionProps {
 	dimensions: { width: number; height: number };
 }
 
-export function useGraphInteraction({ graphData, fgRef, dimensions }: UseGraphInteractionProps) {
+export function useGraphInteraction({
+	graphData,
+	fgRef,
+	dimensions,
+}: UseGraphInteractionProps) {
 	const [selectedNode, setSelectedNode] = useState<ForceGraphNode | null>(null);
 	const [hoveredNode, setHoveredNode] = useState<ForceGraphNode | null>(null);
-	const [hiddenNodeTypes, setHiddenNodeTypes] = useState<Set<NodeType>>(new Set());
+	const [hiddenNodeTypes, setHiddenNodeTypes] = useState<Set<NodeType>>(
+		new Set(),
+	);
 	const [highlightNodes, setHighlightNodes] = useState<Set<string>>(new Set());
 	const [highlightLinks, setHighlightLinks] = useState<Set<string>>(new Set());
 
