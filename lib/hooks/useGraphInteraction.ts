@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import type { NodeObject } from "react-force-graph-2d";
+import type { ForceGraphMethods, NodeObject } from "react-force-graph-2d";
 import type {
 	ForceGraphLink,
 	ForceGraphNode,
@@ -11,7 +11,7 @@ interface UseGraphInteractionProps {
 		nodes: ForceGraphNode[];
 		links: ForceGraphLink[];
 	};
-	fgRef: React.MutableRefObject<unknown>;
+	fgRef: React.RefObject<ForceGraphMethods | undefined>;
 	dimensions: { width: number; height: number };
 }
 

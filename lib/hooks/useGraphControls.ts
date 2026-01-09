@@ -1,6 +1,9 @@
 import { useCallback, useState } from "react";
+import type { ForceGraphMethods } from "react-force-graph-2d";
 
-export function useGraphControls(fgRef: React.MutableRefObject<unknown>) {
+export function useGraphControls(
+	fgRef: React.RefObject<ForceGraphMethods | undefined>,
+) {
 	const [showLabels, setShowLabels] = useState(true);
 
 	const handleZoomIn = useCallback(() => {

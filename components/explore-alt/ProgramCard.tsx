@@ -6,6 +6,7 @@ import {
 	DollarSign,
 	MapPin,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import type { ProgramListItemResponse } from "@/lib/api/types";
 import { formatCurrency, getDaysUntilDeadline } from "./utils";
@@ -51,9 +52,19 @@ export function ProgramCard({
 			{/* University Header */}
 			<div className="p-4 border-b border-border">
 				<div className="flex items-center gap-3">
-					{/* University Logo Placeholder */}
-					<div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center text-xl font-bold text-muted-foreground">
-						{program.universityName.charAt(0)}
+					{/* University Logo */}
+					<div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center text-xl font-bold text-muted-foreground overflow-hidden">
+						{program.universityLogoUrl ? (
+							<Image
+								src={program.universityLogoUrl}
+								alt={program.universityName}
+								width={48}
+								height={48}
+								className="object-contain"
+							/>
+						) : (
+							program.universityName.charAt(0)
+						)}
 					</div>
 					<div className="flex-1 min-w-0">
 						<h3 className="font-semibold text-foreground truncate">
