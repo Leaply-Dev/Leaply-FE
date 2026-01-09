@@ -102,7 +102,7 @@ export function Step3Plan({
 					value={prefs.budgetIndex.toString()}
 					onValueChange={(value: string) => {
 						if (value) {
-							onPrefsChange({ budgetIndex: parseInt(value) });
+							onPrefsChange({ budgetIndex: parseInt(value, 10) });
 						}
 					}}
 					className="flex flex-wrap gap-2 pt-2"

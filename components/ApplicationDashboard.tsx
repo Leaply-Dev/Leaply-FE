@@ -107,7 +107,7 @@ export function ApplicationDashboard({
 	onDelete,
 }: ApplicationDashboardProps) {
 	const t = useTranslations("applications");
-	const router = useRouter();
+	const _router = useRouter();
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 

@@ -442,7 +442,7 @@ function generateMockGraphData(): PersonaGraphResponse {
 	// Layer 2: Key Stories (outer ring) - convert existing nodes
 	const storyNodes: PersonaNodeDto[] = mockState.nodes
 		.filter((n) => n.type === "story")
-		.map((n, idx) => ({
+		.map((n, _idx) => ({
 			id: `story-${n.id}`,
 			type: "key_story" as const,
 			layer: 2 as const,

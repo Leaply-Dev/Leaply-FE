@@ -322,7 +322,7 @@ export default function HomePage() {
 	];
 
 	// Stats with translations
-	const stats = [
+	const _stats = [
 		{ value: "2,000+", labelKey: "statsStudents", icon: Users },
 		{ value: "1,500+", labelKey: "statsUniversities", icon: School },
 		{ value: "50+", labelKey: "statsCountries", icon: MapPin },

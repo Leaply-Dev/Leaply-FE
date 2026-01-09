@@ -76,6 +76,7 @@ export function OnboardingHeader() {
 						{/* Avatar dropdown with logout */}
 						<div className="relative" ref={dropdownRef}>
 							<button
+								type="button"
 								onClick={() => setDropdownOpen(!dropdownOpen)}
 								className="flex items-center focus:outline-none"
 								aria-label="User menu"
@@ -93,6 +94,7 @@ export function OnboardingHeader() {
 							{dropdownOpen && (
 								<div className="absolute right-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg py-1 z-50">
 									<button
+										type="button"
 										onClick={handleLogout}
 										className="w-full flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-muted transition-colors"
 									>

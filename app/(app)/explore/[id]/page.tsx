@@ -5,7 +5,6 @@ import {
 	Bookmark,
 	BookmarkCheck,
 	Check,
-	ExternalLink,
 	Loader2,
 	MapPin,
 	Plus,

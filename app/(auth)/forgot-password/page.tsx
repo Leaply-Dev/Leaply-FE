@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
 		try {
 			await authService.forgotPassword(email);
 			setState("sent");
-		} catch (err) {
+		} catch (_err) {
 			// Always show success to prevent email enumeration
 			// The API also returns success regardless
 			setState("sent");
@@ -110,8 +110,6 @@ export default function ForgotPasswordPage() {
 						</div>
 					</div>
 				);
-
-			case "form":
 			default:
 				return (
 					<form onSubmit={handleSubmit}>

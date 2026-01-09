@@ -26,7 +26,7 @@ export function QuickFactsBar({ program }: QuickFactsBarProps) {
 			label: "Tuition",
 			value: program.tuition?.annualUsd
 				? `${formatCurrency(program.tuition.annualUsd)}/yr`
-				: formatCurrency(program.tuitionAnnualUsd) + "/yr",
+				: `${formatCurrency(program.tuitionAnnualUsd)}/yr`,
 		},
 		{
 			icon: Clock,

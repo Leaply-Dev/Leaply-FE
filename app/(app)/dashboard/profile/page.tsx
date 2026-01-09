@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import {
 	AlertCircle,
 	BookOpen,
@@ -79,7 +78,7 @@ const CAMPUS_SETTINGS = [
 
 export default function ProfilePage() {
 	const t = useTranslations("profile");
-	const { profile: storeProfile, updateProfile: updateStoreProfile } =
+	const { profile: _storeProfile, updateProfile: updateStoreProfile } =
 		useUserStore();
 
 	const [userData, setUserData] = useState<UserMeResponse | null>(null);

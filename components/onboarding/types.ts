@@ -1,5 +1,3 @@
-import type { JourneyType } from "@/lib/store/userStore";
-
 export interface OnboardingTranslations {
 	steps: string[];
 	step1: {

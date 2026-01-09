@@ -9,7 +9,6 @@ import {
 	FileText,
 	FolderOpen,
 	GraduationCap,
-	Loader2,
 	School,
 	Sparkles,
 	Target,

@@ -1,6 +1,5 @@
-import { ApiError, apiClient } from "./client";
+import { apiClient } from "./client";
 import type {
-	ApiResponse,
 	ApplicationListResponse,
 	ApplicationSopResponse,
 	CreateApplicationRequest,

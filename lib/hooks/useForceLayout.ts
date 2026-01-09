@@ -11,7 +11,7 @@ import {
 	type SimulationLinkDatum,
 	type SimulationNodeDatum,
 } from "d3-force";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type {
 	GraphNodeData,
 	LayerNumber,
@@ -113,8 +113,8 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 		showAllDetails = false,
 	} = options;
 
-	const simulationRef = useRef<Simulation<ForceNode, ForceLink> | null>(null);
-	const [positions, setPositions] = useState<
+	const _simulationRef = useRef<Simulation<ForceNode, ForceLink> | null>(null);
+	const [_positions, _setPositions] = useState<
 		Map<string, { x: number; y: number }>
 	>(new Map());
 

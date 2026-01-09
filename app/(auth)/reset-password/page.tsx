@@ -166,8 +166,6 @@ export default function ResetPasswordPage() {
 						</Link>
 					</div>
 				);
-
-			case "form":
 			default:
 				return (
 					<form onSubmit={handleSubmit}>

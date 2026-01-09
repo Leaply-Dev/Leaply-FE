@@ -83,13 +83,13 @@ async function apiFetch<T>(
 	};
 
 	if (token) {
-		requestHeaders["Authorization"] = `Bearer ${token}`;
+		requestHeaders.Authorization = `Bearer ${token}`;
 	} else {
 		// Attempt to get token from userStore
 		try {
 			const storeToken = useUserStore.getState().token;
 			if (storeToken) {
-				requestHeaders["Authorization"] = `Bearer ${storeToken}`;
+				requestHeaders.Authorization = `Bearer ${storeToken}`;
 			}
 		} catch (e) {
 			// Fallback or ignore if store access fails
