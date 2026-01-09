@@ -17,6 +17,12 @@ const nextConfig: NextConfig = {
 				port: "",
 				pathname: "/**",
 			},
+			{
+				protocol: "https",
+				hostname: "s3.cloudstorage.com.vn",
+				port: "",
+				pathname: "/**",
+			},
 		],
 	},
 };
