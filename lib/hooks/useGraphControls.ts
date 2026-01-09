@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-export function useGraphControls(fgRef: React.MutableRefObject<any>) {
+export function useGraphControls(fgRef: React.MutableRefObject<unknown>) {
 	const [showLabels, setShowLabels] = useState(true);
 
 	const handleZoomIn = useCallback(() => {

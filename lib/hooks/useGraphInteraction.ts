@@ -11,7 +11,7 @@ interface UseGraphInteractionProps {
 		nodes: ForceGraphNode[];
 		links: ForceGraphLink[];
 	};
-	fgRef: React.MutableRefObject<any>;
+	fgRef: React.MutableRefObject<unknown>;
 	dimensions: { width: number; height: number };
 }
 
