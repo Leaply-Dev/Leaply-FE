@@ -31,7 +31,7 @@ export class ApiError extends Error {
 		public status: number,
 		public code?: string,
 		public field?: string,
-		public details?: Record<string, any>,
+		public details?: Record<string, unknown>,
 		public endpoint?: string,
 		public timestamp?: string,
 	) {
@@ -72,7 +72,7 @@ export class ApiError extends Error {
 async function apiFetch<T>(
 	endpoint: string,
 	method: RequestMethod = "GET",
-	body?: any,
+	body?: unknown,
 	options: FetchOptions = {},
 ): Promise<T> {
 	const { token, headers, ...customConfig } = options;
@@ -228,12 +228,12 @@ async function apiFetch<T>(
 export const apiClient = {
 	get: <T>(endpoint: string, options?: FetchOptions) =>
 		apiFetch<T>(endpoint, "GET", undefined, options),
-	post: <T>(endpoint: string, body: any, options?: FetchOptions) =>
+	post: <T>(endpoint: string, body: unknown, options?: FetchOptions) =>
 		apiFetch<T>(endpoint, "POST", body, options),
-	put: <T>(endpoint: string, body: any, options?: FetchOptions) =>
+	put: <T>(endpoint: string, body: unknown, options?: FetchOptions) =>
 		apiFetch<T>(endpoint, "PUT", body, options),
 	delete: <T>(endpoint: string, options?: FetchOptions) =>
 		apiFetch<T>(endpoint, "DELETE", undefined, options),
-	patch: <T>(endpoint: string, body: any, options?: FetchOptions) =>
+	patch: <T>(endpoint: string, body: unknown, options?: FetchOptions) =>
 		apiFetch<T>(endpoint, "PATCH", body, options),
 };

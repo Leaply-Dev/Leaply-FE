@@ -158,11 +158,14 @@ export function ProgramCard({
 						<Calendar className="w-4 h-4 text-muted-foreground" />
 						<span className="text-muted-foreground">
 							Deadline:{" "}
-							{new Date(program.nextDeadline!).toLocaleDateString("en-US", {
-								month: "short",
-								day: "numeric",
-								year: "numeric",
-							})}
+							{new Date(program.nextDeadline as string).toLocaleDateString(
+								"en-US",
+								{
+									month: "short",
+									day: "numeric",
+									year: "numeric",
+								},
+							)}
 						</span>
 						<span
 							className={`px-2 py-0.5 rounded text-xs font-medium ${

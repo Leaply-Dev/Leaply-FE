@@ -9,7 +9,7 @@ export interface ApiResponse<T> {
 export interface ErrorDetails {
 	code?: string;
 	field?: string;
-	details?: Record<string, any>;
+	details?: Record<string, unknown>;
 }
 
 // ============================================
@@ -172,7 +172,7 @@ export interface OnboardingDataResponse {
 export interface OnboardingStatusResponse {
 	currentStep: number;
 	completed: boolean;
-	data?: Record<string, any>;
+	data?: Record<string, unknown>;
 }
 
 export interface OnboardingResponse {
@@ -245,7 +245,7 @@ export interface ProgramListItemResponse {
 export interface ProgramListResponse {
 	data: ProgramListItemResponse[];
 	pagination: PaginationResponse;
-	appliedFilters?: Record<string, any>;
+	appliedFilters?: Record<string, unknown>;
 }
 
 export interface TuitionResponse {
@@ -504,9 +504,9 @@ export interface TrackDetailResponse {
 	description: string;
 	status: string;
 	progress: number;
-	layers: Record<string, any>;
+	layers: Record<string, unknown>;
 	coreQuestions: string[];
-	recentMessages: Record<string, any>[];
+	recentMessages: Record<string, unknown>[];
 }
 
 export interface TrackSummary {
@@ -517,7 +517,7 @@ export interface TrackSummary {
 }
 
 export interface PersonaResponse {
-	archetype: Record<string, any>;
+	archetype: Record<string, unknown>;
 	tracks: Record<string, TrackSummary>;
 	lastActiveTrack: string;
 }
@@ -635,14 +635,14 @@ export interface MessageResponse {
 // Synthesis & Archetype
 export interface SynthesisResponse {
 	track: string;
-	layers: Record<string, any>;
+	layers: Record<string, unknown>;
 	success: boolean;
 	message: string;
 	nodeCount?: number;
 }
 
 export interface ArchetypeResponse {
-	archetype: Record<string, any>;
+	archetype: Record<string, unknown>;
 	success: boolean;
 	message: string;
 	completedTracks: number;
