@@ -44,6 +44,8 @@ export default function OAuthSuccessPage() {
 					login(
 						userProfile,
 						"COOKIE_AUTH", // Special marker for cookie-based authentication
+						"COOKIE_AUTH", // Refresh token is also in httpOnly cookie
+						0, // expiresIn not needed for cookie auth - backend handles it
 						userContext.user.isOnboardingComplete,
 					);
 

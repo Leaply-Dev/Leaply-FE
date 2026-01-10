@@ -1,28 +1,119 @@
 import { useUserStore } from "../store/userStore";
-import type { ApiResponse } from "./types";
+import type { ApiResponse, AuthResponse } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 const isDev = process.env.NODE_ENV === "development";
 
+// Token refresh state management
+let isRefreshing = false;
+let refreshSubscribers: Array<(token: string) => void> = [];
+
 /**
- * Handle 401 Unauthorized responses by logging out the user
+ * Subscribe to token refresh completion
  */
-function handleUnauthorized() {
-	if (typeof window !== "undefined") {
-		const { logout, isAuthenticated } = useUserStore.getState();
-		if (isAuthenticated) {
-			console.warn("Session expired or invalid. Logging out...");
-			logout();
-			// Redirect to landing page
-			window.location.href = "/?expired=true";
-		}
+function subscribeTokenRefresh(callback: (token: string) => void) {
+	refreshSubscribers.push(callback);
+}
+
+/**
+ * Notify all subscribers when token refresh completes
+ */
+function onTokenRefreshed(newToken: string) {
+	refreshSubscribers.forEach((callback) => callback(newToken));
+	refreshSubscribers = [];
+}
+
+/**
+ * Attempt to refresh the access token using the refresh token
+ * Returns the new access token on success, null on failure
+ */
+async function refreshAccessToken(): Promise<string | null> {
+	const { refreshToken, setTokens, logout } = useUserStore.getState();
+
+	if (!refreshToken) {
+		if (isDev) console.warn("No refresh token available");
+		return null;
 	}
+
+	try {
+		const response = await fetch(`${API_URL}/v1/auth/refresh`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ refreshToken }),
+		});
+
+		if (!response.ok) {
+			if (isDev) console.warn("Token refresh failed with status:", response.status);
+			return null;
+		}
+
+		const data = (await response.json()) as ApiResponse<AuthResponse>;
+
+		if (data.success && data.data) {
+			const { accessToken, refreshToken: newRefreshToken, expiresIn } = data.data;
+			setTokens(accessToken, newRefreshToken, expiresIn);
+			if (isDev) console.log("Token refreshed successfully");
+			return accessToken;
+		}
+
+		return null;
+	} catch (error) {
+		if (isDev) console.error("Token refresh error:", error);
+		return null;
+	}
+}
+
+/**
+ * Handle 401 Unauthorized - attempt token refresh before logging out
+ */
+async function handleUnauthorized(): Promise<string | null> {
+	if (typeof window === "undefined") return null;
+
+	const { isAuthenticated, logout } = useUserStore.getState();
+	if (!isAuthenticated) return null;
+
+	// If already refreshing, wait for it to complete
+	if (isRefreshing) {
+		return new Promise<string | null>((resolve) => {
+			subscribeTokenRefresh((token) => resolve(token));
+		});
+	}
+
+	isRefreshing = true;
+
+	try {
+		const newToken = await refreshAccessToken();
+
+		if (newToken) {
+			onTokenRefreshed(newToken);
+			return newToken;
+		}
+
+		// Refresh failed - logout
+		console.warn("Token refresh failed. Logging out...");
+		logout();
+		window.location.href = "/?expired=true";
+		return null;
+	} finally {
+		isRefreshing = false;
+	}
+}
+
+/**
+ * Handle 403 Forbidden - show access denied, do NOT trigger refresh or logout
+ */
+function handleForbidden() {
+	if (isDev) console.warn("Access denied (403 Forbidden)");
+	// Don't logout on 403 - user is authenticated but lacks permission
 }
 
 type RequestMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
 interface FetchOptions extends RequestInit {
 	token?: string;
+	_retry?: boolean; // Internal flag to prevent infinite retry loops
 }
 
 export class ApiError extends Error {
@@ -75,7 +166,7 @@ async function apiFetch<T>(
 	body?: unknown,
 	options: FetchOptions = {},
 ): Promise<T> {
-	const { token, headers, ...customConfig } = options;
+	const { token, headers, _retry, ...customConfig } = options;
 
 	const requestHeaders: HeadersInit = {
 		"Content-Type": "application/json",
@@ -85,9 +176,9 @@ async function apiFetch<T>(
 	if (token) {
 		requestHeaders.Authorization = `Bearer ${token}`;
 	} else {
-		// Attempt to get token from userStore
+		// Attempt to get access token from userStore
 		try {
-			const storeToken = useUserStore.getState().token;
+			const storeToken = useUserStore.getState().accessToken;
 			if (storeToken) {
 				requestHeaders.Authorization = `Bearer ${storeToken}`;
 			}
@@ -163,21 +254,27 @@ async function apiFetch<T>(
 		}
 
 		if (!response.ok || !data?.success) {
-			// Handle 401 Unauthorized - auto logout
-			if (response.status === 401) {
-				handleUnauthorized();
+			// Handle 401 Unauthorized - attempt token refresh and retry
+			if (response.status === 401 && !_retry) {
+				if (isDev) console.log("401 received, attempting token refresh...");
+				const newToken = await handleUnauthorized();
+
+				if (newToken) {
+					// Retry the original request with the new token
+					if (isDev) console.log("Retrying request with new token...");
+					return apiFetch<T>(endpoint, method, body, {
+						...options,
+						token: newToken,
+						_retry: true, // Prevent infinite loops
+					});
+				}
+				// If refresh failed, handleUnauthorized already logged out
 			}
 
-			// Handle 403 Forbidden - treat as invalid session on auth-related endpoints
-			// This handles cases like deleted accounts where the backend returns 403
+			// Handle 403 Forbidden - access denied, do NOT trigger refresh or logout
 			if (response.status === 403) {
-				const isAuthRelatedEndpoint =
-					path.includes("/user/") ||
-					path.includes("/onboarding") ||
-					path.includes("/auth/");
-				if (isAuthRelatedEndpoint) {
-					handleUnauthorized();
-				}
+				handleForbidden();
+				// Just throw the error, don't logout
 			}
 
 			const apiError = new ApiError(

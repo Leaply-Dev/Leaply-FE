@@ -34,8 +34,25 @@ export interface GoogleAuthRequest {
 export interface AuthResponse {
 	userId: string;
 	email: string;
-	token: string;
+	accessToken: string;
+	refreshToken: string;
+	expiresIn: number; // Access token expiration in seconds
+	role?: string;
 	onboardingCompleted: boolean;
+}
+
+export interface RefreshTokenRequest {
+	refreshToken: string;
+}
+
+export interface TokenErrorResponse {
+	success: false;
+	message: string;
+	error: {
+		code: "token_expired" | "invalid_token" | "unauthorized";
+		details?: Record<string, unknown>;
+	};
+	timestamp: string;
 }
 
 // ============================================

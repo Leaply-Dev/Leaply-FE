@@ -50,7 +50,7 @@ const COOKIE_AUTH_TOKEN = "COOKIE_AUTH";
  * - Auto-logout if authentication is invalid or expired
  */
 export function AuthProvider({ children }: AuthProviderProps) {
-	const { token, isAuthenticated, logout, login, profile } = useUserStore();
+	const { accessToken, isAuthenticated, logout, login, profile } = useUserStore();
 	const validationDone = useRef(false);
 
 	useEffect(() => {
@@ -64,23 +64,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 			// Detect authentication type
 			const isCookieAuth =
-				!token || token === "" || token === COOKIE_AUTH_TOKEN;
+				!accessToken || accessToken === "" || accessToken === COOKIE_AUTH_TOKEN;
 
-			// For token-based auth (email/password), check JWT expiry locally first
+			// For token-based auth, check JWT expiry locally first
+			// Note: API client will automatically refresh expired tokens,
+			// but we can catch obviously expired tokens before making a request
 			if (!isCookieAuth) {
-				if (isTokenExpired(token)) {
-					console.warn("JWT token expired. Logging out...");
-					logout();
-					return;
+				if (isTokenExpired(accessToken)) {
+					// Don't logout immediately - the API client will attempt refresh
+					// Just log for debugging
+					console.debug("Access token expired, will attempt refresh on next API call");
 				}
 			}
 
-			// Validate with backend (required for cookie-based, optional for token-based)
+			// Validate with backend
+			// The API client will handle token refresh if needed
 			try {
 				const userContext = await authService.getCurrentUser();
 
 				// For cookie-based auth, ensure token marker is set
-				if (isCookieAuth && token !== COOKIE_AUTH_TOKEN && userContext.user) {
+				if (isCookieAuth && accessToken !== COOKIE_AUTH_TOKEN && userContext.user) {
 					// Update token to marker without triggering logout
 					login(
 						profile || {
@@ -89,20 +92,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
 							fullName: "",
 						},
 						COOKIE_AUTH_TOKEN,
+						COOKIE_AUTH_TOKEN,
+						0,
 						userContext.user.isOnboardingComplete,
 					);
 				}
 
 				console.log("Auth validated successfully");
 			} catch (error) {
-				// 401 errors are handled by apiClient which will logout
+				// 401 errors are handled by apiClient which will attempt refresh first
+				// If refresh fails, apiClient will logout
 				// Other errors might be network issues, don't logout
 				console.error("Auth validation error:", error);
 			}
 		}
 
 		validateAuth();
-	}, [isAuthenticated, token, logout, login, profile]);
+	}, [isAuthenticated, accessToken, logout, login, profile]);
 
 	return <>{children}</>;
 }

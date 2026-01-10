@@ -38,6 +38,14 @@ export const authService = {
 		return apiClient.post<AuthResponse>("/v1/auth/google", payload);
 	},
 
+	refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
+		return apiClient.post<AuthResponse>("/v1/auth/refresh", { refreshToken });
+	},
+
+	logout: async (): Promise<string> => {
+		return apiClient.post<string>("/v1/auth/logout", {});
+	},
+
 	getCurrentUser: async (): Promise<UserContextResponse> => {
 		return apiClient.get<UserContextResponse>("/v1/auth/me");
 	},

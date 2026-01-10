@@ -74,7 +74,13 @@ export function LoginForm({
 				fullName: "", // API doesn't return name on login yet, will need to fetch profile or adjust
 			};
 
-			login(userProfile, response.token, response.onboardingCompleted);
+			login(
+				userProfile,
+				response.accessToken,
+				response.refreshToken,
+				response.expiresIn,
+				response.onboardingCompleted,
+			);
 
 			if (response.onboardingCompleted) {
 				router.push("/dashboard");

@@ -74,7 +74,13 @@ export function SignupForm({
 				fullName: validatedData.fullName,
 			};
 
-			login(userProfile, response.token, response.onboardingCompleted);
+			login(
+				userProfile,
+				response.accessToken,
+				response.refreshToken,
+				response.expiresIn,
+				response.onboardingCompleted,
+			);
 
 			// Redirect to verify-email page for email verification prompt
 			router.push("/verify-email");

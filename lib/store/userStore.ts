@@ -48,7 +48,9 @@ export type JourneyType = "exploring" | "targeted" | null;
 
 interface UserState {
 	profile: UserProfile | null;
-	token: string | null;
+	accessToken: string | null;
+	refreshToken: string | null;
+	tokenExpiresAt: number | null; // Unix timestamp in ms
 	preferences: UserPreferences;
 	journeyType: JourneyType;
 	isOnboardingComplete: boolean;
@@ -72,22 +74,34 @@ interface UserState {
 	completeOnboarding: () => void;
 	login: (
 		profile: UserProfile,
-		token: string,
+		accessToken: string,
+		refreshToken: string,
+		expiresIn: number,
 		isOnboardingComplete?: boolean,
 	) => void;
+	setTokens: (accessToken: string, refreshToken: string, expiresIn: number) => void;
 	logout: () => void;
+	// Legacy support for components still using 'token'
+	get token(): string | null;
 }
 
 export const useUserStore = create<UserState>()(
 	persist(
-		(set) => ({
+		(set, get) => ({
 			profile: null,
-			token: null,
+			accessToken: null,
+			refreshToken: null,
+			tokenExpiresAt: null,
 			preferences: {},
 			journeyType: null,
 			isOnboardingComplete: false,
 			isAuthenticated: false,
 			lastActivity: undefined,
+
+			// Legacy getter for 'token' - returns accessToken for backwards compatibility
+			get token() {
+				return get().accessToken;
+			},
 
 			setProfile: (profile) => set({ profile }),
 
@@ -117,13 +131,29 @@ export const useUserStore = create<UserState>()(
 
 			completeOnboarding: () => set({ isOnboardingComplete: true }),
 
-			login: (profile, token, isOnboardingComplete = false) =>
-				set({ profile, token, isAuthenticated: true, isOnboardingComplete }),
+			login: (profile, accessToken, refreshToken, expiresIn, isOnboardingComplete = false) =>
+				set({
+					profile,
+					accessToken,
+					refreshToken,
+					tokenExpiresAt: Date.now() + expiresIn * 1000,
+					isAuthenticated: true,
+					isOnboardingComplete,
+				}),
+
+			setTokens: (accessToken, refreshToken, expiresIn) =>
+				set({
+					accessToken,
+					refreshToken,
+					tokenExpiresAt: Date.now() + expiresIn * 1000,
+				}),
 
 			logout: () =>
 				set({
 					profile: null,
-					token: null,
+					accessToken: null,
+					refreshToken: null,
+					tokenExpiresAt: null,
 					isAuthenticated: false,
 					isOnboardingComplete: false,
 					preferences: {},
@@ -135,7 +165,9 @@ export const useUserStore = create<UserState>()(
 			name: "leaply-user-store",
 			partialize: (state) => ({
 				profile: state.profile,
-				token: state.token,
+				accessToken: state.accessToken,
+				refreshToken: state.refreshToken,
+				tokenExpiresAt: state.tokenExpiresAt,
 				preferences: state.preferences,
 				journeyType: state.journeyType,
 				isOnboardingComplete: state.isOnboardingComplete,
