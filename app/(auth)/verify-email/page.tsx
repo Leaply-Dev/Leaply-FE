@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -14,16 +14,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { authService } from "@/lib/services/auth";
+import { useResendVerification } from "@/lib/hooks/useResendVerification";
+import { useVerifyEmail } from "@/lib/hooks/useVerifyEmail";
 import { useUserStore } from "@/lib/store/userStore";
-
-type VerifyState =
-	| "prompt"
-	| "sending"
-	| "sent"
-	| "verifying"
-	| "success"
-	| "error";
 
 export default function VerifyEmailPage() {
 	const router = useRouter();
@@ -33,31 +26,17 @@ export default function VerifyEmailPage() {
 
 	const token = searchParams.get("token");
 
-	const [state, setState] = useState<VerifyState>(
-		token ? "verifying" : "prompt",
-	);
-	const [error, setError] = useState<string | null>(null);
+	// TanStack Query hook - automatically deduplicates in React Strict Mode
+	const {
+		error: verifyError,
+		isLoading: isVerifying,
+		isSuccess: verifySuccess,
+	} = useVerifyEmail(token);
+
+	// Mutation for resending verification
+	const resendMutation = useResendVerification();
+
 	const [countdown, setCountdown] = useState(0);
-
-	// Verify token if present in URL
-	const verifyToken = useCallback(async () => {
-		if (!token) return;
-
-		setState("verifying");
-		try {
-			await authService.verifyEmail(token);
-			setState("success");
-		} catch (err) {
-			setState("error");
-			setError(err instanceof Error ? err.message : "Verification failed");
-		}
-	}, [token]);
-
-	useEffect(() => {
-		if (token) {
-			verifyToken();
-		}
-	}, [token, verifyToken]);
 
 	// Countdown timer for resend
 	useEffect(() => {
@@ -70,18 +49,11 @@ export default function VerifyEmailPage() {
 	const handleSendVerification = async () => {
 		if (!profile?.email) return;
 
-		setState("sending");
 		try {
-			await authService.resendVerification(profile.email);
-			setState("sent");
+			await resendMutation.mutateAsync(profile.email);
 			setCountdown(60); // 60 second cooldown
 		} catch (err) {
-			setState("prompt");
-			setError(
-				err instanceof Error
-					? err.message
-					: "Failed to send verification email",
-			);
+			console.error("Failed to resend verification", err);
 		}
 	};
 
@@ -98,18 +70,20 @@ export default function VerifyEmailPage() {
 		router.push("/dashboard");
 	};
 
-	// Render based on state
+	// Render based on state (using TanStack Query states)
 	const renderContent = () => {
-		switch (state) {
-			case "verifying":
+		// Token verification states
+		if (token) {
+			if (isVerifying) {
 				return (
 					<div className="flex flex-col items-center gap-4 py-8">
 						<Loader2 className="h-12 w-12 animate-spin text-primary" />
 						<p className="text-muted-foreground">{t("verifying")}</p>
 					</div>
 				);
+			}
 
-			case "success":
+			if (verifySuccess) {
 				return (
 					<div className="flex flex-col items-center gap-4 py-6">
 						<div className="rounded-full bg-green-100 p-3">
@@ -128,8 +102,9 @@ export default function VerifyEmailPage() {
 						</Button>
 					</div>
 				);
+			}
 
-			case "error":
+			if (verifyError) {
 				return (
 					<div className="flex flex-col items-center gap-4 py-6">
 						<div className="rounded-full bg-red-100 p-3">
@@ -142,10 +117,14 @@ export default function VerifyEmailPage() {
 							<p className="mt-2 text-muted-foreground">
 								{t("invalidTokenMessage")}
 							</p>
-							{error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+							{verifyError instanceof Error && (
+								<p className="mt-1 text-sm text-red-500">
+									{verifyError.message}
+								</p>
+							)}
 						</div>
 						<Button
-							onClick={() => setState("prompt")}
+							onClick={handleSendVerification}
 							variant="outline"
 							className="mt-4 w-full"
 						>
@@ -153,83 +132,79 @@ export default function VerifyEmailPage() {
 						</Button>
 					</div>
 				);
+			}
+		}
 
-			case "sending":
-				return (
-					<div className="flex flex-col items-center gap-4 py-6">
-						<div className="rounded-full bg-primary/10 p-3">
-							<Mail className="h-12 w-12 text-primary" />
-						</div>
-						<div className="text-center">
-							<h3 className="text-xl font-semibold">{t("promptTitle")}</h3>
-							<p className="mt-2 text-muted-foreground">
-								{t("promptSubtitle")}
-							</p>
-						</div>
-						<Button disabled className="mt-4 w-full">
-							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-							{t("sending")}
+		// Resend verification states
+		if (resendMutation.isSuccess) {
+			return (
+				<div className="flex flex-col items-center gap-4 py-6">
+					<div className="rounded-full bg-green-100 p-3">
+						<CheckCircle2 className="h-12 w-12 text-green-600" />
+					</div>
+					<div className="text-center">
+						<h3 className="text-xl font-semibold text-green-600">
+							{t("emailSent")}
+						</h3>
+						<p className="mt-2 text-muted-foreground">{t("checkInbox")}</p>
+						{profile?.email && (
+							<p className="mt-1 text-sm font-medium">{profile.email}</p>
+						)}
+					</div>
+					<div className="mt-4 flex w-full flex-col gap-2">
+						<Button
+							onClick={handleResend}
+							variant="outline"
+							disabled={countdown > 0}
+							className="w-full"
+						>
+							{countdown > 0 ? `${t("resendIn")} ${countdown}s` : t("resend")}
+						</Button>
+						<Button onClick={handleSkip} variant="ghost" className="w-full">
+							{t("skipForNow")}
 						</Button>
 					</div>
-				);
-
-			case "sent":
-				return (
-					<div className="flex flex-col items-center gap-4 py-6">
-						<div className="rounded-full bg-green-100 p-3">
-							<CheckCircle2 className="h-12 w-12 text-green-600" />
-						</div>
-						<div className="text-center">
-							<h3 className="text-xl font-semibold text-green-600">
-								{t("emailSent")}
-							</h3>
-							<p className="mt-2 text-muted-foreground">{t("checkInbox")}</p>
-							{profile?.email && (
-								<p className="mt-1 text-sm font-medium">{profile.email}</p>
-							)}
-						</div>
-						<div className="mt-4 flex w-full flex-col gap-2">
-							<Button
-								onClick={handleResend}
-								variant="outline"
-								disabled={countdown > 0}
-								className="w-full"
-							>
-								{countdown > 0 ? `${t("resendIn")} ${countdown}s` : t("resend")}
-							</Button>
-							<Button onClick={handleSkip} variant="ghost" className="w-full">
-								{t("skipForNow")}
-							</Button>
-						</div>
-					</div>
-				);
-			default:
-				return (
-					<div className="flex flex-col items-center gap-4 py-6">
-						<div className="rounded-full bg-primary/10 p-3">
-							<Mail className="h-12 w-12 text-primary" />
-						</div>
-						<div className="text-center">
-							<h3 className="text-xl font-semibold">{t("promptTitle")}</h3>
-							<p className="mt-2 text-muted-foreground">
-								{t("promptSubtitle")}
-							</p>
-							{profile?.email && (
-								<p className="mt-1 text-sm font-medium">{profile.email}</p>
-							)}
-						</div>
-						{error && <p className="text-sm text-red-500">{error}</p>}
-						<div className="mt-4 flex w-full flex-col gap-2">
-							<Button onClick={handleSendVerification} className="w-full">
-								{t("sendVerification")}
-							</Button>
-							<Button onClick={handleSkip} variant="ghost" className="w-full">
-								{t("skipForNow")}
-							</Button>
-						</div>
-					</div>
-				);
+				</div>
+			);
 		}
+
+		// Default prompt state
+		return (
+			<div className="flex flex-col items-center gap-4 py-6">
+				<div className="rounded-full bg-primary/10 p-3">
+					<Mail className="h-12 w-12 text-primary" />
+				</div>
+				<div className="text-center">
+					<h3 className="text-xl font-semibold">{t("promptTitle")}</h3>
+					<p className="mt-2 text-muted-foreground">{t("promptSubtitle")}</p>
+					{profile?.email && (
+						<p className="mt-1 text-sm font-medium">{profile.email}</p>
+					)}
+				</div>
+				{resendMutation.error && (
+					<p className="text-sm text-red-500">
+						{resendMutation.error instanceof Error
+							? resendMutation.error.message
+							: "Failed to send verification email"}
+					</p>
+				)}
+				<div className="mt-4 flex w-full flex-col gap-2">
+					<Button
+						onClick={handleSendVerification}
+						disabled={resendMutation.isPending}
+						className="w-full"
+					>
+						{resendMutation.isPending && (
+							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+						)}
+						{resendMutation.isPending ? t("sending") : t("sendVerification")}
+					</Button>
+					<Button onClick={handleSkip} variant="ghost" className="w-full">
+						{t("skipForNow")}
+					</Button>
+				</div>
+			</div>
+		);
 	};
 
 	return (
@@ -248,7 +223,7 @@ export default function VerifyEmailPage() {
 					</CardHeader>
 					<CardContent>{renderContent()}</CardContent>
 				</Card>
-				{state === "prompt" && (
+				{!token && !resendMutation.isSuccess && (
 					<p className="px-6 text-center text-sm text-muted-foreground">
 						{t("alreadyVerified")}{" "}
 						<Link

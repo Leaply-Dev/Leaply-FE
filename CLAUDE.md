@@ -5,7 +5,8 @@
 - **Next.js 16.1.1** App Router + **React 19.2.1**
 - **TypeScript 5.9** + **Tailwind CSS 4.1** + **Lucide** icons
 - **shadcn/ui** (New York style) + **next-intl** (i18n)
-- **Zustand** state + **Framer Motion** animations
+- **TanStack Query v5** (React Query) - Server state management
+- **Zustand** - Client state (auth) + **Framer Motion** animations
 - **Bun 1.3.3** runtime
 - **Biome 2.3** linting/formatting
 - **Knip 5.80** dead code removal
@@ -75,6 +76,8 @@
 **4. React/Next.js Best Practices**
 - [ ] Use Client Component (`'use client'`) only when needed
 - [ ] Proper use of hooks (useEffect cleanup, dependency arrays)
+- [ ] **TanStack Query for data fetching** (not useEffect)
+- [ ] Follow established patterns: Server Component wrapper → Client Component with hooks
 - [ ] Accessibility (ARIA labels, keyboard navigation, semantic HTML)
 - [ ] Performance (memoization, lazy loading if needed)
 
@@ -151,12 +154,95 @@ bunx shadcn@latest add [component]  OR  npx shadcn@latest add [component]
 - [ ] Rate limiting
 - [ ] CSP headers to next.config.ts
 
+## TanStack Query Patterns
+
+**Creating Query Hooks:**
+```typescript
+// lib/hooks/useHomeData.ts
+import { useQuery } from "@tanstack/react-query";
+import { getHomeData } from "@/lib/api/homeApi";
+import type { HomeResponse } from "@/lib/api/types";
+
+export function useHomeData(initialData?: HomeResponse) {
+  return useQuery({
+    queryKey: ["homeData"],
+    queryFn: getHomeData,
+    initialData,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+```
+
+**Creating Mutation Hooks with Optimistic Updates:**
+```typescript
+// lib/hooks/usePrograms.ts
+export function useSaveProgram() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, isSaved }) =>
+      isSaved ? exploreApi.unsaveProgram(id) : exploreApi.saveProgram(id),
+    onMutate: async ({ id, isSaved }) => {
+      await queryClient.cancelQueries({ queryKey: ["programs"] });
+      const previousPrograms = queryClient.getQueryData(["programs"]);
+
+      // Optimistic update
+      queryClient.setQueriesData({ queryKey: ["programs"] }, (old) => {
+        // Update UI immediately
+      });
+
+      return { previousPrograms }; // For rollback
+    },
+    onError: (err, variables, context) => {
+      // Rollback on error
+      if (context?.previousPrograms) {
+        queryClient.setQueryData(["programs"], context.previousPrograms);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["programs"] });
+    },
+  });
+}
+```
+
+**Using Hooks in Components:**
+```typescript
+"use client";
+export function ExploreClient() {
+  // Query
+  const { data, isLoading, error } = usePrograms(filters);
+
+  // Mutation
+  const saveMutation = useSaveProgram();
+
+  const handleSave = (id: string) => {
+    saveMutation.mutate({ id, isSaved: false });
+  };
+
+  return <>{/* UI */}</>;
+}
+```
+
+**File Naming Convention:**
+- Custom hooks: `lib/hooks/useFeatureName.ts` (camelCase)
+- Client components: `components/feature/FeatureClient.tsx` (PascalCase)
+- Server components: `app/(app)/feature/page.tsx`
+
+**Benefits:**
+- ✅ Automatic caching and deduplication
+- ✅ No double fetches in React Strict Mode
+- ✅ Optimistic updates with automatic rollback
+- ✅ Built-in loading/error states
+- ✅ Background refetching and stale-while-revalidate
+
 ## Documentation Lookup
 
 **Always use MCP tools - never guess APIs:**
 
 - **Next.js:** next-devtools MCP (init, docs, index, call) or Context7 → `/vercel/next.js`
 - **React:** Context7 → `/facebook/react`
+- **TanStack Query:** Context7 → `/tanstack/query` (use for advanced patterns)
 - **shadcn/ui:** shadcn MCP (search, view, get_examples, add_command)
 - **Other libs:** Context7 → `resolve-library-id` then `query-docs`
 
@@ -174,10 +260,44 @@ bunx shadcn@latest add [component]  OR  npx shadcn@latest add [component]
 ## Current Architecture
 
 **Data Flow:**
+- **TanStack Query** for all server state (API data fetching, caching, mutations)
 - External API calls via `NEXT_PUBLIC_API_URL`
 - Mock data fallback when `NEXT_PUBLIC_USE_MOCK_DATA=true`
+- Client-side data fetching (Server Components can't access browser-based auth)
+- Zustand for client state (authentication tokens)
 - No Server Actions currently implemented
-- Client-side state: Zustand + React hooks
+
+**Authentication:**
+- **Cookie-based** (`leaply-auth-state`) - Used by proxy.ts for route protection
+- **Zustand store** (`useUserStore`) - Provides Bearer token for API client
+- **proxy.ts** (Next.js 16) - Protects routes, redirects unauthenticated users
+
+**TanStack Query Setup:**
+- **Provider:** `app/providers/query-provider.tsx` - Global QueryClient config
+- **Hooks:** `lib/hooks/use*.ts` - Custom hooks for queries/mutations (camelCase naming)
+- **Cache:** 1min default staleTime, 5min gcTime, no window refocus
+- **DevTools:** Available in development mode
+
+**Data Fetching Pattern:**
+```typescript
+// Server Component (page.tsx)
+export default function DashboardPage() {
+  return <DashboardClient />; // Simple wrapper, no SSR
+}
+
+// Client Component (*Client.tsx)
+"use client";
+export function DashboardClient() {
+  const { data, isLoading, error } = useHomeData(); // TanStack Query hook
+  // Render UI with data
+}
+```
+
+**Why Client-Only Fetching:**
+- Server Components can't access Zustand store (browser-only)
+- Avoids 403 errors when server lacks auth token
+- TanStack Query provides caching benefits even without SSR
+- Can be enhanced with cookie-based SSR later (optional)
 
 **Route Groups:**
 - `(auth)`: login, register, verify-email, forgot/reset-password
@@ -194,8 +314,10 @@ alert, avatar, badge, button, card, dialog, dropdown-menu, field, input, label, 
 
 ## Key Dependencies
 
+- **Data:** @tanstack/react-query v5, @tanstack/react-query-devtools
 - **Viz:** @xyflow/react, react-force-graph-2d, d3-force
 - **UI:** framer-motion, class-variance-authority, clsx, tailwind-merge
+- **State:** zustand (client state)
 - **Utils:** js-cookie, next-intl
 - **Radix:** 10+ primitives (dialog, dropdown, select, tabs, etc.)
 

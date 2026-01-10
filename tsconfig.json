@@ -17,10 +17,7 @@
 		"incremental": true,
 		"types": ["node", "react", "react-dom"],
 		"paths": {
-			"@/*": ["./*"],
-			"@/components/*": ["./components/*"],
-			"@/lib/*": ["./lib/*"],
-			"@/app/*": ["./app/*"]
+			"@/*": ["./*"]
 		},
 		"plugins": [
 			{

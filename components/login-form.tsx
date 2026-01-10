@@ -23,7 +23,7 @@ import {
 	FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { authService } from "@/lib/services/auth";
+import { useLogin } from "@/lib/hooks/useLogin";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
 import { type LoginFormData, loginSchema } from "@/lib/validations/auth";
@@ -36,9 +36,9 @@ export function LoginForm({
 	const searchParams = useSearchParams();
 	const t = useTranslations("auth");
 	const login = useUserStore((state) => state.login);
+	const loginMutation = useLogin();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [fieldErrors, setFieldErrors] = useState<
 		Partial<Record<keyof LoginFormData, string>>
@@ -58,7 +58,6 @@ export function LoginForm({
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		setIsLoading(true);
 		setError(null);
 		setFieldErrors({});
 
@@ -66,7 +65,7 @@ export function LoginForm({
 			// Validate form data with Zod
 			const formData = loginSchema.parse({ email, password });
 
-			const response = await authService.login(formData);
+			const response = await loginMutation.mutateAsync(formData);
 
 			// Transform AuthResponse to UserProfile format expected by store
 			const userProfile = {
@@ -104,8 +103,6 @@ export function LoginForm({
 					err instanceof Error ? err.message : "Invalid email or password",
 				);
 			}
-		} finally {
-			setIsLoading(false);
 		}
 	};
 
@@ -143,7 +140,7 @@ export function LoginForm({
 									required
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
-									disabled={isLoading}
+									disabled={loginMutation.isPending}
 									className={fieldErrors.email ? "border-destructive" : ""}
 								/>
 								{fieldErrors.email && (
@@ -168,7 +165,7 @@ export function LoginForm({
 									required
 									value={password}
 									onChange={(e) => setPassword(e.target.value)}
-									disabled={isLoading}
+									disabled={loginMutation.isPending}
 									className={fieldErrors.password ? "border-destructive" : ""}
 								/>
 								{fieldErrors.password && (
@@ -178,11 +175,11 @@ export function LoginForm({
 								)}
 							</Field>
 							<Field>
-								<Button type="submit" disabled={isLoading}>
-									{isLoading && (
+								<Button type="submit" disabled={loginMutation.isPending}>
+									{loginMutation.isPending && (
 										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 									)}
-									{isLoading ? t("loggingIn") : t("signIn")}
+									{loginMutation.isPending ? t("loggingIn") : t("signIn")}
 								</Button>
 								<FieldDescription className="text-center">
 									{t("noAccount")} <Link href="/register">{t("signUp")}</Link>

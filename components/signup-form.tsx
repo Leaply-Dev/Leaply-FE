@@ -23,7 +23,7 @@ import {
 	FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { authService } from "@/lib/services/auth";
+import { useRegister } from "@/lib/hooks/useRegister";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
 import { type RegisterFormData, registerSchema } from "@/lib/validations/auth";
@@ -35,13 +35,13 @@ export function SignupForm({
 	const router = useRouter();
 	const t = useTranslations("auth");
 	const login = useUserStore((state) => state.login);
+	const registerMutation = useRegister();
 	const [formData, setFormData] = useState({
 		fullName: "",
 		email: "",
 		password: "",
 		confirmPassword: "",
 	});
-	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [fieldErrors, setFieldErrors] = useState<
 		Partial<Record<keyof RegisterFormData, string>>
@@ -53,7 +53,6 @@ export function SignupForm({
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		setIsLoading(true);
 		setError(null);
 		setFieldErrors({});
 
@@ -62,7 +61,7 @@ export function SignupForm({
 			const validatedData = registerSchema.parse(formData);
 
 			// Register returns AuthResponse which includes token
-			const response = await authService.register({
+			const response = await registerMutation.mutateAsync({
 				fullName: validatedData.fullName,
 				email: validatedData.email,
 				password: validatedData.password,
@@ -101,8 +100,6 @@ export function SignupForm({
 					err instanceof Error ? err.message : "Failed to create account",
 				);
 			}
-		} finally {
-			setIsLoading(false);
 		}
 	};
 
@@ -140,7 +137,7 @@ export function SignupForm({
 									required
 									value={formData.fullName}
 									onChange={handleChange}
-									disabled={isLoading}
+									disabled={registerMutation.isPending}
 									className={fieldErrors.fullName ? "border-destructive" : ""}
 								/>
 								{fieldErrors.fullName && (
@@ -158,7 +155,7 @@ export function SignupForm({
 									required
 									value={formData.email}
 									onChange={handleChange}
-									disabled={isLoading}
+									disabled={registerMutation.isPending}
 									className={fieldErrors.email ? "border-destructive" : ""}
 								/>
 								{fieldErrors.email && (
@@ -177,7 +174,7 @@ export function SignupForm({
 											required
 											value={formData.password}
 											onChange={handleChange}
-											disabled={isLoading}
+											disabled={registerMutation.isPending}
 											className={
 												fieldErrors.password ? "border-destructive" : ""
 											}
@@ -198,7 +195,7 @@ export function SignupForm({
 											required
 											value={formData.confirmPassword}
 											onChange={handleChange}
-											disabled={isLoading}
+											disabled={registerMutation.isPending}
 											className={
 												fieldErrors.confirmPassword ? "border-destructive" : ""
 											}
@@ -213,11 +210,13 @@ export function SignupForm({
 								<FieldDescription>{t("passwordDescription")}</FieldDescription>
 							</Field>
 							<Field>
-								<Button type="submit" disabled={isLoading}>
-									{isLoading && (
+								<Button type="submit" disabled={registerMutation.isPending}>
+									{registerMutation.isPending && (
 										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 									)}
-									{isLoading ? t("creatingAccount") : t("createAccount")}
+									{registerMutation.isPending
+										? t("creatingAccount")
+										: t("createAccount")}
 								</Button>
 								<FieldDescription className="text-center">
 									{t("alreadyHaveAccount")}{" "}
