@@ -4,6 +4,9 @@ import type { ApiResponse, AuthResponse } from "./types";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 const isDev = process.env.NODE_ENV === "development";
 
+// Special marker for cookie-based authentication (OAuth)
+const COOKIE_AUTH_TOKEN = "COOKIE_AUTH";
+
 // Token refresh state management
 let isRefreshing = false;
 let refreshSubscribers: Array<(token: string) => void> = [];
@@ -24,11 +27,27 @@ function onTokenRefreshed(newToken: string) {
 }
 
 /**
+ * Check if using cookie-based authentication (OAuth)
+ */
+function isCookieAuth(): boolean {
+	const { accessToken, refreshToken } = useUserStore.getState();
+	return accessToken === COOKIE_AUTH_TOKEN || refreshToken === COOKIE_AUTH_TOKEN;
+}
+
+/**
  * Attempt to refresh the access token using the refresh token
  * Returns the new access token on success, null on failure
+ * For cookie-based auth, returns null (cannot refresh from frontend)
  */
 async function refreshAccessToken(): Promise<string | null> {
-	const { refreshToken, setTokens, logout } = useUserStore.getState();
+	const { refreshToken, setTokens } = useUserStore.getState();
+
+	// For cookie-based auth, we can't refresh from frontend
+	// The httpOnly cookies are managed by the backend
+	if (isCookieAuth()) {
+		if (isDev) console.warn("Cookie-based auth: cannot refresh from frontend");
+		return null;
+	}
 
 	if (!refreshToken) {
 		if (isDev) console.warn("No refresh token available");
@@ -173,20 +192,25 @@ async function apiFetch<T>(
 		...((headers as Record<string, string>) || {}),
 	};
 
-	if (token) {
+	if (token && token !== COOKIE_AUTH_TOKEN) {
+		// Token explicitly provided and is a real JWT
 		requestHeaders.Authorization = `Bearer ${token}`;
-	} else {
+	} else if (!token) {
 		// Attempt to get access token from userStore
 		try {
 			const storeToken = useUserStore.getState().accessToken;
-			if (storeToken) {
+			// Only set Bearer header if token is a real JWT (not the cookie-auth marker)
+			if (storeToken && storeToken !== COOKIE_AUTH_TOKEN) {
 				requestHeaders.Authorization = `Bearer ${storeToken}`;
 			}
+			// If storeToken is COOKIE_AUTH, don't set Authorization header
+			// The backend will read the token from httpOnly cookie instead
 		} catch (e) {
 			// Fallback or ignore if store access fails
 			if (isDev) console.warn("Failed to retrieve token from store", e);
 		}
 	}
+	// If token === COOKIE_AUTH_TOKEN, don't set Authorization header - rely on cookies
 
 	const config: RequestInit = {
 		method,
