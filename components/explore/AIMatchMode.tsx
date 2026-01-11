@@ -99,7 +99,7 @@ export function CategoryContainer({
 			{/* Collapsible Content - Compact */}
 			<div
 				className={`transition-all duration-300 ease-in-out ${
-					isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+					isExpanded ? "max-h-500 opacity-100" : "max-h-0 opacity-0"
 				}`}
 			>
 				<div className="px-4 pb-4 border-t border-border bg-background">

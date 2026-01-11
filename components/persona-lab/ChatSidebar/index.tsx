@@ -109,7 +109,7 @@ export function ChatSidebar() {
 
 			{/* Input - sticky at bottom, only show when track is active */}
 			{currentTrackId && (
-				<div className="flex-shrink-0">
+				<div className="shrink-0">
 					<MessageInput
 						onSend={handleSendMessage}
 						disabled={isSending}

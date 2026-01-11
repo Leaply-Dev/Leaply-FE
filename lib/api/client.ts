@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { useUserStore } from "../store/userStore";
 import type { ApiResponse, AuthResponse } from "./types";
 
@@ -176,13 +177,13 @@ export class ApiError extends Error {
 
 	/** Log detailed error info for debugging */
 	logDetails(): void {
-		console.group(`🚨 API Error [${this.status}] - ${this.endpoint}`);
-		console.error("Message:", this.message);
-		console.error("Code:", this.code || "N/A");
-		console.error("Field:", this.field || "N/A");
-		console.error("Details:", this.details || "N/A");
-		console.error("Timestamp:", this.timestamp || "N/A");
-		console.groupEnd();
+		console.error(`API Error [${this.status}] - ${this.endpoint}`, {
+			message: this.message,
+			code: this.code || "N/A",
+			field: this.field || "N/A",
+			details: this.details || "N/A",
+			timestamp: this.timestamp || "N/A",
+		});
 	}
 }
 
@@ -321,6 +322,17 @@ async function apiFetch<T>(
 			// Auto-log in development
 			if (isDev) apiError.logDetails();
 
+			// Send 5xx server errors to Sentry (indicates backend issues)
+			if (response.status >= 500) {
+				Sentry.captureException(apiError, {
+					extra: {
+						endpoint: path,
+						status: response.status,
+						code: data?.error?.code,
+					},
+				});
+			}
+
 			throw apiError;
 		}
 
@@ -337,6 +349,18 @@ async function apiFetch<T>(
 		if (isDev) {
 			console.error(`🌐 Network Error [${method}] ${path}:`, error);
 		}
+
+		// Send network errors to Sentry (may indicate infrastructure issues)
+		Sentry.captureException(error, {
+			extra: {
+				endpoint: path,
+				method,
+				isNetworkError,
+			},
+			tags: {
+				errorType: isNetworkError ? "network" : "unknown",
+			},
+		});
 
 		throw new ApiError(
 			isNetworkError
