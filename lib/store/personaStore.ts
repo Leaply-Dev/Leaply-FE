@@ -12,6 +12,7 @@ import type {
 	CanvasAction,
 	CanvasNode,
 	ChatMessage,
+	ConversationMessage,
 	Coverage,
 	GraphMessageResponse,
 	NodeType,
@@ -96,6 +97,9 @@ interface PersonaStoreState {
 	totalNodeCount: number;
 	starGapsMap: Record<string, (keyof StarStructure)[]>; // nodeId -> missing STAR elements
 
+	// === Graph-Based Chat Messages (persisted) ===
+	graphMessages: ConversationMessage[];
+
 	// === Actions ===
 
 	// Initial load
@@ -143,6 +147,10 @@ interface PersonaStoreState {
 	addStarGaps: (nodeId: string, gaps: (keyof StarStructure)[]) => void;
 	clearApiGraph: () => void;
 	getStarGapsForNode: (nodeId: string) => (keyof StarStructure)[];
+
+	// Graph-based chat message actions
+	addGraphMessage: (message: ConversationMessage) => void;
+	clearGraphMessages: () => void;
 
 	// Utility
 	resetPersona: () => void;
@@ -193,6 +201,8 @@ const initialState = {
 	completionReady: false,
 	totalNodeCount: 0,
 	starGapsMap: {} as Record<string, (keyof StarStructure)[]>,
+	// Graph-based chat messages
+	graphMessages: [] as ConversationMessage[],
 };
 
 export const usePersonaStore = create<PersonaStoreState>()(
@@ -771,6 +781,18 @@ export const usePersonaStore = create<PersonaStoreState>()(
 				return get().starGapsMap[nodeId] || [];
 			},
 
+			// === Graph-Based Chat Message Actions ===
+
+			// Add a message to the graph conversation
+			addGraphMessage: (message: ConversationMessage) => {
+				set((state) => ({
+					graphMessages: [...state.graphMessages, message],
+				}));
+			},
+
+			// Clear all graph messages (used on reset)
+			clearGraphMessages: () => set({ graphMessages: [] }),
+
 			// Utility
 			resetPersona: () => set(initialState),
 
@@ -802,6 +824,8 @@ export const usePersonaStore = create<PersonaStoreState>()(
 				completionReady: state.completionReady,
 				totalNodeCount: state.totalNodeCount,
 				starGapsMap: state.starGapsMap,
+				// Graph-based chat messages
+				graphMessages: state.graphMessages,
 			}),
 		},
 	),
@@ -846,6 +870,8 @@ export const selectTotalNodeCount = (state: PersonaStoreState) =>
 	state.totalNodeCount;
 export const selectStarGapsMap = (state: PersonaStoreState) =>
 	state.starGapsMap;
+export const selectGraphMessages = (state: PersonaStoreState) =>
+	state.graphMessages;
 
 // Re-export graph types for convenience
 export type { PersonaNodeDto, PersonaEdgeDto, GraphMeta };

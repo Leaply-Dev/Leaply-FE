@@ -39,17 +39,20 @@ export function useGraphForces() {
 	}, [apiGraphNodes, apiGraphEdges]);
 
 	// Configure forces when data changes or ref becomes available
+	// biome-ignore lint/correctness/useExhaustiveDependencies: graphData triggers simulation reheat
 	useEffect(() => {
 		if (!fgRef.current) return;
 
 		// Import d3-force module
 		const d3 = require("d3-force");
 
-		// Configure charge force (repulsion between nodes)
-		fgRef.current.d3Force("charge")?.strength(-300);
+		// Configure charge force (repulsion between nodes) - increased for better separation
+		fgRef.current.d3Force("charge")?.strength(-400);
 
-		// Add collision force to prevent overlap
-		const collideForce = d3.forceCollide((node: ForceGraphNode) => node.size + 15);
+		// Add collision force to prevent overlap - increased padding for better spacing
+		const collideForce = d3.forceCollide(
+			(node: ForceGraphNode) => node.size * 2 + 20,
+		);
 		fgRef.current.d3Force("collide", collideForce);
 
 		// Add radial positioning force based on node layer
@@ -64,21 +67,21 @@ export function useGraphForces() {
 							case 0:
 								return 0; // Center - profile_summary
 							case 1:
-								return 120; // Inner ring - essay_angle
+								return 150; // Inner ring - essay_angle
 							case 2:
-								return 200; // Middle ring - key_story
+								return 280; // Middle ring - key_story
 							case 3:
-								return 300; // Outer ring - detail
+								return 420; // Outer ring - detail
 							default:
-								return 200;
+								return 280;
 						}
 					}
 					// Legacy node types (fallback for mock data)
 					if (node.type === "archetype") return 0; // Center
-					if (node.type === "pattern") return 120; // Inner ring
-					if (node.type === "value" || node.type === "skill") return 200; // Middle ring
-					if (node.type === "story") return 300; // Outer ring
-					return 200;
+					if (node.type === "pattern") return 150; // Inner ring
+					if (node.type === "value" || node.type === "skill") return 280; // Middle ring
+					if (node.type === "story") return 420; // Outer ring
+					return 280;
 				},
 				0,
 				0,
@@ -86,8 +89,8 @@ export function useGraphForces() {
 			.strength(0.8);
 		fgRef.current.d3Force("radial", radialForce);
 
-		// Configure link force for better spacing
-		fgRef.current.d3Force("link")?.distance(80);
+		// Configure link force for better spacing - increased distance
+		fgRef.current.d3Force("link")?.distance(100);
 
 		// Reheat simulation when data changes
 		fgRef.current.d3ReheatSimulation();

@@ -45,8 +45,12 @@ export function ChatSidebar() {
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [showResetDialog, setShowResetDialog] = useState(false);
 
-	// Local state for conversation messages (accumulated from API responses)
-	const [messages, setMessages] = useState<ConversationMessage[]>([]);
+	// Get messages from store (persisted to localStorage)
+	const messages = usePersonaStore((state) => state.graphMessages);
+	const addGraphMessage = usePersonaStore((state) => state.addGraphMessage);
+	const clearGraphMessages = usePersonaStore(
+		(state) => state.clearGraphMessages,
+	);
 
 	// Store actions for graph updates (canvas will subscribe to these)
 	const processGraphUpdate = usePersonaStore(
@@ -66,12 +70,12 @@ export function ChatSidebar() {
 	const sendMessageMutation = useSendMessage();
 	const resetMutation = useResetConversation();
 
-	// Initialize messages when conversation data loads
+	// Initialize messages when conversation data loads (only if store is empty)
 	useEffect(() => {
 		if (conversationData?.message && messages.length === 0) {
-			setMessages([conversationData.message]);
+			addGraphMessage(conversationData.message);
 		}
-	}, [conversationData, messages.length]);
+	}, [conversationData, messages.length, addGraphMessage]);
 
 	// Scroll to bottom on new messages
 	const messageCount = messages.length;
@@ -84,7 +88,7 @@ export function ChatSidebar() {
 
 	const handleSendMessage = useCallback(
 		(content: string) => {
-			// Add user message to local state immediately
+			// Add user message to store immediately (persisted)
 			const userMessage: ConversationMessage = {
 				id: `user-${Date.now()}`,
 				role: "user",
@@ -92,13 +96,13 @@ export function ChatSidebar() {
 				content,
 				timestamp: new Date().toISOString(),
 			};
-			setMessages((prev) => [...prev, userMessage]);
+			addGraphMessage(userMessage);
 
 			// Send to API
 			sendMessageMutation.mutate(content, {
 				onSuccess: (data: GraphMessageResponse) => {
-					// Add assistant response to messages
-					setMessages((prev) => [...prev, data.message]);
+					// Add assistant response to store (persisted)
+					addGraphMessage(data.message);
 
 					// Update store with graph data (canvas subscribes to this)
 					processGraphUpdate(data);
@@ -112,25 +116,26 @@ export function ChatSidebar() {
 							content: t("conversationComplete"),
 							timestamp: new Date().toISOString(),
 						};
-						setMessages((prev) => [...prev, completionMessage]);
+						addGraphMessage(completionMessage);
 					}
 				},
 			});
 		},
-		[sendMessageMutation, t, processGraphUpdate],
+		[sendMessageMutation, t, processGraphUpdate, addGraphMessage],
 	);
 
 	const handleReset = useCallback(() => {
 		setShowResetDialog(false);
 		resetMutation.mutate(undefined, {
 			onSuccess: (data: ResetConversationResponse) => {
-				// Reset local messages with new opening message
-				setMessages([data.message]);
+				// Clear messages and add new opening message
+				clearGraphMessages();
+				addGraphMessage(data.message);
 				// Clear graph data in store
 				clearApiGraph();
 			},
 		});
-	}, [resetMutation, clearApiGraph]);
+	}, [resetMutation, clearApiGraph, clearGraphMessages, addGraphMessage]);
 
 	// Derived state
 	const coverage = coverageData?.coverage || DEFAULT_COVERAGE;

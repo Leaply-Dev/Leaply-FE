@@ -67,9 +67,22 @@ export function useGraphRenderers({
 			// Reset alpha
 			ctx.globalAlpha = 1.0;
 
-			// Label
-			if (showLabels && (isHovered || isSelected || globalScale > 1.5)) {
-				const label = graphNode.label;
+			// Label - smart visibility: only important nodes or when interacting
+			const isImportantNode =
+				graphNode.type === "profile_summary" ||
+				graphNode.type === "essay_angle";
+			const shouldShowLabel =
+				showLabels &&
+				(isHovered || isSelected || (isImportantNode && globalScale > 1.0));
+
+			if (shouldShowLabel) {
+				// Truncate long labels
+				const maxLength = 20;
+				const label =
+					graphNode.label.length > maxLength
+						? `${graphNode.label.slice(0, maxLength)}...`
+						: graphNode.label;
+
 				const fontSize = 12 / globalScale;
 				ctx.font = `${fontSize}px Inter, sans-serif`;
 				ctx.textAlign = "center";
