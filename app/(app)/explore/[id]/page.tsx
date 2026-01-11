@@ -20,7 +20,7 @@ import {
 	ProgramTabs,
 	QuickFactsBar,
 } from "@/components/explore-alt/program-detail";
-import { MOCK_PROGRAM_DETAIL } from "@/components/explore-alt/program-detail/mockDetailData";
+import { MOCK_PROGRAM_DETAIL } from "@/components/explore/mockDetailData";
 import { PageTransition, SlideUp } from "@/components/PageTransition";
 import { exploreApi } from "@/lib/api/exploreApi";
 import type { ProgramDetailResponse } from "@/lib/api/types";
