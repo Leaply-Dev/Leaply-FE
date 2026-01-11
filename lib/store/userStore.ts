@@ -158,7 +158,12 @@ export const useUserStore = create<UserState>()(
 					tokenExpiresAt: Date.now() + expiresIn * 1000,
 				}),
 
-			logout: () =>
+			logout: () => {
+				// Clear cookie SYNCHRONOUSLY inside the action
+				// This ensures cookie is cleared before any redirect happens
+				// The subscription below runs asynchronously and may not clear in time
+				Cookies.remove("leaply-auth-state", { path: "/" });
+
 				set({
 					profile: null,
 					accessToken: null,
@@ -169,7 +174,8 @@ export const useUserStore = create<UserState>()(
 					preferences: {},
 					journeyType: null,
 					lastActivity: undefined,
-				}),
+				});
+			},
 		}),
 		{
 			name: "leaply-user-store",

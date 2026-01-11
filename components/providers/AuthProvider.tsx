@@ -1,6 +1,8 @@
 "use client";
 
+import Cookies from "js-cookie";
 import { useEffect, useRef } from "react";
+import { performLogout } from "@/lib/auth/logout";
 import { authService } from "@/lib/services/auth";
 import { useUserStore } from "@/lib/store/userStore";
 
@@ -50,8 +52,7 @@ const COOKIE_AUTH_TOKEN = "COOKIE_AUTH";
  * - Auto-logout if authentication is invalid or expired
  */
 export function AuthProvider({ children }: AuthProviderProps) {
-	const { accessToken, isAuthenticated, logout, login, profile } =
-		useUserStore();
+	const { accessToken, isAuthenticated, login, profile } = useUserStore();
 	const validationDone = useRef(false);
 
 	useEffect(() => {
@@ -60,7 +61,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		validationDone.current = true;
 
 		async function validateAuth() {
-			// Skip if not authenticated
+			// Check for auth state corruption first
+			const authStateCookie = Cookies.get("leaply-auth-state");
+			let cookieAuth = false;
+
+			try {
+				const parsed = JSON.parse(authStateCookie || "{}");
+				cookieAuth = parsed.isAuthenticated === true;
+			} catch {
+				// Invalid cookie - will be handled below
+			}
+
+			// Corruption Case 1: Cookie says auth, but Zustand says not auth
+			// This happens when logout() was called but cookie subscription didn't run
+			if (cookieAuth && !isAuthenticated) {
+				console.warn("Auth state corruption detected: clearing stale cookie");
+				Cookies.remove("leaply-auth-state", { path: "/" });
+				return;
+			}
+
+			// Corruption Case 2: Zustand says auth, but no valid token
+			// This happens when localStorage was cleared but cookie remains
+			if (isAuthenticated && !accessToken) {
+				console.warn("Auth state corruption detected: auth but no token");
+				performLogout();
+				return;
+			}
+
+			// Skip if not authenticated (after corruption checks)
 			if (!isAuthenticated) return;
 
 			// Detect authentication type
@@ -115,7 +143,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		}
 
 		validateAuth();
-	}, [isAuthenticated, accessToken, logout, login, profile]);
+	}, [isAuthenticated, accessToken, login, profile]);
 
 	return <>{children}</>;
 }

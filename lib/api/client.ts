@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+import { performLogout } from "../auth/logout";
 import { useUserStore } from "../store/userStore";
 import type { ApiResponse, AuthResponse } from "./types";
 
@@ -10,20 +11,35 @@ const COOKIE_AUTH_TOKEN = "COOKIE_AUTH";
 
 // Token refresh state management
 let isRefreshing = false;
-let refreshSubscribers: Array<(token: string) => void> = [];
+let refreshSubscribers: Array<(token: string | null) => void> = [];
+
+// Refresh timeout in milliseconds (prevents hanging indefinitely)
+const REFRESH_TIMEOUT_MS = 10000;
 
 /**
  * Subscribe to token refresh completion
  */
-function subscribeTokenRefresh(callback: (token: string) => void) {
+function subscribeTokenRefresh(callback: (token: string | null) => void) {
 	refreshSubscribers.push(callback);
 }
 
 /**
- * Notify all subscribers when token refresh completes
+ * Notify all subscribers when token refresh completes (success or failure)
  */
-function onTokenRefreshed(newToken: string) {
-	refreshSubscribers.forEach((callback) => callback(newToken));
+function onTokenRefreshed(newToken: string | null) {
+	for (const callback of refreshSubscribers) {
+		callback(newToken);
+	}
+	refreshSubscribers = [];
+}
+
+/**
+ * Clear all subscribers (used on failure to prevent memory leaks)
+ */
+function clearRefreshSubscribers() {
+	for (const callback of refreshSubscribers) {
+		callback(null);
+	}
 	refreshSubscribers = [];
 }
 
@@ -94,11 +110,12 @@ async function refreshAccessToken(): Promise<string | null> {
 
 /**
  * Handle 401 Unauthorized - attempt token refresh before logging out
+ * Includes timeout to prevent hanging indefinitely on network issues
  */
 async function handleUnauthorized(): Promise<string | null> {
 	if (typeof window === "undefined") return null;
 
-	const { isAuthenticated, logout } = useUserStore.getState();
+	const { isAuthenticated } = useUserStore.getState();
 	if (!isAuthenticated) return null;
 
 	// If already refreshing, wait for it to complete
@@ -111,17 +128,32 @@ async function handleUnauthorized(): Promise<string | null> {
 	isRefreshing = true;
 
 	try {
-		const newToken = await refreshAccessToken();
+		// Add timeout to prevent hanging indefinitely
+		const newToken = await Promise.race([
+			refreshAccessToken(),
+			new Promise<null>((_, reject) =>
+				setTimeout(
+					() => reject(new Error("Token refresh timeout")),
+					REFRESH_TIMEOUT_MS,
+				),
+			),
+		]);
 
 		if (newToken) {
 			onTokenRefreshed(newToken);
 			return newToken;
 		}
 
-		// Refresh failed - logout
+		// Refresh failed - clear subscribers and logout synchronously
 		console.warn("Token refresh failed. Logging out...");
-		logout();
-		window.location.href = "/?expired=true";
+		clearRefreshSubscribers();
+		performLogout({ redirect: "/?expired=true" });
+		return null;
+	} catch (error) {
+		// Handle timeout or network errors
+		console.error("Token refresh error:", error);
+		clearRefreshSubscribers();
+		performLogout({ redirect: "/?expired=true" });
 		return null;
 	} finally {
 		isRefreshing = false;

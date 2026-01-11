@@ -1,15 +1,15 @@
 "use client";
 
-import Cookies from "js-cookie";
 import { ChevronDown, LogOut, Menu, User, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { LanguageSwitcher } from "@/components/app/LanguageSwitcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { performLogout } from "@/lib/auth/logout";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
 
@@ -17,11 +17,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
 export function Navbar() {
 	const pathname = usePathname();
-	const router = useRouter();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
-	const { isAuthenticated, profile, logout } = useUserStore();
+	const { isAuthenticated, profile } = useUserStore();
 
 	// Helper to get translation
 	const t = useTranslations("nav");
@@ -68,9 +67,10 @@ export function Navbar() {
 			.slice(0, 2);
 	};
 
-	// Handle logout - call backend to clear httpOnly cookies
+	// Handle logout - call backend to clear httpOnly cookies, then use performLogout
 	const handleLogout = async () => {
 		try {
+			// Clear httpOnly cookies via backend (for OAuth)
 			await fetch(`${API_URL}/oauth/logout`, {
 				method: "POST",
 				credentials: "include",
@@ -78,11 +78,8 @@ export function Navbar() {
 		} catch (error) {
 			console.error("Logout API error:", error);
 		} finally {
-			// Always clear local state even if API call fails
-			logout();
-			// Clear auth state cookie explicitly to prevent stale routing
-			Cookies.remove("leaply-auth-state", { path: "/" });
-			router.push("/");
+			// Use synchronous logout utility to prevent race conditions
+			performLogout({ redirect: "/" });
 		}
 	};
 

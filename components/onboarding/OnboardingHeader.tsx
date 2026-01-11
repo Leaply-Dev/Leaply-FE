@@ -1,22 +1,20 @@
 "use client";
 
-import Cookies from "js-cookie";
 import { LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { LanguageSwitcher } from "@/components/app/LanguageSwitcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { performLogout } from "@/lib/auth/logout";
 import { useUserStore } from "@/lib/store/userStore";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
 export function OnboardingHeader() {
-	const router = useRouter();
 	const t = useTranslations("nav");
-	const { profile, logout } = useUserStore();
+	const { profile } = useUserStore();
 	const [dropdownOpen, setDropdownOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -36,6 +34,7 @@ export function OnboardingHeader() {
 
 	const handleLogout = async () => {
 		try {
+			// Clear httpOnly cookies via backend (for OAuth)
 			await fetch(`${API_URL}/oauth/logout`, {
 				method: "POST",
 				credentials: "include",
@@ -43,9 +42,8 @@ export function OnboardingHeader() {
 		} catch (error) {
 			console.error("Logout API error:", error);
 		} finally {
-			logout();
-			Cookies.remove("leaply-auth-state", { path: "/" });
-			router.push("/");
+			// Use synchronous logout utility to prevent race conditions
+			performLogout({ redirect: "/" });
 		}
 	};
 
