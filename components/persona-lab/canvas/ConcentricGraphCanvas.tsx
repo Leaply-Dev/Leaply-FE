@@ -187,8 +187,19 @@ export function ConcentricGraphCanvas({
 				<div className="space-y-2 text-xs">
 					{/* Display hierarchical order based on data source */}
 					{(isUsingApiData
-						? (["profile_summary", "essay_angle", "key_story", "detail"] as NodeType[])
-						: (["archetype", "pattern", "value", "skill", "story"] as NodeType[])
+						? ([
+								"profile_summary",
+								"essay_angle",
+								"key_story",
+								"detail",
+							] as NodeType[])
+						: ([
+								"archetype",
+								"pattern",
+								"value",
+								"skill",
+								"story",
+							] as NodeType[])
 					).map((type) => {
 						const config = getNodeConfig(type);
 						const isHidden = hiddenNodeTypes.has(type);
@@ -381,17 +392,12 @@ export function ConcentricGraphCanvas({
 												return (
 													<div
 														key={key}
-														className={cn(
-															"text-xs",
-															hasGap && "opacity-50",
-														)}
+														className={cn("text-xs", hasGap && "opacity-50")}
 													>
 														<span
 															className={cn(
 																"font-medium",
-																hasGap
-																	? "text-orange-500"
-																	: "text-foreground",
+																hasGap ? "text-orange-500" : "text-foreground",
 															)}
 														>
 															{STAR_LABELS[key]}:

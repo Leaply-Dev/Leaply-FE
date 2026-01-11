@@ -5,15 +5,15 @@ import { ApiError } from "@/lib/api/client";
 import { personaApi } from "@/lib/api/personaApi";
 import { createInitialTracks } from "@/lib/constants/tracks";
 import type {
+	GraphEdge as ApiGraphEdge,
+	GraphNode as ApiGraphNode,
 	ArchetypeHints,
 	ArchetypeType,
 	CanvasAction,
 	CanvasNode,
 	ChatMessage,
 	Coverage,
-	GraphEdge as ApiGraphEdge,
 	GraphMessageResponse,
-	GraphNode as ApiGraphNode,
 	NodeType,
 	StarStructure,
 	Track,
@@ -708,7 +708,7 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					);
 
 					// Update STAR gaps for the last story if provided
-					let starGapsMap = { ...state.starGapsMap };
+					const starGapsMap = { ...state.starGapsMap };
 					if (
 						response.starGapsForLastStory &&
 						response.starGapsForLastStory.length > 0

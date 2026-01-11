@@ -134,8 +134,8 @@ export function resetGraphMockState() {
 	};
 }
 
-// Coverage categories for question targeting
-const COVERAGE_CATEGORIES = [
+// Coverage categories for question targeting (unused for now, prepared for future use)
+const _COVERAGE_CATEGORIES = [
 	"goals",
 	"evidence",
 	"skills",

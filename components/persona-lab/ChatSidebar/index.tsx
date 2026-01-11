@@ -243,7 +243,6 @@ export function ChatSidebar() {
 // Keep for backward compatibility during migration
 // ============================================
 
-import { usePersonaStore } from "@/lib/store/personaStore";
 import type { TrackId } from "@/lib/types/persona";
 import { BackToTracksButton } from "./BackToTracksButton";
 import { LegacyChatMessage } from "./ChatMessage";
