@@ -79,7 +79,11 @@ interface UserState {
 		expiresIn: number,
 		isOnboardingComplete?: boolean,
 	) => void;
-	setTokens: (accessToken: string, refreshToken: string, expiresIn: number) => void;
+	setTokens: (
+		accessToken: string,
+		refreshToken: string,
+		expiresIn: number,
+	) => void;
 	logout: () => void;
 	// Legacy support for components still using 'token'
 	get token(): string | null;
@@ -131,7 +135,13 @@ export const useUserStore = create<UserState>()(
 
 			completeOnboarding: () => set({ isOnboardingComplete: true }),
 
-			login: (profile, accessToken, refreshToken, expiresIn, isOnboardingComplete = false) =>
+			login: (
+				profile,
+				accessToken,
+				refreshToken,
+				expiresIn,
+				isOnboardingComplete = false,
+			) =>
 				set({
 					profile,
 					accessToken,

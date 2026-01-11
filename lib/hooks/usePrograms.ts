@@ -60,7 +60,7 @@ export function useSaveProgram() {
 
 			return { previousPrograms };
 		},
-		onError: (err, variables, context) => {
+		onError: (err, _variables, context) => {
 			// Rollback on error
 			if (context?.previousPrograms) {
 				queryClient.setQueryData(["programs"], context.previousPrograms);

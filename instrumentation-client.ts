@@ -41,8 +41,10 @@ Sentry.init({
 				labelClose: "Close",
 				labelSubmit: "Submit",
 				// Show the error name/message to give context
-				errorGeneric: "An unknown error occurred while submitting your report. Please try again.",
-				errorFormEntry: "Some fields were invalid. Please correct the errors and try again.",
+				errorGeneric:
+					"An unknown error occurred while submitting your report. Please try again.",
+				errorFormEntry:
+					"Some fields were invalid. Please correct the errors and try again.",
 				successMessage: "Your feedback has been sent. Thank you!",
 			});
 		}

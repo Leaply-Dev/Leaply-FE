@@ -1,10 +1,10 @@
 import { ChevronDown, ShieldCheck, Sparkles, Target } from "lucide-react";
 import { useState } from "react";
+import { ProgramCard } from "@/components/explore/ProgramCard";
 import type { ProgramListItemResponse } from "@/lib/api/types";
-import { ProgramCard } from "./ProgramCard";
 
 /**
- * Collapsible Container for each Match Category
+ * Collapsible Container for each Match Category - Compact Version
  */
 export function CategoryContainer({
 	title,
@@ -20,6 +20,7 @@ export function CategoryContainer({
 	defaultExpanded?: boolean;
 }) {
 	const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+	const [showAll, setShowAll] = useState(false);
 
 	const variantStyles = {
 		reach: {
@@ -50,65 +51,98 @@ export function CategoryContainer({
 
 	const style = variantStyles[variant];
 
+	// Show max 2 cards by default
+	const MAX_PREVIEW_CARDS = 2;
+	const displayedPrograms = showAll
+		? programs
+		: programs.slice(0, MAX_PREVIEW_CARDS);
+	const hasMore = programs.length > MAX_PREVIEW_CARDS;
+
 	return (
 		<div
-			className={`border rounded-2xl overflow-hidden shadow-sm transition-all duration-300 mb-6 ${
+			className={`border rounded-xl overflow-hidden shadow-sm transition-all duration-300 mb-3 ${
 				isExpanded ? "ring-1 ring-border" : "hover:border-primary/30"
 			}`}
 		>
-			{/* Header (The Horizon Bar) */}
+			{/* Header (The Horizon Bar) - More Compact */}
 			<button
 				type="button"
 				onClick={() => setIsExpanded(!isExpanded)}
-				className={`w-full flex items-center justify-between p-6 text-left transition-colors ${
+				className={`w-full flex items-center justify-between p-4 text-left transition-colors ${
 					isExpanded ? style.bg : "bg-card"
 				}`}
 			>
-				<div className="flex items-center gap-4">
-					<div className={`p-3 rounded-xl ${style.bg} ${style.text}`}>
+				<div className="flex items-center gap-3">
+					<div className={`p-2 rounded-lg ${style.bg} ${style.text}`}>
 						{style.icon}
 					</div>
 					<div>
 						<div className="flex items-center gap-2">
-							<h3 className="text-xl font-bold text-foreground">{title}</h3>
+							<h3 className="text-lg font-bold text-foreground">{title}</h3>
 							<span
-								className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${style.bg} ${style.text} border ${style.border}`}
+								className={`px-2 py-0.5 rounded-full text-xs font-semibold ${style.bg} ${style.text} border ${style.border}`}
 							>
-								{programs.length} Programs
+								{programs.length}
 							</span>
 						</div>
-						<p className="text-sm text-muted-foreground mt-1">
-							{style.description}
-						</p>
 					</div>
 				</div>
 				<ChevronDown
-					className={`w-6 h-6 text-muted-foreground transition-transform duration-300 ${
+					className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${
 						isExpanded ? "rotate-180" : ""
 					}`}
 				/>
 			</button>
 
-			{/* Collapsible Content */}
+			{/* Collapsible Content - Compact */}
 			<div
 				className={`transition-all duration-300 ease-in-out ${
 					isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
 				}`}
 			>
-				<div className="p-6 border-t border-border bg-background">
+				<div className="px-4 pb-4 border-t border-border bg-background">
 					{programs.length > 0 ? (
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-							{programs.map((program) => (
-								<ProgramCard
-									key={program.id}
-									program={program}
-									onSaveToggle={onSaveToggle}
-								/>
-							))}
-						</div>
+						<>
+							{/* Card Grid - Show max 2 cards in a row */}
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+								{displayedPrograms.map((program) => (
+									<ProgramCard
+										key={program.id}
+										program={program}
+										onSaveToggle={onSaveToggle}
+									/>
+								))}
+							</div>
+
+							{/* View All Button */}
+							{hasMore && !showAll && (
+								<div className="mt-4 text-center">
+									<button
+										type="button"
+										onClick={() => setShowAll(true)}
+										className="text-sm text-primary hover:text-primary/80 font-medium"
+									>
+										View all {programs.length} programs →
+									</button>
+								</div>
+							)}
+
+							{/* Show Less Button */}
+							{showAll && (
+								<div className="mt-4 text-center">
+									<button
+										type="button"
+										onClick={() => setShowAll(false)}
+										className="text-sm text-muted-foreground hover:text-foreground font-medium"
+									>
+										Show less ↑
+									</button>
+								</div>
+							)}
+						</>
 					) : (
-						<div className="py-12 text-center">
-							<p className="text-muted-foreground">
+						<div className="py-8 text-center">
+							<p className="text-sm text-muted-foreground">
 								No programs found in this category.
 							</p>
 						</div>

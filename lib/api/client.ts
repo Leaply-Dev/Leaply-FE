@@ -31,7 +31,9 @@ function onTokenRefreshed(newToken: string) {
  */
 function isCookieAuth(): boolean {
 	const { accessToken, refreshToken } = useUserStore.getState();
-	return accessToken === COOKIE_AUTH_TOKEN || refreshToken === COOKIE_AUTH_TOKEN;
+	return (
+		accessToken === COOKIE_AUTH_TOKEN || refreshToken === COOKIE_AUTH_TOKEN
+	);
 }
 
 /**
@@ -64,14 +66,19 @@ async function refreshAccessToken(): Promise<string | null> {
 		});
 
 		if (!response.ok) {
-			if (isDev) console.warn("Token refresh failed with status:", response.status);
+			if (isDev)
+				console.warn("Token refresh failed with status:", response.status);
 			return null;
 		}
 
 		const data = (await response.json()) as ApiResponse<AuthResponse>;
 
 		if (data.success && data.data) {
-			const { accessToken, refreshToken: newRefreshToken, expiresIn } = data.data;
+			const {
+				accessToken,
+				refreshToken: newRefreshToken,
+				expiresIn,
+			} = data.data;
 			setTokens(accessToken, newRefreshToken, expiresIn);
 			if (isDev) console.log("Token refreshed successfully");
 			return accessToken;

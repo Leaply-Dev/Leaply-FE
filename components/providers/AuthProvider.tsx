@@ -50,7 +50,8 @@ const COOKIE_AUTH_TOKEN = "COOKIE_AUTH";
  * - Auto-logout if authentication is invalid or expired
  */
 export function AuthProvider({ children }: AuthProviderProps) {
-	const { accessToken, isAuthenticated, logout, login, profile } = useUserStore();
+	const { accessToken, isAuthenticated, logout, login, profile } =
+		useUserStore();
 	const validationDone = useRef(false);
 
 	useEffect(() => {
@@ -73,7 +74,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				if (isTokenExpired(accessToken)) {
 					// Don't logout immediately - the API client will attempt refresh
 					// Just log for debugging
-					console.debug("Access token expired, will attempt refresh on next API call");
+					console.debug(
+						"Access token expired, will attempt refresh on next API call",
+					);
 				}
 			}
 
@@ -83,7 +86,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				const userContext = await authService.getCurrentUser();
 
 				// For cookie-based auth, ensure token marker is set
-				if (isCookieAuth && accessToken !== COOKIE_AUTH_TOKEN && userContext.user) {
+				if (
+					isCookieAuth &&
+					accessToken !== COOKIE_AUTH_TOKEN &&
+					userContext.user
+				) {
 					// Update token to marker without triggering logout
 					login(
 						profile || {
