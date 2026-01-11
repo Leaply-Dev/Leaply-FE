@@ -223,11 +223,9 @@ export function ConcentricGraphCanvas({
 									}
 								>
 									<div
-										className="rounded-full shrink-0"
+										className="w-3 h-3 rounded-full shrink-0"
 										style={{
 											backgroundColor: config.color,
-											width: `${Math.max(config.size / 2, 8)}px`,
-											height: `${Math.max(config.size / 2, 8)}px`,
 											opacity: isHidden ? 0.3 : 1,
 										}}
 									/>

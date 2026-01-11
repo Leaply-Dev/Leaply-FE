@@ -58,9 +58,9 @@ export const EDGE_CONFIG = {
 
 export const GRAPH_NODE_CONFIG = {
 	profile_summary: {
-		color: "#6366f1", // indigo-500 - CENTER
-		hoverColor: "#4f46e5", // indigo-600
-		size: 90, // Largest - center node
+		color: "#f59e0b", // amber-500 - CENTER (vibrant like archetype)
+		hoverColor: "#d97706", // amber-600
+		size: 24, // Largest - center node
 		layer: 0,
 		label: "Profile",
 		description: "Overall profile with archetype",
@@ -68,7 +68,7 @@ export const GRAPH_NODE_CONFIG = {
 	essay_angle: {
 		color: "#8b5cf6", // violet-500 - Layer 1
 		hoverColor: "#7c3aed", // violet-600
-		size: 55,
+		size: 16,
 		layer: 1,
 		label: "Essay Angle",
 		description: "Patterns and themes for essays",
@@ -76,15 +76,15 @@ export const GRAPH_NODE_CONFIG = {
 	key_story: {
 		color: "#10b981", // emerald-500 - Layer 2
 		hoverColor: "#059669", // emerald-600
-		size: 40,
+		size: 12,
 		layer: 2,
 		label: "Story",
 		description: "Complete narratives with STAR structure",
 	},
 	detail: {
-		color: "#94a3b8", // slate-400 - Layer 3 (outermost)
-		hoverColor: "#64748b", // slate-500
-		size: 24,
+		color: "#3b82f6", // blue-500 - Layer 3 (more vibrant than slate)
+		hoverColor: "#2563eb", // blue-600
+		size: 8,
 		layer: 3,
 		label: "Detail",
 		description: "Specific achievements and evidence",

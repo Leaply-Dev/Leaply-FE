@@ -42,51 +42,52 @@ export function useGraphForces() {
 	useEffect(() => {
 		if (!fgRef.current) return;
 
-		// Configure custom forces for hierarchical layout
-		// Add radial force to push nodes outward from center based on layer
-		fgRef.current.d3Force("charge")?.strength(-400);
+		// Import d3-force module
+		const d3 = require("d3-force");
+
+		// Configure charge force (repulsion between nodes)
+		fgRef.current.d3Force("charge")?.strength(-300);
 
 		// Add collision force to prevent overlap
-		fgRef.current.d3Force("collide", () => {
-			const d3 = require("d3-force");
-			return d3.forceCollide((node: ForceGraphNode) => node.size + 5);
-		});
+		const collideForce = d3.forceCollide((node: ForceGraphNode) => node.size + 15);
+		fgRef.current.d3Force("collide", collideForce);
 
-		// Add radial positioning force based on node type/layer
-		fgRef.current.d3Force("radial", () => {
-			const d3 = require("d3-force");
-			return d3
-				.forceRadial(
-					(node: ForceGraphNode) => {
-						// New API node types use layer property
-						const nodeData = node as ForceGraphNode & { layer?: number };
-						if (nodeData.layer !== undefined) {
-							// Layer-based radial distance for new API nodes
-							switch (nodeData.layer) {
-								case 0:
-									return 0; // Center - profile_summary
-								case 1:
-									return 150; // Inner ring - essay_angle
-								case 2:
-									return 280; // Middle ring - key_story
-								case 3:
-									return 450; // Outer ring - detail
-								default:
-									return 300;
-							}
+		// Add radial positioning force based on node layer
+		const radialForce = d3
+			.forceRadial(
+				(node: ForceGraphNode) => {
+					// New API node types use layer property
+					const nodeData = node as ForceGraphNode & { layer?: number };
+					if (nodeData.layer !== undefined) {
+						// Layer-based radial distance for new API nodes
+						switch (nodeData.layer) {
+							case 0:
+								return 0; // Center - profile_summary
+							case 1:
+								return 120; // Inner ring - essay_angle
+							case 2:
+								return 200; // Middle ring - key_story
+							case 3:
+								return 300; // Outer ring - detail
+							default:
+								return 200;
 						}
-						// Legacy node types (fallback for mock data)
-						if (node.type === "archetype") return 0; // Center
-						if (node.type === "pattern") return 150; // Inner ring
-						if (node.type === "value" || node.type === "skill") return 280; // Middle ring
-						if (node.type === "story") return 450; // Outer ring
-						return 300;
-					},
-					0,
-					0,
-				)
-				.strength(0.8);
-		});
+					}
+					// Legacy node types (fallback for mock data)
+					if (node.type === "archetype") return 0; // Center
+					if (node.type === "pattern") return 120; // Inner ring
+					if (node.type === "value" || node.type === "skill") return 200; // Middle ring
+					if (node.type === "story") return 300; // Outer ring
+					return 200;
+				},
+				0,
+				0,
+			)
+			.strength(0.8);
+		fgRef.current.d3Force("radial", radialForce);
+
+		// Configure link force for better spacing
+		fgRef.current.d3Force("link")?.distance(80);
 
 		// Reheat simulation when data changes
 		fgRef.current.d3ReheatSimulation();
