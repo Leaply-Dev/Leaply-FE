@@ -203,3 +203,175 @@ export const REVERSE_TRACK_MAPPING: Record<TrackId, LegacyTrackId> = {
 	values_turning_points: "values",
 	future_vision: "future",
 };
+
+// ============================================
+// Graph-Based Conversation Types (New API)
+// ============================================
+
+/**
+ * Coverage metrics for the 5 persona dimensions.
+ * Each value is 0-100 representing completion percentage.
+ */
+export interface Coverage {
+	goals: number;
+	evidence: number;
+	skills: number;
+	values: number;
+	tensions: number;
+}
+
+/**
+ * STAR structure for story nodes.
+ * Contains structured content extracted from user responses.
+ */
+export interface StarStructure {
+	situation?: string;
+	task?: string;
+	action?: string;
+	result?: string;
+	emotion?: string;
+	insight?: string;
+}
+
+/** Layer in the persona graph (0 = center, 3 = outermost) */
+export type GraphNodeLayer = 0 | 1 | 2 | 3;
+
+/** Node types in the new graph-based system */
+export type GraphNodeType =
+	| "profile_summary" // Layer 0 - Overall profile with archetype
+	| "essay_angle" // Layer 1 - Patterns/themes
+	| "key_story" // Layer 2 - Complete narratives with STAR
+	| "detail"; // Layer 3 - Specific achievements, evidence
+
+/** Connection edge types (normal relationships) */
+export type ConnectionEdgeLabel =
+	| "enables"
+	| "builds_on"
+	| "supports"
+	| "complements";
+
+/** Tension edge types (contradictions - valuable for essays) */
+export type TensionEdgeLabel =
+	| "contradicts"
+	| "evolved_from"
+	| "challenged_by"
+	| "transformed";
+
+/** All edge labels */
+export type GraphEdgeLabel = ConnectionEdgeLabel | TensionEdgeLabel;
+
+/** Edge category for styling purposes */
+export type GraphEdgeType = "connection" | "tension";
+
+/**
+ * Node in the persona graph from API.
+ */
+export interface GraphNode {
+	id: string;
+	type: GraphNodeType;
+	layer: GraphNodeLayer;
+	title: string;
+	content: string;
+	structuredContent?: StarStructure;
+	tags: string[];
+	bestFor?: string[];
+	wordCountPotential?: string;
+	essayAngle?: string;
+}
+
+/**
+ * Edge in the persona graph from API.
+ */
+export interface GraphEdge {
+	id: string;
+	sourceNodeId: string;
+	targetNodeId: string;
+	edgeType: GraphEdgeType;
+	label: GraphEdgeLabel;
+	strength: number; // 0-1
+}
+
+/**
+ * Message in the new conversation API.
+ */
+export interface ConversationMessage {
+	id: string;
+	role: "assistant" | "user";
+	content: string;
+	type: "text" | "question" | "completion";
+	timestamp: string;
+}
+
+/**
+ * Response from POST /v1/persona/conversation/message
+ * Contains all data needed to update UI after a message.
+ */
+export interface GraphMessageResponse {
+	message: ConversationMessage;
+	nodesCreated: GraphNode[];
+	edgesCreated: GraphEdge[];
+	coverage: Coverage;
+	voiceSample: string | null;
+	completionReady: boolean;
+	starGapsForLastStory: (keyof StarStructure)[] | null;
+	totalNodeCount: number;
+}
+
+/**
+ * Response from GET /v1/persona/conversation
+ * Returns opening question based on coverage gaps.
+ */
+export interface ConversationStartResponse {
+	message: ConversationMessage;
+	coverage: Coverage;
+	totalNodeCount: number;
+}
+
+/**
+ * Response from GET /v1/persona/coverage
+ */
+export interface CoverageResponse {
+	coverage: Coverage;
+	completionReady: boolean;
+	totalNodeCount: number;
+}
+
+/**
+ * Voice profile for essay generation.
+ * Response from GET /v1/persona/voice-profile
+ */
+export interface VoiceProfileResponse {
+	personaId: string;
+	sentenceStyle: string;
+	toneMarkers: {
+		formality: string;
+		confidence: string;
+		emotionLevel: string;
+	};
+	vocabularyPatterns: string[];
+	sampleExcerpts: string[];
+	sampleCount: number;
+}
+
+/**
+ * Response from POST /v1/persona/node/{nodeId}/expand
+ */
+export interface NodeExpandResponse extends GraphMessageResponse {}
+
+/**
+ * Response from POST /v1/persona/conversation/reset
+ */
+export interface ResetConversationResponse {
+	success: boolean;
+	message: ConversationMessage;
+}
+
+/**
+ * Full graph response from GET /v1/persona/graph
+ */
+export interface PersonaGraphResponse {
+	nodes: GraphNode[];
+	edges: GraphEdge[];
+	coverage: Coverage;
+	completionReady: boolean;
+}

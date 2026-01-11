@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import type { LinkObject, NodeObject } from "react-force-graph-2d";
-import { EDGE_CONFIG, NODE_CONFIG } from "@/lib/config/graphConfig";
+import { EDGE_CONFIG, getNodeConfig } from "@/lib/config/graphConfig";
 import type {
 	ForceGraphLink,
 	ForceGraphNode,
@@ -33,7 +33,7 @@ export function useGraphRenderers({
 			const isHighlighted = highlightNodes.has(graphNode.id);
 			const isHidden = hiddenNodeTypes.has(graphNode.type);
 			const isFaded = (selectedNode && !isHighlighted) || isHidden;
-			const config = NODE_CONFIG[graphNode.type];
+			const config = getNodeConfig(graphNode.type);
 
 			// Node circle
 			ctx.beginPath();
@@ -195,9 +195,10 @@ export function useGraphRenderers({
 	// Node tooltip
 	const nodeTooltip = useCallback((node: NodeObject) => {
 		const graphNode = node as unknown as ForceGraphNode;
+		const config = getNodeConfig(graphNode.type);
 		return `<div style="background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px;">
 			<strong>${graphNode.label}</strong><br/>
-			<span style="color: ${graphNode.color};">● ${NODE_CONFIG[graphNode.type].label}</span>
+			<span style="color: ${graphNode.color};">● ${config.label}</span>
 		</div>`;
 	}, []);
 

@@ -5,12 +5,23 @@ import { TRACK_COLORS } from "@/lib/constants/tracks";
 import type { TrackAction, TrackId } from "@/lib/types/persona";
 import { cn } from "@/lib/utils";
 
+// ============================================
+// DEPRECATED: Track-based flow component
+// This component is part of the legacy track-based conversation flow.
+// Use the new graph-based conversation flow (ChatSidebar) instead.
+// ============================================
+
 interface TrackActionCardsProps {
 	tracks: TrackAction[];
 	onSelect: (trackId: TrackId) => void;
 	disabled?: boolean;
 }
 
+/**
+ * @deprecated Use the new graph-based conversation flow instead.
+ * This component is only kept for backward compatibility during migration.
+ * The new flow uses dynamic conversation based on coverage gaps, not fixed tracks.
+ */
 export function TrackActionCards({
 	tracks,
 	onSelect,

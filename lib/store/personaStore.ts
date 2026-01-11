@@ -10,7 +10,12 @@ import type {
 	CanvasAction,
 	CanvasNode,
 	ChatMessage,
+	Coverage,
+	GraphEdge as ApiGraphEdge,
+	GraphMessageResponse,
+	GraphNode as ApiGraphNode,
 	NodeType,
+	StarStructure,
 	Track,
 	TrackId,
 	TrackStatus,
@@ -83,6 +88,14 @@ interface PersonaStoreState {
 	hoveredNodeId: string | null;
 	showAllDetails: boolean;
 
+	// === New Graph-Based Conversation State ===
+	apiGraphNodes: ApiGraphNode[];
+	apiGraphEdges: ApiGraphEdge[];
+	coverage: Coverage;
+	completionReady: boolean;
+	totalNodeCount: number;
+	starGapsMap: Record<string, (keyof StarStructure)[]>; // nodeId -> missing STAR elements
+
 	// === Actions ===
 
 	// Initial load
@@ -123,6 +136,14 @@ interface PersonaStoreState {
 	setHoveredNode: (nodeId: string | null) => void;
 	setShowAllDetails: (show: boolean) => void;
 
+	// === New Graph-Based Conversation Actions ===
+	processGraphUpdate: (response: GraphMessageResponse) => void;
+	setCoverage: (coverage: Coverage) => void;
+	setCompletionReady: (ready: boolean) => void;
+	addStarGaps: (nodeId: string, gaps: (keyof StarStructure)[]) => void;
+	clearApiGraph: () => void;
+	getStarGapsForNode: (nodeId: string) => (keyof StarStructure)[];
+
 	// Utility
 	resetPersona: () => void;
 	clearError: () => void;
@@ -159,6 +180,19 @@ const initialState = {
 	selectedGraphNodeId: null as string | null,
 	hoveredNodeId: null as string | null,
 	showAllDetails: false,
+	// New graph-based conversation state
+	apiGraphNodes: [] as ApiGraphNode[],
+	apiGraphEdges: [] as ApiGraphEdge[],
+	coverage: {
+		goals: 0,
+		evidence: 0,
+		skills: 0,
+		values: 0,
+		tensions: 0,
+	} as Coverage,
+	completionReady: false,
+	totalNodeCount: 0,
+	starGapsMap: {} as Record<string, (keyof StarStructure)[]>,
 };
 
 export const usePersonaStore = create<PersonaStoreState>()(
@@ -656,6 +690,87 @@ export const usePersonaStore = create<PersonaStoreState>()(
 			// Toggle show all details (layer 3 nodes)
 			setShowAllDetails: (show: boolean) => set({ showAllDetails: show }),
 
+			// === New Graph-Based Conversation Actions ===
+
+			// Process graph update from API response (called from ChatSidebar mutation callbacks)
+			processGraphUpdate: (response: GraphMessageResponse) => {
+				set((state) => {
+					// Add new nodes (avoid duplicates)
+					const existingNodeIds = new Set(state.apiGraphNodes.map((n) => n.id));
+					const newNodes = response.nodesCreated.filter(
+						(n) => !existingNodeIds.has(n.id),
+					);
+
+					// Add new edges (avoid duplicates)
+					const existingEdgeIds = new Set(state.apiGraphEdges.map((e) => e.id));
+					const newEdges = response.edgesCreated.filter(
+						(e) => !existingEdgeIds.has(e.id),
+					);
+
+					// Update STAR gaps for the last story if provided
+					let starGapsMap = { ...state.starGapsMap };
+					if (
+						response.starGapsForLastStory &&
+						response.starGapsForLastStory.length > 0
+					) {
+						// Find the last key_story node created
+						const lastStoryNode = [...newNodes]
+							.reverse()
+							.find((n) => n.type === "key_story");
+						if (lastStoryNode) {
+							starGapsMap[lastStoryNode.id] = response.starGapsForLastStory;
+						}
+					}
+
+					return {
+						apiGraphNodes: [...state.apiGraphNodes, ...newNodes],
+						apiGraphEdges: [...state.apiGraphEdges, ...newEdges],
+						coverage: response.coverage,
+						completionReady: response.completionReady,
+						totalNodeCount: response.totalNodeCount,
+						starGapsMap,
+					};
+				});
+			},
+
+			// Set coverage metrics
+			setCoverage: (coverage: Coverage) => set({ coverage }),
+
+			// Set completion ready flag
+			setCompletionReady: (ready: boolean) => set({ completionReady: ready }),
+
+			// Add STAR gaps for a specific node
+			addStarGaps: (nodeId: string, gaps: (keyof StarStructure)[]) => {
+				set((state) => ({
+					starGapsMap: {
+						...state.starGapsMap,
+						[nodeId]: gaps,
+					},
+				}));
+			},
+
+			// Clear API graph data (used on reset)
+			clearApiGraph: () =>
+				set({
+					apiGraphNodes: [],
+					apiGraphEdges: [],
+					coverage: {
+						goals: 0,
+						evidence: 0,
+						skills: 0,
+						values: 0,
+						tensions: 0,
+					},
+					completionReady: false,
+					totalNodeCount: 0,
+					starGapsMap: {},
+				}),
+
+			// Get STAR gaps for a specific node
+			getStarGapsForNode: (nodeId: string) => {
+				return get().starGapsMap[nodeId] || [];
+			},
+
 			// Utility
 			resetPersona: () => set(initialState),
 
@@ -680,6 +795,13 @@ export const usePersonaStore = create<PersonaStoreState>()(
 				graphNodes: state.graphNodes,
 				graphEdges: state.graphEdges,
 				graphMeta: state.graphMeta,
+				// New graph-based conversation state
+				apiGraphNodes: state.apiGraphNodes,
+				apiGraphEdges: state.apiGraphEdges,
+				coverage: state.coverage,
+				completionReady: state.completionReady,
+				totalNodeCount: state.totalNodeCount,
+				starGapsMap: state.starGapsMap,
 			}),
 		},
 	),
@@ -712,5 +834,26 @@ export const selectHoveredNodeId = (state: PersonaStoreState) =>
 export const selectShowAllDetails = (state: PersonaStoreState) =>
 	state.showAllDetails;
 
+// New graph-based conversation selectors
+export const selectApiGraphNodes = (state: PersonaStoreState) =>
+	state.apiGraphNodes;
+export const selectApiGraphEdges = (state: PersonaStoreState) =>
+	state.apiGraphEdges;
+export const selectCoverage = (state: PersonaStoreState) => state.coverage;
+export const selectCompletionReady = (state: PersonaStoreState) =>
+	state.completionReady;
+export const selectTotalNodeCount = (state: PersonaStoreState) =>
+	state.totalNodeCount;
+export const selectStarGapsMap = (state: PersonaStoreState) =>
+	state.starGapsMap;
+
 // Re-export graph types for convenience
 export type { PersonaNodeDto, PersonaEdgeDto, GraphMeta };
+// Re-export new graph types
+export type {
+	ApiGraphNode,
+	ApiGraphEdge,
+	Coverage,
+	StarStructure,
+	GraphMessageResponse,
+};

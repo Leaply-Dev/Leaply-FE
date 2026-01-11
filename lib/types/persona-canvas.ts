@@ -222,7 +222,23 @@ export interface SkillEvidence {
 // Graph Structure
 // ============================================================================
 
-export type NodeType = "story" | "pattern" | "archetype" | "value" | "skill";
+// Legacy node types (for backward compatibility with mock data)
+export type LegacyNodeType =
+	| "story"
+	| "pattern"
+	| "archetype"
+	| "value"
+	| "skill";
+
+// New API graph node types
+export type ApiNodeType =
+	| "profile_summary"
+	| "essay_angle"
+	| "key_story"
+	| "detail";
+
+// Combined node type for ForceGraph
+export type NodeType = LegacyNodeType | ApiNodeType;
 
 export interface GraphEdge {
 	from: string;
@@ -261,18 +277,25 @@ export interface PersonaGraph {
 // Force Graph Display Types
 // ============================================================================
 
+// Legacy graph data types (for backward compatibility with mock data)
+export type LegacyGraphData =
+	| StoryFragment
+	| PatternCluster
+	| Archetype
+	| ValueSystem
+	| SkillEvidence;
+
+// Generic graph node data type (allows any structured data)
+// biome-ignore lint/suspicious/noExplicitAny: Allows flexibility for API graph data
+export type GraphNodeData = LegacyGraphData | Record<string, any>;
+
 export interface ForceGraphNode {
 	id: string;
 	type: NodeType;
 	label: string;
 	size: number;
 	color: string;
-	data:
-		| StoryFragment
-		| PatternCluster
-		| Archetype
-		| ValueSystem
-		| SkillEvidence;
+	data: GraphNodeData;
 }
 
 export interface ForceGraphLink {

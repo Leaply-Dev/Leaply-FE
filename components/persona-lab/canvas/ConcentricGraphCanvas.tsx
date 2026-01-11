@@ -1,16 +1,37 @@
 "use client";
 
-import { Eye, EyeOff, Info, Maximize2, ZoomIn, ZoomOut } from "lucide-react";
+import {
+	ChevronRight,
+	Eye,
+	EyeOff,
+	Info,
+	Maximize2,
+	ZoomIn,
+	ZoomOut,
+} from "lucide-react";
 import ForceGraph2D from "react-force-graph-2d";
 import { Button } from "@/components/ui/button";
-import { NODE_CONFIG } from "@/lib/config/graphConfig";
+import { getNodeConfig } from "@/lib/config/graphConfig";
 import { useContainerDimensions } from "@/lib/hooks/useContainerDimensions";
 import { useGraphControls } from "@/lib/hooks/useGraphControls";
 import { useGraphForces } from "@/lib/hooks/useGraphForces";
 import { useGraphInteraction } from "@/lib/hooks/useGraphInteraction";
 import { useGraphRenderers } from "@/lib/hooks/useGraphRenderers";
+import { useExpandNode } from "@/lib/hooks/usePersonaConversation";
+import { usePersonaStore } from "@/lib/store/personaStore";
+import type { GraphNode, StarStructure } from "@/lib/types/persona";
 import type { ForceGraphNode, NodeType } from "@/lib/types/persona-canvas";
 import { cn } from "@/lib/utils";
+
+// STAR element labels for display
+const STAR_LABELS: Record<keyof StarStructure, string> = {
+	situation: "Situation",
+	task: "Task",
+	action: "Action",
+	result: "Result",
+	emotion: "Emotion",
+	insight: "Insight",
+};
 
 interface ConcentricGraphCanvasProps {
 	className?: string;
@@ -26,6 +47,18 @@ export function ConcentricGraphCanvas({
 	// Use all custom hooks for clean composition
 	const { fgRef, graphData } = useGraphForces();
 	const { dimensions, containerRef } = useContainerDimensions();
+
+	// Node expansion mutation (adds follow-up question to chat)
+	const expandNodeMutation = useExpandNode();
+
+	// Get STAR gaps from store
+	const getStarGapsForNode = usePersonaStore(
+		(state) => state.getStarGapsForNode,
+	);
+	const apiGraphNodes = usePersonaStore((state) => state.apiGraphNodes);
+
+	// Check if we're using new API data (not mock)
+	const isUsingApiData = apiGraphNodes.length > 0;
 
 	const {
 		selectedNode,
@@ -56,6 +89,23 @@ export function ConcentricGraphCanvas({
 			highlightLinks,
 			hiddenNodeTypes,
 		});
+
+	// Handler for expanding a node (getting follow-up question)
+	const handleExpandNode = (nodeId: string) => {
+		expandNodeMutation.mutate(nodeId);
+	};
+
+	// Get GraphNode data for selected node if using API data
+	const selectedGraphNode: GraphNode | undefined =
+		selectedNode && isUsingApiData
+			? (selectedNode.data as GraphNode)
+			: undefined;
+
+	// Get STAR gaps for selected key_story node
+	const selectedNodeStarGaps =
+		selectedNode && selectedNode.type === "key_story"
+			? getStarGapsForNode(selectedNode.id)
+			: [];
 
 	return (
 		<div ref={containerRef} className={cn("relative h-full w-full", className)}>
@@ -128,18 +178,19 @@ export function ConcentricGraphCanvas({
 				</Button>
 			</div>
 
-			{/* Legend */}
+			{/* Legend - shows different node types based on data source */}
 			<div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm border border-border rounded-lg p-4 shadow-lg">
 				<h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
 					<Info className="h-4 w-4" />
-					Nodes
+					{isUsingApiData ? "Graph Layers" : "Nodes"}
 				</h3>
 				<div className="space-y-2 text-xs">
-					{/* Display in hierarchical order: Archetype -> Pattern -> Skill/Value -> Story */}
-					{(
-						["archetype", "pattern", "value", "skill", "story"] as NodeType[]
+					{/* Display hierarchical order based on data source */}
+					{(isUsingApiData
+						? (["profile_summary", "essay_angle", "key_story", "detail"] as NodeType[])
+						: (["archetype", "pattern", "value", "skill", "story"] as NodeType[])
 					).map((type) => {
-						const config = NODE_CONFIG[type];
+						const config = getNodeConfig(type);
 						const isHidden = hiddenNodeTypes.has(type);
 						return (
 							<button
@@ -185,10 +236,10 @@ export function ConcentricGraphCanvas({
 						</div>
 						<div className="flex items-center gap-2">
 							<div
-								className="w-8 h-0.5"
+								className="w-8 h-0.5 animate-pulse"
 								style={{
-									backgroundImage:
-										"repeating-linear-gradient(to right, #ef4444 0, #ef4444 3px, transparent 3px, transparent 6px)",
+									background:
+										"linear-gradient(90deg, #f97316 0%, rgba(249, 115, 22, 0.3) 50%, #f97316 100%)",
 								}}
 							/>
 							<span>Tension</span>
@@ -202,7 +253,7 @@ export function ConcentricGraphCanvas({
 				<div
 					className="absolute top-4 left-4 bg-card/95 backdrop-blur-sm border-2 rounded-lg p-5 shadow-2xl max-w-md min-w-[320px]"
 					style={{
-						borderColor: NODE_CONFIG[selectedNode.type].color,
+						borderColor: getNodeConfig(selectedNode.type).color,
 					}}
 				>
 					<div className="flex items-start justify-between mb-4">
@@ -211,10 +262,10 @@ export function ConcentricGraphCanvas({
 								<div
 									className="rounded-full"
 									style={{
-										backgroundColor: NODE_CONFIG[selectedNode.type].color,
+										backgroundColor: getNodeConfig(selectedNode.type).color,
 										width: "16px",
 										height: "16px",
-										boxShadow: `0 0 0 2px rgba(255,255,255,0.1), 0 0 0 4px ${NODE_CONFIG[selectedNode.type].color}40`,
+										boxShadow: `0 0 0 2px rgba(255,255,255,0.1), 0 0 0 4px ${getNodeConfig(selectedNode.type).color}40`,
 									}}
 								/>
 								<span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -222,7 +273,7 @@ export function ConcentricGraphCanvas({
 										? (
 												selectedNode.data as { story_type: string }
 											).story_type.replace("_", " ")
-										: NODE_CONFIG[selectedNode.type].label}
+										: getNodeConfig(selectedNode.type).label}
 								</span>
 							</div>
 							<h3 className="font-bold text-base">{selectedNode.label}</h3>
@@ -239,6 +290,190 @@ export function ConcentricGraphCanvas({
 
 					{/* Type-specific content */}
 					<div className="space-y-3">
+						{/* ============================================
+						    New API Node Types (profile_summary, essay_angle, key_story, detail)
+						    ============================================ */}
+
+						{/* Profile Summary (Layer 0 - Center) */}
+						{selectedNode.type === "profile_summary" && selectedGraphNode && (
+							<>
+								<div className="p-3 bg-muted/50 rounded-md">
+									<p className="text-xs leading-relaxed">
+										{selectedGraphNode.content}
+									</p>
+								</div>
+								{selectedGraphNode.tags.length > 0 && (
+									<div className="flex flex-wrap gap-1">
+										{selectedGraphNode.tags.map((tag) => (
+											<span
+												key={tag}
+												className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary"
+											>
+												{tag}
+											</span>
+										))}
+									</div>
+								)}
+							</>
+						)}
+
+						{/* Essay Angle (Layer 1) */}
+						{selectedNode.type === "essay_angle" && selectedGraphNode && (
+							<>
+								<div className="p-3 bg-muted/50 rounded-md">
+									<p className="text-xs leading-relaxed">
+										{selectedGraphNode.content}
+									</p>
+								</div>
+								{selectedGraphNode.essayAngle && (
+									<div className="p-3 bg-violet-500/10 rounded-md">
+										<span className="text-xs font-semibold text-violet-600 block mb-1">
+											Essay Angle
+										</span>
+										<p className="text-xs text-muted-foreground">
+											{selectedGraphNode.essayAngle}
+										</p>
+									</div>
+								)}
+								{selectedGraphNode.bestFor &&
+									selectedGraphNode.bestFor.length > 0 && (
+										<div>
+											<span className="text-xs font-medium text-foreground block mb-1">
+												Best for:
+											</span>
+											<div className="flex flex-wrap gap-1">
+												{selectedGraphNode.bestFor.map((type) => (
+													<span
+														key={type}
+														className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary"
+													>
+														{type.replace(/_/g, " ")}
+													</span>
+												))}
+											</div>
+										</div>
+									)}
+							</>
+						)}
+
+						{/* Key Story (Layer 2) - with STAR structure */}
+						{selectedNode.type === "key_story" && selectedGraphNode && (
+							<>
+								<div className="p-3 bg-muted/50 rounded-md">
+									<p className="text-xs leading-relaxed">
+										{selectedGraphNode.content}
+									</p>
+								</div>
+
+								{/* STAR Structure Panel */}
+								{selectedGraphNode.structuredContent && (
+									<div className="p-3 bg-emerald-500/5 rounded-md border border-emerald-500/20">
+										<span className="text-xs font-semibold text-emerald-600 block mb-2">
+											STAR Structure
+										</span>
+										<div className="space-y-2">
+											{(
+												Object.keys(STAR_LABELS) as (keyof StarStructure)[]
+											).map((key) => {
+												const value =
+													selectedGraphNode.structuredContent?.[key];
+												const hasGap = selectedNodeStarGaps.includes(key);
+												return (
+													<div
+														key={key}
+														className={cn(
+															"text-xs",
+															hasGap && "opacity-50",
+														)}
+													>
+														<span
+															className={cn(
+																"font-medium",
+																hasGap
+																	? "text-orange-500"
+																	: "text-foreground",
+															)}
+														>
+															{STAR_LABELS[key]}:
+														</span>{" "}
+														<span className="text-muted-foreground">
+															{value || (
+																<span className="italic text-orange-500">
+																	Missing - expand for details
+																</span>
+															)}
+														</span>
+													</div>
+												);
+											})}
+										</div>
+									</div>
+								)}
+
+								{/* Expand Button for nodes with gaps */}
+								{selectedNodeStarGaps.length > 0 && (
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => handleExpandNode(selectedNode.id)}
+										disabled={expandNodeMutation.isPending}
+										className="w-full text-xs border-orange-500/30 hover:border-orange-500 hover:bg-orange-500/10"
+									>
+										{expandNodeMutation.isPending ? (
+											"Generating question..."
+										) : (
+											<>
+												<ChevronRight className="w-3 h-3 mr-1" />
+												Expand: Tell me more about{" "}
+												{selectedNodeStarGaps
+													.slice(0, 2)
+													.map((g) => STAR_LABELS[g].toLowerCase())
+													.join(", ")}
+											</>
+										)}
+									</Button>
+								)}
+
+								{/* Tags */}
+								{selectedGraphNode.tags.length > 0 && (
+									<div className="flex flex-wrap gap-1">
+										{selectedGraphNode.tags.map((tag) => (
+											<span
+												key={tag}
+												className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary"
+											>
+												{tag}
+											</span>
+										))}
+									</div>
+								)}
+							</>
+						)}
+
+						{/* Detail (Layer 3) */}
+						{selectedNode.type === "detail" && selectedGraphNode && (
+							<>
+								<div className="p-3 bg-muted/50 rounded-md">
+									<p className="text-xs leading-relaxed">
+										{selectedGraphNode.content}
+									</p>
+								</div>
+								{selectedGraphNode.wordCountPotential && (
+									<div className="text-xs">
+										<span className="font-medium text-foreground">
+											Word count potential:
+										</span>{" "}
+										<span className="text-muted-foreground">
+											{selectedGraphNode.wordCountPotential}
+										</span>
+									</div>
+								)}
+							</>
+						)}
+
+						{/* ============================================
+						    Legacy Node Types (story, pattern, archetype, skill, value)
+						    ============================================ */}
 						{selectedNode.type === "story" && (
 							<>
 								{/* Description */}
@@ -412,7 +647,7 @@ export function ConcentricGraphCanvas({
 										<p
 											className="text-xs font-bold capitalize"
 											style={{
-												color: NODE_CONFIG[selectedNode.type].color,
+												color: getNodeConfig(selectedNode.type).color,
 											}}
 										>
 											{
@@ -431,7 +666,7 @@ export function ConcentricGraphCanvas({
 										<p
 											className="text-xs font-bold capitalize"
 											style={{
-												color: NODE_CONFIG[selectedNode.type].color,
+												color: getNodeConfig(selectedNode.type).color,
 											}}
 										>
 											{
