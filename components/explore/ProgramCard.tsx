@@ -14,6 +14,7 @@ import type { ProgramListItemResponse } from "@/lib/api/types";
 interface ProgramCardProps {
 	program: ProgramListItemResponse;
 	onSaveToggle?: (id: string) => void;
+	onClick?: (program: ProgramListItemResponse) => void;
 }
 
 // Helper to get country flag emoji
@@ -53,9 +54,19 @@ function formatDeadline(deadline?: string): string {
 	return `${month}/${day}`;
 }
 
-export function ProgramCard({ program }: ProgramCardProps) {
+export function ProgramCard({ program, onClick }: ProgramCardProps) {
 	return (
-		<div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+		<div
+			className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+			onClick={() => onClick?.(program)}
+			onKeyDown={(e) => {
+				if (e.key === "Enter" || e.key === " ") {
+					onClick?.(program);
+				}
+			}}
+			role="button"
+			tabIndex={0}
+		>
 			{/* Header with University Info */}
 			<div className="p-4 border-b border-border">
 				<div className="flex items-center gap-3">

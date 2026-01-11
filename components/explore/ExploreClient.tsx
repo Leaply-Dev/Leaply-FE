@@ -4,7 +4,8 @@ import { Sparkles, Table } from "lucide-react";
 import { useState } from "react";
 import { ManualMode } from "@/components/explore/ManualMode";
 import MOCK_PROGRAMS_JSON from "@/components/explore/programMockData.json";
-import { SwimLanes } from "@/components/explore-alt/AIMatchMode";
+import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
+import { SwimLanes } from "@/components/explore/AIMatchMode";
 import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
 import type {
@@ -79,6 +80,11 @@ export function ExploreClient({
 	initialAiMatch,
 }: ExploreClientProps) {
 	const [activeMode, setActiveMode] = useState<"ai" | "manual">("ai");
+
+	// Detail drawer state for AI mode
+	const [selectedProgram, setSelectedProgram] =
+		useState<ProgramListItemResponse | null>(null);
+	const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
 
 	// Use TanStack Query hooks with SSR data
 	const { data: programsResponse } = usePrograms(
@@ -232,6 +238,10 @@ export function ExploreClient({
 								<SwimLanes
 									programs={swimLanePrograms}
 									onSaveToggle={handleSaveToggle}
+									onProgramClick={(program) => {
+										setSelectedProgram(program);
+										setIsDetailDrawerOpen(true);
+									}}
 								/>
 
 								{/* Recommendation Note */}
@@ -253,6 +263,21 @@ export function ExploreClient({
 					/>
 				)}
 			</div>
+
+			{/* Program Detail Drawer for AI Mode */}
+			<ProgramDetailDrawer
+				program={selectedProgram}
+				open={isDetailDrawerOpen}
+				onOpenChange={setIsDetailDrawerOpen}
+				onCompare={(id) => {
+					console.log("Compare:", id);
+					setIsDetailDrawerOpen(false);
+				}}
+				onAddToDashboard={(id) => {
+					console.log("Add to dashboard:", id);
+					setIsDetailDrawerOpen(false);
+				}}
+			/>
 		</PageTransition>
 	);
 }

@@ -11,12 +11,14 @@ export function CategoryContainer({
 	programs,
 	variant,
 	onSaveToggle,
+	onProgramClick,
 	defaultExpanded = true,
 }: {
 	title: string;
 	programs: ProgramListItemResponse[];
 	variant: "reach" | "target" | "safety";
 	onSaveToggle?: (id: string) => void;
+	onProgramClick?: (program: ProgramListItemResponse) => void;
 	defaultExpanded?: boolean;
 }) {
 	const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -110,6 +112,7 @@ export function CategoryContainer({
 										key={program.id}
 										program={program}
 										onSaveToggle={onSaveToggle}
+										onClick={onProgramClick}
 									/>
 								))}
 							</div>
@@ -159,9 +162,11 @@ export function CategoryContainer({
 export function SwimLanes({
 	programs,
 	onSaveToggle,
+	onProgramClick,
 }: {
 	programs: ProgramListItemResponse[];
 	onSaveToggle?: (id: string) => void;
+	onProgramClick?: (program: ProgramListItemResponse) => void;
 }) {
 	const reach = programs.filter((p) => p.fitCategory === "reach");
 	const target = programs.filter((p) => p.fitCategory === "target");
@@ -174,18 +179,21 @@ export function SwimLanes({
 				programs={reach}
 				variant="reach"
 				onSaveToggle={onSaveToggle}
+				onProgramClick={onProgramClick}
 			/>
 			<CategoryContainer
 				title="Target Schools"
 				programs={target}
 				variant="target"
 				onSaveToggle={onSaveToggle}
+				onProgramClick={onProgramClick}
 			/>
 			<CategoryContainer
 				title="Safety Schools"
 				programs={safety}
 				variant="safety"
 				onSaveToggle={onSaveToggle}
+				onProgramClick={onProgramClick}
 			/>
 		</div>
 	);

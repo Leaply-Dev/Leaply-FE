@@ -1,15 +1,11 @@
 "use client";
 
-import {
-	ArrowRight,
-	ChevronLeft,
-	ChevronRight,
-	Plus,
-	Search,
-	X,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
 import { useState } from "react";
+import { CompareDialog } from "@/components/explore/CompareDialog";
+import { CompareTray } from "@/components/explore/CompareTray";
 import { HorizontalFilterBar } from "@/components/explore/FilterBar";
+import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -223,6 +219,14 @@ export function ManualMode({ programs }: ManualModeProps) {
 		new Set(),
 	);
 
+	// Compare dialog state
+	const [isCompareDialogOpen, setIsCompareDialogOpen] = useState(false);
+
+	// Detail drawer state
+	const [selectedProgram, setSelectedProgram] =
+		useState<ProgramListItemResponse | null>(null);
+	const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
+
 	// Pagination state
 	const [currentPage, setCurrentPage] = useState(1);
 	const itemsPerPage = 5; // Show 5 items per page for testing
@@ -376,8 +380,8 @@ export function ManualMode({ programs }: ManualModeProps) {
 									selected={selectedPrograms.has(program.id)}
 									onSelect={() => toggleProgramSelection(program.id)}
 									onClick={() => {
-										// TODO: Open detail drawer
-										console.log("Open detail for", program.id);
+										setSelectedProgram(program);
+										setIsDetailDrawerOpen(true);
 									}}
 									onAddToDashboard={() => {
 										// TODO: Implement add to dashboard functionality
@@ -445,78 +449,49 @@ export function ManualMode({ programs }: ManualModeProps) {
 			</div>
 
 			{/* Zone 3: Compare Tray (Sticky Bottom - Checkout Style) */}
-			{selectedCount > 0 && (
-				<div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-card via-card to-card/95 border-t-2 border-primary shadow-2xl z-50 backdrop-blur-sm">
-					<div className="max-w-7xl mx-auto px-6 py-5">
-						<div className="flex items-center justify-between gap-6">
-							{/* Left: Title + Selected Programs */}
-							<div className="flex-1 space-y-3">
-								{/* Title */}
-								<div className="flex items-center gap-2">
-									<h3 className="text-lg font-bold text-foreground">
-										So sánh chương trình
-									</h3>
-									<Badge variant="secondary" className="font-semibold">
-										{selectedCount}/{MAX_COMPARE_PROGRAMS}
-									</Badge>
-								</div>
+			<CompareTray
+				selectedCount={selectedCount}
+				maxPrograms={MAX_COMPARE_PROGRAMS}
+				selectedProgramsList={selectedProgramsList}
+				onRemoveProgram={toggleProgramSelection}
+				onClearAll={() => setSelectedPrograms(new Set())}
+				onCompare={() => setIsCompareDialogOpen(true)}
+			/>
 
-								{/* Selected programs chips */}
-								<div className="flex items-center gap-3 flex-wrap">
-									<div className="flex items-center gap-2 flex-wrap">
-										{selectedProgramsList.map((program) => (
-											<Badge
-												key={program?.id}
-												variant="secondary"
-												className="gap-2 pr-1 text-sm py-1.5 px-3"
-											>
-												<span className="font-medium">
-													{program?.universityName}
-												</span>
-												<button
-													type="button"
-													onClick={() =>
-														program && toggleProgramSelection(program.id)
-													}
-													className="hover:bg-destructive/20 rounded-full p-0.5 transition-colors"
-													aria-label="Remove"
-												>
-													<X className="w-3.5 h-3.5" />
-												</button>
-											</Badge>
-										))}
-										{selectedCount > 3 && (
-											<Badge variant="outline" className="font-medium">
-												+{selectedCount - 3} chương trình
-											</Badge>
-										)}
-									</div>
+			{/* Compare Dialog */}
+			<CompareDialog
+				open={isCompareDialogOpen}
+				onOpenChange={setIsCompareDialogOpen}
+				selectedPrograms={selectedPrograms}
+				programs={programs}
+				onRemoveProgram={(id) => {
+					toggleProgramSelection(id);
+					// Close dialog if no programs left
+					if (selectedPrograms.size <= 1) {
+						setIsCompareDialogOpen(false);
+					}
+				}}
+				onAddToDashboard={(id) => {
+					// TODO: Implement add to dashboard functionality
+					console.log("Add to dashboard:", id);
+				}}
+			/>
 
-									{/* Clear all button */}
-									<button
-										type="button"
-										onClick={() => setSelectedPrograms(new Set())}
-										className="text-sm text-muted-foreground hover:text-destructive transition-colors font-medium underline underline-offset-2"
-									>
-										Xóa tất cả
-									</button>
-								</div>
-							</div>
-
-							{/* Right: CTA Button */}
-							<div className="flex-shrink-0">
-								<Button
-									size="lg"
-									className="gap-2 px-8 py-6 text-base font-bold shadow-lg hover:shadow-xl transition-all hover:scale-105"
-								>
-									So sánh ngay
-									<ArrowRight className="w-5 h-5" />
-								</Button>
-							</div>
-						</div>
-					</div>
-				</div>
-			)}
+			{/* Program Detail Drawer */}
+			<ProgramDetailDrawer
+				program={selectedProgram}
+				open={isDetailDrawerOpen}
+				onOpenChange={setIsDetailDrawerOpen}
+				onCompare={(id) => {
+					toggleProgramSelection(id);
+					setIsDetailDrawerOpen(false);
+				}}
+				onAddToDashboard={(id) => {
+					// TODO: Implement add to dashboard functionality
+					console.log("Add to dashboard:", id);
+					setIsDetailDrawerOpen(false);
+				}}
+			/>
 		</div>
 	);
 }
