@@ -5,14 +5,11 @@ import type {
 	ForceGraphLink,
 	ForceGraphNode,
 } from "@/lib/types/persona-canvas";
-import {
-	transformApiGraphData,
-	transformGraphData,
-} from "@/lib/utils/graphTransform";
+import { transformApiGraphData } from "@/lib/utils/graphTransform";
 
 /**
  * Hook to manage graph data and D3 force configuration
- * Supports both mock data (legacy) and real-time API graph data (new)
+ * Uses real-time API graph data from the store
  * Returns ref and graph data for ForceGraph2D component
  */
 export function useGraphForces() {
@@ -26,7 +23,7 @@ export function useGraphForces() {
 	const apiGraphNodes = usePersonaStore((state) => state.apiGraphNodes);
 	const apiGraphEdges = usePersonaStore((state) => state.apiGraphEdges);
 
-	// Load mock data on mount as fallback, or use API data when available
+	// Transform API data to ForceGraph format when available
 	useEffect(() => {
 		if (apiGraphNodes.length > 0) {
 			// Transform API data to ForceGraph format
@@ -36,9 +33,8 @@ export function useGraphForces() {
 			);
 			setGraphData({ nodes, links });
 		} else {
-			// Fall back to mock data when no API data available
-			const data = transformGraphData();
-			setGraphData(data);
+			// No API data - show empty graph
+			setGraphData({ nodes: [], links: [] });
 		}
 	}, [apiGraphNodes, apiGraphEdges]);
 

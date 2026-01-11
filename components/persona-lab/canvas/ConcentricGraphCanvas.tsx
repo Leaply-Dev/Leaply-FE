@@ -6,6 +6,7 @@ import {
 	EyeOff,
 	Info,
 	Maximize2,
+	MessageCircle,
 	ZoomIn,
 	ZoomOut,
 } from "lucide-react";
@@ -55,10 +56,6 @@ export function ConcentricGraphCanvas({
 	const getStarGapsForNode = usePersonaStore(
 		(state) => state.getStarGapsForNode,
 	);
-	const apiGraphNodes = usePersonaStore((state) => state.apiGraphNodes);
-
-	// Check if we're using new API data (not mock)
-	const isUsingApiData = apiGraphNodes.length > 0;
 
 	const {
 		selectedNode,
@@ -95,11 +92,10 @@ export function ConcentricGraphCanvas({
 		expandNodeMutation.mutate(nodeId);
 	};
 
-	// Get GraphNode data for selected node if using API data
-	const selectedGraphNode: GraphNode | undefined =
-		selectedNode && isUsingApiData
-			? (selectedNode.data as GraphNode)
-			: undefined;
+	// Get GraphNode data for selected node (always using API data now)
+	const selectedGraphNode: GraphNode | undefined = selectedNode
+		? (selectedNode.data as GraphNode)
+		: undefined;
 
 	// Get STAR gaps for selected key_story node
 	const selectedNodeStarGaps =
@@ -107,8 +103,25 @@ export function ConcentricGraphCanvas({
 			? getStarGapsForNode(selectedNode.id)
 			: [];
 
+	// Check if graph is empty (no nodes)
+	const isEmpty = graphData.nodes.length === 0;
+
 	return (
 		<div ref={containerRef} className={cn("relative h-full w-full", className)}>
+			{/* Empty State */}
+			{isEmpty && (
+				<div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
+					<div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+						<MessageCircle className="w-8 h-8 text-muted-foreground" />
+					</div>
+					<h3 className="text-lg font-semibold mb-2">Your Persona Canvas</h3>
+					<p className="text-sm text-muted-foreground max-w-xs">
+						Start chatting in the Discovery panel to build your persona graph.
+						Your stories and insights will appear here as interactive nodes.
+					</p>
+				</div>
+			)}
+
 			{/* Force Graph */}
 			<ForceGraph2D
 				ref={fgRef}
@@ -134,130 +147,127 @@ export function ConcentricGraphCanvas({
 				warmupTicks={100}
 			/>
 
-			{/* Controls */}
-			<div className="absolute top-4 right-4 flex flex-col gap-2">
-				<Button
-					variant="secondary"
-					size="icon"
-					onClick={handleZoomIn}
-					className="shadow-lg"
-					title="Zoom In"
-				>
-					<ZoomIn className="h-4 w-4" />
-				</Button>
-				<Button
-					variant="secondary"
-					size="icon"
-					onClick={handleZoomOut}
-					className="shadow-lg"
-					title="Zoom Out"
-				>
-					<ZoomOut className="h-4 w-4" />
-				</Button>
-				<Button
-					variant="secondary"
-					size="icon"
-					onClick={handleFitView}
-					className="shadow-lg"
-					title="Fit View"
-				>
-					<Maximize2 className="h-4 w-4" />
-				</Button>
-				<Button
-					variant="secondary"
-					size="icon"
-					onClick={toggleLabels}
-					className="shadow-lg"
-					title={showLabels ? "Hide Labels" : "Show Labels"}
-				>
-					{showLabels ? (
-						<EyeOff className="h-4 w-4" />
-					) : (
-						<Eye className="h-4 w-4" />
-					)}
-				</Button>
-			</div>
+			{/* Controls - only show when there are nodes */}
+			{!isEmpty && (
+				<div className="absolute top-4 right-4 flex flex-col gap-2">
+					<Button
+						variant="secondary"
+						size="icon"
+						onClick={handleZoomIn}
+						className="shadow-lg"
+						title="Zoom In"
+					>
+						<ZoomIn className="h-4 w-4" />
+					</Button>
+					<Button
+						variant="secondary"
+						size="icon"
+						onClick={handleZoomOut}
+						className="shadow-lg"
+						title="Zoom Out"
+					>
+						<ZoomOut className="h-4 w-4" />
+					</Button>
+					<Button
+						variant="secondary"
+						size="icon"
+						onClick={handleFitView}
+						className="shadow-lg"
+						title="Fit View"
+					>
+						<Maximize2 className="h-4 w-4" />
+					</Button>
+					<Button
+						variant="secondary"
+						size="icon"
+						onClick={toggleLabels}
+						className="shadow-lg"
+						title={showLabels ? "Hide Labels" : "Show Labels"}
+					>
+						{showLabels ? (
+							<EyeOff className="h-4 w-4" />
+						) : (
+							<Eye className="h-4 w-4" />
+						)}
+					</Button>
+				</div>
+			)}
 
-			{/* Legend - shows different node types based on data source */}
-			<div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm border border-border rounded-lg p-4 shadow-lg">
-				<h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-					<Info className="h-4 w-4" />
-					{isUsingApiData ? "Graph Layers" : "Nodes"}
-				</h3>
-				<div className="space-y-2 text-xs">
-					{/* Display hierarchical order based on data source */}
-					{(isUsingApiData
-						? ([
+			{/* Legend - only show when there are nodes */}
+			{!isEmpty && (
+				<div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm border border-border rounded-lg p-4 shadow-lg">
+					<h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+						<Info className="h-4 w-4" />
+						Graph Layers
+					</h3>
+					<div className="space-y-2 text-xs">
+						{/* Display hierarchical order of API node types */}
+						{(
+							[
 								"profile_summary",
 								"essay_angle",
 								"key_story",
 								"detail",
-							] as NodeType[])
-						: ([
-								"archetype",
-								"pattern",
-								"value",
-								"skill",
-								"story",
-							] as NodeType[])
-					).map((type) => {
-						const config = getNodeConfig(type);
-						const isHidden = hiddenNodeTypes.has(type);
-						return (
-							<button
-								key={type}
-								type="button"
-								className="flex items-center gap-2 w-full hover:bg-muted/50 rounded px-2 py-1 transition-colors"
-								onClick={() => toggleNodeTypeVisibility(type)}
-								title={
-									isHidden ? `Show ${config.label}` : `Hide ${config.label}`
-								}
-							>
+							] as NodeType[]
+						).map((type) => {
+							const config = getNodeConfig(type);
+							const isHidden = hiddenNodeTypes.has(type);
+							return (
+								<button
+									key={type}
+									type="button"
+									className="flex items-center gap-2 w-full hover:bg-muted/50 rounded px-2 py-1 transition-colors"
+									onClick={() => toggleNodeTypeVisibility(type)}
+									title={
+										isHidden ? `Show ${config.label}` : `Hide ${config.label}`
+									}
+								>
+									<div
+										className="rounded-full shrink-0"
+										style={{
+											backgroundColor: config.color,
+											width: `${Math.max(config.size / 2, 8)}px`,
+											height: `${Math.max(config.size / 2, 8)}px`,
+											opacity: isHidden ? 0.3 : 1,
+										}}
+									/>
+									<span
+										className="text-muted-foreground flex-1 text-left"
+										style={{ opacity: isHidden ? 0.5 : 1 }}
+									>
+										{config.label}
+										{config.layer === 0 && " (Center)"}
+									</span>
+									{isHidden ? (
+										<EyeOff className="h-3 w-3 text-muted-foreground shrink-0" />
+									) : (
+										<Eye className="h-3 w-3 text-muted-foreground shrink-0" />
+									)}
+								</button>
+							);
+						})}
+					</div>
+
+					<div className="mt-4 pt-3 border-t border-border">
+						<div className="text-xs text-muted-foreground space-y-1">
+							<div className="flex items-center gap-2">
+								<div className="w-8 h-0.5 bg-blue-500/40" />
+								<span>Connection</span>
+							</div>
+							<div className="flex items-center gap-2">
 								<div
-									className="rounded-full shrink-0"
+									className="w-8 h-0.5 animate-pulse"
 									style={{
-										backgroundColor: config.color,
-										width: `${Math.max(config.size / 2, 8)}px`,
-										height: `${Math.max(config.size / 2, 8)}px`,
-										opacity: isHidden ? 0.3 : 1,
+										background:
+											"linear-gradient(90deg, #f97316 0%, rgba(249, 115, 22, 0.3) 50%, #f97316 100%)",
 									}}
 								/>
-								<span
-									className="text-muted-foreground flex-1 text-left"
-									style={{ opacity: isHidden ? 0.5 : 1 }}
-								>
-									{config.label}
-									{config.layer === 0 && " (Center)"}
-								</span>
-								{isHidden ? (
-									<EyeOff className="h-3 w-3 text-muted-foreground shrink-0" />
-								) : (
-									<Eye className="h-3 w-3 text-muted-foreground shrink-0" />
-								)}
-							</button>
-						);
-					})}
-				</div>
-
-				<div className="mt-4 pt-3 border-t border-border">
-					<div className="text-xs text-muted-foreground space-y-1">
-						<div className="flex items-center gap-2">
-							<div className="w-8 h-0.5 bg-blue-500/40" />
-							<span>Connection</span>
-						</div>
-						<div className="flex items-center gap-2">
-							<div
-								className="w-8 h-0.5 animate-pulse"
-								style={{
-									background:
-										"linear-gradient(90deg, #f97316 0%, rgba(249, 115, 22, 0.3) 50%, #f97316 100%)",
-								}}
-							/>
-							<span>Tension</span>
+								<span>Tension</span>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
+			)}
 
 			{/* Selected Node Detail Panel */}
 			{selectedNode && (
@@ -476,314 +486,20 @@ export function ConcentricGraphCanvas({
 								)}
 							</>
 						)}
-
-						{/* ============================================
-						    Legacy Node Types (story, pattern, archetype, skill, value)
-						    ============================================ */}
-						{selectedNode.type === "story" && (
-							<>
-								{/* Description */}
-								<div className="p-3 bg-muted/50 rounded-md">
-									<p className="text-xs leading-relaxed">
-										{(selectedNode.data as { description: string }).description}
-									</p>
-								</div>
-
-								{/* Track info */}
-								<div className="text-xs">
-									<span className="font-medium text-foreground">
-										From track:
-									</span>
-									<span className="ml-1 text-muted-foreground capitalize">
-										{(selectedNode.data as { track: string }).track.replace(
-											"_",
-											" ",
-										)}
-									</span>
-								</div>
-							</>
-						)}
-						{selectedNode.type === "pattern" && (
-							<>
-								{/* Pattern Description */}
-								<div>
-									<span className="text-xs font-semibold text-foreground block mb-2">
-										What This Pattern Reveals
-									</span>
-									<div className="p-3 bg-muted/50 rounded-md">
-										<p className="text-xs leading-relaxed">
-											{
-												(
-													selectedNode.data as {
-														pattern_description: string;
-													}
-												).pattern_description
-											}
-										</p>
-									</div>
-								</div>
-
-								{/* Essay Angles - Most Important for Students! */}
-								{(
-									selectedNode.data as {
-										essay_angles: Array<{
-											name: string;
-											frame: string;
-											strength: number;
-											uniqueness: number;
-										}>;
-									}
-								).essay_angles.length > 0 && (
-									<div>
-										<span className="text-xs font-semibold text-foreground block mb-2">
-											💡 Essay Angle Ideas (
-											{
-												(selectedNode.data as { essay_angles: unknown[] })
-													.essay_angles.length
-											}
-											)
-										</span>
-										<div className="space-y-2">
-											{(
-												selectedNode.data as {
-													essay_angles: Array<{
-														name: string;
-														frame: string;
-														strength: number;
-														uniqueness: number;
-														fit: string[];
-													}>;
-												}
-											).essay_angles.map((angle) => (
-												<div
-													key={angle.name}
-													className="p-3 bg-muted/30 rounded-md border border-muted"
-												>
-													<div className="flex items-start justify-between mb-1">
-														<p className="text-xs font-semibold text-foreground">
-															{angle.name}
-														</p>
-														<div className="flex gap-1">
-															<span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 font-medium">
-																{angle.uniqueness}% unique
-															</span>
-														</div>
-													</div>
-													<p className="text-[11px] text-muted-foreground leading-relaxed mb-2">
-														{angle.frame}
-													</p>
-													<div className="flex flex-wrap gap-1">
-														{angle.fit.map((type) => (
-															<span
-																key={type}
-																className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary"
-															>
-																{type.replace(/_/g, " ")}
-															</span>
-														))}
-													</div>
-												</div>
-											))}
-										</div>
-									</div>
-								)}
-
-								{/* Supporting Stories */}
-								<div className="text-xs">
-									<span className="font-medium text-foreground">Based on</span>
-									<span className="ml-1 text-muted-foreground">
-										{
-											(selectedNode.data as { member_stories: unknown[] })
-												.member_stories.length
-										}{" "}
-										stories
-									</span>
-								</div>
-							</>
-						)}
-						{selectedNode.type === "archetype" && (
-							<>
-								{/* Evolution Direction */}
-								<div className="p-3 bg-muted/50 rounded-md">
-									<span className="text-xs font-semibold text-foreground block mb-2">
-										Your Evolution
-									</span>
-									<p className="text-xs text-muted-foreground leading-relaxed">
-										{
-											(
-												selectedNode.data as {
-													evolution_direction: string;
-												}
-											).evolution_direction
-										}
-									</p>
-								</div>
-
-								{/* Secondary Traits */}
-								{(selectedNode.data as { secondary_traits?: string[] })
-									.secondary_traits && (
-									<div>
-										<span className="text-xs font-semibold text-foreground block mb-2">
-											Supporting Traits
-										</span>
-										<div className="flex flex-wrap gap-1">
-											{(
-												selectedNode.data as { secondary_traits: string[] }
-											).secondary_traits.map((trait) => (
-												<span
-													key={trait}
-													className="text-xs px-2 py-1 bg-muted rounded text-muted-foreground capitalize"
-												>
-													{trait.replace("_", " ")}
-												</span>
-											))}
-										</div>
-									</div>
-								)}
-							</>
-						)}
-						{selectedNode.type === "skill" && (
-							<>
-								{/* Proficiency and Growth */}
-								<div className="grid grid-cols-2 gap-3">
-									<div className="p-3 bg-muted/50 rounded-md">
-										<span className="text-xs font-medium text-foreground block mb-1">
-											Level
-										</span>
-										<p
-											className="text-xs font-bold capitalize"
-											style={{
-												color: getNodeConfig(selectedNode.type).color,
-											}}
-										>
-											{
-												(
-													selectedNode.data as {
-														proficiency: string;
-													}
-												).proficiency
-											}
-										</p>
-									</div>
-									<div className="p-3 bg-muted/50 rounded-md">
-										<span className="text-xs font-medium text-foreground block mb-1">
-											Growth
-										</span>
-										<p
-											className="text-xs font-bold capitalize"
-											style={{
-												color: getNodeConfig(selectedNode.type).color,
-											}}
-										>
-											{
-												(
-													selectedNode.data as {
-														growth_trajectory: string;
-													}
-												).growth_trajectory
-											}
-										</p>
-									</div>
-								</div>
-
-								{/* Evidence from stories */}
-								<div>
-									<span className="text-xs font-semibold text-foreground block mb-2">
-										Why We See This Skill
-									</span>
-									<div className="p-3 bg-muted/50 rounded-md">
-										<p className="text-xs text-muted-foreground">
-											Demonstrated in{" "}
-											<span className="font-medium text-foreground">
-												{
-													(selectedNode.data as { evidence: string[] }).evidence
-														.length
-												}{" "}
-												{(selectedNode.data as { evidence: string[] }).evidence
-													.length === 1
-													? "story"
-													: "stories"}
-											</span>{" "}
-											from your experiences
-										</p>
-									</div>
-								</div>
-
-								{/* Essay Value */}
-								<div className="flex items-center justify-between text-xs p-3 bg-muted/50 rounded-md">
-									<span className="font-medium text-foreground">
-										Essay Value:
-									</span>
-									<span
-										className="font-bold"
-										style={{
-											color:
-												(selectedNode.data as { essay_value: number })
-													.essay_value >= 80
-													? "#10b981"
-													: (selectedNode.data as { essay_value: number })
-																.essay_value >= 70
-														? "#f59e0b"
-														: "#6b7280",
-										}}
-									>
-										{(selectedNode.data as { essay_value: number }).essay_value}
-										/100
-									</span>
-								</div>
-							</>
-						)}
-						{selectedNode.type === "value" && (
-							<>
-								<div className="p-3 bg-muted/50 rounded-md">
-									<span className="text-xs font-medium text-foreground block mb-2">
-										Value Hierarchy
-									</span>
-									<div className="space-y-1">
-										{(
-											selectedNode.data as { value_hierarchy: string[] }
-										).value_hierarchy
-											.slice(0, 5)
-											.map((value, index) => (
-												<div key={value} className="flex items-center gap-2">
-													<span className="text-xs font-bold text-muted-foreground">
-														#{index + 1}
-													</span>
-													<span className="text-xs capitalize">
-														{value.replace("_", " ")}
-													</span>
-												</div>
-											))}
-									</div>
-								</div>
-								{(selectedNode.data as { tensions?: unknown[] }).tensions && (
-									<div className="text-xs">
-										<span className="font-medium text-foreground">
-											Tensions:
-										</span>
-										<p className="text-muted-foreground mt-1">
-											{
-												(selectedNode.data as { tensions: unknown[] }).tensions
-													.length
-											}{" "}
-											value conflicts identified
-										</p>
-									</div>
-								)}
-							</>
-						)}
 					</div>
 				</div>
 			)}
 
-			{/* Stats Badge */}
-			<div className="absolute bottom-4 right-4 bg-card/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg">
-				<div className="text-xs text-muted-foreground">
-					<span className="font-medium">{graphData.nodes.length}</span> nodes ·{" "}
-					<span className="font-medium">{graphData.links.length}</span>{" "}
-					connections
+			{/* Stats Badge - only show when there are nodes */}
+			{!isEmpty && (
+				<div className="absolute bottom-4 right-4 bg-card/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg">
+					<div className="text-xs text-muted-foreground">
+						<span className="font-medium">{graphData.nodes.length}</span> nodes
+						· <span className="font-medium">{graphData.links.length}</span>{" "}
+						connections
+					</div>
 				</div>
-			</div>
+			)}
 		</div>
 	);
 }

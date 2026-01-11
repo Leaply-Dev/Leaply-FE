@@ -652,7 +652,12 @@
 		"submitToGetFeedback": "Gửi essay để nhận góp ý",
 		"observation": "Quan sát",
 		"recommendation": "Gợi ý",
-		"justNow": "Vừa xong"
+		"justNow": "Vừa xong",
+		"resetData": "Xóa dữ liệu",
+		"resetConfirmTitle": "Xóa cuộc trò chuyện?",
+		"resetConfirmDescription": "Điều này sẽ xóa toàn bộ dữ liệu cuộc trò chuyện và bắt đầu lại từ đầu. Dữ liệu canvas của bạn sẽ bị mất.",
+		"confirmReset": "Đồng ý, xóa",
+		"conversationComplete": "Hoàn thành! Persona của bạn đã sẵn sàng."
 	},
 	"home": {
 		"greeting": {

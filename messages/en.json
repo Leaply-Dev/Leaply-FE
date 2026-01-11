@@ -652,7 +652,12 @@
 		"submitToGetFeedback": "Submit essay to get feedback",
 		"observation": "Observation",
 		"recommendation": "Recommendation",
-		"justNow": "Just now"
+		"justNow": "Just now",
+		"resetData": "Reset data",
+		"resetConfirmTitle": "Reset conversation?",
+		"resetConfirmDescription": "This will clear all your conversation data and start fresh. Your canvas data will be lost.",
+		"confirmReset": "Yes, reset",
+		"conversationComplete": "Conversation complete! Your persona is ready."
 	},
 	"home": {
 		"greeting": {

@@ -178,7 +178,7 @@ export function ChatSidebar() {
 							disabled={isSending}
 						>
 							<RotateCcw className="w-3 h-3 mr-1" />
-							{t("resetConversation")}
+							{t("resetData")}
 						</Button>
 					</DialogTrigger>
 					<DialogContent>
