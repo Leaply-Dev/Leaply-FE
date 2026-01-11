@@ -70,7 +70,7 @@ export function ProgramTabs({ program }: ProgramTabsProps) {
 					<h3>About {program.universityName}</h3>
 					<p className="text-muted-foreground leading-relaxed">
 						{program.universityDescription ||
-							`Located in ${program.universityCity}, ${program.universityCountry}, ${program.universityName} is ranked #${program.rankingQs || "N/A"} globally according to QS World Rankings. The university is known for its research excellence and diverse international community.`}
+							`Located in ${program.universityCity}, ${program.universityCountry}, ${program.universityName} is ranked ${program.rankingQsDisplay || "N/A"} globally according to QS World Rankings. The university is known for its research excellence and diverse international community.`}
 					</p>
 
 					{program.language && (

@@ -2,10 +2,9 @@
 
 import { Sparkles, Table } from "lucide-react";
 import { useState } from "react";
-import { ManualMode } from "@/components/explore/ManualMode";
-import MOCK_PROGRAMS_JSON from "@/components/explore/programMockData.json";
-import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { SwimLanes } from "@/components/explore/AIMatchMode";
+import { ManualMode } from "@/components/explore/ManualMode";
+import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
 import type {
@@ -15,25 +14,22 @@ import type {
 } from "@/lib/api/types";
 import { useAiMatch } from "@/lib/hooks/useAiMatch";
 import { usePrograms, useSaveProgram } from "@/lib/hooks/usePrograms";
+import {
+	generateAiMatchResponse,
+	generateMany,
+	generateProgramListItemResponse,
+} from "@/lib/mock";
 import { MANUAL_MODE_PROGRAMS } from "@/lib/mock/manualModeData";
 import { cn } from "@/lib/utils";
 
 // Feature flag to toggle between mock data and API
 const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 
-const MOCK_PROGRAMS = MOCK_PROGRAMS_JSON as ProgramListItemResponse[];
+// Generate mock programs using faker
+const MOCK_PROGRAMS = generateMany(generateProgramListItemResponse, 20);
 
-// Mock AI Match Response based on AiMatchResponse type
-const MOCK_MATCH_DATA: AiMatchResponse = {
-	reach: MOCK_PROGRAMS.filter((p) => p.fitCategory === "reach"),
-	target: MOCK_PROGRAMS.filter((p) => p.fitCategory === "target"),
-	safety: MOCK_PROGRAMS.filter((p) => p.fitCategory === "safety"),
-	recommendation:
-		"Based on your GPA (3.6) and interest in Computer Science, you have a strong profile for target universities in Europe. Consider improving your IELTS score to unlock more prestigious US reach schools.",
-	profileCompleteness: 85,
-	missingFields: ["Work Experience", "Portfolio"],
-	totalMatched: 847,
-};
+// Mock AI Match Response using faker generator
+const MOCK_MATCH_DATA: AiMatchResponse = generateAiMatchResponse();
 
 interface ExploreClientProps {
 	initialPrograms?: ProgramListResponse;

@@ -13,6 +13,7 @@ import {
 	Plus,
 	RefreshCw,
 } from "lucide-react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -144,8 +145,18 @@ export function ProgramDetailDrawer({
 						<SheetHeader className="p-0 space-y-4">
 							<div className="flex items-start gap-4">
 								{/* University Logo */}
-								<div className="w-14 h-14 rounded-xl bg-linear-to-br from-emerald-800 to-emerald-900 flex items-center justify-center shrink-0 shadow-lg border-2 border-emerald-600/30">
-									<GraduationCap className="w-7 h-7 text-amber-400" />
+								<div className="w-14 h-14 rounded-xl bg-linear-to-br from-emerald-800 to-emerald-900 flex items-center justify-center shrink-0 shadow-lg border-2 border-emerald-600/30 overflow-hidden">
+									{program.universityLogoUrl ? (
+										<Image
+											src={program.universityLogoUrl}
+											alt={program.universityName}
+											width={56}
+											height={56}
+											className="object-contain"
+										/>
+									) : (
+										<GraduationCap className="w-7 h-7 text-amber-400" />
+									)}
 								</div>
 								<div className="flex-1 min-w-0">
 									<div className="flex items-center gap-2">
@@ -153,7 +164,7 @@ export function ProgramDetailDrawer({
 											{program.universityName}
 										</SheetTitle>
 										<span className="text-xl shrink-0">
-											{getCountryFlag(program.universityCountry)}
+											{getCountryFlag(program.universityCountry || "")}
 										</span>
 									</div>
 									<SheetDescription className="text-sm text-muted-foreground mt-0.5">
@@ -170,13 +181,13 @@ export function ProgramDetailDrawer({
 
 							{/* Badges */}
 							<div className="flex flex-wrap gap-2">
-								{program.rankingQs && (
+								{program.rankingQsDisplay && (
 									<Badge
 										variant="outline"
 										className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-300 dark:border-blue-800 px-3 py-1"
 									>
 										<Award className="w-3.5 h-3.5 mr-1.5" />
-										QS Ranking #{program.rankingQs}
+										QS Ranking {program.rankingQsDisplay}
 									</Badge>
 								)}
 								{program.fitScore && (

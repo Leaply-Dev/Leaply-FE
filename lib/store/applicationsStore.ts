@@ -68,7 +68,9 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
 		} catch (error) {
 			// Capture unexpected errors (non-API errors) to Sentry
 			if (!(error instanceof Error && error.name === "ApiError")) {
-				Sentry.captureException(error, { tags: { store: "applications", action: "fetch" } });
+				Sentry.captureException(error, {
+					tags: { store: "applications", action: "fetch" },
+				});
 			}
 			console.error("Failed to fetch applications:", error);
 			set({
@@ -97,7 +99,9 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
 		} catch (error) {
 			// Capture unexpected errors to Sentry
 			if (!(error instanceof Error && error.name === "ApiError")) {
-				Sentry.captureException(error, { tags: { store: "applications", action: "create" } });
+				Sentry.captureException(error, {
+					tags: { store: "applications", action: "create" },
+				});
 			}
 			console.error("Failed to create application:", error);
 			set({
@@ -132,7 +136,9 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
 		} catch (error) {
 			// Capture unexpected errors to Sentry
 			if (!(error instanceof Error && error.name === "ApiError")) {
-				Sentry.captureException(error, { tags: { store: "applications", action: "update" } });
+				Sentry.captureException(error, {
+					tags: { store: "applications", action: "update" },
+				});
 			}
 			console.error("Failed to update application:", error);
 			set({
@@ -173,7 +179,9 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
 		} catch (error) {
 			// Capture unexpected errors to Sentry
 			if (!(error instanceof Error && error.name === "ApiError")) {
-				Sentry.captureException(error, { tags: { store: "applications", action: "delete" } });
+				Sentry.captureException(error, {
+					tags: { store: "applications", action: "delete" },
+				});
 			}
 			console.error("Failed to delete application:", error);
 			set({

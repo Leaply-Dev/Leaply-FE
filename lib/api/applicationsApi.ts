@@ -1,3 +1,9 @@
+import {
+	generateApplicationListResponse,
+	generateApplicationSopResponse,
+	generateEvaluationResponse,
+	generateSopFeedbackDto,
+} from "@/lib/mock";
 import { apiClient } from "./client";
 import type {
 	ApplicationListResponse,
@@ -19,73 +25,13 @@ const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 // Mock Data
 // ============================================
 
-const MOCK_APPLICATION_LIST: ApplicationListResponse = {
-	applications: [
-		{
-			id: "app-1",
-			program: {
-				id: "prog-1",
-				universityName: "MIT",
-				programName: "Computer Science",
-				degreeName: "Master of Science",
-				nextDeadline: "2025-03-15",
-				nextIntake: "Fall 2025",
-			},
-			status: "planning",
-			fitScore: 85,
-			fitCategory: "target",
-			gaps: [
-				{
-					field: "GRE",
-					message: "GRE score not provided",
-					severity: "medium",
-				},
-			],
-			sopStatus: "draft",
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-		},
-	],
-	summary: {
-		total: 1,
-		byStatus: { planning: 1, writing: 0, submitted: 0 },
-		byCategory: { reach: 0, target: 1, safety: 0 },
-	},
-	upcomingDeadlines: [
-		{
-			applicationId: "app-1",
-			programName: "MIT - Computer Science",
-			deadline: "2025-03-15",
-			daysRemaining: 81,
-		},
-	],
-};
+const MOCK_APPLICATION_LIST: ApplicationListResponse =
+	generateApplicationListResponse();
 
-const MOCK_SOP_RESPONSE: ApplicationSopResponse = {
-	id: "sop-1",
-	applicationId: "app-1",
-	wordLimit: 500,
-	prompt: "Describe your academic and professional goals.",
-	content: "",
-	wordCount: 0,
-	feedbackRound: 0,
-	updatedAt: new Date().toISOString(),
-};
+const MOCK_SOP_RESPONSE: ApplicationSopResponse =
+	generateApplicationSopResponse();
 
-const MOCK_EVALUATION: EvaluationResponse = {
-	schoolGaps: [],
-	commonGaps: [
-		{
-			field: "GRE",
-			count: 1,
-			message: "GRE score missing for competitive programs",
-		},
-	],
-	suggestions:
-		"Consider taking the GRE to strengthen your application profile.",
-	profileCompleteness: 75,
-	missingFields: ["gre_score", "work_experience"],
-};
+const MOCK_EVALUATION: EvaluationResponse = generateEvaluationResponse();
 
 // ============================================
 // API Functions
@@ -209,26 +155,7 @@ export async function getSopFeedback(
 ): Promise<SopFeedbackDto> {
 	if (USE_MOCK_DATA) {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
-		return {
-			round: 1,
-			strengths: ["Clear articulation of goals", "Good connection to program"],
-			improvements: [
-				{
-					point: "Specificity",
-					suggestion: "Add more specific examples from your experience",
-				},
-				{
-					point: "Program fit",
-					suggestion:
-						"Mention specific faculty or research areas at the university",
-				},
-			],
-			personaSuggestion:
-				"Based on your persona profile, consider emphasizing your leadership experiences.",
-			structureNote:
-				"Consider organizing your essay with a clear introduction, body, and conclusion.",
-			generatedAt: new Date().toISOString(),
-		};
+		return generateSopFeedbackDto();
 	}
 
 	return apiClient.post<SopFeedbackDto>(

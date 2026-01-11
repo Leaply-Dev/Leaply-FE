@@ -108,9 +108,9 @@ export function FitScoreExpanded({
 						✅ Strengths
 					</h4>
 					<ul className="space-y-2">
-						{program.fitReasons.map((reason, i) => (
+						{program.fitReasons.map((reason) => (
 							<li
-								key={`strength-${i}`}
+								key={reason}
 								className="flex items-start gap-2 text-sm text-foreground"
 							>
 								<span className="text-green-500 mt-0.5">•</span>
@@ -128,9 +128,9 @@ export function FitScoreExpanded({
 						⚠️ Gaps & Recommendations
 					</h4>
 					<ul className="space-y-2">
-						{program.fitGaps.map((gap, i) => (
+						{program.fitGaps.map((gap) => (
 							<li
-								key={`gap-${i}`}
+								key={gap}
 								className="flex items-start gap-2 text-sm text-foreground"
 							>
 								<span className="text-amber-500 mt-0.5">•</span>

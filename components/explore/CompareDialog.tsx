@@ -14,6 +14,7 @@ import {
 	TrendingUp,
 	Trophy,
 } from "lucide-react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -219,12 +220,22 @@ function ProgramHeaderCell({ program }: { program: ProgramListItemResponse }) {
 	return (
 		<th className="p-4 text-left border-l border-border min-w-64">
 			<div className="space-y-3">
-				{/* University Initial + Match Badge */}
+				{/* University Logo + Match Badge */}
 				<div className="flex items-start justify-between gap-2">
-					<div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-						<span className="text-sm font-bold text-primary">
-							{program.universityName.charAt(0).toUpperCase()}
-						</span>
+					<div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+						{program.universityLogoUrl ? (
+							<Image
+								src={program.universityLogoUrl}
+								alt={program.universityName}
+								width={40}
+								height={40}
+								className="object-contain"
+							/>
+						) : (
+							<span className="text-sm font-bold text-primary">
+								{program.universityName.charAt(0).toUpperCase()}
+							</span>
+						)}
 					</div>
 					{getMatchBadge(program.fitCategory, program.fitScore)}
 				</div>
@@ -280,13 +291,13 @@ function TuitionCell({ program }: { program: ProgramListItemResponse }) {
 function RankingCell({ program }: { program: ProgramListItemResponse }) {
 	return (
 		<td className="p-4 border-l border-border align-top">
-			{program.rankingQs ? (
+			{program.rankingQsDisplay ? (
 				<div className="flex items-center gap-2">
 					<Badge
 						variant="outline"
 						className="font-semibold text-primary border-primary"
 					>
-						#{program.rankingQs}
+						{program.rankingQsDisplay}
 					</Badge>
 					<span className="text-sm text-muted-foreground">Thế giới</span>
 				</div>

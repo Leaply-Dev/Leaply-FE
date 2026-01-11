@@ -234,13 +234,13 @@ export interface PaginationResponse {
 
 export interface ProgramListItemResponse {
 	id: string;
-	universityId: string;
+	universityId?: string;
 	universityName: string;
-	universityCountry: string;
+	universityCountry?: string;
 	universityCity?: string;
 	universityLogoUrl?: string;
-	rankingQs?: number;
 	programName: string;
+	displayName?: string; // Combined display name
 	degreeType: string;
 	degreeName?: string; // Can be null from backend
 	majorCategories: string[];
@@ -257,6 +257,7 @@ export interface ProgramListItemResponse {
 	fitReasons?: string[];
 	fitGaps?: string[];
 	isSaved?: boolean; // null if not authenticated
+	rankingQsDisplay?: string; // e.g., "#50" or "51-100"
 }
 
 export interface ProgramListResponse {
@@ -297,7 +298,7 @@ export interface ProgramIntakeResponse {
 export interface ProgramDetailResponse extends ProgramListItemResponse {
 	universityWebsiteUrl?: string;
 	universityDescription?: string;
-	rankingTimes?: number;
+	rankingTimesDisplay?: string; // e.g., "#75" or "101-150"
 	rankingNational?: number;
 	language?: string;
 	programDescription?: string;

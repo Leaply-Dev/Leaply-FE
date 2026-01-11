@@ -14,13 +14,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
+import { MOCK_PROGRAM_DETAIL } from "@/components/explore/mockDetailData";
 import {
 	ApplicationSidebar,
 	FitScoreExpanded,
 	ProgramTabs,
 	QuickFactsBar,
-} from "@/components/explore-alt/program-detail";
-import { MOCK_PROGRAM_DETAIL } from "@/components/explore/mockDetailData";
+} from "@/components/explore/program-detail";
 import { PageTransition, SlideUp } from "@/components/PageTransition";
 import { exploreApi } from "@/lib/api/exploreApi";
 import type { ProgramDetailResponse } from "@/lib/api/types";
@@ -276,9 +276,9 @@ export default function ProgramDetailPage({
 											<span className="text-sm font-medium text-muted-foreground">
 												{program.universityName}
 											</span>
-											{program.rankingQs && (
+											{program.rankingQsDisplay && (
 												<span className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs font-medium">
-													#{program.rankingQs} QS World
+													{program.rankingQsDisplay} QS World
 												</span>
 											)}
 										</div>

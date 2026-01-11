@@ -331,7 +331,7 @@ export default function ProfilePage() {
 							{/* Profile Completion Card */}
 							<StaggerItem>
 								<Card className="overflow-hidden">
-									<div className="bg-gradient-to-r from-primary/10 via-chart-2/10 to-transparent p-6">
+									<div className="bg-linear-to-r from-primary/10 via-chart-2/10 to-transparent p-6">
 										<div className="flex items-center gap-6">
 											<Avatar className="h-20 w-20 border-4 border-background shadow-lg">
 												<AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">

@@ -190,7 +190,9 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						err.logDetails();
 					} else {
 						// Capture unexpected non-API errors to Sentry
-						Sentry.captureException(err, { tags: { store: "persona", action: "fetchState" } });
+						Sentry.captureException(err, {
+							tags: { store: "persona", action: "fetchState" },
+						});
 					}
 					set({
 						error:
@@ -234,7 +236,9 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					if (err instanceof ApiError) {
 						err.logDetails();
 					} else {
-						Sentry.captureException(err, { tags: { store: "persona", action: "selectTrack" } });
+						Sentry.captureException(err, {
+							tags: { store: "persona", action: "selectTrack" },
+						});
 					}
 					set({
 						error:
@@ -370,7 +374,9 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					if (err instanceof ApiError) {
 						err.logDetails();
 					} else {
-						Sentry.captureException(err, { tags: { store: "persona", action: "sendMessage" } });
+						Sentry.captureException(err, {
+							tags: { store: "persona", action: "sendMessage" },
+						});
 					}
 					// Remove temp message on error
 					set((state) => ({
@@ -405,7 +411,9 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					if (err instanceof ApiError) {
 						err.logDetails();
 					} else {
-						Sentry.captureException(err, { tags: { store: "persona", action: "goBack" } });
+						Sentry.captureException(err, {
+							tags: { store: "persona", action: "goBack" },
+						});
 					}
 					set({
 						error:
@@ -455,7 +463,9 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					if (err instanceof ApiError) {
 						err.logDetails();
 					} else {
-						Sentry.captureException(err, { tags: { store: "persona", action: "redoTrack" } });
+						Sentry.captureException(err, {
+							tags: { store: "persona", action: "redoTrack" },
+						});
 					}
 					set({
 						error:
@@ -621,7 +631,9 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					if (err instanceof ApiError) {
 						err.logDetails();
 					} else {
-						Sentry.captureException(err, { tags: { store: "persona", action: "fetchGraph" } });
+						Sentry.captureException(err, {
+							tags: { store: "persona", action: "fetchGraph" },
+						});
 					}
 					set({
 						error:

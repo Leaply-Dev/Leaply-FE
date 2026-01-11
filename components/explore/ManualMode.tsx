@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 import { CompareDialog } from "@/components/explore/CompareDialog";
 import { CompareTray } from "@/components/explore/CompareTray";
@@ -87,28 +88,28 @@ function ProgramTableRow({
 		}
 	};
 
-	const getRankingBadge = (ranking?: number) => {
-		if (!ranking) return <span className="text-muted-foreground">N/A</span>;
+	const getRankingBadge = (rankingDisplay?: string) => {
+		if (!rankingDisplay)
+			return <span className="text-muted-foreground">N/A</span>;
 
-		let tier = "";
-		let colorClass = "";
+		// Parse ranking display to determine color tier
+		const rankNum = Number.parseInt(rankingDisplay.replace(/[^0-9]/g, ""), 10);
+		let colorClass = "bg-gray-100 text-gray-700 border-gray-200";
 
-		if (ranking <= 50) {
-			tier = "Top 50";
-			colorClass = "bg-purple-100 text-purple-700 border-purple-200";
-		} else if (ranking <= 100) {
-			tier = "51-100";
-			colorClass = "bg-blue-100 text-blue-700 border-blue-200";
-		} else if (ranking <= 200) {
-			tier = "101-200";
-			colorClass = "bg-slate-100 text-slate-700 border-slate-200";
-		} else {
-			tier = "200+";
-			colorClass = "bg-gray-100 text-gray-700 border-gray-200";
+		if (!Number.isNaN(rankNum)) {
+			if (rankNum <= 50) {
+				colorClass = "bg-purple-100 text-purple-700 border-purple-200";
+			} else if (rankNum <= 100) {
+				colorClass = "bg-blue-100 text-blue-700 border-blue-200";
+			} else if (rankNum <= 200) {
+				colorClass = "bg-slate-100 text-slate-700 border-slate-200";
+			}
 		}
 
 		return (
-			<Badge className={`${colorClass} hover:${colorClass}`}>{tier}</Badge>
+			<Badge className={`${colorClass} hover:${colorClass}`}>
+				{rankingDisplay}
+			</Badge>
 		);
 	};
 
@@ -138,10 +139,20 @@ function ProgramTableRow({
 			{/* University + Program */}
 			<td className="p-4">
 				<div className="flex items-start gap-3">
-					<div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
-						<span className="text-xs font-bold text-primary">
-							{program.universityName.substring(0, 2).toUpperCase()}
-						</span>
+					<div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+						{program.universityLogoUrl ? (
+							<Image
+								src={program.universityLogoUrl}
+								alt={program.universityName}
+								width={48}
+								height={48}
+								className="object-contain"
+							/>
+						) : (
+							<span className="text-xs font-bold text-primary">
+								{program.universityName.substring(0, 2).toUpperCase()}
+							</span>
+						)}
 					</div>
 					<div className="flex-1 min-w-0">
 						<div className="flex items-center gap-2 mb-1">
@@ -160,7 +171,9 @@ function ProgramTableRow({
 			</td>
 
 			{/* Ranking */}
-			<td className="p-4 text-center">{getRankingBadge(program.rankingQs)}</td>
+			<td className="p-4 text-center">
+				{getRankingBadge(program.rankingQsDisplay)}
+			</td>
 
 			{/* Cost */}
 			<td className="p-4 text-center">
@@ -264,15 +277,24 @@ export function ManualMode({ programs }: ManualModeProps) {
 		return (
 			program.universityName.toLowerCase().includes(query) ||
 			program.programName.toLowerCase().includes(query) ||
-			program.universityCountry.toLowerCase().includes(query)
+			(program.universityCountry || "").toLowerCase().includes(query)
 		);
 	});
+
+	// Helper to parse ranking display string to number for sorting
+	const parseRanking = (rankingDisplay?: string): number => {
+		if (!rankingDisplay) return 999;
+		const num = Number.parseInt(rankingDisplay.replace(/[^0-9]/g, ""), 10);
+		return Number.isNaN(num) ? 999 : num;
+	};
 
 	// Sort programs
 	const sortedPrograms = [...filteredPrograms].sort((a, b) => {
 		switch (sortBy) {
 			case "ranking":
-				return (a.rankingQs || 999) - (b.rankingQs || 999);
+				return (
+					parseRanking(a.rankingQsDisplay) - parseRanking(b.rankingQsDisplay)
+				);
 			case "cost_asc":
 				return (a.tuitionAnnualUsd || 0) - (b.tuitionAnnualUsd || 0);
 			case "cost_desc":

@@ -8,6 +8,7 @@ import {
 	FileWarning,
 	Plus,
 } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import type { ProgramListItemResponse } from "@/lib/api/types";
 
@@ -70,9 +71,19 @@ export function ProgramCard({ program, onClick }: ProgramCardProps) {
 			{/* Header with University Info */}
 			<div className="p-4 border-b border-border">
 				<div className="flex items-center gap-3">
-					{/* University Icon */}
-					<div className="h-12 w-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-						<Building2 className="w-6 h-6 text-muted-foreground" />
+					{/* University Logo */}
+					<div className="h-12 w-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
+						{program.universityLogoUrl ? (
+							<Image
+								src={program.universityLogoUrl}
+								alt={program.universityName}
+								width={48}
+								height={48}
+								className="object-contain"
+							/>
+						) : (
+							<Building2 className="w-6 h-6 text-muted-foreground" />
+						)}
 					</div>
 
 					{/* University Name and Country */}
@@ -82,7 +93,7 @@ export function ProgramCard({ program, onClick }: ProgramCardProps) {
 								{program.universityName}
 							</h3>
 							<span className="text-xl shrink-0">
-								{getCountryFlag(program.universityCountry)}
+								{getCountryFlag(program.universityCountry || "")}
 							</span>
 						</div>
 						<p className="text-sm text-slate-600 dark:text-slate-400">
@@ -102,10 +113,10 @@ export function ProgramCard({ program, onClick }: ProgramCardProps) {
 				{/* Meta Info */}
 				<div className="flex flex-wrap items-center gap-3 text-sm">
 					{/* Ranking Badge */}
-					{program.rankingQs && (
+					{program.rankingQsDisplay && (
 						<div className="flex items-center gap-1.5 px-2 py-1 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 rounded-md border border-blue-200 dark:border-blue-800">
 							<span className="font-medium">
-								🌍 Top {program.rankingQs} Global
+								🌍 {program.rankingQsDisplay} Global
 							</span>
 						</div>
 					)}
