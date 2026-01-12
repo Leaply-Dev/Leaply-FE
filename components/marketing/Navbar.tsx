@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { LanguageSwitcher } from "@/components/app/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
+import { useMounted } from "@/lib/hooks/useMounted";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +16,12 @@ export function Navbar() {
 	const tNav = useTranslations("nav");
 	const pathname = usePathname();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+	const mounted = useMounted();
 	const isAuthenticated = useUserStore((state) => state.isAuthenticated);
+
+	// Only use auth state after mount to avoid hydration mismatch
+	// Before mount, default to unauthenticated state (show Sign In/Sign Up)
+	const showAuthUI = mounted && isAuthenticated;
 
 	// Nav links with translations
 	const navLinks = [
@@ -64,7 +70,7 @@ export function Navbar() {
 					{/* Language Switcher + Auth Buttons */}
 					<div className="hidden md:flex items-center gap-3">
 						<LanguageSwitcher />
-						{isAuthenticated ? (
+						{showAuthUI ? (
 							<Button size="sm" asChild>
 								<Link href="/dashboard">{tNav("goToDashboard")}</Link>
 							</Button>
@@ -121,7 +127,7 @@ export function Navbar() {
 								);
 							})}
 							<div className="pt-4 border-t border-border flex flex-col gap-2">
-								{isAuthenticated ? (
+								{showAuthUI ? (
 									<Button size="sm" className="w-full" asChild>
 										<Link
 											href="/dashboard"

@@ -117,7 +117,8 @@ export async function refreshAccessToken(
 			});
 			if (response.ok) {
 				// Session is still valid, update local expiry tracking
-				const { login, profile, isOnboardingComplete } = useUserStore.getState();
+				const { login, profile, isOnboardingComplete } =
+					useUserStore.getState();
 				if (profile) {
 					login(
 						profile,
@@ -135,7 +136,7 @@ export async function refreshAccessToken(
 			return null;
 		} catch (error) {
 			if (retryCount < MAX_REFRESH_RETRIES && isRetryableError(error)) {
-				const delay = RETRY_BASE_DELAY_MS * Math.pow(2, retryCount);
+				const delay = RETRY_BASE_DELAY_MS * 2 ** retryCount;
 				if (isDev)
 					console.log(
 						`OAuth validation failed, retrying in ${delay}ms (attempt ${retryCount + 1}/${MAX_REFRESH_RETRIES})`,
@@ -168,7 +169,7 @@ export async function refreshAccessToken(
 				retryCount < MAX_REFRESH_RETRIES &&
 				isRetryableError(null, response.status)
 			) {
-				const delay = RETRY_BASE_DELAY_MS * Math.pow(2, retryCount);
+				const delay = RETRY_BASE_DELAY_MS * 2 ** retryCount;
 				if (isDev)
 					console.log(
 						`Token refresh failed with ${response.status}, retrying in ${delay}ms (attempt ${retryCount + 1}/${MAX_REFRESH_RETRIES})`,
@@ -201,7 +202,7 @@ export async function refreshAccessToken(
 	} catch (error) {
 		// Retry on network/transient errors
 		if (retryCount < MAX_REFRESH_RETRIES && isRetryableError(error)) {
-			const delay = RETRY_BASE_DELAY_MS * Math.pow(2, retryCount);
+			const delay = RETRY_BASE_DELAY_MS * 2 ** retryCount;
 			if (isDev)
 				console.log(
 					`Token refresh error, retrying in ${delay}ms (attempt ${retryCount + 1}/${MAX_REFRESH_RETRIES})`,

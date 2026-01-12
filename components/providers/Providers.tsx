@@ -13,7 +13,8 @@ interface ProvidersProps {
  * Must be inside AuthProvider to access the context
  */
 function SessionWarningRenderer() {
-	const { showWarning, secondsRemaining, onExtendSession } = useSessionWarning();
+	const { showWarning, secondsRemaining, onExtendSession } =
+		useSessionWarning();
 
 	return (
 		<SessionTimeoutWarning

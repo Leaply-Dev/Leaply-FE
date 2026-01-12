@@ -103,7 +103,11 @@ export function SessionTimeoutWarning({
 					</DialogDescription>
 				</DialogHeader>
 				<DialogFooter className="flex-row gap-2 sm:justify-end">
-					<Button variant="outline" onClick={handleLogout} disabled={isExtending}>
+					<Button
+						variant="outline"
+						onClick={handleLogout}
+						disabled={isExtending}
+					>
 						Đăng xuất
 					</Button>
 					<Button onClick={handleExtendSession} disabled={isExtending}>

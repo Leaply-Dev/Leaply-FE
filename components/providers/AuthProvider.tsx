@@ -154,8 +154,14 @@ function isProtectedRoute(pathname: string): boolean {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-	const { accessToken, isAuthenticated, login, profile, tokenExpiresAt } =
-		useUserStore();
+	const {
+		accessToken,
+		isAuthenticated,
+		login,
+		profile,
+		tokenExpiresAt,
+		_hasHydrated,
+	} = useUserStore();
 	const validationInProgress = useRef(false);
 	const proactiveRefreshInProgress = useRef(false);
 	const pathname = usePathname();
@@ -229,6 +235,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	}, [isAuthenticated, tokenExpiresAt, showWarning]);
 
 	useEffect(() => {
+		// Wait for Zustand store to hydrate from localStorage before validation
+		// This prevents false "corruption" detection when store hasn't loaded yet
+		if (!_hasHydrated) {
+			console.log("Auth validation waiting for store hydration...");
+			return;
+		}
+
 		// Skip if already validated this session (survives HMR)
 		if (wasValidatedThisSession()) {
 			console.log("Auth already validated this session, skipping");
@@ -359,7 +372,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		}
 
 		validateAuth();
-	}, [isAuthenticated, accessToken, login, profile, pathname]);
+	}, [_hasHydrated, isAuthenticated, accessToken, login, profile, pathname]);
 
 	// Context value for session warning
 	const sessionWarningValue: SessionWarningContextValue = {
