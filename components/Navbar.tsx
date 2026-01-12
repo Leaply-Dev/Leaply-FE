@@ -10,7 +10,7 @@ import { LanguageSwitcher } from "@/components/app/LanguageSwitcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { performLogout } from "@/lib/auth/logout";
-import { useMounted } from "@/lib/hooks/useMounted";
+import { useStoreHydrated } from "@/lib/hooks/useStoreHydrated";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +22,7 @@ export function Navbar() {
 	const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 	const { isAuthenticated, profile } = useUserStore();
-	const mounted = useMounted();
+	const hydrated = useStoreHydrated();
 
 	// Helper to get translation
 	const t = useTranslations("nav");
@@ -41,9 +41,9 @@ export function Navbar() {
 		{ href: "/persona-lab", labelKey: "personaLab" },
 	];
 
-	// Get nav links based on auth state - default to public links until mounted
+	// Get nav links based on auth state - default to public links until hydrated
 	// This prevents hydration mismatch since server always renders public links
-	const navLinks = mounted && isAuthenticated ? authNavLinks : publicNavLinks;
+	const navLinks = hydrated && isAuthenticated ? authNavLinks : publicNavLinks;
 
 	// Close dropdown when clicking outside
 	useEffect(() => {
@@ -90,9 +90,9 @@ export function Navbar() {
 		<nav className="bg-card border-b border-border fixed top-0 left-0 right-0 z-50">
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex items-center justify-between h-16">
-					{/* Logo - default to "/" until mounted to prevent hydration mismatch */}
+					{/* Logo - default to "/" until hydrated to prevent hydration mismatch */}
 					<Link
-						href={mounted && isAuthenticated ? "/dashboard" : "/"}
+						href={hydrated && isAuthenticated ? "/dashboard" : "/"}
 						className="flex items-center gap-2"
 					>
 						<Image
@@ -130,8 +130,8 @@ export function Navbar() {
 					<div className="hidden md:flex items-center gap-3">
 						<LanguageSwitcher />
 
-						{/* Auth UI - show skeleton until mounted to prevent hydration mismatch */}
-						{!mounted ? (
+						{/* Auth UI - show skeleton until hydrated to prevent hydration mismatch */}
+						{!hydrated ? (
 							<div className="flex items-center gap-3">
 								<div className="w-20 h-9 bg-muted rounded-md animate-pulse" />
 								<div className="w-24 h-9 bg-muted rounded-md animate-pulse" />
@@ -248,8 +248,8 @@ export function Navbar() {
 								);
 							})}
 							<div className="pt-4 border-t border-border flex flex-col gap-2">
-								{/* Mobile auth UI - show skeleton until mounted */}
-								{!mounted ? (
+								{/* Mobile auth UI - show skeleton until hydrated */}
+								{!hydrated ? (
 									<div className="flex flex-col gap-2">
 										<div className="h-9 bg-muted rounded-md animate-pulse" />
 										<div className="h-9 bg-muted rounded-md animate-pulse" />
