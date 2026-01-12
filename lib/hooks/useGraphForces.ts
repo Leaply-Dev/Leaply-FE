@@ -48,22 +48,23 @@ export function useGraphForces() {
 		fgRef.current.d3Force("charge")?.strength(-600);
 
 		// Add collision force to prevent overlap - larger radius for smaller nodes
-		const collideForce = d3Force.forceCollide((node: ForceGraphNode) => {
+		const collideForce = d3Force.forceCollide((node) => {
+			const graphNode = node as ForceGraphNode;
 			// Ensure minimum collision radius for small nodes (detail nodes)
 			const minRadius = 40;
-			return Math.max(node.size * 2.5 + 30, minRadius);
+			return Math.max(graphNode.size * 2.5 + 30, minRadius);
 		});
 		fgRef.current.d3Force("collide", collideForce);
 
 		// Add radial positioning force based on node layer
 		const radialForce = d3Force
 			.forceRadial(
-				(node: ForceGraphNode) => {
+				(node) => {
+					const graphNode = node as ForceGraphNode & { layer?: number };
 					// New API node types use layer property
-					const nodeData = node as ForceGraphNode & { layer?: number };
-					if (nodeData.layer !== undefined) {
+					if (graphNode.layer !== undefined) {
 						// Layer-based radial distance for new API nodes
-						switch (nodeData.layer) {
+						switch (graphNode.layer) {
 							case 0:
 								return 0; // Center - profile_summary
 							case 1:
@@ -77,10 +78,11 @@ export function useGraphForces() {
 						}
 					}
 					// Legacy node types (fallback for mock data)
-					if (node.type === "archetype") return 0; // Center
-					if (node.type === "pattern") return 150; // Inner ring
-					if (node.type === "value" || node.type === "skill") return 280; // Middle ring
-					if (node.type === "story") return 420; // Outer ring
+					if (graphNode.type === "archetype") return 0; // Center
+					if (graphNode.type === "pattern") return 150; // Inner ring
+					if (graphNode.type === "value" || graphNode.type === "skill")
+						return 280; // Middle ring
+					if (graphNode.type === "story") return 420; // Outer ring
 					return 280;
 				},
 				0,
