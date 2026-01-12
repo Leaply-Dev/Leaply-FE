@@ -1,7 +1,16 @@
 import * as Sentry from "@sentry/nextjs";
 import { performLogout } from "../auth/logout";
 import { useUserStore } from "../store/userStore";
-import type { ApiResponse, AuthResponse } from "./types";
+import type { AuthResponse, ErrorDetails } from "./types";
+
+// Generic ApiResponse type to match OpenAPI schema structure
+export interface ApiResponse<T> {
+	success?: boolean;
+	message?: string;
+	data?: T;
+	error?: ErrorDetails;
+	timestamp?: string;
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 const isDev = process.env.NODE_ENV === "development";
@@ -56,16 +65,18 @@ function isCookieAuth(): boolean {
 /**
  * Attempt to refresh the access token using the refresh token
  * Returns the new access token on success, null on failure
- * For cookie-based auth, returns null (cannot refresh from frontend)
+ * For cookie-based auth, returns special marker to indicate backend handles refresh
  */
 async function refreshAccessToken(): Promise<string | null> {
 	const { refreshToken, setTokens } = useUserStore.getState();
 
-	// For cookie-based auth, we can't refresh from frontend
-	// The httpOnly cookies are managed by the backend
+	// For cookie-based auth, return special marker
+	// Backend handles cookie refresh via httpOnly cookies
+	// We should NOT logout - let the backend decide if session is expired
 	if (isCookieAuth()) {
-		if (isDev) console.warn("Cookie-based auth: cannot refresh from frontend");
-		return null;
+		if (isDev)
+			console.log("Cookie-based auth: backend handles session refresh");
+		return COOKIE_AUTH_TOKEN; // Return marker, not null - prevents logout
 	}
 
 	if (!refreshToken) {
@@ -96,9 +107,12 @@ async function refreshAccessToken(): Promise<string | null> {
 				refreshToken: newRefreshToken,
 				expiresIn,
 			} = data.data;
-			setTokens(accessToken, newRefreshToken, expiresIn);
-			if (isDev) console.log("Token refreshed successfully");
-			return accessToken;
+			// OpenAPI schema has these as optional, but they should exist if success is true
+			if (accessToken && newRefreshToken && expiresIn) {
+				setTokens(accessToken, newRefreshToken, expiresIn);
+				if (isDev) console.log("Token refreshed successfully");
+				return accessToken;
+			}
 		}
 
 		return null;
@@ -117,6 +131,15 @@ async function handleUnauthorized(): Promise<string | null> {
 
 	const { isAuthenticated } = useUserStore.getState();
 	if (!isAuthenticated) return null;
+
+	// For cookie-based auth, don't try to refresh or logout
+	// The backend manages session via httpOnly cookies
+	// If session is truly expired, let the error propagate and handle in UI
+	if (isCookieAuth()) {
+		if (isDev) console.log("Cookie-based auth 401: session may be expired");
+		// Don't logout here - let AuthProvider or the calling code decide
+		return null;
+	}
 
 	// If already refreshing, wait for it to complete
 	if (isRefreshing) {
@@ -139,7 +162,7 @@ async function handleUnauthorized(): Promise<string | null> {
 			),
 		]);
 
-		if (newToken) {
+		if (newToken && newToken !== COOKIE_AUTH_TOKEN) {
 			onTokenRefreshed(newToken);
 			return newToken;
 		}
@@ -209,13 +232,34 @@ export class ApiError extends Error {
 
 	/** Log detailed error info for debugging */
 	logDetails(): void {
-		console.error(`API Error [${this.status}] - ${this.endpoint}`, {
+		const errorInfo = {
 			message: this.message,
 			code: this.code || "N/A",
 			field: this.field || "N/A",
-			details: this.details || "N/A",
+			details: this.details || {},
 			timestamp: this.timestamp || "N/A",
-		});
+		};
+
+		console.error(`API Error [${this.status}] - ${this.endpoint}`, errorInfo);
+
+		// Additional context for 500 errors
+		if (this.status >= 500) {
+			console.error("⚠️ Server Error - Check backend logs for details:");
+			console.error(`   Endpoint: ${this.endpoint}`);
+			console.error(`   Message: ${this.message}`);
+			if (Object.keys(errorInfo.details).length === 0) {
+				console.error(
+					"   ℹ️ No error details provided by backend (empty response)",
+				);
+				console.error("   💡 Possible causes:");
+				console.error(
+					"      - Backend server crashed or encountered unhandled exception",
+				);
+				console.error("      - Database connection failure");
+				console.error("      - Missing required configuration");
+				console.error("      - Authentication/authorization setup issue");
+			}
+		}
 	}
 }
 
@@ -346,7 +390,8 @@ async function apiFetch<T>(
 				response.status,
 				data?.error?.code,
 				data?.error?.field,
-				data?.error?.details,
+				// OpenAPI schema has details as 'object', cast to Record<string, unknown>
+				data?.error?.details as Record<string, unknown> | undefined,
 				path,
 				data?.timestamp,
 			);
@@ -368,7 +413,9 @@ async function apiFetch<T>(
 			throw apiError;
 		}
 
-		return data.data;
+		// OpenAPI schema has data as optional, but if request succeeded it should be present
+		// Type assertion needed because generic T doesn't allow undefined
+		return data.data as T;
 	} catch (error) {
 		if (error instanceof ApiError) {
 			throw error;

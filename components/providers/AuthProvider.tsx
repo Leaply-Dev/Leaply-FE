@@ -42,6 +42,29 @@ interface AuthProviderProps {
 const COOKIE_AUTH_TOKEN = "COOKIE_AUTH";
 
 /**
+ * Session key for tracking validation state
+ * Using sessionStorage instead of ref to survive HMR remounts in development
+ */
+const AUTH_VALIDATION_KEY = "leaply-auth-validated";
+
+/**
+ * Check if auth was already validated this session
+ * Survives HMR remounts but resets on page refresh
+ */
+function wasValidatedThisSession(): boolean {
+	if (typeof window === "undefined") return false;
+	return sessionStorage.getItem(AUTH_VALIDATION_KEY) === "true";
+}
+
+/**
+ * Mark auth as validated for this session
+ */
+function markValidated(): void {
+	if (typeof window === "undefined") return;
+	sessionStorage.setItem(AUTH_VALIDATION_KEY, "true");
+}
+
+/**
  * AuthProvider validates the stored auth token on app load
  * Supports two authentication methods:
  * 1. Token-based (email/password): JWT in localStorage, sent via Bearer header
@@ -49,16 +72,19 @@ const COOKIE_AUTH_TOKEN = "COOKIE_AUTH";
  *
  * - For token-based: Checks if JWT is expired locally, validates with backend
  * - For cookie-based: Always validates with backend (cannot read httpOnly cookies)
- * - Auto-logout if authentication is invalid or expired
+ * - Auto-logout only for token-based auth if refresh fails
+ * - Uses sessionStorage to persist validation state across HMR remounts
  */
 export function AuthProvider({ children }: AuthProviderProps) {
 	const { accessToken, isAuthenticated, login, profile } = useUserStore();
-	const validationDone = useRef(false);
+	const validationInProgress = useRef(false);
 
 	useEffect(() => {
-		// Only validate once per mount
-		if (validationDone.current) return;
-		validationDone.current = true;
+		// Skip if already validated this session (survives HMR)
+		if (wasValidatedThisSession()) return;
+		// Prevent concurrent validations
+		if (validationInProgress.current) return;
+		validationInProgress.current = true;
 
 		async function validateAuth() {
 			// Check for auth state corruption first
@@ -98,7 +124,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			// For token-based auth, check JWT expiry locally first
 			// Note: API client will automatically refresh expired tokens,
 			// but we can catch obviously expired tokens before making a request
-			if (!isCookieAuth) {
+			if (!isCookieAuth && accessToken) {
 				if (isTokenExpired(accessToken)) {
 					// Don't logout immediately - the API client will attempt refresh
 					// Just log for debugging
@@ -120,10 +146,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 					userContext.user
 				) {
 					// Update token to marker without triggering logout
+					// Handle optional fields from UserInfo (OpenAPI schema has id and email as optional)
 					login(
 						profile || {
-							id: userContext.user.id,
-							email: userContext.user.email,
+							id: userContext.user.id ?? "",
+							email: userContext.user.email ?? "",
 							fullName: "",
 						},
 						COOKIE_AUTH_TOKEN,
@@ -133,12 +160,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
 					);
 				}
 
+				// Mark as validated so we don't re-validate on HMR
+				markValidated();
 				console.log("Auth validated successfully");
 			} catch (error) {
-				// 401 errors are handled by apiClient which will attempt refresh first
-				// If refresh fails, apiClient will logout
-				// Other errors might be network issues, don't logout
-				console.error("Auth validation error:", error);
+				// For cookie-based auth, don't logout on validation error
+				// The session might still be valid - let individual API calls handle it
+				if (isCookieAuth) {
+					console.warn(
+						"Cookie auth validation failed, session may be expired:",
+						error,
+					);
+					// Still mark as validated to prevent infinite loops
+					markValidated();
+				} else {
+					// For token-based auth, the apiClient will handle refresh/logout
+					console.error("Auth validation error:", error);
+				}
+			} finally {
+				validationInProgress.current = false;
 			}
 		}
 
