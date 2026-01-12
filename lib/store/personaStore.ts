@@ -695,15 +695,17 @@ export const usePersonaStore = create<PersonaStoreState>()(
 			// Process graph update from API response (called from ChatSidebar mutation callbacks)
 			processGraphUpdate: (response: GraphMessageResponse) => {
 				set((state) => {
-					// Add new nodes (avoid duplicates)
+					// Add new nodes (avoid duplicates) - handle optional nodesCreated
+					const nodesCreated = response.nodesCreated ?? [];
 					const existingNodeIds = new Set(state.apiGraphNodes.map((n) => n.id));
-					const newNodes = response.nodesCreated.filter(
+					const newNodes = nodesCreated.filter(
 						(n) => !existingNodeIds.has(n.id),
 					);
 
-					// Add new edges (avoid duplicates)
+					// Add new edges (avoid duplicates) - handle optional edgesCreated
+					const edgesCreated = response.edgesCreated ?? [];
 					const existingEdgeIds = new Set(state.apiGraphEdges.map((e) => e.id));
-					const newEdges = response.edgesCreated.filter(
+					const newEdges = edgesCreated.filter(
 						(e) => !existingEdgeIds.has(e.id),
 					);
 
