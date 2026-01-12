@@ -22,19 +22,20 @@ import { useUserStore } from "@/lib/store/userStore";
  * ```
  */
 export function useStoreHydrated(): boolean {
+	// Initialize with current hydration state to avoid SSR mismatch
 	const [hydrated, setHydrated] = useState(false);
 
 	useEffect(() => {
-		// Check if already hydrated (might be true on subsequent renders)
-		if (useUserStore.persist.hasHydrated()) {
-			setHydrated(true);
-			return;
-		}
-
-		// Subscribe to hydration completion
+		// Subscribe to hydration completion first to avoid race condition
 		const unsubscribe = useUserStore.persist.onFinishHydration(() => {
 			setHydrated(true);
 		});
+
+		// Then check if already hydrated (covers case where hydration finished
+		// before subscription or between subscription and this check)
+		if (useUserStore.persist.hasHydrated()) {
+			setHydrated(true);
+		}
 
 		return unsubscribe;
 	}, []);
