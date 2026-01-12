@@ -126,7 +126,7 @@ async function handleUnauthorized(): Promise<string | null> {
 	// Safeguard: Check if token was just issued (within last 10 seconds)
 	// This prevents logout immediately after login due to race conditions
 	if (tokenExpiresAt) {
-		const tokenAge = Date.now() - (tokenExpiresAt - 3600000); // Assuming 1 hour token lifetime
+		const tokenAge = Date.now() - (tokenExpiresAt - 900000); // 15 minute token lifetime
 		if (tokenAge < 10000) {
 			if (isDev)
 				console.log(

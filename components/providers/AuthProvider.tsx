@@ -50,10 +50,32 @@ const AUTH_VALIDATION_KEY = "leaply-auth-validated";
 /**
  * Check if auth was already validated this session
  * Survives HMR remounts but resets on page refresh
+ * Also forces re-validation if token is about to expire
  */
 function wasValidatedThisSession(): boolean {
 	if (typeof window === "undefined") return false;
-	return sessionStorage.getItem(AUTH_VALIDATION_KEY) === "true";
+
+	const validated = sessionStorage.getItem(AUTH_VALIDATION_KEY);
+	if (validated !== "true") return false;
+
+	// Force re-validation if token is expiring soon (within 2 minutes)
+	// This prevents the UI from appearing authenticated while API calls fail with 401
+	try {
+		const persistedState = localStorage.getItem("leaply-user-store");
+		if (persistedState) {
+			const parsed = JSON.parse(persistedState);
+			const tokenExpiresAt = parsed.state?.tokenExpiresAt;
+			if (tokenExpiresAt && tokenExpiresAt < Date.now() + 120000) {
+				// Token expiring soon, clear validation flag to force re-validation
+				sessionStorage.removeItem(AUTH_VALIDATION_KEY);
+				return false;
+			}
+		}
+	} catch {
+		// If we can't read the store, continue with normal validation
+	}
+
+	return true;
 }
 
 /**
