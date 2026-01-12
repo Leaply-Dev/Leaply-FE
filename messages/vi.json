@@ -657,7 +657,8 @@
 		"resetConfirmTitle": "Xóa cuộc trò chuyện?",
 		"resetConfirmDescription": "Điều này sẽ xóa toàn bộ dữ liệu cuộc trò chuyện và bắt đầu lại từ đầu. Dữ liệu canvas của bạn sẽ bị mất.",
 		"confirmReset": "Đồng ý, xóa",
-		"conversationComplete": "Hoàn thành! Persona của bạn đã sẵn sàng."
+		"conversationComplete": "Hoàn thành! Persona của bạn đã sẵn sàng.",
+		"goToApplications": "Tiếp tục đến Ứng dụng"
 	},
 	"home": {
 		"greeting": {

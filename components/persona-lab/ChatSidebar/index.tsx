@@ -1,6 +1,7 @@
 "use client";
 
-import { RotateCcw } from "lucide-react";
+import { ArrowRight, RotateCcw } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ const DEFAULT_COVERAGE: Coverage = {
 
 export function ChatSidebar() {
 	const t = useTranslations("personaLab");
+	const router = useRouter();
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [showResetDialog, setShowResetDialog] = useState(false);
 
@@ -229,15 +231,25 @@ export function ChatSidebar() {
 				</div>
 			</ScrollArea>
 
-			{/* Input - always shown for new conversation flow */}
+			{/* Input or CTA when complete */}
 			<div className="flex-shrink-0">
-				<MessageInput
-					onSend={handleSendMessage}
-					disabled={isSending || completionReady}
-					placeholder={
-						completionReady ? t("conversationComplete") : t("shareYourStory")
-					}
-				/>
+				{completionReady ? (
+					<div className="p-3 border-t border-border">
+						<Button
+							className="w-full"
+							onClick={() => router.push("/applications")}
+						>
+							{t("goToApplications")}
+							<ArrowRight className="w-4 h-4 ml-2" />
+						</Button>
+					</div>
+				) : (
+					<MessageInput
+						onSend={handleSendMessage}
+						disabled={isSending}
+						placeholder={t("shareYourStory")}
+					/>
+				)}
 			</div>
 		</div>
 	);

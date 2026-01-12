@@ -657,7 +657,8 @@
 		"resetConfirmTitle": "Reset conversation?",
 		"resetConfirmDescription": "This will clear all your conversation data and start fresh. Your canvas data will be lost.",
 		"confirmReset": "Yes, reset",
-		"conversationComplete": "Conversation complete! Your persona is ready."
+		"conversationComplete": "Conversation complete! Your persona is ready.",
+		"goToApplications": "Continue to Applications"
 	},
 	"home": {
 		"greeting": {
