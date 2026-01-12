@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -16,11 +17,12 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
+	getGetCoverageQueryKey,
 	useCoverage,
 	useResetConversation,
 	useSendMessage,
 	useStartConversation,
-} from "@/lib/hooks/usePersonaConversation";
+} from "@/lib/hooks/persona";
 import { usePersonaStore } from "@/lib/store/personaStore";
 import type { ConversationMessage, Coverage } from "@/lib/types/persona";
 import { ChatHeader } from "./ChatHeader";
@@ -39,6 +41,7 @@ const DEFAULT_COVERAGE: Coverage = {
 export function ChatSidebar() {
 	const t = useTranslations("personaLab");
 	const router = useRouter();
+	const queryClient = useQueryClient();
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [showResetDialog, setShowResetDialog] = useState(false);
 
@@ -110,32 +113,42 @@ export function ChatSidebar() {
 			sendMessageMutation.mutate(
 				{ data: { content } },
 				{
-					onSuccess: (data) => {
+					onSuccess: (response) => {
+						// Handle API response structure
+						// At runtime, API returns wrapper { data: GraphMessageResponse }
+						// but TypeScript thinks it's GraphMessageResponse directly
+						const wrappedResponse = response as unknown as {
+							data?: typeof response;
+						};
+						const graphData = wrappedResponse.data ?? response;
+
 						// Add assistant response to store (persisted)
 						// Convert ChatMessageDto to ConversationMessage
-						if (data?.message) {
+						if (graphData?.message) {
 							const assistantMessage: ConversationMessage = {
-								id: data.message.id || `assistant-${Date.now()}`,
+								id: graphData.message.id || `assistant-${Date.now()}`,
 								role:
-									(data.message.role as "user" | "assistant") || "assistant",
+									(graphData.message.role as "user" | "assistant") ||
+									"assistant",
 								type:
-									(data.message.type as ConversationMessage["type"]) || "text",
-								content: data.message.content || "",
-								timestamp: data.message.timestamp || new Date().toISOString(),
+									(graphData.message.type as ConversationMessage["type"]) ||
+									"text",
+								content: graphData.message.content || "",
+								timestamp:
+									graphData.message.timestamp || new Date().toISOString(),
 							};
 							addGraphMessage(assistantMessage);
 						}
 
 						// Update store with graph data (canvas subscribes to this)
-						// Type assertion needed as API type differs from local type
-						if (data) {
+						if (graphData) {
 							processGraphUpdate(
-								data as unknown as import("@/lib/types/persona").GraphMessageResponse,
+								graphData as import("@/lib/types/persona").GraphMessageResponse,
 							);
 						}
 
 						// If completion is ready, add completion message
-						if (data?.completionReady) {
+						if (graphData?.completionReady) {
 							const completionMessage: ConversationMessage = {
 								id: `completion-${Date.now()}`,
 								role: "assistant",
@@ -171,9 +184,17 @@ export function ChatSidebar() {
 				}
 				// Clear graph data in store
 				clearApiGraph();
+				// Invalidate coverage query to refresh progress bar
+				queryClient.invalidateQueries({ queryKey: getGetCoverageQueryKey() });
 			},
 		});
-	}, [resetMutation, clearApiGraph, clearGraphMessages, addGraphMessage]);
+	}, [
+		resetMutation,
+		clearApiGraph,
+		clearGraphMessages,
+		addGraphMessage,
+		queryClient,
+	]);
 
 	// Derived state - access CoverageMetrics fields directly
 	// Convert API CoverageMetrics to local Coverage type
@@ -300,139 +321,7 @@ export function ChatSidebar() {
 	);
 }
 
-// ============================================
-// Legacy ChatSidebar (deprecated)
-// Keep for backward compatibility during migration
-// ============================================
-
-import type { TrackId } from "@/lib/types/persona";
-import { BackToTracksButton } from "./BackToTracksButton";
-import { LegacyChatMessage } from "./ChatMessage";
-
-/** @deprecated Use ChatSidebar instead */
-export function LegacyChatSidebar() {
-	const t = useTranslations("personaLab");
-	const {
-		conversationHistory,
-		currentTrackId,
-		isLoading,
-		isSending,
-		error,
-		fetchPersonaState,
-		selectTrack,
-		sendMessage,
-		goBackToTrackSelection,
-		extractKeywords,
-	} = usePersonaStore();
-
-	const scrollRef = useRef<HTMLDivElement>(null);
-
-	// Fetch persona state on mount
-	useEffect(() => {
-		fetchPersonaState();
-	}, [fetchPersonaState]);
-
-	// Scroll to bottom on new messages
-	const messageCount = conversationHistory.length;
-	// biome-ignore lint/correctness/useExhaustiveDependencies: messageCount is intentionally used as a trigger
-	useEffect(() => {
-		if (scrollRef.current) {
-			scrollRef.current.scrollIntoView({ behavior: "smooth" });
-		}
-	}, [messageCount]);
-
-	const handleTrackSelect = (trackId: TrackId) => {
-		selectTrack(trackId);
-	};
-
-	const handleSendMessage = (content: string) => {
-		sendMessage(content);
-		// Extract keywords in parallel for instant canvas feedback
-		if (currentTrackId) {
-			extractKeywords(content, currentTrackId);
-		}
-	};
-
-	const handleBackToTracks = () => {
-		goBackToTrackSelection();
-	};
-
-	// Placeholder coverage for legacy usage
-	const legacyCoverage: Coverage = {
-		goals: 0,
-		evidence: 0,
-		skills: 0,
-		values: 0,
-		tensions: 0,
-	};
-
-	// Show loading skeleton while fetching initial state
-	if (isLoading && conversationHistory.length === 0) {
-		return (
-			<div className="flex flex-col h-full">
-				<ChatHeader coverage={legacyCoverage} />
-				<div className="flex-1 min-h-0 p-4 space-y-4">
-					<div className="h-16 bg-muted/50 rounded-lg animate-pulse" />
-					<div className="h-12 bg-muted/30 rounded-lg animate-pulse ml-8" />
-					<div className="h-12 bg-muted/30 rounded-lg animate-pulse ml-8" />
-				</div>
-			</div>
-		);
-	}
-
-	return (
-		<div className="flex flex-col h-full min-h-0 overflow-hidden">
-			{/* Header with progress */}
-			<ChatHeader coverage={legacyCoverage} />
-
-			{/* Back to tracks button (show during active track) */}
-			{currentTrackId && (
-				<BackToTracksButton onClick={handleBackToTracks} disabled={isSending} />
-			)}
-
-			{/* Messages */}
-			<ScrollArea className="flex-1 p-3" type="always">
-				<div className="space-y-3">
-					{conversationHistory.map((message, index) => (
-						<LegacyChatMessage
-							key={`${message.id}-${index}`}
-							message={message}
-							onTrackSelect={handleTrackSelect}
-							isLoading={isSending}
-						/>
-					))}
-
-					{/* Typing indicator */}
-					{isSending && <TypingIndicator />}
-
-					{/* Error message */}
-					{error && (
-						<div className="text-xs text-destructive bg-destructive/10 px-3 py-2 rounded-lg">
-							{error}
-						</div>
-					)}
-
-					<div ref={scrollRef} />
-				</div>
-			</ScrollArea>
-
-			{/* Input - sticky at bottom, only show when track is active */}
-			{currentTrackId && (
-				<div className="shrink-0">
-					<MessageInput
-						onSend={handleSendMessage}
-						disabled={isSending}
-						placeholder={t("shareYourStory")}
-					/>
-				</div>
-			)}
-		</div>
-	);
-}
-
-export { BackToTracksButton } from "./BackToTracksButton";
 // Re-export components for external use
-export { ChatHeader, LegacyChatHeader } from "./ChatHeader";
-export { ChatMessage, LegacyChatMessage, TypingIndicator } from "./ChatMessage";
+export { ChatHeader } from "./ChatHeader";
+export { ChatMessage, TypingIndicator } from "./ChatMessage";
 export { MessageInput } from "./MessageInput";
-export { TrackActionCards } from "./TrackActionCards";

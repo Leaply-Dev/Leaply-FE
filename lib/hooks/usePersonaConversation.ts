@@ -1,21 +1,26 @@
 /**
  * Persona Lab Graph Conversation Hooks
- * Re-exports Orval-generated hooks for persona lab conversation
+ *
+ * @deprecated Import from '@/lib/hooks/persona' instead for organized exports.
+ * This file is kept for backward compatibility during migration.
+ *
+ * @example
+ * ```tsx
+ * // Old (deprecated)
+ * import { useSendMessage } from '@/lib/hooks/usePersonaConversation';
+ *
+ * // New (preferred)
+ * import { useSendMessage } from '@/lib/hooks/persona';
+ * ```
  */
 
+// Re-export from new organized structure for backward compatibility
 export {
+	personaQueryKeys,
+	useCoverage,
 	useExpandNode,
-	useGetCoverage as useCoverage,
-	useGetPersona as usePersonaGraph,
+	usePersonaGraph,
 	useResetConversation,
-	useSendGraphMessage as useSendMessage,
+	useSendMessage,
 	useStartConversation,
-} from "@/lib/generated/api/endpoints/persona-lab/persona-lab";
-
-// Query keys for cache management (for custom invalidation)
-export const personaQueryKeys = {
-	all: ["persona"] as const,
-	conversation: () => [...personaQueryKeys.all, "conversation"] as const,
-	coverage: () => [...personaQueryKeys.all, "coverage"] as const,
-	graph: () => [...personaQueryKeys.all, "graph"] as const,
-};
+} from "@/lib/hooks/persona";

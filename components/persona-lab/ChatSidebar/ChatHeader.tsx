@@ -155,22 +155,3 @@ export function ChatHeader({
 		</div>
 	);
 }
-
-// ============================================
-// Legacy ChatHeader (deprecated)
-// Keep for backward compatibility during migration
-// ============================================
-
-/** @deprecated Use ChatHeader with coverage prop instead */
-export function LegacyChatHeader() {
-	// Placeholder coverage for legacy usage
-	const legacyCoverage: Coverage = {
-		goals: 0,
-		evidence: 0,
-		skills: 0,
-		values: 0,
-		tensions: 0,
-	};
-
-	return <ChatHeader coverage={legacyCoverage} />;
-}

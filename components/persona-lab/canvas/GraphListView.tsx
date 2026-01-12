@@ -6,16 +6,15 @@ import {
 	ChevronDown,
 	ChevronRight,
 	FileText,
+	MessageCircle,
 	Monitor,
 	Sparkles,
 	Target,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { ARCHETYPES } from "@/lib/constants/archetypes";
-import { TRACK_COLORS } from "@/lib/constants/tracks";
 import { LAYOUT_CONFIG } from "@/lib/hooks/useForceLayout";
 import { usePersonaStore } from "@/lib/store/personaStore";
-import type { LayerNumber, PersonaNodeDto } from "@/lib/types/persona-graph";
+import type { GraphNode, GraphNodeLayer } from "@/lib/types/persona";
 import { cn } from "@/lib/utils";
 
 // Hook for responsive mobile detection
@@ -38,26 +37,29 @@ function useIsMobile(breakpoint = 768) {
 	return isMobile;
 }
 
-const LAYER_CONFIG = {
+const LAYER_CONFIG: Record<
+	GraphNodeLayer,
+	{ label: string; icon: typeof Sparkles; description: string }
+> = {
 	0: {
-		label: "Hồ sơ cá nhân",
+		label: "Profile Summary",
 		icon: Sparkles,
-		description: "Tổng quan về bạn và archetype",
+		description: "Overview and archetype",
 	},
 	1: {
-		label: "Góc nhìn Essay",
+		label: "Essay Angles",
 		icon: Target,
-		description: "Các chủ đề chính cho bài essay",
+		description: "Key themes for essays",
 	},
 	2: {
-		label: "Câu chuyện chính",
+		label: "Key Stories",
 		icon: BookOpen,
-		description: "Những trải nghiệm quan trọng",
+		description: "Important experiences",
 	},
 	3: {
-		label: "Chi tiết",
+		label: "Details",
 		icon: FileText,
-		description: "Bằng chứng và insights hỗ trợ",
+		description: "Supporting evidence and insights",
 	},
 };
 
@@ -69,33 +71,30 @@ interface GraphListViewProps {
  * GraphListView - Mobile fallback for the graph
  *
  * Displays nodes grouped by layer in a list format.
+ * Uses real-time graph data from chat conversation.
  * Shows a banner prompting users to use desktop for the full graph.
  */
 export function GraphListView({ className }: GraphListViewProps) {
-	const { graphNodes, isGraphLoading, fetchPersonaGraph } = usePersonaStore();
+	// Use apiGraphNodes from chat-based updates (new system)
+	const apiGraphNodes = usePersonaStore((state) => state.apiGraphNodes);
 	const [expandedLayers, setExpandedLayers] = useState<Set<number>>(
 		new Set([0, 1]),
 	);
 	const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 	const isMobile = useIsMobile(768);
 
-	// Fetch graph data on mount
-	useEffect(() => {
-		fetchPersonaGraph();
-	}, [fetchPersonaGraph]);
-
 	// Group nodes by layer with validation
 	const nodesByLayer = useMemo(() => {
-		const validLayers: LayerNumber[] = [0, 1, 2, 3];
-		const groups = new Map<LayerNumber, PersonaNodeDto[]>();
+		const validLayers: GraphNodeLayer[] = [0, 1, 2, 3];
+		const groups = new Map<GraphNodeLayer, GraphNode[]>();
 		validLayers.forEach((layer) => {
 			groups.set(layer, []);
 		});
 
-		graphNodes.forEach((node) => {
-			// Validate layer is a valid LayerNumber (0-3)
+		apiGraphNodes.forEach((node) => {
+			// Validate layer is a valid GraphNodeLayer (0-3)
 			const layer = node.layer as number;
-			if (!validLayers.includes(layer as LayerNumber)) {
+			if (!validLayers.includes(layer as GraphNodeLayer)) {
 				console.warn(
 					`[GraphListView] Invalid layer ${layer} for node ${node.id}, defaulting to layer 3`,
 				);
@@ -105,13 +104,13 @@ export function GraphListView({ className }: GraphListViewProps) {
 				groups.set(3, layerNodes);
 				return;
 			}
-			const layerNodes = groups.get(layer as LayerNumber) || [];
+			const layerNodes = groups.get(layer as GraphNodeLayer) || [];
 			layerNodes.push(node);
-			groups.set(layer as LayerNumber, layerNodes);
+			groups.set(layer as GraphNodeLayer, layerNodes);
 		});
 
 		return groups;
-	}, [graphNodes]);
+	}, [apiGraphNodes]);
 
 	// Toggle layer expansion
 	const toggleLayer = (layer: number) => {
@@ -126,16 +125,24 @@ export function GraphListView({ className }: GraphListViewProps) {
 		});
 	};
 
-	// Loading state
-	if (isGraphLoading) {
+	// Empty state
+	const isEmpty = apiGraphNodes.length === 0;
+
+	if (isEmpty) {
 		return (
 			<div
-				className={cn("flex items-center justify-center h-full p-8", className)}
+				className={cn(
+					"flex flex-col items-center justify-center h-full p-8",
+					className,
+				)}
 			>
-				<div className="flex flex-col items-center gap-3">
-					<div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-					<p className="text-sm text-muted-foreground">Đang tải...</p>
+				<div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+					<MessageCircle className="w-8 h-8 text-muted-foreground" />
 				</div>
+				<h3 className="text-lg font-semibold mb-2">Start a Conversation</h3>
+				<p className="text-sm text-muted-foreground text-center max-w-xs">
+					Share your stories in the chat to build your persona graph.
+				</p>
 			</div>
 		);
 	}
@@ -149,9 +156,9 @@ export function GraphListView({ className }: GraphListViewProps) {
 						<Monitor className="w-5 h-5" />
 					</div>
 					<div>
-						<p className="text-sm font-medium">Xem graph đầy đủ trên desktop</p>
+						<p className="text-sm font-medium">View full graph on desktop</p>
 						<p className="text-xs text-white/80">
-							Mở trên màn hình lớn để trải nghiệm visualization tương tác
+							Open on a larger screen for interactive visualization
 						</p>
 					</div>
 				</div>
@@ -159,7 +166,7 @@ export function GraphListView({ className }: GraphListViewProps) {
 
 			{/* Node list by layer */}
 			<div className="flex-1 overflow-y-auto">
-				{([0, 1, 2, 3] as LayerNumber[]).map((layer) => {
+				{([0, 1, 2, 3] as GraphNodeLayer[]).map((layer) => {
 					const nodes = nodesByLayer.get(layer) || [];
 					const config = LAYER_CONFIG[layer];
 					const isExpanded = expandedLayers.has(layer);
@@ -226,7 +233,7 @@ export function GraphListView({ className }: GraphListViewProps) {
 										{nodes.length === 0 ? (
 											<div className="px-4 pb-4 pl-14">
 												<p className="text-xs text-muted-foreground italic">
-													Chưa có dữ liệu. Hoàn thành thêm tracks để khám phá.
+													No data yet. Keep chatting to discover more.
 												</p>
 											</div>
 										) : (
@@ -259,7 +266,7 @@ export function GraphListView({ className }: GraphListViewProps) {
 
 // Individual node item component
 interface NodeListItemProps {
-	node: PersonaNodeDto;
+	node: GraphNode;
 	layerColor: string;
 	isSelected: boolean;
 	onClick: () => void;
@@ -271,14 +278,6 @@ function NodeListItem({
 	isSelected,
 	onClick,
 }: NodeListItemProps) {
-	const trackColors = node.sourceTrackId
-		? TRACK_COLORS[node.sourceTrackId]
-		: null;
-
-	const primaryArchetype = node.primaryArchetype
-		? ARCHETYPES[node.primaryArchetype]
-		: null;
-
 	return (
 		<motion.button
 			className={cn(
@@ -299,27 +298,27 @@ function NodeListItem({
 			{/* Title */}
 			<h4 className="text-sm font-medium text-foreground mb-1">{node.title}</h4>
 
-			{/* Description */}
+			{/* Content (was description in old API) */}
 			<p
 				className={cn(
 					"text-xs text-muted-foreground",
 					isSelected ? "" : "line-clamp-2",
 				)}
 			>
-				{node.description}
+				{node.content}
 			</p>
 
-			{/* Archetype badge (layer 0) */}
-			{primaryArchetype && (
+			{/* Essay angle badge (for profile_summary nodes) */}
+			{node.essayAngle && (
 				<div
 					className="inline-flex items-center gap-1 mt-2 px-2 py-1 rounded-full text-xs font-medium"
 					style={{
-						backgroundColor: `${primaryArchetype.color}15`,
-						color: primaryArchetype.color,
+						backgroundColor: `${layerColor}15`,
+						color: layerColor,
 					}}
 				>
-					<Sparkles className="w-3 h-3" />
-					{primaryArchetype.title}
+					<Target className="w-3 h-3" />
+					{node.essayAngle}
 				</div>
 			)}
 
@@ -341,16 +340,19 @@ function NodeListItem({
 				</div>
 			)}
 
-			{/* Source track indicator */}
-			{trackColors && node.sourceTrackId && (
-				<div className="flex items-center gap-1.5 mt-2">
-					<div
-						className="w-1.5 h-1.5 rounded-full"
-						style={{ backgroundColor: trackColors.primary }}
-					/>
-					<span className="text-[10px] text-muted-foreground">
-						{node.sourceTrackId.replace(/_/g, " ")}
-					</span>
+			{/* Best for indicator */}
+			{isSelected && node.bestFor && node.bestFor.length > 0 && (
+				<div className="mt-2 text-[10px] text-muted-foreground">
+					<span className="font-medium">Best for:</span>{" "}
+					{node.bestFor.join(", ")}
+				</div>
+			)}
+
+			{/* Word count potential */}
+			{isSelected && node.wordCountPotential && (
+				<div className="mt-1 text-[10px] text-muted-foreground">
+					<span className="font-medium">Word count:</span>{" "}
+					{node.wordCountPotential}
 				</div>
 			)}
 		</motion.button>
