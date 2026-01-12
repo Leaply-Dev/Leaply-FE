@@ -1,3 +1,4 @@
+import * as d3Force from "d3-force";
 import { useEffect, useRef, useState } from "react";
 import type { ForceGraphMethods } from "react-force-graph-2d";
 import { usePersonaStore } from "@/lib/store/personaStore";
@@ -43,20 +44,19 @@ export function useGraphForces() {
 	useEffect(() => {
 		if (!fgRef.current) return;
 
-		// Import d3-force module
-		const d3 = require("d3-force");
+		// Configure charge force (repulsion between nodes) - strong for better separation
+		fgRef.current.d3Force("charge")?.strength(-600);
 
-		// Configure charge force (repulsion between nodes) - increased for better separation
-		fgRef.current.d3Force("charge")?.strength(-400);
-
-		// Add collision force to prevent overlap - increased padding for better spacing
-		const collideForce = d3.forceCollide(
-			(node: ForceGraphNode) => node.size * 2 + 20,
-		);
+		// Add collision force to prevent overlap - larger radius for smaller nodes
+		const collideForce = d3Force.forceCollide((node: ForceGraphNode) => {
+			// Ensure minimum collision radius for small nodes (detail nodes)
+			const minRadius = 40;
+			return Math.max(node.size * 2.5 + 30, minRadius);
+		});
 		fgRef.current.d3Force("collide", collideForce);
 
 		// Add radial positioning force based on node layer
-		const radialForce = d3
+		const radialForce = d3Force
 			.forceRadial(
 				(node: ForceGraphNode) => {
 					// New API node types use layer property
@@ -90,7 +90,7 @@ export function useGraphForces() {
 		fgRef.current.d3Force("radial", radialForce);
 
 		// Configure link force for better spacing - increased distance
-		fgRef.current.d3Force("link")?.distance(100);
+		fgRef.current.d3Force("link")?.distance(150);
 
 		// Reheat simulation when data changes
 		fgRef.current.d3ReheatSimulation();

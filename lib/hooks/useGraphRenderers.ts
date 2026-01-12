@@ -67,13 +67,8 @@ export function useGraphRenderers({
 			// Reset alpha
 			ctx.globalAlpha = 1.0;
 
-			// Label - smart visibility: only important nodes or when interacting
-			const isImportantNode =
-				graphNode.type === "profile_summary" ||
-				graphNode.type === "essay_angle";
-			const shouldShowLabel =
-				showLabels &&
-				(isHovered || isSelected || (isImportantNode && globalScale > 1.0));
+			// Label - show all labels when enabled, or on hover/select
+			const shouldShowLabel = showLabels || isHovered || isSelected;
 
 			if (shouldShowLabel) {
 				// Truncate long labels
@@ -192,11 +187,12 @@ export function useGraphRenderers({
 		[selectedNode, highlightLinks, hiddenNodeTypes],
 	);
 
-	// Paint node pointer area - larger clickable area
+	// Paint node pointer area - larger clickable area with minimum size
 	const paintNodePointerArea = useCallback(
 		(node: NodeObject, color: string, ctx: CanvasRenderingContext2D) => {
 			const graphNode = node as unknown as ForceGraphNode;
-			const clickRadius = graphNode.size * 1.4;
+			// Ensure minimum clickable area of 20px radius for small nodes
+			const clickRadius = Math.max(graphNode.size * 1.5, 20);
 			ctx.beginPath();
 			ctx.arc(node.x || 0, node.y || 0, clickRadius, 0, 2 * Math.PI);
 			ctx.fillStyle = color;

@@ -10,6 +10,7 @@ import {
 	ZoomIn,
 	ZoomOut,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import ForceGraph2D from "react-force-graph-2d";
 import { Button } from "@/components/ui/button";
 import { getNodeConfig } from "@/lib/config/graphConfig";
@@ -45,6 +46,8 @@ interface ConcentricGraphCanvasProps {
 export function ConcentricGraphCanvas({
 	className,
 }: ConcentricGraphCanvasProps) {
+	const t = useTranslations("personaLab");
+
 	// Use all custom hooks for clean composition
 	const { fgRef, graphData } = useGraphForces();
 	const { dimensions, containerRef } = useContainerDimensions();
@@ -92,9 +95,21 @@ export function ConcentricGraphCanvas({
 		expandNodeMutation.mutate(nodeId);
 	};
 
-	// Get GraphNode data for selected node (always using API data now)
-	const selectedGraphNode: GraphNode | undefined = selectedNode
-		? (selectedNode.data as GraphNode)
+	// Get GraphNode data for selected node with validation
+	const selectedGraphNode: GraphNode | undefined = selectedNode?.data
+		? (() => {
+				const data = selectedNode.data as GraphNode;
+				// Validate required fields exist
+				if (
+					data &&
+					typeof data.id === "string" &&
+					typeof data.content === "string"
+				) {
+					return data;
+				}
+				console.warn("[ConcentricGraphCanvas] Invalid node data:", data);
+				return undefined;
+			})()
 		: undefined;
 
 	// Get STAR gaps for selected key_story node
@@ -106,6 +121,11 @@ export function ConcentricGraphCanvas({
 	// Check if graph is empty (no nodes)
 	const isEmpty = graphData.nodes.length === 0;
 
+	// Check if profile center node exists
+	const hasProfileCenter = graphData.nodes.some(
+		(node) => node.type === "profile_summary",
+	);
+
 	return (
 		<div ref={containerRef} className={cn("relative h-full w-full", className)}>
 			{/* Empty State */}
@@ -114,10 +134,23 @@ export function ConcentricGraphCanvas({
 					<div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
 						<MessageCircle className="w-8 h-8 text-muted-foreground" />
 					</div>
-					<h3 className="text-lg font-semibold mb-2">Your Persona Canvas</h3>
+					<h3 className="text-lg font-semibold mb-2">
+						{t("emptyCanvasTitle")}
+					</h3>
 					<p className="text-sm text-muted-foreground max-w-xs">
-						Start chatting in the Discovery panel to build your persona graph.
-						Your stories and insights will appear here as interactive nodes.
+						{t("emptyCanvasDesc")}
+					</p>
+				</div>
+			)}
+
+			{/* Center Placeholder - show when graph has nodes but no profile_summary */}
+			{!isEmpty && !hasProfileCenter && (
+				<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center text-center pointer-events-none z-10">
+					<div className="w-20 h-20 rounded-full bg-amber-500/10 border-2 border-dashed border-amber-500/30 flex items-center justify-center">
+						<MessageCircle className="w-8 h-8 text-amber-500/50" />
+					</div>
+					<p className="text-sm text-muted-foreground mt-3 max-w-[180px]">
+						{t("centerPlaceholder")}
 					</p>
 				</div>
 			)}
@@ -290,8 +323,9 @@ export function ConcentricGraphCanvas({
 								<span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
 									{selectedNode.type === "story"
 										? (
-												selectedNode.data as { story_type: string }
-											).story_type.replace("_", " ")
+												(selectedNode.data as { story_type?: string })
+													?.story_type ?? "Story"
+											).replace("_", " ")
 										: getNodeConfig(selectedNode.type).label}
 								</span>
 							</div>

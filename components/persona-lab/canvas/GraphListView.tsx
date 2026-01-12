@@ -84,17 +84,30 @@ export function GraphListView({ className }: GraphListViewProps) {
 		fetchPersonaGraph();
 	}, [fetchPersonaGraph]);
 
-	// Group nodes by layer
+	// Group nodes by layer with validation
 	const nodesByLayer = useMemo(() => {
+		const validLayers: LayerNumber[] = [0, 1, 2, 3];
 		const groups = new Map<LayerNumber, PersonaNodeDto[]>();
-		([0, 1, 2, 3] as LayerNumber[]).forEach((layer) => {
+		validLayers.forEach((layer) => {
 			groups.set(layer, []);
 		});
 
 		graphNodes.forEach((node) => {
-			const layerNodes = groups.get(node.layer as LayerNumber) || [];
+			// Validate layer is a valid LayerNumber (0-3)
+			const layer = node.layer as number;
+			if (!validLayers.includes(layer as LayerNumber)) {
+				console.warn(
+					`[GraphListView] Invalid layer ${layer} for node ${node.id}, defaulting to layer 3`,
+				);
+				// Default invalid layers to outermost layer (detail)
+				const layerNodes = groups.get(3) || [];
+				layerNodes.push(node);
+				groups.set(3, layerNodes);
+				return;
+			}
+			const layerNodes = groups.get(layer as LayerNumber) || [];
 			layerNodes.push(node);
-			groups.set(node.layer as LayerNumber, layerNodes);
+			groups.set(layer as LayerNumber, layerNodes);
 		});
 
 		return groups;

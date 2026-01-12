@@ -658,7 +658,10 @@
 		"resetConfirmDescription": "This will clear all your conversation data and start fresh. Your canvas data will be lost.",
 		"confirmReset": "Yes, reset",
 		"conversationComplete": "Conversation complete! Your persona is ready.",
-		"goToApplications": "Continue to Applications"
+		"goToApplications": "Continue to Applications",
+		"emptyCanvasTitle": "Your Persona Canvas",
+		"emptyCanvasDesc": "Start chatting in the Discovery panel to build your persona graph. Your stories and insights will appear here as interactive nodes.",
+		"centerPlaceholder": "Keep chatting to build your profile"
 	},
 	"home": {
 		"greeting": {

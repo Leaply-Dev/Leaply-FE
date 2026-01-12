@@ -658,7 +658,10 @@
 		"resetConfirmDescription": "Điều này sẽ xóa toàn bộ dữ liệu cuộc trò chuyện và bắt đầu lại từ đầu. Dữ liệu canvas của bạn sẽ bị mất.",
 		"confirmReset": "Đồng ý, xóa",
 		"conversationComplete": "Hoàn thành! Persona của bạn đã sẵn sàng.",
-		"goToApplications": "Tiếp tục đến Ứng dụng"
+		"goToApplications": "Tiếp tục đến Ứng dụng",
+		"emptyCanvasTitle": "Persona Canvas",
+		"emptyCanvasDesc": "Bắt đầu trò chuyện để xây dựng persona của bạn. Câu chuyện và insight sẽ hiển thị tại đây.",
+		"centerPlaceholder": "Tiếp tục trò chuyện để xây dựng hồ sơ"
 	},
 	"home": {
 		"greeting": {
