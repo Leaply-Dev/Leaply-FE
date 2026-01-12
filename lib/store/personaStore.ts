@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/nextjs";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { ApiError } from "@/lib/api/client";
@@ -233,10 +232,8 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					if (err instanceof ApiError) {
 						err.logDetails();
 					} else {
-						// Capture unexpected non-API errors to Sentry
-						Sentry.captureException(err, {
-							tags: { store: "persona", action: "fetchState" },
-						});
+						// Capture unexpected non-API errors to console
+						console.error("Non-API Error in persona fetchState:", err);
 					}
 					set({
 						error:
@@ -280,9 +277,7 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					if (err instanceof ApiError) {
 						err.logDetails();
 					} else {
-						Sentry.captureException(err, {
-							tags: { store: "persona", action: "selectTrack" },
-						});
+						console.error("Non-API Error in persona selectTrack:", err);
 					}
 					set({
 						error:
@@ -421,9 +416,7 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					if (err instanceof ApiError) {
 						err.logDetails();
 					} else {
-						Sentry.captureException(err, {
-							tags: { store: "persona", action: "sendMessage" },
-						});
+						console.error("Non-API Error in persona sendMessage:", err);
 					}
 					// Remove temp message on error
 					set((state) => ({
@@ -458,9 +451,7 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					if (err instanceof ApiError) {
 						err.logDetails();
 					} else {
-						Sentry.captureException(err, {
-							tags: { store: "persona", action: "goBack" },
-						});
+						console.error("Non-API Error in persona goBack:", err);
 					}
 					set({
 						error:
@@ -510,9 +501,7 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					if (err instanceof ApiError) {
 						err.logDetails();
 					} else {
-						Sentry.captureException(err, {
-							tags: { store: "persona", action: "redoTrack" },
-						});
+						console.error("Non-API Error in persona redoTrack:", err);
 					}
 					set({
 						error:
@@ -678,9 +667,7 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					if (err instanceof ApiError) {
 						err.logDetails();
 					} else {
-						Sentry.captureException(err, {
-							tags: { store: "persona", action: "fetchGraph" },
-						});
+						console.error("Non-API Error in persona fetchGraph:", err);
 					}
 					set({
 						error:

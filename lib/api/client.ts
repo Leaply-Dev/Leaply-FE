@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/nextjs";
 import type { AuthResponse, ErrorDetails } from "@/lib/generated/api/models";
 import { performLogout } from "../auth/logout";
 import { useUserStore } from "../store/userStore";
@@ -439,14 +438,12 @@ async function apiFetch<T>(
 			// Auto-log in development
 			if (isDev) apiError.logDetails();
 
-			// Send 5xx server errors to Sentry (indicates backend issues)
+			// Send 5xx server errors to console
 			if (response.status >= 500) {
-				Sentry.captureException(apiError, {
-					extra: {
-						endpoint: path,
-						status: response.status,
-						code: data?.error?.code,
-					},
+				console.error("Server Error:", apiError, {
+					endpoint: path,
+					status: response.status,
+					code: data?.error?.code,
 				});
 			}
 
@@ -469,16 +466,11 @@ async function apiFetch<T>(
 			console.error(`🌐 Network Error [${method}] ${path}:`, error);
 		}
 
-		// Send network errors to Sentry (may indicate infrastructure issues)
-		Sentry.captureException(error, {
-			extra: {
-				endpoint: path,
-				method,
-				isNetworkError,
-			},
-			tags: {
-				errorType: isNetworkError ? "network" : "unknown",
-			},
+		// Log network errors (may indicate infrastructure issues)
+		console.error("Network Error:", error, {
+			endpoint: path,
+			method,
+			isNetworkError,
 		});
 
 		throw new ApiError(

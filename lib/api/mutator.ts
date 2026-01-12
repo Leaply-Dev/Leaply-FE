@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/nextjs";
 import { performLogout } from "../auth/logout";
 import { useUserStore } from "../store/userStore";
 
@@ -314,16 +313,11 @@ export const customInstance = async <T>(
 
 			// Send 5xx errors to Sentry
 			if (response.status >= 500) {
-				Sentry.captureException(
-					new Error(errorData.message || "Server error"),
-					{
-						extra: {
-							endpoint: url,
-							status: response.status,
-							code: errorData.error?.code,
-						},
-					},
-				);
+				console.error("Server error:", errorData.message || "Server error", {
+					endpoint: url,
+					status: response.status,
+					code: errorData.error?.code,
+				});
 			}
 
 			throw new Error(errorData.message || "Request failed");
@@ -332,24 +326,12 @@ export const customInstance = async <T>(
 		const responseData = await response.json();
 		return responseData.data as T;
 	} catch (error) {
-		// Send network errors to Sentry
 		const isNetworkError =
 			error instanceof TypeError && error.message.includes("fetch");
 
 		if (isDev) {
 			console.error(`🌐 Error [${method}] ${url}:`, error);
 		}
-
-		Sentry.captureException(error, {
-			extra: {
-				endpoint: url,
-				method,
-				isNetworkError,
-			},
-			tags: {
-				errorType: isNetworkError ? "network" : "unknown",
-			},
-		});
 
 		throw error;
 	}

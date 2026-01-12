@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/nextjs";
 import { create } from "zustand";
 import {
 	createApplication,
@@ -70,11 +69,9 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
 				set({ selectedApplicationId: response.applications[0]?.id });
 			}
 		} catch (error) {
-			// Capture unexpected errors (non-API errors) to Sentry
+			// Capture unexpected errors (non-API errors) to console
 			if (!(error instanceof Error && error.name === "ApiError")) {
-				Sentry.captureException(error, {
-					tags: { store: "applications", action: "fetch" },
-				});
+				console.error("Non-API Error in applications fetch:", error);
 			}
 			console.error("Failed to fetch applications:", error);
 			set({
@@ -101,11 +98,9 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
 
 			return response.id;
 		} catch (error) {
-			// Capture unexpected errors to Sentry
+			// Capture unexpected errors to console
 			if (!(error instanceof Error && error.name === "ApiError")) {
-				Sentry.captureException(error, {
-					tags: { store: "applications", action: "create" },
-				});
+				console.error("Non-API Error in applications create:", error);
 			}
 			console.error("Failed to create application:", error);
 			set({
@@ -138,11 +133,9 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
 
 			return true;
 		} catch (error) {
-			// Capture unexpected errors to Sentry
+			// Capture unexpected errors to console
 			if (!(error instanceof Error && error.name === "ApiError")) {
-				Sentry.captureException(error, {
-					tags: { store: "applications", action: "update" },
-				});
+				console.error("Non-API Error in applications update:", error);
 			}
 			console.error("Failed to update application:", error);
 			set({
@@ -181,11 +174,9 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
 
 			return true;
 		} catch (error) {
-			// Capture unexpected errors to Sentry
+			// Capture unexpected errors to console
 			if (!(error instanceof Error && error.name === "ApiError")) {
-				Sentry.captureException(error, {
-					tags: { store: "applications", action: "delete" },
-				});
+				console.error("Non-API Error in applications delete:", error);
 			}
 			console.error("Failed to delete application:", error);
 			set({
