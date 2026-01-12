@@ -10,7 +10,7 @@ import { LanguageSwitcher } from "@/components/app/LanguageSwitcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { performLogout } from "@/lib/auth/logout";
-import { useStoreHydrated } from "@/lib/hooks/useStoreHydrated";
+import { useMounted } from "@/lib/hooks/useMounted";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
 
@@ -21,8 +21,16 @@ export function Navbar() {
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
-	const { isAuthenticated, profile } = useUserStore();
-	const hydrated = useStoreHydrated();
+	const mounted = useMounted();
+
+	// Read auth state directly from store
+	// Use selector to subscribe to specific fields for optimal re-renders
+	const isAuthenticated = useUserStore((state) => state.isAuthenticated);
+	const profile = useUserStore((state) => state.profile);
+
+	// Only use auth state after mount to avoid hydration mismatch
+	// Before mount, default to unauthenticated state
+	const showAuthUI = mounted && isAuthenticated;
 
 	// Helper to get translation
 	const t = useTranslations("nav");
@@ -41,9 +49,8 @@ export function Navbar() {
 		{ href: "/persona-lab", labelKey: "personaLab" },
 	];
 
-	// Get nav links based on auth state - default to public links until hydrated
-	// This prevents hydration mismatch since server always renders public links
-	const navLinks = hydrated && isAuthenticated ? authNavLinks : publicNavLinks;
+	// Get nav links based on auth state
+	const navLinks = showAuthUI ? authNavLinks : publicNavLinks;
 
 	// Close dropdown when clicking outside
 	useEffect(() => {
@@ -90,9 +97,9 @@ export function Navbar() {
 		<nav className="bg-card border-b border-border fixed top-0 left-0 right-0 z-50">
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex items-center justify-between h-16">
-					{/* Logo - default to "/" until hydrated to prevent hydration mismatch */}
+					{/* Logo */}
 					<Link
-						href={hydrated && isAuthenticated ? "/dashboard" : "/"}
+						href={showAuthUI ? "/dashboard" : "/"}
 						className="flex items-center gap-2"
 					>
 						<Image
@@ -130,13 +137,7 @@ export function Navbar() {
 					<div className="hidden md:flex items-center gap-3">
 						<LanguageSwitcher />
 
-						{/* Auth UI - show skeleton until hydrated to prevent hydration mismatch */}
-						{!hydrated ? (
-							<div className="flex items-center gap-3">
-								<div className="w-20 h-9 bg-muted rounded-md animate-pulse" />
-								<div className="w-24 h-9 bg-muted rounded-md animate-pulse" />
-							</div>
-						) : isAuthenticated ? (
+						{showAuthUI ? (
 							<div className="relative" ref={dropdownRef}>
 								<button
 									type="button"
@@ -248,13 +249,7 @@ export function Navbar() {
 								);
 							})}
 							<div className="pt-4 border-t border-border flex flex-col gap-2">
-								{/* Mobile auth UI - show skeleton until hydrated */}
-								{!hydrated ? (
-									<div className="flex flex-col gap-2">
-										<div className="h-9 bg-muted rounded-md animate-pulse" />
-										<div className="h-9 bg-muted rounded-md animate-pulse" />
-									</div>
-								) : isAuthenticated ? (
+								{showAuthUI ? (
 									<>
 										<div className="flex items-center gap-3 px-1 py-2">
 											<Avatar className="w-8 h-8 border-2 border-primary/20">
