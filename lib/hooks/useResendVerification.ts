@@ -1,5 +1,8 @@
-import { useMutation } from "@tanstack/react-query";
-import { authService } from "@/lib/services/auth";
+/**
+ * Re-export Orval-generated hook for resending verification email
+ * This maintains backward compatibility while using generated hooks
+ */
+import { useResendVerification as useGeneratedResendVerification } from "@/lib/generated/api/endpoints/authentication/authentication";
 
 /**
  * React Query mutation hook for resending verification email
@@ -8,8 +11,9 @@ import { authService } from "@/lib/services/auth";
  * @returns Mutation function and state (isPending, error, etc.)
  */
 export function useResendVerification() {
-	return useMutation({
-		mutationFn: (email: string) => authService.resendVerification(email),
-		retry: 1, // Retry once on network error
+	return useGeneratedResendVerification({
+		mutation: {
+			retry: 1, // Retry once on network error
+		},
 	});
 }

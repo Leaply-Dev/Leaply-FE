@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
+import type { AuthResponse, ErrorDetails } from "@/lib/generated/api/models";
 import { performLogout } from "../auth/logout";
 import { useUserStore } from "../store/userStore";
-import type { AuthResponse, ErrorDetails } from "./types";
 
 // Generic ApiResponse type to match OpenAPI schema structure
 export interface ApiResponse<T> {
@@ -240,26 +240,28 @@ export class ApiError extends Error {
 			timestamp: this.timestamp || "N/A",
 		};
 
-		console.error(`API Error [${this.status}] - ${this.endpoint}`, errorInfo);
+		// Build comprehensive error message
+		let logMessage = `API Error [${this.status}] - ${this.endpoint}`;
 
 		// Additional context for 500 errors
 		if (this.status >= 500) {
-			console.error("⚠️ Server Error - Check backend logs for details:");
-			console.error(`   Endpoint: ${this.endpoint}`);
-			console.error(`   Message: ${this.message}`);
+			logMessage += "\n⚠️ Server Error - Check backend logs for details";
+			logMessage += `\n   Endpoint: ${this.endpoint}`;
+			logMessage += `\n   Message: ${this.message}`;
+
 			if (Object.keys(errorInfo.details).length === 0) {
-				console.error(
-					"   ℹ️ No error details provided by backend (empty response)",
-				);
-				console.error("   💡 Possible causes:");
-				console.error(
-					"      - Backend server crashed or encountered unhandled exception",
-				);
-				console.error("      - Database connection failure");
-				console.error("      - Missing required configuration");
-				console.error("      - Authentication/authorization setup issue");
+				logMessage +=
+					"\n   ℹ️ No error details provided by backend (empty response)";
+				logMessage += "\n   💡 Possible causes:";
+				logMessage +=
+					"\n      - Backend server crashed or encountered unhandled exception";
+				logMessage += "\n      - Database connection failure";
+				logMessage += "\n      - Missing required configuration";
+				logMessage += "\n      - Authentication/authorization setup issue";
 			}
 		}
+
+		console.error(logMessage, errorInfo);
 	}
 }
 

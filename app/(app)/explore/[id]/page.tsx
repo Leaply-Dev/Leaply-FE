@@ -14,7 +14,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
-import { MOCK_PROGRAM_DETAIL } from "@/components/explore/mockDetailData";
 import {
 	ApplicationSidebar,
 	FitScoreExpanded,
@@ -22,12 +21,13 @@ import {
 	QuickFactsBar,
 } from "@/components/explore/program-detail";
 import { PageTransition, SlideUp } from "@/components/PageTransition";
-import { exploreApi } from "@/lib/api/exploreApi";
-import type { ProgramDetailResponse } from "@/lib/api/types";
+import {
+	getProgramDetail,
+	saveProgram,
+	unsaveProgram,
+} from "@/lib/generated/api/endpoints/explore/explore";
+import type { ProgramDetailResponse } from "@/lib/generated/api/models";
 import { useApplicationsStore } from "@/lib/store/applicationsStore";
-
-// Feature flag to toggle between mock data and API
-const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 
 export default function ProgramDetailPage({
 	params,
@@ -36,10 +36,8 @@ export default function ProgramDetailPage({
 }) {
 	const resolvedParams = use(params);
 	const router = useRouter();
-	const [program, setProgram] = useState<ProgramDetailResponse | null>(
-		USE_MOCK_DATA ? MOCK_PROGRAM_DETAIL : null,
-	);
-	const [isLoading, setIsLoading] = useState(!USE_MOCK_DATA);
+	const [program, setProgram] = useState<ProgramDetailResponse | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [isSaved, setIsSaved] = useState(false);
 	const [isAddingToApplications, setIsAddingToApplications] = useState(false);
@@ -57,36 +55,27 @@ export default function ProgramDetailPage({
 	useEffect(() => {
 		if (program && applications.length > 0) {
 			const isAlreadyAdded = applications.some(
-				(app) => app.program.id === program.id,
+				(app) => app.program?.id === program.id,
 			);
 			setAddedToApplications(isAlreadyAdded);
 		}
 	}, [program, applications]);
 
 	useEffect(() => {
-		if (USE_MOCK_DATA) {
-			setProgram(MOCK_PROGRAM_DETAIL);
-			setIsSaved(MOCK_PROGRAM_DETAIL.isSaved ?? false);
-			return;
-		}
-
 		async function fetchProgram() {
 			try {
 				setIsLoading(true);
 				setError(null);
-				const data = await exploreApi.getProgramDetail(resolvedParams.id);
-				setProgram(data);
-				setIsSaved(data.isSaved ?? false);
+				const response = await getProgramDetail(resolvedParams.id);
+				if (response.data) {
+					setProgram(response.data);
+					setIsSaved(response.data.isSaved ?? false);
+				}
 			} catch (err) {
 				console.error("Failed to fetch program detail:", err);
 				setError(
 					err instanceof Error ? err.message : "Failed to load program details",
 				);
-				// Fallback to mock data on error for development
-				if (process.env.NODE_ENV === "development") {
-					setProgram(MOCK_PROGRAM_DETAIL);
-					setIsSaved(MOCK_PROGRAM_DETAIL.isSaved ?? false);
-				}
 			} finally {
 				setIsLoading(false);
 			}
@@ -96,22 +85,20 @@ export default function ProgramDetailPage({
 	}, [resolvedParams.id]);
 
 	const handleSaveToggle = async () => {
-		if (!program) return;
+		if (!program?.id) return;
 
 		const newSavedState = !isSaved;
 		setIsSaved(newSavedState); // Optimistic update
 
-		if (!USE_MOCK_DATA) {
-			try {
-				if (newSavedState) {
-					await exploreApi.saveProgram(program.id);
-				} else {
-					await exploreApi.unsaveProgram(program.id);
-				}
-			} catch (err) {
-				console.error("Failed to update save status:", err);
-				setIsSaved(!newSavedState); // Revert on error
+		try {
+			if (newSavedState) {
+				await saveProgram(program.id);
+			} else {
+				await unsaveProgram(program.id);
 			}
+		} catch (err) {
+			console.error("Failed to update save status:", err);
+			setIsSaved(!newSavedState); // Revert on error
 		}
 	};
 
@@ -120,6 +107,9 @@ export default function ProgramDetailPage({
 
 		setIsAddingToApplications(true);
 		try {
+			if (!program.id) {
+				throw new Error("Program ID is required");
+			}
 			const applicationId = await addApplication({ programId: program.id });
 			if (applicationId) {
 				setAddedToApplications(true);
@@ -260,13 +250,13 @@ export default function ProgramDetailPage({
 										{program.universityLogoUrl ? (
 											<Image
 												src={program.universityLogoUrl}
-												alt={program.universityName}
+												alt={program.universityName ?? "University"}
 												width={80}
 												height={80}
 												className="rounded-xl object-contain"
 											/>
 										) : (
-											program.universityName.charAt(0)
+											(program.universityName?.charAt(0) ?? "U")
 										)}
 									</div>
 

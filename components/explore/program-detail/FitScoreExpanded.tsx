@@ -1,6 +1,6 @@
 "use client";
 
-import type { ProgramDetailResponse } from "@/lib/api/types";
+import type { ProgramDetailResponse } from "@/lib/generated/api/models";
 
 interface FitBreakdown {
 	label: string;
@@ -108,7 +108,7 @@ export function FitScoreExpanded({
 						✅ Strengths
 					</h4>
 					<ul className="space-y-2">
-						{program.fitReasons.map((reason) => (
+						{program.fitReasons.map((reason: string) => (
 							<li
 								key={reason}
 								className="flex items-start gap-2 text-sm text-foreground"
@@ -128,7 +128,7 @@ export function FitScoreExpanded({
 						⚠️ Gaps & Recommendations
 					</h4>
 					<ul className="space-y-2">
-						{program.fitGaps.map((gap) => (
+						{program.fitGaps.map((gap: string) => (
 							<li
 								key={gap}
 								className="flex items-start gap-2 text-sm text-foreground"

@@ -5,7 +5,10 @@ import Image from "next/image";
 import { useState } from "react";
 import { CompareDialog } from "@/components/explore/CompareDialog";
 import { CompareTray } from "@/components/explore/CompareTray";
-import { HorizontalFilterBar } from "@/components/explore/FilterBar";
+import {
+	type FilterState,
+	HorizontalFilterBar,
+} from "@/components/explore/FilterBar";
 import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +20,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import type { ProgramListItemResponse } from "@/lib/api/types";
+import type { ProgramListItemResponse } from "@/lib/generated/api/models";
+import { formatCountryName } from "@/lib/utils/gapComputation";
 
 interface ManualModeProps {
 	programs: ProgramListItemResponse[];
@@ -88,15 +92,16 @@ function ProgramTableRow({
 		}
 	};
 
-	const getRankingBadge = (rankingDisplay?: string) => {
-		if (!rankingDisplay)
-			return <span className="text-muted-foreground">N/A</span>;
+	const getRankingBadge = (rankingDisplay?: string, label?: string) => {
+		if (!rankingDisplay) return null;
 
 		// Parse ranking display to determine color tier
 		const rankNum = Number.parseInt(rankingDisplay.replace(/[^0-9]/g, ""), 10);
 		let colorClass = "bg-gray-100 text-gray-700 border-gray-200";
 
-		if (!Number.isNaN(rankNum)) {
+		if (label === "Times") {
+			colorClass = "bg-amber-100 text-amber-700 border-amber-200";
+		} else if (!Number.isNaN(rankNum)) {
 			if (rankNum <= 50) {
 				colorClass = "bg-purple-100 text-purple-700 border-purple-200";
 			} else if (rankNum <= 100) {
@@ -108,7 +113,7 @@ function ProgramTableRow({
 
 		return (
 			<Badge className={`${colorClass} hover:${colorClass}`}>
-				{rankingDisplay}
+				{label && `${label} `}#{rankingDisplay}
 			</Badge>
 		);
 	};
@@ -143,14 +148,14 @@ function ProgramTableRow({
 						{program.universityLogoUrl ? (
 							<Image
 								src={program.universityLogoUrl}
-								alt={program.universityName}
+								alt={program.universityName || "University"}
 								width={48}
 								height={48}
 								className="object-contain"
 							/>
 						) : (
 							<span className="text-xs font-bold text-primary">
-								{program.universityName.substring(0, 2).toUpperCase()}
+								{(program.universityName || "U").substring(0, 2).toUpperCase()}
 							</span>
 						)}
 					</div>
@@ -160,7 +165,7 @@ function ProgramTableRow({
 								{program.universityName}
 							</h3>
 							<span className="text-xs text-muted-foreground">
-								{program.universityCountry}
+								{formatCountryName(program.universityCountry)}
 							</span>
 						</div>
 						<p className="text-sm text-muted-foreground">
@@ -172,7 +177,14 @@ function ProgramTableRow({
 
 			{/* Ranking */}
 			<td className="p-4 text-center">
-				{getRankingBadge(program.rankingQsDisplay)}
+				{program.rankingQsDisplay || program.rankingQsDisplay ? (
+					<div className="flex flex-col items-center gap-1.5">
+						{getRankingBadge(program.rankingQsDisplay, "QS")}
+						{getRankingBadge(program.rankingQsDisplay, "Times")}
+					</div>
+				) : (
+					<span className="text-muted-foreground">N/A</span>
+				)}
 			</td>
 
 			{/* Cost */}
@@ -242,13 +254,28 @@ export function ManualMode({ programs }: ManualModeProps) {
 
 	// Pagination state
 	const [currentPage, setCurrentPage] = useState(1);
-	const itemsPerPage = 5; // Show 5 items per page for testing
+	const itemsPerPage = 10; // Show 10 items per page
 
 	// Sorting state
 	const [sortBy, setSortBy] = useState("ranking");
 
 	// Search state
 	const [searchQuery, setSearchQuery] = useState("");
+
+	// Filter state
+	const [filters, setFilters] = useState<FilterState>({
+		quickFilters: [],
+		fieldOfStudy: "",
+		region: "",
+		tuitionRange: "",
+		duration: "",
+	});
+
+	// Reset to first page when filters change
+	const handleFiltersChange = (newFilters: FilterState) => {
+		setFilters(newFilters);
+		setCurrentPage(1);
+	};
 
 	// Toggle program selection
 	const toggleProgramSelection = (id: string) => {
@@ -270,15 +297,71 @@ export function ManualMode({ programs }: ManualModeProps) {
 	// Check if max selection limit is reached
 	const isMaxReached = selectedPrograms.size >= MAX_COMPARE_PROGRAMS;
 
-	// Filter programs by search query
+	// Apply filters to programs
 	const filteredPrograms = programs.filter((program) => {
-		if (!searchQuery) return true;
-		const query = searchQuery.toLowerCase();
-		return (
-			program.universityName.toLowerCase().includes(query) ||
-			program.programName.toLowerCase().includes(query) ||
-			(program.universityCountry || "").toLowerCase().includes(query)
-		);
+		// Search filter
+		if (searchQuery) {
+			const query = searchQuery.toLowerCase();
+			const matchesSearch =
+				(program.universityName || "").toLowerCase().includes(query) ||
+				(program.programName || "").toLowerCase().includes(query) ||
+				(program.universityCountry || "").toLowerCase().includes(query);
+			if (!matchesSearch) return false;
+		}
+
+		// Quick filters
+		if (filters.quickFilters.includes("budget")) {
+			// Assuming budget filter checks if tuition is under a certain threshold
+			// You can adjust this threshold based on user profile
+			if (!program.tuitionAnnualUsd || program.tuitionAnnualUsd > 50000)
+				return false;
+		}
+
+		if (filters.quickFilters.includes("scholarship")) {
+			if (!program.scholarshipAvailable) return false;
+		}
+
+		if (filters.quickFilters.includes("deadline")) {
+			// Deadline > 60 days
+			if (!program.nextDeadline) return false;
+			const daysUntil = Math.floor(
+				(new Date(program.nextDeadline).getTime() - Date.now()) /
+					(1000 * 60 * 60 * 24),
+			);
+			if (daysUntil <= 60) return false;
+		}
+
+		// Extended filters
+		if (filters.tuitionRange) {
+			const maxTuition = Number.parseInt(filters.tuitionRange, 10);
+			if (!program.tuitionAnnualUsd || program.tuitionAnnualUsd > maxTuition)
+				return false;
+		}
+
+		// Region filter (basic implementation - can be enhanced)
+		if (filters.region) {
+			const country = (program.universityCountry || "").toLowerCase();
+			if (filters.region === "na") {
+				if (!["us", "ca", "usa", "canada"].some((c) => country.includes(c)))
+					return false;
+			} else if (filters.region === "eu") {
+				if (
+					!["uk", "de", "fr", "nl", "se", "ch", "europe"].some((c) =>
+						country.includes(c),
+					)
+				)
+					return false;
+			} else if (filters.region === "asia") {
+				if (
+					!["sg", "jp", "kr", "cn", "hk", "singapore", "japan"].some((c) =>
+						country.includes(c),
+					)
+				)
+					return false;
+			}
+		}
+
+		return true;
 	});
 
 	// Helper to parse ranking display string to number for sorting
@@ -325,7 +408,10 @@ export function ManualMode({ programs }: ManualModeProps) {
 	return (
 		<div className="space-y-6">
 			{/* Filter Bar */}
-			<HorizontalFilterBar />
+			<HorizontalFilterBar
+				filters={filters}
+				onFiltersChange={handleFiltersChange}
+			/>
 
 			{/* Results List */}
 			<div className="space-y-4">
@@ -346,6 +432,7 @@ export function ManualMode({ programs }: ManualModeProps) {
 									setSearchQuery(e.target.value);
 									setCurrentPage(1); // Reset to first page on search
 								}}
+								onFocus={(e) => e.target.select()}
 								className="pl-9 w-64"
 							/>
 						</div>
@@ -368,56 +455,71 @@ export function ManualMode({ programs }: ManualModeProps) {
 
 				{/* Table */}
 				<div className="border border-border rounded-lg overflow-hidden">
-					<table className="w-full">
-						<thead className="bg-muted/50">
-							<tr className="border-b border-border">
-								<th className="p-4 text-left font-semibold text-sm text-foreground">
-									So sánh
-								</th>
-								<th className="p-4 text-left font-semibold text-sm text-foreground">
-									Chương trình
-								</th>
-								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									Xếp hạng
-								</th>
-								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									Chi phí
-								</th>
-								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									Deadline
-								</th>
-								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									Độ phù hợp
-								</th>
-								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									Hành động
-								</th>
-							</tr>
-						</thead>
-						<tbody>
-							{paginatedPrograms.map((program) => (
-								<ProgramTableRow
-									key={program.id}
-									program={program}
-									selected={selectedPrograms.has(program.id)}
-									onSelect={() => toggleProgramSelection(program.id)}
-									onClick={() => {
-										setSelectedProgram(program);
-										setIsDetailDrawerOpen(true);
-									}}
-									onAddToDashboard={() => {
-										// TODO: Implement add to dashboard functionality
-										console.log("Add to dashboard:", program.id);
-									}}
-									isMaxReached={isMaxReached}
-								/>
-							))}
-						</tbody>
-					</table>
+					{paginatedPrograms.length > 0 ? (
+						<table className="w-full">
+							<thead className="bg-muted/50">
+								<tr className="border-b border-border">
+									<th className="p-4 text-left font-semibold text-sm text-foreground">
+										So sánh
+									</th>
+									<th className="p-4 text-left font-semibold text-sm text-foreground">
+										Chương trình
+									</th>
+									<th className="p-4 text-center font-semibold text-sm text-foreground">
+										Xếp hạng
+									</th>
+									<th className="p-4 text-center font-semibold text-sm text-foreground">
+										Chi phí
+									</th>
+									<th className="p-4 text-center font-semibold text-sm text-foreground">
+										Deadline
+									</th>
+									<th className="p-4 text-center font-semibold text-sm text-foreground">
+										Độ phù hợp
+									</th>
+									<th className="p-4 text-center font-semibold text-sm text-foreground">
+										Hành động
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								{paginatedPrograms.map((program) => (
+									<ProgramTableRow
+										key={program.id}
+										program={program}
+										selected={selectedPrograms.has(program.id || "")}
+										onSelect={() => toggleProgramSelection(program.id || "")}
+										onClick={() => {
+											setSelectedProgram(program);
+											setIsDetailDrawerOpen(true);
+										}}
+										onAddToDashboard={() => {
+											// TODO: Implement add to dashboard functionality
+											console.log("Add to dashboard:", program.id);
+										}}
+										isMaxReached={isMaxReached}
+									/>
+								))}
+							</tbody>
+						</table>
+					) : (
+						<div className="flex flex-col items-center justify-center py-16 px-4">
+							<div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+								<Search className="w-8 h-8 text-muted-foreground" />
+							</div>
+							<h3 className="text-lg font-semibold text-foreground mb-2">
+								Không tìm thấy chương trình
+							</h3>
+							<p className="text-sm text-muted-foreground text-center max-w-md">
+								Không có chương trình nào phù hợp với bộ lọc của bạn. Thử điều
+								chỉnh các bộ lọc hoặc tìm kiếm với từ khóa khác.
+							</p>
+						</div>
+					)}
 				</div>
 
 				{/* Pagination */}
-				{totalPages > 1 && (
+				{totalPages > 1 && sortedPrograms.length > 0 && (
 					<div className="flex items-center justify-between">
 						{/* Results count on left */}
 						<p className="text-sm text-muted-foreground">

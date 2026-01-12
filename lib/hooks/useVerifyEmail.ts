@@ -1,5 +1,12 @@
+/**
+ * Re-export Orval-generated hook for email verification
+ * This maintains backward compatibility while using generated hooks
+ *
+ * Note: Orval generates this as a mutation, but we convert it to a query
+ * for automatic deduplication in React Strict Mode to prevent duplicate calls
+ */
 import { useQuery } from "@tanstack/react-query";
-import { authService } from "@/lib/services/auth";
+import { verifyEmail } from "@/lib/generated/api/endpoints/authentication/authentication";
 
 /**
  * React Query hook for email verification with token
@@ -14,7 +21,7 @@ export function useVerifyEmail(token: string | null) {
 		queryKey: ["verifyEmail", token],
 		queryFn: () => {
 			if (!token) throw new Error("Token is required");
-			return authService.verifyEmail(token);
+			return verifyEmail({ token });
 		},
 		enabled: !!token, // Only run if token exists
 		staleTime: Number.POSITIVE_INFINITY, // Never refetch (one-time verification)

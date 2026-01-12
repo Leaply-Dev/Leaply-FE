@@ -1,41 +1,48 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { exploreApi } from "@/lib/api/exploreApi";
+/**
+ * Re-export Orval-generated hooks for programs with custom wrappers
+ * This maintains backward compatibility while using generated hooks
+ */
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+	useSaveProgram as useGeneratedSaveProgram,
+	useUnsaveProgram as useGeneratedUnsaveProgram,
+	useListPrograms,
+} from "@/lib/generated/api/endpoints/explore/explore";
 import type {
-	ProgramListItemResponse,
-	ProgramListParams,
-	ProgramListResponse,
-} from "@/lib/api/types";
+	ApiResponseProgramListResponse,
+	ListProgramsParams,
+} from "@/lib/generated/api/models";
 
 /**
- * React Query hook for fetching programs list with filters
- * @param filters - Program filters (search, sort, etc.)
- * @param initialData - Optional initial data from SSR
- * @returns Query result with programs data, loading, and error states
+ * Backward-compatible wrapper for useListPrograms
+ * Maps old ProgramListParams to new ListProgramsParams
  */
 export function usePrograms(
-	filters: ProgramListParams,
-	initialData?: ProgramListResponse,
+	filters: ListProgramsParams,
+	initialData?: ApiResponseProgramListResponse,
 ) {
-	return useQuery({
-		queryKey: ["programs", filters],
-		queryFn: () => exploreApi.getPrograms(filters),
-		initialData:
-			filters.search === "" || !filters.search ? initialData : undefined,
-		staleTime: 2 * 60 * 1000, // 2 minutes - consider data fresh
+	return useListPrograms(filters, {
+		query: {
+			initialData,
+			staleTime: 2 * 60 * 1000, // 2 minutes - consider data fresh
+		},
 	});
 }
 
 /**
  * React Query mutation hook for saving/unsaving programs
- * Includes optimistic updates and automatic rollback on error
- * @returns Mutation function and state
+ * Uses generated hooks with optimistic updates
  */
 export function useSaveProgram() {
 	const queryClient = useQueryClient();
+	const saveMutation = useGeneratedSaveProgram();
+	const unsaveMutation = useGeneratedUnsaveProgram();
 
 	return useMutation({
 		mutationFn: ({ id, isSaved }: { id: string; isSaved: boolean }) =>
-			isSaved ? exploreApi.unsaveProgram(id) : exploreApi.saveProgram(id),
+			isSaved
+				? unsaveMutation.mutateAsync({ id })
+				: saveMutation.mutateAsync({ id }),
 		onMutate: async ({ id, isSaved }) => {
 			// Cancel outgoing refetches to prevent race conditions
 			await queryClient.cancelQueries({ queryKey: ["programs"] });
@@ -44,16 +51,19 @@ export function useSaveProgram() {
 			const previousPrograms = queryClient.getQueryData(["programs"]);
 
 			// Optimistically update all program queries
-			queryClient.setQueriesData<ProgramListResponse>(
+			queryClient.setQueriesData<ApiResponseProgramListResponse>(
 				{ queryKey: ["programs"] },
 				(old) => {
-					if (!old) return old;
+					if (!old?.data?.data) return old;
 
 					return {
 						...old,
-						data: old.data.map((program: ProgramListItemResponse) =>
-							program.id === id ? { ...program, isSaved: !isSaved } : program,
-						),
+						data: {
+							...old.data,
+							data: old.data.data.map((program) =>
+								program.id === id ? { ...program, isSaved: !isSaved } : program,
+							),
+						},
 					};
 				},
 			);

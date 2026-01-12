@@ -65,24 +65,24 @@ export function LoginForm({
 			// Validate form data with Zod
 			const formData = loginSchema.parse({ email, password });
 
-			const response = await loginMutation.mutateAsync(formData);
+			const response = await loginMutation.mutateAsync({ data: formData });
 
 			// Transform AuthResponse to UserProfile format expected by store
 			const userProfile = {
-				id: response.userId,
-				email: response.email,
+				id: response.data?.userId ?? "",
+				email: response.data?.email ?? "",
 				fullName: "", // API doesn't return name on login yet, will need to fetch profile or adjust
 			};
 
 			login(
 				userProfile,
-				response.accessToken,
-				response.refreshToken,
-				response.expiresIn,
-				response.onboardingCompleted,
+				response.data?.accessToken ?? "",
+				response.data?.refreshToken ?? "",
+				response.data?.expiresIn ?? 0,
+				response.data?.onboardingCompleted ?? false,
 			);
 
-			if (response.onboardingCompleted) {
+			if (response.data?.onboardingCompleted) {
 				router.push("/dashboard");
 			} else {
 				router.push("/onboarding");

@@ -1,19 +1,22 @@
 "use client";
 
-import {
-	Building2,
-	Calendar,
-	CheckCircle,
-	DollarSign,
-	FileWarning,
-	Plus,
-} from "lucide-react";
+import { ArrowRight, Building2, MapPin, TrendingUp } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import type { ProgramListItemResponse } from "@/lib/api/types";
+import type {
+	ProgramListItemResponse,
+	UserContextResponse,
+} from "@/lib/generated/api/models";
+import {
+	computeGapGrid,
+	formatCountryName,
+	type GapGridData,
+	getGapStatusColor,
+} from "@/lib/utils/gapComputation";
 
 interface ProgramCardProps {
 	program: ProgramListItemResponse;
+	userProfile?: UserContextResponse | null;
 	onSaveToggle?: (id: string) => void;
 	onClick?: (program: ProgramListItemResponse) => void;
 }
@@ -35,30 +38,81 @@ function getCountryFlag(country: string): string {
 		Sweden: "🇸🇪",
 		Denmark: "🇩🇰",
 		Switzerland: "🇨🇭",
+		Singapore: "🇸🇬",
+		Japan: "🇯🇵",
+		"South Korea": "🇰🇷",
+		"New Zealand": "🇳🇿",
+		"Hong Kong": "🇭🇰",
+		Ireland: "🇮🇪",
+		Belgium: "🇧🇪",
+		Austria: "🇦🇹",
+		Finland: "🇫🇮",
+		Norway: "🇳🇴",
 	};
 	return countryMap[country] || "🌍";
 }
 
-// Format tuition fee
-function formatTuition(tuitionAnnualUsd?: number): string {
-	if (!tuitionAnnualUsd) return "N/A";
-	const formatted = (tuitionAnnualUsd / 1000).toFixed(0);
-	return `~${formatted}tr/năm`;
-}
+/**
+ * Gap Chip Component - Shows requirement status as readable chip
+ */
+function GapChip({
+	label,
+	userValue,
+	requiredValue,
+	status,
+}: {
+	label: string;
+	userValue?: string | number;
+	requiredValue?: string | number;
+	status: string;
+}) {
+	const colors = getGapStatusColor(status as any);
 
-// Format deadline
-function formatDeadline(deadline?: string): string {
-	if (!deadline) return "N/A";
-	const date = new Date(deadline);
-	const month = String(date.getMonth() + 1).padStart(2, "0");
-	const day = String(date.getDate()).padStart(2, "0");
-	return `${month}/${day}`;
-}
+	// Generate readable message
+	let message = "";
+	if (status === "gap") {
+		const delta =
+			typeof userValue === "number" && typeof requiredValue === "number"
+				? Math.abs(requiredValue - userValue).toFixed(1)
+				: "";
+		message = delta
+			? `${label} ${userValue} (need ${delta} more)`
+			: `${label} ${userValue || "N/A"} (need ${requiredValue})`;
+	} else if (status === "match" || status === "clear") {
+		message = `${label} ${userValue} matched`;
+	} else if (status === "bonus") {
+		message = `${label} ${userValue} (bonus)`;
+	} else {
+		message = `${label} N/A`;
+	}
 
-export function ProgramCard({ program, onClick }: ProgramCardProps) {
 	return (
 		<div
-			className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+			className={`inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium ${colors.bg} ${colors.text} border ${colors.border}`}
+		>
+			{message}
+		</div>
+	);
+}
+
+/**
+ * New Data-Driven Program Card with Gap Grid
+ */
+export function ProgramCard({
+	program,
+	userProfile,
+	onClick,
+}: ProgramCardProps) {
+	const gapGrid: GapGridData = computeGapGrid(program, userProfile);
+
+	// Calculate net cost (simplified - assuming 13k aid as in screenshot)
+	const totalCost = program.tuitionAnnualUsd || 0;
+	const estimatedAid = program.scholarshipAvailable ? 13000 : 0;
+	const netCost = totalCost - estimatedAid;
+
+	return (
+		<div
+			className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:border-primary/30 cursor-pointer"
 			onClick={() => onClick?.(program)}
 			onKeyDown={(e) => {
 				if (e.key === "Enter" || e.key === " ") {
@@ -68,15 +122,16 @@ export function ProgramCard({ program, onClick }: ProgramCardProps) {
 			role="button"
 			tabIndex={0}
 		>
-			{/* Header with University Info */}
-			<div className="p-4 border-b border-border">
-				<div className="flex items-center gap-3">
+			{/* Header */}
+			<div className="p-4">
+				{/* University Header */}
+				<div className="flex items-start gap-3 mb-3">
 					{/* University Logo */}
-					<div className="h-12 w-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
+					<div className="h-12 w-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden border border-border">
 						{program.universityLogoUrl ? (
 							<Image
 								src={program.universityLogoUrl}
-								alt={program.universityName}
+								alt={program.universityName || "University"}
 								width={48}
 								height={48}
 								className="object-contain"
@@ -86,106 +141,128 @@ export function ProgramCard({ program, onClick }: ProgramCardProps) {
 						)}
 					</div>
 
-					{/* University Name and Country */}
+					{/* University Info */}
 					<div className="flex-1 min-w-0">
-						<div className="flex items-center gap-2">
-							<h3 className="font-semibold text-foreground truncate text-base">
-								{program.universityName}
-							</h3>
-							<span className="text-xl shrink-0">
-								{getCountryFlag(program.universityCountry || "")}
+						<h3 className="font-semibold text-sm text-foreground truncate">
+							{program.universityName}
+						</h3>
+						<div className="flex items-center gap-1.5 mt-1 flex-wrap">
+							<MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+							<span className="text-xs text-muted-foreground">
+								{program.universityCity && `${program.universityCity}, `}
+								{formatCountryName(program.universityCountry)}{" "}
+								{getCountryFlag(formatCountryName(program.universityCountry))}
 							</span>
+							{program.rankingQsDisplay && (
+								<span className="text-xs font-medium px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300">
+									QS #{program.rankingQsDisplay}
+								</span>
+							)}
+							{/* Times ranking not available in API */}
 						</div>
-						<p className="text-sm text-slate-600 dark:text-slate-400">
-							{program.universityCountry}
-						</p>
+					</div>
+				</div>
+
+				{/* Program Name - Prominent */}
+				<h4 className="font-bold text-base text-foreground line-clamp-2 leading-snug mb-3">
+					{program.programName}
+				</h4>
+			</div>
+
+			{/* Requirements Status Chips */}
+			<div className="px-4 pb-3">
+				<div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-3 border border-slate-200 dark:border-slate-800">
+					{/* Section Title */}
+					<div className="flex items-center gap-2 mb-2.5">
+						<TrendingUp className="w-4 h-4 text-primary" />
+						<span className="text-xs font-semibold text-foreground uppercase tracking-wide">
+							Profile Match
+						</span>
+					</div>
+
+					{/* Gap Chips - Wrapped layout */}
+					<div className="flex flex-wrap gap-2">
+						<GapChip
+							label={gapGrid.gpa.label}
+							userValue={gapGrid.gpa.userValue}
+							requiredValue={gapGrid.gpa.requiredValue}
+							status={gapGrid.gpa.status}
+						/>
+						<GapChip
+							label={gapGrid.ielts.label}
+							userValue={gapGrid.ielts.userValue}
+							requiredValue={gapGrid.ielts.requiredValue}
+							status={gapGrid.ielts.status}
+						/>
+						<GapChip
+							label={gapGrid.budget.label}
+							userValue={gapGrid.budget.userValue}
+							requiredValue={gapGrid.budget.requiredValue}
+							status={gapGrid.budget.status}
+						/>
+						<GapChip
+							label={gapGrid.workExp.label}
+							userValue={gapGrid.workExp.userValue}
+							requiredValue={gapGrid.workExp.requiredValue}
+							status={gapGrid.workExp.status}
+						/>
 					</div>
 				</div>
 			</div>
 
-			{/* Program Details */}
-			<div className="p-4 space-y-4">
-				{/* Program Title */}
-				<h4 className="font-semibold text-foreground line-clamp-2 text-base">
-					{program.programName}
-				</h4>
-
-				{/* Meta Info */}
-				<div className="flex flex-wrap items-center gap-3 text-sm">
-					{/* Ranking Badge */}
-					{program.rankingQsDisplay && (
-						<div className="flex items-center gap-1.5 px-2 py-1 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 rounded-md border border-blue-200 dark:border-blue-800">
-							<span className="font-medium">
-								🌍 {program.rankingQsDisplay} Global
-							</span>
+			{/* Net Cost Section */}
+			<div className="px-4 pb-3">
+				<div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+					<div className="flex items-center justify-between">
+						<div>
+							<div className="text-xs text-muted-foreground mb-1 uppercase tracking-wide font-medium">
+								EST. NET COST
+							</div>
+							<div className="flex items-baseline gap-2">
+								<span className="text-xl font-bold text-foreground leading-none">
+									${(netCost / 1000).toFixed(0)}k
+								</span>
+								{estimatedAid > 0 && (
+									<span className="text-xs text-green-600 dark:text-green-400">
+										(-${(estimatedAid / 1000).toFixed(0)}k Aid)
+									</span>
+								)}
+							</div>
 						</div>
-					)}
-
-					{/* Tuition */}
-					<div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-						<DollarSign className="w-4 h-4" />
-						<span>{formatTuition(program.tuitionAnnualUsd)}</span>
+						{program.scholarshipAvailable && (
+							<div className="text-right">
+								<span className="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300">
+									Scholarship
+								</span>
+							</div>
+						)}
 					</div>
-
-					{/* Deadline */}
-					{program.nextDeadline && (
-						<div className="flex items-center gap-1.5 text-red-600 dark:text-red-400">
-							<Calendar className="w-4 h-4" />
-							<span className="font-medium">
-								Deadline: {formatDeadline(program.nextDeadline)}
-							</span>
-						</div>
-					)}
-				</div>
-
-				{/* Match Criteria Section - Placeholder */}
-				<div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4 space-y-3 border border-slate-200 dark:border-slate-800">
-					{/* Fit Reasons (Green checkmarks) */}
-					{program.fitReasons && program.fitReasons.length > 0 && (
-						<div className="flex items-start gap-2">
-							<CheckCircle className="w-4 h-4 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
-							<div className="flex-1">
-								<p className="text-sm font-medium text-green-700 dark:text-green-400">
-									Phù hợp:
-								</p>
-								<p className="text-sm text-slate-700 dark:text-slate-300 mt-1">
-									{program.fitReasons.join(", ")}
-								</p>
-							</div>
-						</div>
-					)}
-
-					{/* Fit Gaps (Yellow warnings) */}
-					{program.fitGaps && program.fitGaps.length > 0 && (
-						<div className="flex items-start gap-2">
-							<FileWarning className="w-4 h-4 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
-							<div className="flex-1">
-								<p className="text-sm font-medium text-amber-700 dark:text-amber-400">
-									Lưu ý:
-								</p>
-								<p className="text-sm text-slate-700 dark:text-slate-300 mt-1">
-									{program.fitGaps.join(", ")}
-								</p>
-							</div>
-						</div>
-					)}
 				</div>
 			</div>
 
 			{/* Footer Actions */}
-			<div className="p-4 border-t border-border flex justify-between items-center gap-3">
-				{/* Add to Dashboard Button */}
+			<div className="px-4 pb-4 flex gap-2">
 				<Button
-					variant="default"
+					variant="outline"
 					size="sm"
-					className="flex-1 bg-primary/70 hover:bg-primary/90 text-white"
+					className="flex-1 font-medium text-sm"
+					onClick={(e) => {
+						e.stopPropagation();
+						// TODO: Implement analyze gap
+					}}
 				>
-					<Plus /> Thêm vào Dashboard
+					Analyze Gap
 				</Button>
-
-				{/* View Details Link */}
-				<Button variant="ghost" size="sm" className="text-primary px-3">
-					Xem chi tiết
+				<Button
+					size="sm"
+					className="flex-1 font-medium gap-2 bg-primary hover:bg-primary/90 text-sm"
+					onClick={(e) => {
+						e.stopPropagation();
+						// TODO: Implement apply now
+					}}
+				>
+					Apply Now
+					<ArrowRight className="w-4 h-4" />
 				</Button>
 			</div>
 		</div>

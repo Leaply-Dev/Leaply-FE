@@ -6,6 +6,8 @@
 - **TypeScript 5.9** + **Tailwind CSS 4.1** + **Lucide** icons
 - **shadcn/ui** (New York style) + **next-intl** (i18n)
 - **TanStack Query v5** (React Query) - Server state management
+- **Orval 7.18** - API client code generation from OpenAPI
+- **Zod 4.3** - Runtime validation schemas
 - **Zustand** - Client state (auth) + **Framer Motion** animations
 - **Bun 1.3.3** runtime
 - **Biome 2.3** linting/formatting
@@ -14,7 +16,7 @@
 ## Core Principles
 
 - **Client Components primary** - Current app uses `'use client'` extensively (marketing pages, animations)
-- **API-based architecture** - Backend API at `NEXT_PUBLIC_API_URL` with mock data fallback
+- **API-based architecture** - Backend API at `NEXT_PUBLIC_API_URL`
 - **Accessibility-first** - Full keyboard/screen reader support
 - **Type safety** - TypeScript strict mode
 - **i18n ready** - next-intl for internationalization
@@ -45,6 +47,10 @@
 - **STOP and ASK** - If you don't know how to implement something correctly, ask the user for clarification
 - Never guess security-critical implementations
 - Never invent APIs - use MCP to lookup docs
+
+## IMPORTANT: Apply this checklist before start any request
+- [ ] Pulled latest code from main branch
+- [ ] Run `bun generate:api` to generate latest API code
 
 ## Code Change Checklist
 
@@ -92,16 +98,25 @@
 - [ ] Maintain Tailwind CSS + Lucide icons consistency
 
 **6. Code Formatting**
-- [ ] Run `bun check` (or `npm run check`) before committing
+- [ ] Run `bun check` before committing
 - [ ] Tabs for indentation, double quotes
 - [ ] Auto-organized imports (Biome)
 
-**7. Before Commit**
-- [ ] Build passes (`bun build` or `npm run build`)
-- [ ] No Biome errors (`bun check:ci` or `npm run check:ci`)
-- [ ] No unused code (`bun knip` or `npm run knip`)
+**7. Security Checklist**
+
+- [ ] Rate limiting
+- [ ] CSP headers to next.config.ts
+
+**8. Before Commit**
+- [ ] Build passes `bun build`
+- [ ] No Biome errors `bun check:ci`
+- [ ] No unused code `bun knip`
 - [ ] Test in browser if UI change
 - [ ] Review git diff for unintended changes
+- [ ] Env vars: `NEXT_PUBLIC_API_URL`
+- [ ] Implement Zod validation for forms
+- [ ] Add rate limiting + CSP headers
+- [ ] Test i18n locales
 
 ## Runtime Preference
 
@@ -116,10 +131,6 @@ which bun  # or: bun --version
 - Use `bun` commands (faster, better performance)
 - Bun 1.3.3+ recommended
 
-**If Bun is NOT installed:**
-- Fall back to `npm` commands (Node.js 18+)
-- Use `npx` instead of `bunx`
-- Project works fine with npm, just slower
 
 **Installation (optional, recommended):**
 - macOS/Linux: `curl -fsSL https://bun.sh/install | bash`
@@ -143,20 +154,81 @@ bun format      OR  npm run format      # format only
 bun lint        OR  npm run lint        # lint only
 bun knip        OR  npm run knip        # find unused code
 
+# API Code Generation (Orval)
+bun generate:api         OR  npm run generate:api         # Generate from OpenAPI spec
+bun generate:api:watch   OR  npm run generate:api:watch   # Watch mode
+
 # Components
 bunx shadcn@latest add [component]  OR  npx shadcn@latest add [component]
 ```
 
-## Security Checklist
+## API Code Generation with Orval
 
-- [ ] Zod for validation
-- [ ] Environment vars: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_USE_MOCK_DATA`
-- [ ] Rate limiting
-- [ ] CSP headers to next.config.ts
+**IMPORTANT: Use Orval-generated hooks for ALL new API integrations.**
 
-## TanStack Query Patterns
+Orval automatically generates type-safe React Query hooks from the OpenAPI specification at `https://api.leaply.ai.vn/api/api-docs`.
 
-**Creating Query Hooks:**
+**Generated Structure:**
+```
+lib/generated/api/
+├── endpoints/        # React Query hooks by API tag
+│   ├── admin/       # useGetUsers, useUpdateUser, etc.
+│   ├── explore/     # useGetPrograms, useSaveProgram, etc.
+│   ├── home/        # useGetDashboard, etc.
+│   └── ...
+├── models/          # TypeScript types (Program, User, etc.)
+└── zod/             # Zod validation schemas
+```
+
+**Using Generated Hooks (Queries):**
+```typescript
+"use client";
+import { useListPrograms } from "@/lib/generated/api/endpoints/explore/explore";
+
+export function ExploreClient() {
+  const { data, isLoading, error } = useListPrograms({
+    params: { page: 1, size: 20, keyword: "CS" },
+  });
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return <div>{data?.programs.map(...)}</div>;
+}
+```
+
+**Using Generated Hooks (Mutations):**
+```typescript
+"use client";
+import { useSaveProgram } from "@/lib/generated/api/endpoints/explore/explore";
+
+export function SaveButton({ programId }: { programId: string }) {
+  const { mutate, isPending } = useSaveProgram({
+    mutation: {
+      onSuccess: () => {
+        // Invalidate queries, show success message
+      },
+    },
+  });
+
+  return (
+    <button onClick={() => mutate({ id: programId })} disabled={isPending}>
+      {isPending ? "Saving..." : "Save"}
+    </button>
+  );
+}
+```
+
+**When to Regenerate:**
+- Backend API schema changes
+- New endpoints added
+- Response/request types modified
+
+```bash
+bun generate:api  # Regenerate all hooks and types
+```
+
+**Legacy Pattern (Manual Hooks - Migrate to Orval):**
 ```typescript
 // lib/hooks/useHomeData.ts
 import { useQuery } from "@tanstack/react-query";
@@ -172,6 +244,11 @@ export function useHomeData(initialData?: HomeResponse) {
   });
 }
 ```
+
+**Migration Path:**
+1. Use Orval-generated hooks for new features
+2. Gradually replace manual hooks with generated ones
+3. Keep custom hooks only for complex business logic
 
 **Creating Mutation Hooks with Optimistic Updates:**
 ```typescript
@@ -262,7 +339,6 @@ export function ExploreClient() {
 **Data Flow:**
 - **TanStack Query** for all server state (API data fetching, caching, mutations)
 - External API calls via `NEXT_PUBLIC_API_URL`
-- Mock data fallback when `NEXT_PUBLIC_USE_MOCK_DATA=true`
 - Client-side data fetching (Server Components can't access browser-based auth)
 - Zustand for client state (authentication tokens)
 - No Server Actions currently implemented
@@ -320,16 +396,6 @@ alert, avatar, badge, button, card, dialog, dropdown-menu, field, input, label, 
 - **State:** zustand (client state)
 - **Utils:** js-cookie, next-intl
 - **Radix:** 10+ primitives (dialog, dropdown, select, tabs, etc.)
-
-## Deployment Checklist
-
-- [ ] Build passes (`bun run build`)
-- [ ] Biome clean (`bun check:ci`)
-- [ ] Knip clean (`bun knip`)
-- [ ] Env vars: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_USE_MOCK_DATA`
-- [ ] Implement Zod validation for forms
-- [ ] Add rate limiting + CSP headers
-- [ ] Test i18n locales
 
 ## Biome Config
 

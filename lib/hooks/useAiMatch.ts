@@ -1,6 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
-import { exploreApi } from "@/lib/api/exploreApi";
-import type { AiMatchResponse } from "@/lib/api/types";
+/**
+ * Re-export Orval-generated hook for AI-matched programs
+ * This maintains backward compatibility while using generated hooks
+ */
+
+import { useGetMatchedPrograms } from "@/lib/generated/api/endpoints/explore/explore";
+import type {
+	ApiResponseAiMatchResponse,
+	GetMatchedProgramsParams,
+} from "@/lib/generated/api/models";
 
 /**
  * React Query hook for fetching AI-matched programs
@@ -9,13 +16,17 @@ import type { AiMatchResponse } from "@/lib/api/types";
  * @returns Query result with AI match data, loading, and error states
  */
 export function useAiMatch(
-	initialData?: AiMatchResponse,
+	initialData?: ApiResponseAiMatchResponse,
 	limitPerCategory?: number,
 ) {
-	return useQuery({
-		queryKey: ["aiMatch", limitPerCategory],
-		queryFn: () => exploreApi.getAiMatch(limitPerCategory),
-		initialData,
-		staleTime: 10 * 60 * 1000, // 10 minutes - AI match data changes less frequently
+	const params: GetMatchedProgramsParams = limitPerCategory
+		? { limit_per_category: limitPerCategory }
+		: {};
+
+	return useGetMatchedPrograms(params, {
+		query: {
+			initialData,
+			staleTime: 10 * 60 * 1000, // 10 minutes - AI match data changes less frequently
+		},
 	});
 }

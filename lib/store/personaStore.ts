@@ -356,22 +356,25 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						// Update track status and progress if provided
 						const updatedTracks = { ...state.tracks };
 						if (response.currentTrackId) {
-							const trackId = response.currentTrackId;
-							updatedTracks[trackId] = {
-								...updatedTracks[trackId],
-								status: response.trackStatus ?? updatedTracks[trackId].status,
-								completedAt:
-									response.trackStatus === "completed"
-										? new Date().toISOString()
-										: updatedTracks[trackId].completedAt,
-								// Update progress from conversationState
-								coreQuestionIndex:
-									response.conversationState?.coreQuestionIndex ??
-									updatedTracks[trackId].coreQuestionIndex,
-								followUpIndex:
-									response.conversationState?.followUpIndex ??
-									updatedTracks[trackId].followUpIndex,
-							};
+							const trackId =
+								response.currentTrackId as keyof typeof updatedTracks;
+							if (updatedTracks[trackId]) {
+								updatedTracks[trackId] = {
+									...updatedTracks[trackId],
+									status: response.trackStatus ?? updatedTracks[trackId].status,
+									completedAt:
+										response.trackStatus === "completed"
+											? new Date().toISOString()
+											: updatedTracks[trackId].completedAt,
+									// Update progress from conversationState
+									coreQuestionIndex:
+										response.conversationState?.coreQuestionIndex ??
+										updatedTracks[trackId].coreQuestionIndex,
+									followUpIndex:
+										response.conversationState?.followUpIndex ??
+										updatedTracks[trackId].followUpIndex,
+								};
+							}
 						}
 
 						// Handle archetype reveal from allTracksComplete flag (fallback)
@@ -381,7 +384,7 @@ export const usePersonaStore = create<PersonaStoreState>()(
 							!archetype
 						) {
 							const revealAction = response.message.canvasActions.find(
-								(a) => a.action === "reveal_archetype",
+								(a: { action: string }) => a.action === "reveal_archetype",
 							);
 							if (revealAction?.archetype) {
 								archetype = {

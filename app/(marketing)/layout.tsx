@@ -8,7 +8,7 @@ export default async function MarketingLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<div className={`min-h-screen flex flex-col`}>
+		<div className={"min-h-screen flex flex-col"}>
 			<Navbar />
 			<DataInitializer />
 			<main className="flex-1 flex flex-col min-h-0">{children}</main>

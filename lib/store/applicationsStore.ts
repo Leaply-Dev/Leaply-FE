@@ -13,7 +13,7 @@ import type {
 	CreateApplicationRequest,
 	UpcomingDeadlineDto,
 	UpdateApplicationRequest,
-} from "@/lib/api/types";
+} from "@/lib/generated/api/models";
 
 interface ApplicationsState {
 	// Data
@@ -62,8 +62,12 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
 
 			// Auto-select first if none selected
 			const state = get();
-			if (!state.selectedApplicationId && response.applications.length > 0) {
-				set({ selectedApplicationId: response.applications[0].id });
+			if (
+				!state.selectedApplicationId &&
+				response.applications &&
+				response.applications.length > 0
+			) {
+				set({ selectedApplicationId: response.applications[0]?.id });
 			}
 		} catch (error) {
 			// Capture unexpected errors (non-API errors) to Sentry
@@ -170,7 +174,7 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
 					applications: newApplications,
 					selectedApplicationId: newSelectedId,
 					summary: state.summary
-						? { ...state.summary, total: state.summary.total - 1 }
+						? { ...state.summary, total: (state.summary.total ?? 0) - 1 }
 						: null,
 				};
 			});

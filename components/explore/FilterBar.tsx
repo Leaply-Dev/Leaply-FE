@@ -7,22 +7,36 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+export interface FilterState {
+	quickFilters: string[];
+	fieldOfStudy: string;
+	region: string;
+	tuitionRange: string;
+	duration: string;
+}
+
+interface HorizontalFilterBarProps {
+	filters: FilterState;
+	onFiltersChange: (filters: FilterState) => void;
+}
+
 /**
  * Horizontal Filter Bar with Chips
  */
-export function HorizontalFilterBar() {
+export function HorizontalFilterBar({
+	filters,
+	onFiltersChange,
+}: HorizontalFilterBarProps) {
 	const [isExpanded, setIsExpanded] = useState(false);
-	const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
 	const toggleFilter = (filter: string) => {
-		setActiveFilters((prev) =>
-			prev.includes(filter)
-				? prev.filter((f) => f !== filter)
-				: [...prev, filter],
-		);
+		const newQuickFilters = filters.quickFilters.includes(filter)
+			? filters.quickFilters.filter((f) => f !== filter)
+			: [...filters.quickFilters, filter];
+		onFiltersChange({ ...filters, quickFilters: newQuickFilters });
 	};
 
-	const filters = [
+	const quickFilters = [
 		{ id: "budget", label: "Within Budget", icon: DollarSign },
 		{ id: "testscore", label: "Meet Test Req.", icon: GraduationCap },
 		{ id: "deadline", label: "Deadline > 60 days", icon: Calendar },
@@ -30,52 +44,64 @@ export function HorizontalFilterBar() {
 	];
 
 	return (
-		<div className="bg-card border border-border rounded-xl p-4">
-			{/* Quick Filter Chips Row */}
-			<div className="flex items-center gap-3 flex-wrap">
-				{filters.map((filter) => {
-					const Icon = filter.icon;
-					const isActive = activeFilters.includes(filter.id);
-					return (
-						<button
-							key={filter.id}
-							type="button"
-							onClick={() => toggleFilter(filter.id)}
-							className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border transition-colors ${
-								isActive
-									? "bg-primary text-primary-foreground border-primary"
-									: "bg-muted/50 hover:bg-muted border-border text-foreground"
-							}`}
-						>
-							<Icon className="w-4 h-4" />
-							<span className="text-sm font-medium">{filter.label}</span>
-						</button>
-					);
-				})}
+		<div className="bg-card border border-border rounded-xl overflow-hidden transition-all duration-300 ease-in-out">
+			<div className="p-4">
+				{/* Quick Filter Chips Row */}
+				<div className="flex items-center gap-3 flex-wrap">
+					{quickFilters.map((filter) => {
+						const Icon = filter.icon;
+						const isActive = filters.quickFilters.includes(filter.id);
+						return (
+							<button
+								key={filter.id}
+								type="button"
+								onClick={() => toggleFilter(filter.id)}
+								className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border transition-colors ${
+									isActive
+										? "bg-primary text-primary-foreground border-primary"
+										: "bg-muted/50 hover:bg-muted border-border text-foreground"
+								}`}
+							>
+								<Icon className="w-4 h-4" />
+								<span className="text-sm font-medium">{filter.label}</span>
+							</button>
+						);
+					})}
 
-				{/* Expand Button */}
-				<button
-					type="button"
-					onClick={() => setIsExpanded(!isExpanded)}
-					className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-full transition-colors"
+					{/* Expand Button */}
+					<button
+						type="button"
+						onClick={() => setIsExpanded(!isExpanded)}
+						className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-full transition-colors"
+					>
+						<span>{isExpanded ? "Less" : "More"} Filters</span>
+						<ChevronDown
+							className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}
+						/>
+					</button>
+				</div>
+
+				{/* Expanded Filter Options */}
+				<div
+					className={`transition-all duration-300 ease-in-out ${
+						isExpanded
+							? "max-h-[500px] opacity-100 mt-4 pt-4 border-t border-border"
+							: "max-h-0 opacity-0 overflow-hidden"
+					}`}
 				>
-					<span>{isExpanded ? "Less" : "More"} Filters</span>
-					<ChevronDown
-						className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`}
-					/>
-				</button>
-			</div>
-
-			{/* Expanded Filter Options */}
-			{isExpanded && (
-				<div className="mt-4 pt-4 border-t border-border">
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 						{/* Field of Study */}
 						<div className="space-y-2">
 							<span className="text-sm font-medium text-muted-foreground">
 								Field of Study
 							</span>
-							<select className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground">
+							<select
+								value={filters.fieldOfStudy}
+								onChange={(e) =>
+									onFiltersChange({ ...filters, fieldOfStudy: e.target.value })
+								}
+								className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground"
+							>
 								<option value="">All Fields</option>
 								<option value="cs">Computer Science</option>
 								<option value="ds">Data Science</option>
@@ -88,7 +114,13 @@ export function HorizontalFilterBar() {
 							<span className="text-sm font-medium text-muted-foreground">
 								Region
 							</span>
-							<select className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground">
+							<select
+								value={filters.region}
+								onChange={(e) =>
+									onFiltersChange({ ...filters, region: e.target.value })
+								}
+								className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground"
+							>
 								<option value="">All Regions</option>
 								<option value="na">North America</option>
 								<option value="eu">Europe</option>
@@ -101,7 +133,13 @@ export function HorizontalFilterBar() {
 							<span className="text-sm font-medium text-muted-foreground">
 								Tuition Range
 							</span>
-							<select className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground">
+							<select
+								value={filters.tuitionRange}
+								onChange={(e) =>
+									onFiltersChange({ ...filters, tuitionRange: e.target.value })
+								}
+								className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground"
+							>
 								<option value="">Any Budget</option>
 								<option value="30000">Under $30,000</option>
 								<option value="50000">Under $50,000</option>
@@ -114,7 +152,13 @@ export function HorizontalFilterBar() {
 							<span className="text-sm font-medium text-muted-foreground">
 								Duration
 							</span>
-							<select className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground">
+							<select
+								value={filters.duration}
+								onChange={(e) =>
+									onFiltersChange({ ...filters, duration: e.target.value })
+								}
+								className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground"
+							>
 								<option value="">Any Duration</option>
 								<option value="12">1 Year</option>
 								<option value="18">18 Months</option>
@@ -123,7 +167,7 @@ export function HorizontalFilterBar() {
 						</div>
 					</div>
 				</div>
-			)}
+			</div>
 		</div>
 	);
 }

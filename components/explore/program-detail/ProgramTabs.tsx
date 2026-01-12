@@ -8,7 +8,11 @@ import {
 	GraduationCap,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { ProgramDetailResponse } from "@/lib/api/types";
+import type {
+	ProgramDetailResponse,
+	ProgramIntakeResponse,
+} from "@/lib/generated/api/models";
+import { formatCountryName } from "@/lib/utils/gapComputation";
 
 interface ProgramTabsProps {
 	program: ProgramDetailResponse;
@@ -70,7 +74,19 @@ export function ProgramTabs({ program }: ProgramTabsProps) {
 					<h3>About {program.universityName}</h3>
 					<p className="text-muted-foreground leading-relaxed">
 						{program.universityDescription ||
-							`Located in ${program.universityCity}, ${program.universityCountry}, ${program.universityName} is ranked ${program.rankingQsDisplay || "N/A"} globally according to QS World Rankings. The university is known for its research excellence and diverse international community.`}
+							`Located in ${program.universityCity}, ${formatCountryName(program.universityCountry)}, ${program.universityName} is ranked ${
+								program.rankingQsDisplay
+									? `#${program.rankingQsDisplay} in QS`
+									: ""
+							}${
+								program.rankingQsDisplay && program.rankingQsDisplay
+									? " and "
+									: ""
+							}${
+								program.rankingQsDisplay
+									? `#${program.rankingQsDisplay} in Times`
+									: ""
+							} World Rankings. The university is known for its research excellence and diverse international community.`}
 					</p>
 
 					{program.language && (
@@ -136,23 +152,19 @@ export function ProgramTabs({ program }: ProgramTabsProps) {
 								English Proficiency
 							</h4>
 							<ul className="space-y-3 text-sm">
-								{(program.requirements?.ieltsMinimum ||
-									program.ieltsMinimum) && (
+								{program.requirements?.ieltsMinimum && (
 									<li className="flex justify-between">
 										<span className="text-muted-foreground">IELTS Minimum</span>
 										<span className="font-medium text-foreground">
-											{program.requirements?.ieltsMinimum ||
-												program.ieltsMinimum}
+											{program.requirements.ieltsMinimum}
 										</span>
 									</li>
 								)}
-								{(program.requirements?.toeflMinimum ||
-									program.toeflMinimum) && (
+								{program.requirements?.toeflMinimum && (
 									<li className="flex justify-between">
 										<span className="text-muted-foreground">TOEFL Minimum</span>
 										<span className="font-medium text-foreground">
-											{program.requirements?.toeflMinimum ||
-												program.toeflMinimum}
+											{program.requirements.toeflMinimum}
 										</span>
 									</li>
 								)}
@@ -195,7 +207,7 @@ export function ProgramTabs({ program }: ProgramTabsProps) {
 										Required Documents
 									</h4>
 									<ul className="space-y-2 text-sm">
-										{program.requirements.documents.map((doc) => (
+										{program.requirements.documents.map((doc: string) => (
 											<li
 												key={doc}
 												className="flex items-center gap-2 text-foreground"
@@ -215,7 +227,7 @@ export function ProgramTabs({ program }: ProgramTabsProps) {
 			<TabsContent value="deadlines" className="pt-6">
 				<div className="space-y-6">
 					{program.intakes && program.intakes.length > 0 ? (
-						program.intakes.map((intake) => (
+						program.intakes.map((intake: ProgramIntakeResponse) => (
 							<div
 								key={intake.id}
 								className="bg-card border border-border rounded-xl p-6"

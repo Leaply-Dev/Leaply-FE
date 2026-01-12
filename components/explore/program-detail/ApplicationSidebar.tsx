@@ -4,7 +4,7 @@ import { Calendar, Circle } from "lucide-react";
 import type {
 	ProgramDetailResponse,
 	ProgramIntakeResponse,
-} from "@/lib/api/types";
+} from "@/lib/generated/api/models";
 
 interface ApplicationSidebarProps {
 	program: ProgramDetailResponse;
@@ -33,7 +33,10 @@ export function ApplicationSidebar({ program }: ApplicationSidebarProps) {
 
 	// Get upcoming deadlines from intakes
 	const upcomingDeadlines = (program.intakes || [])
-		.filter((intake) => intake.applicationDeadline || intake.earlyDeadline)
+		.filter(
+			(intake: ProgramIntakeResponse) =>
+				intake.applicationDeadline || intake.earlyDeadline,
+		)
 		.slice(0, 3);
 
 	return (
@@ -45,7 +48,7 @@ export function ApplicationSidebar({ program }: ApplicationSidebarProps) {
 				</div>
 				<div className="p-4">
 					<ul className="space-y-3">
-						{checklistItems.map((item) => (
+						{checklistItems.map((item: string) => (
 							<li key={item} className="flex items-center gap-3 text-sm">
 								<Circle className="w-4 h-4 text-muted-foreground" />
 								<span className="text-foreground">{item}</span>
@@ -68,7 +71,7 @@ export function ApplicationSidebar({ program }: ApplicationSidebarProps) {
 				<div className="p-4">
 					{upcomingDeadlines.length > 0 ? (
 						<ul className="space-y-4">
-							{upcomingDeadlines.map((intake) => (
+							{upcomingDeadlines.map((intake: ProgramIntakeResponse) => (
 								<DeadlineItem key={intake.id} intake={intake} />
 							))}
 						</ul>

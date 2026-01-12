@@ -2,38 +2,26 @@
 
 import { Sparkles, Table } from "lucide-react";
 import { useState } from "react";
-import { SwimLanes } from "@/components/explore/AIMatchMode";
+import { TabBasedCategories } from "@/components/explore/AIMatchMode";
 import { ManualMode } from "@/components/explore/ManualMode";
 import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
 import type {
-	AiMatchResponse,
+	ApiResponseAiMatchResponse,
+	ApiResponseProgramListResponse,
+	ApiResponseUserContextResponse,
 	ProgramListItemResponse,
-	ProgramListResponse,
-} from "@/lib/api/types";
+} from "@/lib/generated/api/models";
 import { useAiMatch } from "@/lib/hooks/useAiMatch";
 import { usePrograms, useSaveProgram } from "@/lib/hooks/usePrograms";
-import {
-	generateAiMatchResponse,
-	generateMany,
-	generateProgramListItemResponse,
-} from "@/lib/mock";
-import { MANUAL_MODE_PROGRAMS } from "@/lib/mock/manualModeData";
+import { useUserMe } from "@/lib/hooks/useUserMe";
 import { cn } from "@/lib/utils";
 
-// Feature flag to toggle between mock data and API
-const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-// Generate mock programs using faker
-const MOCK_PROGRAMS = generateMany(generateProgramListItemResponse, 20);
-
-// Mock AI Match Response using faker generator
-const MOCK_MATCH_DATA: AiMatchResponse = generateAiMatchResponse();
-
 interface ExploreClientProps {
-	initialPrograms?: ProgramListResponse;
-	initialAiMatch?: AiMatchResponse;
+	initialPrograms?: ApiResponseProgramListResponse;
+	initialAiMatch?: ApiResponseAiMatchResponse;
+	initialUserProfile?: ApiResponseUserContextResponse;
 }
 
 /**
@@ -74,6 +62,7 @@ function ProgramCardSkeleton() {
 export function ExploreClient({
 	initialPrograms,
 	initialAiMatch,
+	initialUserProfile,
 }: ExploreClientProps) {
 	const [activeMode, setActiveMode] = useState<"ai" | "manual">("ai");
 
@@ -83,34 +72,23 @@ export function ExploreClient({
 	const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
 
 	// Use TanStack Query hooks with SSR data
-	const { data: programsResponse } = usePrograms(
-		{},
-		USE_MOCK_DATA
-			? {
-					data: MOCK_PROGRAMS,
-					pagination: {
-						page: 1,
-						size: 50,
-						total: MOCK_PROGRAMS.length,
-						totalPages: 1,
-					},
-				}
-			: initialPrograms,
-	);
+	const { data: programsResponse } = usePrograms({}, initialPrograms);
 
 	const {
 		data: aiMatchData,
 		isLoading: isLoadingAiMatch,
 		error: aiMatchError,
-	} = useAiMatch(USE_MOCK_DATA ? MOCK_MATCH_DATA : initialAiMatch);
+	} = useAiMatch(initialAiMatch);
+
+	const { data: userProfile } = useUserMe(initialUserProfile);
 
 	const saveMutation = useSaveProgram();
 
-	// Extract data from responses
-	const programs = programsResponse?.data ?? [];
+	// Extract data from responses (unwrap ApiResponse)
+	const programs = programsResponse?.data?.data ?? [];
 
 	const handleSaveToggle = (id: string) => {
-		const program = programs.find((p) => p.id === id);
+		const program = programs.find((p: ProgramListItemResponse) => p.id === id);
 		if (!program) return;
 
 		// Trigger mutation (includes optimistic update)
@@ -118,11 +96,11 @@ export function ExploreClient({
 	};
 
 	// Compute swimlane programs from AI Match or programs
-	const swimLanePrograms = aiMatchData
+	const swimLanePrograms: ProgramListItemResponse[] = aiMatchData?.data
 		? [
-				...(aiMatchData.reach || []),
-				...(aiMatchData.target || []),
-				...(aiMatchData.safety || []),
+				...(aiMatchData.data.reach || []),
+				...(aiMatchData.data.target || []),
+				...(aiMatchData.data.safety || []),
 			]
 		: programs;
 
@@ -130,15 +108,15 @@ export function ExploreClient({
 		<PageTransition className="flex flex-col min-h-screen">
 			{/* Compact Header with Mode Switch */}
 			<div className="border-b border-border bg-card/80 backdrop-blur-sm">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+				<div className="container mx-auto px-6 py-3">
 					<div className="flex items-center justify-between">
 						<div>
-							<h1 className="text-2xl font-bold text-foreground">
+							<h1 className="text-xl font-bold text-foreground">
 								Explore Programs
 							</h1>
-							<p className="text-sm text-muted-foreground mt-1">
-								{aiMatchData?.totalMatched || programs.length} programs matched
-								to your profile
+							<p className="text-xs text-muted-foreground mt-0.5">
+								{aiMatchData?.data?.totalMatched || programs.length} programs
+								matched to your profile
 							</p>
 						</div>
 
@@ -178,10 +156,10 @@ export function ExploreClient({
 			</div>
 
 			{/* Main Content */}
-			<div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+			<div className="flex-1 container mx-auto px-6 py-4">
 				{/* AI Enhanced Mode */}
 				{activeMode === "ai" && (
-					<div className="space-y-6">
+					<div className="space-y-3">
 						{isLoadingAiMatch ? (
 							<>
 								{/* Loading Skeleton for AI Match Summary */}
@@ -230,34 +208,44 @@ export function ExploreClient({
 							</div>
 						) : (
 							<>
-								{/* Swim Lanes Layout */}
-								<SwimLanes
+								{/* Live Analyzer Section */}
+								{aiMatchData?.data?.recommendation && (
+									<div className="mb-6 bg-primary/5 dark:bg-primary/10 rounded-xl p-6 border border-primary/20">
+										<div className="flex items-start gap-4">
+											<div className="shrink-0">
+												<div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+													<Sparkles className="w-6 h-6 text-primary-foreground" />
+												</div>
+											</div>
+											<div className="flex-1">
+												<h3 className="text-lg font-bold text-foreground mb-2">
+													Live Analyzer
+												</h3>
+												<p className="text-sm text-muted-foreground leading-relaxed">
+													{aiMatchData.data.recommendation}
+												</p>
+											</div>
+										</div>
+									</div>
+								)}
+
+								{/* Tab-Based Categories Layout */}
+								<TabBasedCategories
 									programs={swimLanePrograms}
+									userProfile={userProfile?.data}
 									onSaveToggle={handleSaveToggle}
 									onProgramClick={(program) => {
 										setSelectedProgram(program);
 										setIsDetailDrawerOpen(true);
 									}}
 								/>
-
-								{/* Recommendation Note */}
-								<div className="text-center py-4">
-									<p className="text-muted-foreground">
-										💡 Recommendation: Apply to 2-3 Safety, 3-4 Target, 1-2
-										Reach
-									</p>
-								</div>
 							</>
 						)}
 					</div>
 				)}
 
 				{/* Manual Mode */}
-				{activeMode === "manual" && (
-					<ManualMode
-						programs={USE_MOCK_DATA ? MANUAL_MODE_PROGRAMS : programs}
-					/>
-				)}
+				{activeMode === "manual" && <ManualMode programs={swimLanePrograms} />}
 			</div>
 
 			{/* Program Detail Drawer for AI Mode */}

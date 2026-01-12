@@ -29,12 +29,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { HomeResponse } from "@/lib/api/types";
+import type {
+	ApiResponseHomeResponse,
+	RecentApplicationDto,
+} from "@/lib/generated/api/models";
 import { useHomeData } from "@/lib/hooks/useHomeData";
 import { useUserStore } from "@/lib/store/userStore";
 
 interface DashboardClientProps {
-	initialData?: HomeResponse;
+	initialData?: ApiResponseHomeResponse;
 }
 
 export function DashboardClient({ initialData }: DashboardClientProps) {
@@ -83,16 +86,16 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 		}
 	}, [lastActivity?.timestamp, tHome]);
 
-	// Derive values from homeData
-	const profileCompletion = homeData?.profileCompletion ?? 0;
-	const upcomingDeadlinesCount = homeData?.upcomingDeadlines?.length ?? 0;
-	const applicationsCount = homeData?.applications?.total ?? 0;
+	// Derive values from homeData (unwrap from ApiResponse wrapper)
+	const profileCompletion = homeData?.data?.profileCompletion ?? 0;
+	const upcomingDeadlinesCount = homeData?.data?.upcomingDeadlines?.length ?? 0;
+	const applicationsCount = homeData?.data?.applications?.total ?? 0;
 	const submittedApplications =
-		homeData?.applications?.byStatus?.submitted ?? 0;
-	const discoveryTracks = homeData?.discovery?.completedTracks ?? 0;
-	const totalTracks = homeData?.discovery?.totalTracks ?? 4;
-	const suggestedAction = homeData?.suggestedAction;
-	const recentApplications = homeData?.recentApplications ?? [];
+		homeData?.data?.applications?.byStatus?.submitted ?? 0;
+	const discoveryTracks = homeData?.data?.discovery?.completedTracks ?? 0;
+	const totalTracks = homeData?.data?.discovery?.totalTracks ?? 4;
+	const suggestedAction = homeData?.data?.suggestedAction;
+	const recentApplications = homeData?.data?.recentApplications ?? [];
 
 	return (
 		<PageTransition>
@@ -103,7 +106,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 						<div className="mb-8">
 							<h1 className="text-3xl font-bold text-foreground mb-2">
 								{greeting || <span className="invisible">...</span>},{" "}
-								{homeData?.firstName ||
+								{homeData?.data?.firstName ||
 									profile?.fullName?.split(" ").pop() ||
 									tHome("you")}
 								!
@@ -399,7 +402,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 											</div>
 										) : recentApplications.length > 0 ? (
 											<div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
-												{recentApplications.map((app) => (
+												{recentApplications.map((app: RecentApplicationDto) => (
 													<Link
 														key={app.id}
 														href={`/dashboard/applications/${app.id}`}
@@ -410,7 +413,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 																<div className="flex items-start gap-3 mb-3">
 																	<Avatar className="h-10 w-10 shrink-0">
 																		<AvatarFallback className="text-xs">
-																			{app.universityName
+																			{(app.universityName ?? "")
 																				.substring(0, 2)
 																				.toUpperCase()}
 																		</AvatarFallback>

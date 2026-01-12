@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { ApplicationResponse } from "@/lib/api/types";
+import type { ApplicationResponse } from "@/lib/generated/api/models";
 import { cn } from "@/lib/utils";
 
 interface ApplicationSidebarProps {
@@ -166,7 +166,7 @@ export function ApplicationSidebar({
 							<button
 								type="button"
 								key={app.id}
-								onClick={() => onSelectApplication(app.id)}
+								onClick={() => onSelectApplication(app.id ?? "")}
 								className={cn(
 									"w-full px-4 py-4 text-left hover:bg-muted/50 transition-colors border-b border-border",
 									selectedId === app.id &&
@@ -177,10 +177,10 @@ export function ApplicationSidebar({
 								{/* University & Program */}
 								<div className="mb-2">
 									<h3 className="font-semibold text-foreground text-sm truncate">
-										{app.program.universityName}
+										{app.program?.universityName}
 									</h3>
 									<p className="text-xs text-muted-foreground truncate">
-										{app.program.programName}
+										{app.program?.programName}
 									</p>
 								</div>
 
@@ -200,7 +200,10 @@ export function ApplicationSidebar({
 
 									{/* Status Badge */}
 									<Badge
-										variant={statusConfig[app.status]?.variant || "secondary"}
+										variant={
+											statusConfig[app.status ?? "planning"]?.variant ||
+											"secondary"
+										}
 										className="text-xs"
 									>
 										{t(`status.${app.status}`)}
@@ -221,7 +224,7 @@ export function ApplicationSidebar({
 								{getSopStatusBadge(app.sopStatus)}
 
 								{/* Next Deadline */}
-								{app.program.nextDeadline && (
+								{app.program?.nextDeadline && (
 									<div className="mt-2 text-xs text-muted-foreground">
 										Deadline:{" "}
 										{new Date(app.program.nextDeadline).toLocaleDateString()}

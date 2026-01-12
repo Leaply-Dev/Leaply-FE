@@ -51,7 +51,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { UserMeResponse } from "@/lib/api/types";
+import type { UserMeResponse } from "@/lib/generated/api/models";
 import { authService } from "@/lib/services/auth";
 import { userService } from "@/lib/services/user";
 import { useUserStore } from "@/lib/store/userStore";
@@ -739,7 +739,7 @@ export default function ProfilePage() {
 											Object.keys(userData.testScores).length > 0 ? (
 											<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 												{Object.entries(userData.testScores).map(
-													([type, score]) => (
+													([type, score]: [string, unknown]) => (
 														<div
 															key={type}
 															className="p-4 rounded-lg bg-muted/50 text-center"
@@ -748,7 +748,7 @@ export default function ProfilePage() {
 																{type}
 															</p>
 															<p className="text-2xl font-bold text-foreground">
-																{score}
+																{String(score)}
 															</p>
 														</div>
 													),
@@ -797,7 +797,7 @@ export default function ProfilePage() {
 													<div className="flex flex-wrap gap-1 mt-1">
 														{userData?.fieldOfInterest &&
 														userData.fieldOfInterest.length > 0 ? (
-															userData.fieldOfInterest.map((field) => (
+															userData.fieldOfInterest.map((field: string) => (
 																<Badge
 																	key={field}
 																	variant="secondary"
@@ -825,15 +825,17 @@ export default function ProfilePage() {
 													<div className="flex flex-wrap gap-1 mt-1">
 														{userData?.preferredRegions &&
 														userData.preferredRegions.length > 0 ? (
-															userData.preferredRegions.map((region) => (
-																<Badge
-																	key={region}
-																	variant="secondary"
-																	className="text-xs"
-																>
-																	{region}
-																</Badge>
-															))
+															userData.preferredRegions.map(
+																(region: string) => (
+																	<Badge
+																		key={region}
+																		variant="secondary"
+																		className="text-xs"
+																	>
+																		{region}
+																	</Badge>
+																),
+															)
 														) : (
 															<span className="text-muted-foreground">
 																{t("noData")}
@@ -907,7 +909,7 @@ export default function ProfilePage() {
 															{t("interests")}
 														</p>
 														<div className="flex flex-wrap gap-1">
-															{userData.interests.map((interest) => (
+															{userData.interests.map((interest: string) => (
 																<Badge
 																	key={interest}
 																	variant="outline"

@@ -39,7 +39,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import type { ApplicationResponse } from "@/lib/api/types";
+import type { ApplicationResponse, GapDto } from "@/lib/generated/api/models";
 import { cn } from "@/lib/utils";
 
 interface ApplicationDashboardProps {
@@ -131,11 +131,12 @@ export function ApplicationDashboard({
 		);
 	}
 
-	const config = statusConfig[application.status] || statusConfig.planning;
+	const config =
+		statusConfig[application.status ?? "planning"] || statusConfig.planning;
 
 	// Calculate days until deadline
 	const getDaysUntilDeadline = () => {
-		if (!application.program.nextDeadline) return null;
+		if (!application.program?.nextDeadline) return null;
 		const deadline = new Date(application.program.nextDeadline);
 		const now = new Date();
 		const diff = deadline.getTime() - now.getTime();
@@ -168,12 +169,12 @@ export function ApplicationDashboard({
 				<div className="flex items-start justify-between">
 					<div>
 						<h1 className="text-2xl font-bold text-foreground mb-1">
-							{application.program.universityName}
+							{application.program?.universityName}
 						</h1>
 						<p className="text-lg text-muted-foreground">
-							{application.program.programName}
+							{application.program?.programName}
 						</p>
-						{application.program.degreeName && (
+						{application.program?.degreeName && (
 							<p className="text-sm text-muted-foreground">
 								{application.program.degreeName}
 							</p>
@@ -275,7 +276,7 @@ export function ApplicationDashboard({
 									{t("nextDeadline")}
 								</span>
 							</div>
-							{application.program.nextDeadline ? (
+							{application.program?.nextDeadline ? (
 								<>
 									<p className="text-sm font-semibold text-foreground">
 										{new Date(
@@ -318,9 +319,10 @@ export function ApplicationDashboard({
 						</CardHeader>
 						<CardContent>
 							<div className="space-y-3">
-								{application.gaps.map((gap, index) => {
+								{application.gaps?.map((gap: GapDto, index: number) => {
 									const severityConfig =
-										gapSeverityConfig[gap.severity] || gapSeverityConfig.info;
+										gapSeverityConfig[gap.severity ?? "info"] ||
+										gapSeverityConfig.info;
 									return (
 										<div
 											key={index}
@@ -332,9 +334,11 @@ export function ApplicationDashboard({
 											<severityConfig.icon className="w-5 h-5 mt-0.5 shrink-0" />
 											<div>
 												<p className="font-medium text-sm capitalize">
-													{gap.field.replace("_", " ")}
+													{gap.field?.replace("_", " ") ?? ""}
 												</p>
-												<p className="text-sm opacity-80">{gap.message}</p>
+												<p className="text-sm opacity-80">
+													{gap.message ?? ""}
+												</p>
 											</div>
 										</div>
 									);
@@ -345,7 +349,7 @@ export function ApplicationDashboard({
 				)}
 
 				{/* Next Intake */}
-				{application.program.nextIntake && (
+				{application.program?.nextIntake && (
 					<Card>
 						<CardHeader>
 							<CardTitle className="text-lg">{t("intakeInfo")}</CardTitle>
@@ -357,11 +361,11 @@ export function ApplicationDashboard({
 										{t("nextIntake")}
 									</p>
 									<p className="text-lg font-semibold">
-										{application.program.nextIntake}
+										{application.program?.nextIntake}
 									</p>
 								</div>
 								<Button variant="outline" asChild>
-									<Link href={`/explore/${application.program.id}`}>
+									<Link href={`/explore/${application.program?.id}`}>
 										{t("viewProgramDetails")}
 										<ChevronRight className="w-4 h-4 ml-1" />
 									</Link>
@@ -389,7 +393,7 @@ export function ApplicationDashboard({
 							</Button>
 
 							<Button variant="outline" asChild>
-								<Link href={`/explore/${application.program.id}`}>
+								<Link href={`/explore/${application.program?.id ?? ""}`}>
 									<ExternalLink className="w-4 h-4 mr-2" />
 									{t("viewProgram")}
 								</Link>
@@ -410,8 +414,8 @@ export function ApplicationDashboard({
 										<DialogTitle>{t("confirmRemove")}</DialogTitle>
 										<DialogDescription>
 											{t("confirmRemoveDescription", {
-												program: application.program.programName,
-												university: application.program.universityName,
+												program: application.program?.programName ?? "",
+												university: application.program?.universityName ?? "",
 											})}
 										</DialogDescription>
 									</DialogHeader>
@@ -438,12 +442,13 @@ export function ApplicationDashboard({
 
 				{/* Timestamps */}
 				<div className="text-xs text-muted-foreground text-center">
-					{t("addedOn")} {new Date(application.createdAt).toLocaleDateString()}
+					{t("addedOn")}{" "}
+					{new Date(application.createdAt ?? "").toLocaleDateString()}
 					{application.updatedAt !== application.createdAt && (
 						<>
 							{" "}
 							• {t("lastUpdated")}{" "}
-							{new Date(application.updatedAt).toLocaleDateString()}
+							{new Date(application.updatedAt ?? "").toLocaleDateString()}
 						</>
 					)}
 				</div>

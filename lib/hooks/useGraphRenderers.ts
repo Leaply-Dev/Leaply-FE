@@ -199,7 +199,10 @@ export function useGraphRenderers({
 			const graphNode = node as unknown as ForceGraphNode;
 			// Minimum 20px in screen space - divide by scale to get canvas space
 			const minScreenRadius = 20;
-			const clickRadius = Math.max(graphNode.size * 1.5, minScreenRadius / scale);
+			const clickRadius = Math.max(
+				graphNode.size * 1.5,
+				minScreenRadius / scale,
+			);
 			ctx.beginPath();
 			ctx.arc(node.x || 0, node.y || 0, clickRadius, 0, 2 * Math.PI);
 			ctx.fillStyle = color;

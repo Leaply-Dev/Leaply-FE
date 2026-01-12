@@ -50,7 +50,7 @@ export default function VerifyEmailPage() {
 		if (!profile?.email) return;
 
 		try {
-			await resendMutation.mutateAsync(profile.email);
+			await resendMutation.mutateAsync({ data: { email: profile.email } });
 			setCountdown(60); // 60 second cooldown
 		} catch (err) {
 			console.error("Failed to resend verification", err);
@@ -181,13 +181,12 @@ export default function VerifyEmailPage() {
 						<p className="mt-1 text-sm font-medium">{profile.email}</p>
 					)}
 				</div>
-				{resendMutation.error && (
+				{resendMutation.error ? (
 					<p className="text-sm text-red-500">
-						{resendMutation.error instanceof Error
-							? resendMutation.error.message
-							: "Failed to send verification email"}
+						{(resendMutation.error as Error)?.message ||
+							"Failed to send verification email"}
 					</p>
-				)}
+				) : null}
 				<div className="mt-4 flex w-full flex-col gap-2">
 					<Button
 						onClick={handleSendVerification}

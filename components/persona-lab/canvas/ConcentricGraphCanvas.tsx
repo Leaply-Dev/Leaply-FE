@@ -92,7 +92,7 @@ export function ConcentricGraphCanvas({
 
 	// Handler for expanding a node (getting follow-up question)
 	const handleExpandNode = (nodeId: string) => {
-		expandNodeMutation.mutate(nodeId);
+		expandNodeMutation.mutate({ nodeId });
 	};
 
 	// Get GraphNode data for selected node with validation
@@ -149,7 +149,7 @@ export function ConcentricGraphCanvas({
 					<div className="w-20 h-20 rounded-full bg-amber-500/10 border-2 border-dashed border-amber-500/30 flex items-center justify-center">
 						<MessageCircle className="w-8 h-8 text-amber-500/50" />
 					</div>
-					<p className="text-sm text-muted-foreground mt-3 max-w-[180px]">
+					<p className="text-sm text-muted-foreground mt-3 max-w-45">
 						{t("centerPlaceholder")}
 					</p>
 				</div>

@@ -5,7 +5,7 @@ import type {
 	UpdatePreferencesRequest,
 	UpdateProfileRequest,
 	UserMeResponse,
-} from "@/lib/api/types";
+} from "@/lib/generated/api/models";
 
 export const userService = {
 	// ============================================

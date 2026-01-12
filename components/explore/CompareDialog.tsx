@@ -25,7 +25,8 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { ProgramListItemResponse } from "@/lib/api/types";
+import type { ProgramListItemResponse } from "@/lib/generated/api/models";
+import { formatCountryName } from "@/lib/utils/gapComputation";
 
 // ============================================================================
 // Types
@@ -153,7 +154,7 @@ function getDeadlineInfo(deadline?: string): DeadlineInfo {
 function getMockRequirements(
 	program: ProgramListItemResponse,
 ): ProgramRequirements {
-	const hash = program.id.charCodeAt(0) % 3;
+	const hash = (program.id ?? "").charCodeAt(0) % 3;
 	const gpaRequirements: GpaRequirement[] = [
 		{ min: "3.0", scale: "4.0", userGpa: "3.8", status: "pass" },
 		{ min: "Honors Class II", scale: null, userGpa: null, status: "pass" },
@@ -187,20 +188,20 @@ function getDetailedAnalysis(
 			icon: "info",
 			pros: ["Chương trình an toàn. Có khả năng cao nhận offer trong 2 tuần."],
 			cons: [
-				`Chi phí sinh hoạt tại ${program.universityCity || program.universityCountry} cao hơn dự kiến ngân sách của bạn.`,
+				`Chi phí sinh hoạt tại ${program.universityCity || formatCountryName(program.universityCountry ?? "")} cao hơn dự kiến ngân sách của bạn.`,
 			],
 		},
 		target: {
 			icon: "warning",
 			pros: ["Background Toán học rất mạnh, phù hợp ngành Data Science."],
 			cons: [
-				`Điểm Writing của bạn (6.0) thấp hơn yêu cầu ${program.universityName} (6.5). Cần thi lại.`,
+				`Điểm Writing của bạn (6.0) thấp hơn yêu cầu ${program.universityName ?? ""} (6.5). Cần thi lại.`,
 			],
 		},
 		reach: {
 			icon: "success",
 			pros: [
-				`GPA của bạn (3.8) cao hơn mức yêu cầu, tăng khả năng nhận học bổng.`,
+				"GPA của bạn (3.8) cao hơn mức yêu cầu, tăng khả năng nhận học bổng.",
 				"Hoạt động ngoại khóa phù hợp với tiêu chí tuyển sinh.",
 			],
 			cons: [],
@@ -225,15 +226,15 @@ function ProgramHeaderCell({ program }: { program: ProgramListItemResponse }) {
 					<div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
 						{program.universityLogoUrl ? (
 							<Image
-								src={program.universityLogoUrl}
-								alt={program.universityName}
+								src={program.universityLogoUrl ?? ""}
+								alt={program.universityName ?? ""}
 								width={40}
 								height={40}
 								className="object-contain"
 							/>
 						) : (
 							<span className="text-sm font-bold text-primary">
-								{program.universityName.charAt(0).toUpperCase()}
+								{(program.universityName ?? "").charAt(0).toUpperCase()}
 							</span>
 						)}
 					</div>
@@ -253,7 +254,7 @@ function ProgramHeaderCell({ program }: { program: ProgramListItemResponse }) {
 				{/* Location */}
 				<div className="flex items-center gap-1 text-sm text-muted-foreground">
 					<MapPin className="w-3.5 h-3.5" />
-					{program.universityCountry}
+					{formatCountryName(program.universityCountry)}
 				</div>
 			</div>
 		</th>
@@ -292,14 +293,27 @@ function RankingCell({ program }: { program: ProgramListItemResponse }) {
 	return (
 		<td className="p-4 border-l border-border align-top">
 			{program.rankingQsDisplay ? (
-				<div className="flex items-center gap-2">
-					<Badge
-						variant="outline"
-						className="font-semibold text-primary border-primary"
-					>
-						{program.rankingQsDisplay}
-					</Badge>
-					<span className="text-sm text-muted-foreground">Thế giới</span>
+				<div className="flex flex-col gap-1.5">
+					{program.rankingQsDisplay && (
+						<div className="flex items-center gap-2">
+							<Badge
+								variant="outline"
+								className="font-semibold text-purple-700 border-purple-300 bg-purple-50 dark:bg-purple-950/30"
+							>
+								QS #{program.rankingQsDisplay}
+							</Badge>
+						</div>
+					)}
+					{program.rankingQsDisplay && (
+						<div className="flex items-center gap-2">
+							<Badge
+								variant="outline"
+								className="font-semibold text-amber-700 border-amber-300 bg-amber-50 dark:bg-amber-950/30"
+							>
+								Times #{program.rankingQsDisplay}
+							</Badge>
+						</div>
+					)}
 				</div>
 			) : (
 				<span className="text-muted-foreground">N/A</span>
@@ -441,12 +455,15 @@ function ActionsCell({
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<div className="space-y-3">
-				<Button className="w-full" onClick={() => onAddToDashboard(program.id)}>
+				<Button
+					className="w-full"
+					onClick={() => onAddToDashboard(program.id ?? "")}
+				>
 					Thêm vào Dashboard
 				</Button>
 				<button
 					type="button"
-					onClick={() => onRemoveProgram(program.id)}
+					onClick={() => onRemoveProgram(program.id ?? "")}
 					className="w-full text-sm text-muted-foreground hover:text-destructive transition-colors text-center"
 				>
 					Bỏ khỏi so sánh

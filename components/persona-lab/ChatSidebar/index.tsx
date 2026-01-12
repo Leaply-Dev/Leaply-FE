@@ -16,18 +16,12 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-	useConversation,
 	useCoverage,
 	useResetConversation,
 	useSendMessage,
 } from "@/lib/hooks/usePersonaConversation";
 import { usePersonaStore } from "@/lib/store/personaStore";
-import type {
-	ConversationMessage,
-	Coverage,
-	GraphMessageResponse,
-	ResetConversationResponse,
-} from "@/lib/types/persona";
+import type { ConversationMessage, Coverage } from "@/lib/types/persona";
 import { ChatHeader } from "./ChatHeader";
 import { ChatMessage, TypingIndicator } from "./ChatMessage";
 import { MessageInput } from "./MessageInput";
@@ -61,23 +55,10 @@ export function ChatSidebar() {
 	const clearApiGraph = usePersonaStore((state) => state.clearApiGraph);
 
 	// TanStack Query hooks for API interactions
-	const {
-		data: conversationData,
-		isLoading: isLoadingConversation,
-		error: conversationError,
-	} = useConversation();
-
 	const { data: coverageData } = useCoverage();
 
 	const sendMessageMutation = useSendMessage();
 	const resetMutation = useResetConversation();
-
-	// Initialize messages when conversation data loads (only if store is empty)
-	useEffect(() => {
-		if (conversationData?.message && messages.length === 0) {
-			addGraphMessage(conversationData.message);
-		}
-	}, [conversationData, messages.length, addGraphMessage]);
 
 	// Scroll to bottom on new messages
 	const messageCount = messages.length;
@@ -101,27 +82,47 @@ export function ChatSidebar() {
 			addGraphMessage(userMessage);
 
 			// Send to API
-			sendMessageMutation.mutate(content, {
-				onSuccess: (data: GraphMessageResponse) => {
-					// Add assistant response to store (persisted)
-					addGraphMessage(data.message);
+			sendMessageMutation.mutate(
+				{ data: { content } },
+				{
+					onSuccess: (data) => {
+						// Add assistant response to store (persisted)
+						// Convert ChatMessageDto to ConversationMessage
+						if (data?.message) {
+							const assistantMessage: ConversationMessage = {
+								id: data.message.id || `assistant-${Date.now()}`,
+								role:
+									(data.message.role as "user" | "assistant") || "assistant",
+								type:
+									(data.message.type as ConversationMessage["type"]) || "text",
+								content: data.message.content || "",
+								timestamp: data.message.timestamp || new Date().toISOString(),
+							};
+							addGraphMessage(assistantMessage);
+						}
 
-					// Update store with graph data (canvas subscribes to this)
-					processGraphUpdate(data);
+						// Update store with graph data (canvas subscribes to this)
+						// Type assertion needed as API type differs from local type
+						if (data) {
+							processGraphUpdate(
+								data as unknown as import("@/lib/types/persona").GraphMessageResponse,
+							);
+						}
 
-					// If completion is ready, add completion message
-					if (data.completionReady) {
-						const completionMessage: ConversationMessage = {
-							id: `completion-${Date.now()}`,
-							role: "assistant",
-							type: "completion",
-							content: t("conversationComplete"),
-							timestamp: new Date().toISOString(),
-						};
-						addGraphMessage(completionMessage);
-					}
+						// If completion is ready, add completion message
+						if (data?.completionReady) {
+							const completionMessage: ConversationMessage = {
+								id: `completion-${Date.now()}`,
+								role: "assistant",
+								type: "completion",
+								content: t("conversationComplete"),
+								timestamp: new Date().toISOString(),
+							};
+							addGraphMessage(completionMessage);
+						}
+					},
 				},
-			});
+			);
 		},
 		[sendMessageMutation, t, processGraphUpdate, addGraphMessage],
 	);
@@ -129,26 +130,42 @@ export function ChatSidebar() {
 	const handleReset = useCallback(() => {
 		setShowResetDialog(false);
 		resetMutation.mutate(undefined, {
-			onSuccess: (data: ResetConversationResponse) => {
+			onSuccess: (data) => {
 				// Clear messages and add new opening message
 				clearGraphMessages();
-				addGraphMessage(data.message);
+				// Reset API returns message as a string, create ConversationMessage from it
+				if (data?.message) {
+					const assistantMessage: ConversationMessage = {
+						id: `assistant-${Date.now()}`,
+						role: "assistant",
+						type: "text",
+						content: typeof data.message === "string" ? data.message : "",
+						timestamp: new Date().toISOString(),
+					};
+					addGraphMessage(assistantMessage);
+				}
 				// Clear graph data in store
 				clearApiGraph();
 			},
 		});
 	}, [resetMutation, clearApiGraph, clearGraphMessages, addGraphMessage]);
 
-	// Derived state
-	const coverage = coverageData?.coverage || DEFAULT_COVERAGE;
-	const totalNodeCount = coverageData?.totalNodeCount || 0;
-	const completionReady = coverageData?.completionReady || false;
+	// Derived state - access CoverageMetrics fields directly
+	// Convert API CoverageMetrics to local Coverage type
+	const coverage: Coverage = {
+		goals: coverageData?.data?.goals ?? 0,
+		evidence: coverageData?.data?.evidence ?? 0,
+		skills: coverageData?.data?.skills ?? 0,
+		values: coverageData?.data?.values ?? 0,
+		tensions: coverageData?.data?.tensions ?? 0,
+	};
+	const totalNodeCount = 0; // Not available in CoverageMetrics, use 0 as default
+	const completionReady = (coverageData?.data?.overallProgress || 0) >= 100;
 	const isSending = sendMessageMutation.isPending || resetMutation.isPending;
-	const error =
-		conversationError?.message || sendMessageMutation.error?.message;
+	const error = sendMessageMutation.error?.message;
 
-	// Show loading skeleton while fetching initial state
-	if (isLoadingConversation && messages.length === 0) {
+	// Show loading skeleton while sending first message
+	if (sendMessageMutation.isPending && messages.length === 0) {
 		return (
 			<div className="flex flex-col h-full">
 				<ChatHeader
@@ -232,7 +249,7 @@ export function ChatSidebar() {
 			</ScrollArea>
 
 			{/* Input or CTA when complete */}
-			<div className="flex-shrink-0">
+			<div className="shrink-0">
 				{completionReady ? (
 					<div className="p-3 border-t border-border">
 						<Button

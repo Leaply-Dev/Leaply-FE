@@ -96,7 +96,7 @@ export function OnboardingClient({
 						"OnboardingClient: Onboarding complete, redirecting to dashboard",
 					);
 					completeOnboarding();
-					router.push(`/dashboard`);
+					router.push("/dashboard");
 					return;
 				}
 

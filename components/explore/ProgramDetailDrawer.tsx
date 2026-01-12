@@ -25,7 +25,8 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import type { ProgramListItemResponse } from "@/lib/api/types";
+import type { ProgramListItemResponse } from "@/lib/generated/api/models";
+import { formatCountryName } from "@/lib/utils/gapComputation";
 
 interface ProgramDetailDrawerProps {
 	program: ProgramListItemResponse | null;
@@ -149,7 +150,7 @@ export function ProgramDetailDrawer({
 									{program.universityLogoUrl ? (
 										<Image
 											src={program.universityLogoUrl}
-											alt={program.universityName}
+											alt={program.universityName || "University"}
 											width={56}
 											height={56}
 											className="object-contain"
@@ -164,12 +165,14 @@ export function ProgramDetailDrawer({
 											{program.universityName}
 										</SheetTitle>
 										<span className="text-xl shrink-0">
-											{getCountryFlag(program.universityCountry || "")}
+											{getCountryFlag(
+												formatCountryName(program.universityCountry),
+											)}
 										</span>
 									</div>
 									<SheetDescription className="text-sm text-muted-foreground mt-0.5">
 										{program.universityCity || "City"},{" "}
-										{program.universityCountry}
+										{formatCountryName(program.universityCountry)}
 									</SheetDescription>
 								</div>
 							</div>
@@ -187,7 +190,16 @@ export function ProgramDetailDrawer({
 										className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-300 dark:border-blue-800 px-3 py-1"
 									>
 										<Award className="w-3.5 h-3.5 mr-1.5" />
-										QS Ranking {program.rankingQsDisplay}
+										QS #{program.rankingQsDisplay}
+									</Badge>
+								)}
+								{program.rankingQsDisplay && (
+									<Badge
+										variant="outline"
+										className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800 px-3 py-1"
+									>
+										<Award className="w-3.5 h-3.5 mr-1.5" />
+										Times #{program.rankingQsDisplay}
 									</Badge>
 								)}
 								{program.fitScore && (
@@ -409,14 +421,14 @@ export function ProgramDetailDrawer({
 						<Button
 							variant="outline"
 							className="flex-1 gap-2"
-							onClick={() => program && onCompare?.(program.id)}
+							onClick={() => program?.id && onCompare?.(program.id)}
 						>
 							<RefreshCw className="w-4 h-4" />
 							So sánh
 						</Button>
 						<Button
 							className="flex-2 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
-							onClick={() => program && onAddToDashboard?.(program.id)}
+							onClick={() => program?.id && onAddToDashboard?.(program.id)}
 						>
 							<Plus className="w-4 h-4" />
 							Thêm vào Dashboard

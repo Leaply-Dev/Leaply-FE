@@ -82,11 +82,12 @@ export default function ApplicationDetailPage() {
 		);
 	}
 
-	const config = statusConfig[application.status] || statusConfig.planning;
+	const config =
+		statusConfig[application.status ?? "planning"] || statusConfig.planning;
 
 	// Calculate days until deadline
 	const getDaysUntilDeadline = () => {
-		if (!application.program.nextDeadline) return null;
+		if (!application.program?.nextDeadline) return null;
 		const deadline = new Date(application.program.nextDeadline);
 		const now = new Date();
 		const diff = deadline.getTime() - now.getTime();
@@ -110,12 +111,12 @@ export default function ApplicationDetailPage() {
 							<div className="flex items-start justify-between">
 								<div>
 									<CardTitle className="text-2xl mb-2">
-										{application.program.universityName}
+										{application.program?.universityName}
 									</CardTitle>
 									<p className="text-lg text-muted-foreground">
-										{application.program.programName}
+										{application.program?.programName}
 									</p>
-									{application.program.degreeName && (
+									{application.program?.degreeName && (
 										<p className="text-sm text-muted-foreground">
 											{application.program.degreeName}
 										</p>
@@ -129,7 +130,7 @@ export default function ApplicationDetailPage() {
 						<CardContent>
 							<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 								{/* Fit Score */}
-								<div className="p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg">
+								<div className="p-4 bg-linear-to-br from-primary/5 to-primary/10 rounded-lg">
 									<div className="flex items-center gap-2 mb-1">
 										<Target className="w-4 h-4 text-primary" />
 										<span className="text-xs font-medium text-muted-foreground">
@@ -185,7 +186,7 @@ export default function ApplicationDetailPage() {
 											Next Deadline
 										</span>
 									</div>
-									{application.program.nextDeadline ? (
+									{application.program?.nextDeadline ? (
 										<>
 											<p className="text-sm font-semibold text-foreground">
 												{new Date(
@@ -221,7 +222,7 @@ export default function ApplicationDetailPage() {
 										</span>
 									</div>
 									<p className="text-lg font-semibold text-foreground">
-										{application.program.nextIntake || "—"}
+										{application.program?.nextIntake || "—"}
 									</p>
 								</div>
 							</div>
@@ -247,30 +248,39 @@ export default function ApplicationDetailPage() {
 									</CardHeader>
 									<CardContent>
 										<div className="space-y-3">
-											{application.gaps.map((gap, index) => {
-												const severityConfig =
-													gapSeverityConfig[gap.severity] ||
-													gapSeverityConfig.info;
-												return (
-													<div
-														key={index}
-														className={cn(
-															"flex items-start gap-3 p-3 rounded-lg border",
-															severityConfig.color,
-														)}
-													>
-														<AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
-														<div>
-															<p className="font-medium text-sm capitalize">
-																{gap.field.replace("_", " ")}
-															</p>
-															<p className="text-sm opacity-80">
-																{gap.message}
-															</p>
+											{application.gaps.map(
+												(
+													gap: {
+														field?: string;
+														message?: string;
+														severity?: string;
+													},
+													index: number,
+												) => {
+													const severityConfig =
+														gapSeverityConfig[gap.severity ?? "info"] ||
+														gapSeverityConfig.info;
+													return (
+														<div
+															key={index}
+															className={cn(
+																"flex items-start gap-3 p-3 rounded-lg border",
+																severityConfig.color,
+															)}
+														>
+															<AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
+															<div>
+																<p className="font-medium text-sm capitalize">
+																	{gap.field?.replace("_", " ") ?? "General"}
+																</p>
+																<p className="text-sm opacity-80">
+																	{gap.message}
+																</p>
+															</div>
 														</div>
-													</div>
-												);
-											})}
+													);
+												},
+											)}
 										</div>
 									</CardContent>
 								</Card>
@@ -298,7 +308,7 @@ export default function ApplicationDetailPage() {
 										</Button>
 
 										<Button variant="outline" asChild>
-											<Link href={`/explore/${application.program.id}`}>
+											<Link href={`/explore/${application.program?.id}`}>
 												View Program Details
 											</Link>
 										</Button>
@@ -319,16 +329,16 @@ export default function ApplicationDetailPage() {
 									<div>
 										<p className="text-sm text-muted-foreground">University</p>
 										<p className="font-medium">
-											{application.program.universityName}
+											{application.program?.universityName}
 										</p>
 									</div>
 									<div>
 										<p className="text-sm text-muted-foreground">Program</p>
 										<p className="font-medium">
-											{application.program.programName}
+											{application.program?.programName}
 										</p>
 									</div>
-									{application.program.degreeName && (
+									{application.program?.degreeName && (
 										<div>
 											<p className="text-sm text-muted-foreground">Degree</p>
 											<p className="font-medium">
@@ -350,19 +360,24 @@ export default function ApplicationDetailPage() {
 										<div className="flex justify-between">
 											<span className="text-muted-foreground">Added</span>
 											<span>
-												{new Date(application.createdAt).toLocaleDateString()}
+												{application.createdAt
+													? new Date(application.createdAt).toLocaleDateString()
+													: "—"}
 											</span>
 										</div>
-										{application.updatedAt !== application.createdAt && (
-											<div className="flex justify-between">
-												<span className="text-muted-foreground">
-													Last Updated
-												</span>
-												<span>
-													{new Date(application.updatedAt).toLocaleDateString()}
-												</span>
-											</div>
-										)}
+										{application.updatedAt &&
+											application.updatedAt !== application.createdAt && (
+												<div className="flex justify-between">
+													<span className="text-muted-foreground">
+														Last Updated
+													</span>
+													<span>
+														{new Date(
+															application.updatedAt,
+														).toLocaleDateString()}
+													</span>
+												</div>
+											)}
 									</div>
 								</CardContent>
 							</Card>

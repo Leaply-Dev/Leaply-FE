@@ -177,7 +177,7 @@ function ParallaxVisual() {
 					const stepElement = entry.target as HTMLElement;
 					const stepNumber = stepElement.getAttribute("data-step");
 					if (stepNumber) {
-						setActiveStep(parseInt(stepNumber, 10));
+						setActiveStep(Number.parseInt(stepNumber, 10));
 					}
 				}
 			});
@@ -443,12 +443,20 @@ export default function HomePage() {
 					<motion.div
 						className="absolute top-20 left-[10%] w-64 h-64 bg-primary/10 rounded-full blur-3xl"
 						animate={{ y: [0, 20, 0], opacity: [0.3, 0.5, 0.3] }}
-						transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+						transition={{
+							duration: 6,
+							repeat: Number.POSITIVE_INFINITY,
+							ease: "easeInOut",
+						}}
 					/>
 					<motion.div
 						className="absolute bottom-20 right-[10%] w-80 h-80 bg-chart-2/10 rounded-full blur-3xl"
 						animate={{ y: [0, -20, 0], opacity: [0.2, 0.4, 0.2] }}
-						transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+						transition={{
+							duration: 8,
+							repeat: Number.POSITIVE_INFINITY,
+							ease: "easeInOut",
+						}}
 					/>
 				</div>
 

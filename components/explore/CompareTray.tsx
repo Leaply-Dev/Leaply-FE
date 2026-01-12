@@ -3,7 +3,7 @@
 import { ArrowRight, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { ProgramListItemResponse } from "@/lib/api/types";
+import type { ProgramListItemResponse } from "@/lib/generated/api/models";
 
 interface SelectedProgramChipProps {
 	program: ProgramListItemResponse;
@@ -81,7 +81,7 @@ export function CompareTray({
 											<SelectedProgramChip
 												key={program.id}
 												program={program}
-												onRemove={() => onRemoveProgram(program.id)}
+												onRemove={() => onRemoveProgram(program.id ?? "")}
 											/>
 										),
 								)}

@@ -2,7 +2,7 @@ import { apiClient } from "@/lib/api/client";
 import type {
 	OnboardingDataResponse,
 	UpdateOnboardingRequest,
-} from "@/lib/api/types";
+} from "@/lib/generated/api/models";
 
 export const onboardingService = {
 	// ============================================

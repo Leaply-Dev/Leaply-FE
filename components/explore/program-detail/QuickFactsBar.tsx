@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock, DollarSign, FileText, GraduationCap } from "lucide-react";
-import type { ProgramDetailResponse } from "@/lib/api/types";
+import type { ProgramDetailResponse } from "@/lib/generated/api/models";
 
 interface QuickFactsBarProps {
 	program: ProgramDetailResponse;
@@ -26,7 +26,7 @@ export function QuickFactsBar({ program }: QuickFactsBarProps) {
 			label: "Tuition",
 			value: program.tuition?.annualUsd
 				? `${formatCurrency(program.tuition.annualUsd)}/yr`
-				: `${formatCurrency(program.tuitionAnnualUsd)}/yr`,
+				: "N/A",
 		},
 		{
 			icon: Clock,
@@ -38,9 +38,7 @@ export function QuickFactsBar({ program }: QuickFactsBarProps) {
 		{
 			icon: GraduationCap,
 			label: "IELTS Min",
-			value: program.requirements?.ieltsMinimum
-				? program.requirements.ieltsMinimum.toString()
-				: program.ieltsMinimum?.toString() || "N/A",
+			value: program.requirements?.ieltsMinimum?.toString() || "N/A",
 		},
 		{
 			icon: FileText,

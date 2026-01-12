@@ -5,7 +5,7 @@ import type {
 	LoginRequest,
 	RegisterRequest,
 	UserContextResponse,
-} from "@/lib/api/types";
+} from "@/lib/generated/api/models";
 
 export interface VerifyEmailRequest {
 	token: string;

@@ -79,7 +79,7 @@ export function MessageInput({
 					onKeyDown={handleKeyDown}
 					placeholder={defaultPlaceholder}
 					disabled={disabled}
-					className="flex-1 bg-transparent border-0 focus:ring-0 focus:outline-none p-1.5 min-h-9 max-h-[120px] resize-none text-sm placeholder:text-muted-foreground disabled:opacity-50"
+					className="flex-1 bg-transparent border-0 focus:ring-0 focus:outline-none p-1.5 min-h-9 max-h-30 resize-none text-sm placeholder:text-muted-foreground disabled:opacity-50"
 					rows={1}
 				/>
 				<Button

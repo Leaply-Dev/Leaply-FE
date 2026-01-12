@@ -62,24 +62,26 @@ export function SignupForm({
 
 			// Register returns AuthResponse which includes token
 			const response = await registerMutation.mutateAsync({
-				fullName: validatedData.fullName,
-				email: validatedData.email,
-				password: validatedData.password,
+				data: {
+					fullName: validatedData.fullName,
+					email: validatedData.email,
+					password: validatedData.password,
+				},
 			});
 
 			// Transform to UserProfile
 			const userProfile = {
-				id: response.userId,
-				email: response.email,
+				id: response.data?.userId ?? "",
+				email: response.data?.email ?? "",
 				fullName: validatedData.fullName,
 			};
 
 			login(
 				userProfile,
-				response.accessToken,
-				response.refreshToken,
-				response.expiresIn,
-				response.onboardingCompleted,
+				response.data?.accessToken ?? "",
+				response.data?.refreshToken ?? "",
+				response.data?.expiresIn ?? 0,
+				response.data?.onboardingCompleted ?? false,
 			);
 
 			// Redirect to verify-email page for email verification prompt
