@@ -125,11 +125,12 @@ async function refreshAccessToken(): Promise<string | null> {
 /**
  * Handle 401 Unauthorized - attempt token refresh before logging out
  * Includes timeout to prevent hanging indefinitely on network issues
+ * Added safeguard: Don't logout if token was just issued (within 10 seconds)
  */
 async function handleUnauthorized(): Promise<string | null> {
 	if (typeof window === "undefined") return null;
 
-	const { isAuthenticated } = useUserStore.getState();
+	const { isAuthenticated, tokenExpiresAt } = useUserStore.getState();
 	if (!isAuthenticated) return null;
 
 	// For cookie-based auth, don't try to refresh or logout
@@ -139,6 +140,19 @@ async function handleUnauthorized(): Promise<string | null> {
 		if (isDev) console.log("Cookie-based auth 401: session may be expired");
 		// Don't logout here - let AuthProvider or the calling code decide
 		return null;
+	}
+
+	// Safeguard: Check if token was just issued (within last 10 seconds)
+	// This prevents logout immediately after login due to race conditions
+	if (tokenExpiresAt) {
+		const tokenAge = Date.now() - (tokenExpiresAt - 3600000); // Assuming 1 hour token lifetime
+		if (tokenAge < 10000) {
+			if (isDev)
+				console.log(
+					"Token was just issued, skipping refresh to avoid race condition",
+				);
+			return null; // Don't logout, let the caller retry or handle error
+		}
 	}
 
 	// If already refreshing, wait for it to complete
@@ -284,10 +298,30 @@ async function apiFetch<T>(
 	} else if (!token) {
 		// Attempt to get access token from userStore
 		try {
-			const storeToken = useUserStore.getState().accessToken;
+			let storeToken = useUserStore.getState().accessToken;
+
+			// Fallback: If store token is not available, try reading from localStorage directly
+			// This handles the case where Zustand hasn't hydrated yet after page navigation
+			if (!storeToken) {
+				try {
+					const persistedState = localStorage.getItem("leaply-user-store");
+					if (persistedState) {
+						const parsed = JSON.parse(persistedState);
+						storeToken = parsed.state?.accessToken;
+						if (isDev && storeToken) {
+							console.log("Retrieved token from localStorage fallback");
+						}
+					}
+				} catch (e) {
+					if (isDev) console.warn("Failed to read from localStorage", e);
+				}
+			}
+
 			// Only set Bearer header if token is a real JWT (not the cookie-auth marker)
 			if (storeToken && storeToken !== COOKIE_AUTH_TOKEN) {
 				requestHeaders.Authorization = `Bearer ${storeToken}`;
+			} else if (isDev && !storeToken) {
+				console.warn("No access token available for authenticated request");
 			}
 			// If storeToken is COOKIE_AUTH, don't set Authorization header
 			// The backend will read the token from httpOnly cookie instead
@@ -315,7 +349,11 @@ async function apiFetch<T>(
 
 	// Development logging
 	if (isDev) {
-		console.log(`📡 [${method}] ${path}`, body ? { body } : "");
+		const hasAuth = !!requestHeaders.Authorization;
+		console.log(
+			`📡 [${method}] ${path}${hasAuth ? " 🔑" : " 🔓"}`,
+			body ? { body } : "",
+		);
 	}
 
 	const startTime = performance.now();

@@ -49,7 +49,7 @@ export default defineConfig({
 					},
 				},
 			},
-			baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://api.leaply.ai.vn/api",
+			baseUrl: "", // Empty - mutator.ts will prepend API_URL at runtime
 		},
 	},
 	// Separate configuration for Zod schemas to avoid naming conflicts

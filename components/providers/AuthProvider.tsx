@@ -81,7 +81,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 	useEffect(() => {
 		// Skip if already validated this session (survives HMR)
-		if (wasValidatedThisSession()) return;
+		if (wasValidatedThisSession()) {
+			console.log("Auth already validated this session, skipping");
+			return;
+		}
 		// Prevent concurrent validations
 		if (validationInProgress.current) return;
 		validationInProgress.current = true;
@@ -103,6 +106,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			if (cookieAuth && !isAuthenticated) {
 				console.warn("Auth state corruption detected: clearing stale cookie");
 				Cookies.remove("leaply-auth-state", { path: "/" });
+				validationInProgress.current = false;
 				return;
 			}
 
@@ -111,11 +115,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			if (isAuthenticated && !accessToken) {
 				console.warn("Auth state corruption detected: auth but no token");
 				performLogout();
+				validationInProgress.current = false;
 				return;
 			}
 
 			// Skip if not authenticated (after corruption checks)
-			if (!isAuthenticated) return;
+			if (!isAuthenticated) {
+				validationInProgress.current = false;
+				return;
+			}
 
 			// Detect authentication type
 			const isCookieAuth =
@@ -174,8 +182,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 					// Still mark as validated to prevent infinite loops
 					markValidated();
 				} else {
-					// For token-based auth, the apiClient will handle refresh/logout
-					console.error("Auth validation error:", error);
+					// For token-based auth, be lenient - don't logout immediately
+					// The token might be fresh from login and just needs a moment to propagate
+					// Individual API calls will handle refresh/logout if truly expired
+					console.warn(
+						"Auth validation error (token-based), but continuing:",
+						error,
+					);
+					// Mark as validated to prevent re-validation loop
+					markValidated();
 				}
 			} finally {
 				validationInProgress.current = false;

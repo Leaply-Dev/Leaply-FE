@@ -71,7 +71,6 @@ export function OnboardingClient({
 		const loadOnboardingData = async () => {
 			try {
 				setIsLoading(true);
-				console.log("OnboardingClient: Starting data load...");
 
 				// Get onboarding status to determine starting step
 				const status = await onboardingService

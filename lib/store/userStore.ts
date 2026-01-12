@@ -178,9 +178,25 @@ export const useUserStore = create<UserState>()(
 				expiresIn,
 				isOnboardingComplete = false,
 			) => {
+				if (process.env.NODE_ENV === "development") {
+					console.log("Login: Storing tokens", {
+						hasAccessToken: !!accessToken,
+						hasRefreshToken: !!refreshToken,
+						isOnboardingComplete,
+					});
+				}
+
 				// Sync cookie SYNCHRONOUSLY before updating state
 				// This ensures middleware sees correct auth state immediately
 				syncAuthCookie(true, isOnboardingComplete);
+
+				// Mark auth as validated in session to prevent AuthProvider from re-validating
+				// This prevents the race condition where AuthProvider tries to validate
+				// before tokens are properly synced
+				if (typeof window !== "undefined") {
+					sessionStorage.setItem("leaply-auth-validated", "true");
+				}
+
 				set({
 					profile,
 					accessToken,
@@ -203,6 +219,11 @@ export const useUserStore = create<UserState>()(
 				// This ensures cookie is cleared before any redirect happens
 				// The subscription below runs asynchronously and may not clear in time
 				Cookies.remove("leaply-auth-state", { path: "/" });
+
+				// Clear session validation marker
+				if (typeof window !== "undefined") {
+					sessionStorage.removeItem("leaply-auth-validated");
+				}
 
 				set({
 					profile: null,

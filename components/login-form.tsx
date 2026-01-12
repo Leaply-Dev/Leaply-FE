@@ -67,22 +67,27 @@ export function LoginForm({
 
 			const response = await loginMutation.mutateAsync({ data: formData });
 
-			// Transform AuthResponse to UserProfile format expected by store
+			// IMPORTANT: The mutator unwraps the API response, so response IS the AuthResponse directly
+			// NOT ApiResponseAuthResponse. Access fields directly, not via .data
 			const userProfile = {
-				id: response.data?.userId ?? "",
-				email: response.data?.email ?? "",
+				id: response.userId ?? "",
+				email: response.email ?? "",
 				fullName: "", // API doesn't return name on login yet, will need to fetch profile or adjust
 			};
 
 			login(
 				userProfile,
-				response.data?.accessToken ?? "",
-				response.data?.refreshToken ?? "",
-				response.data?.expiresIn ?? 0,
-				response.data?.onboardingCompleted ?? false,
+				response.accessToken ?? "",
+				response.refreshToken ?? "",
+				response.expiresIn ?? 0,
+				response.onboardingCompleted ?? false,
 			);
 
-			if (response.data?.onboardingCompleted) {
+			// Wait for Zustand persist to complete
+			// This ensures tokens are written to localStorage before redirect
+			await new Promise((resolve) => setTimeout(resolve, 200));
+
+			if (response.onboardingCompleted) {
 				router.push("/dashboard");
 			} else {
 				router.push("/onboarding");

@@ -110,17 +110,31 @@ async function refreshAccessToken(): Promise<string | null> {
 
 /**
  * Handle 401 Unauthorized
+ * Added safeguard: Don't logout if token was just issued (within 10 seconds)
  */
 async function handleUnauthorized(): Promise<string | null> {
 	if (typeof window === "undefined") return null;
 
-	const { isAuthenticated } = useUserStore.getState();
+	const { isAuthenticated, tokenExpiresAt } = useUserStore.getState();
 	if (!isAuthenticated) return null;
 
 	// For cookie-based auth, don't try to refresh
 	if (isCookieAuth()) {
 		if (isDev) console.log("Cookie-based auth 401: session may be expired");
 		return null;
+	}
+
+	// Safeguard: Check if token was just issued (within last 10 seconds)
+	// This prevents logout immediately after login due to race conditions
+	if (tokenExpiresAt) {
+		const tokenAge = Date.now() - (tokenExpiresAt - 3600000); // Assuming 1 hour token lifetime
+		if (tokenAge < 10000) {
+			if (isDev)
+				console.log(
+					"Token was just issued, skipping refresh to avoid race condition",
+				);
+			return null; // Don't logout, let the caller retry or handle error
+		}
 	}
 
 	// If already refreshing, wait for it to complete
@@ -212,13 +226,36 @@ export const customInstance = async <T>(
 	}
 
 	// Add authentication token
-	const { accessToken } = useUserStore.getState();
+	let { accessToken } = useUserStore.getState();
+
+	// Fallback: If store token is not available, try reading from localStorage directly
+	// This handles the case where Zustand hasn't hydrated yet after page navigation
+	if (!accessToken) {
+		try {
+			const persistedState = localStorage.getItem("leaply-user-store");
+			if (persistedState) {
+				const parsed = JSON.parse(persistedState);
+				accessToken = parsed.state?.accessToken;
+				if (isDev && accessToken) {
+					console.log("Retrieved token from localStorage fallback (mutator)");
+				}
+			}
+		} catch (e) {
+			if (isDev) console.warn("Failed to read from localStorage (mutator)", e);
+		}
+	}
+
 	if (accessToken && accessToken !== COOKIE_AUTH_TOKEN) {
 		requestHeaders.Authorization = `Bearer ${accessToken}`;
+	} else if (isDev && !accessToken) {
+		console.warn(
+			"No access token available for authenticated request (mutator)",
+		);
 	}
 
 	if (isDev) {
-		console.log(`📡 [${method}] ${url}`);
+		const hasAuth = !!requestHeaders.Authorization;
+		console.log(`📡 [${method}] ${url}${hasAuth ? " 🔑" : " 🔓"}`);
 	}
 
 	const fetchConfig: RequestInit = {
