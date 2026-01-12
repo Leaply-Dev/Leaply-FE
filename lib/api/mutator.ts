@@ -253,8 +253,9 @@ export const customInstance = async <T>(
 	}
 
 	if (isDev) {
-		const hasAuth = !!requestHeaders.Authorization;
-		console.log(`📡 [${method}] ${url}${hasAuth ? " 🔑" : " 🔓"}`);
+		const authStatus = requestHeaders.Authorization ? "🔒" : "🔓";
+		// Compact log style: 🚀 [METHOD] /url 🔒
+		console.log(`🚀 [${method}] ${url} ${authStatus}`);
 	}
 
 	const fetchConfig: RequestInit = {
@@ -273,7 +274,9 @@ export const customInstance = async <T>(
 
 		if (isDev) {
 			console.log(
-				`${response.ok ? "✅" : "❌"} [${method}] ${url} - ${response.status}`,
+				`${
+					response.ok ? "✅" : response.status === 401 ? "⚠️" : "❌"
+				} [${response.status}] ${url}`,
 			);
 		}
 
@@ -299,7 +302,7 @@ export const customInstance = async <T>(
 				}
 
 				const retryData = await retryResponse.json();
-				return retryData.data as T;
+				return retryData as T;
 			}
 		}
 
@@ -311,26 +314,18 @@ export const customInstance = async <T>(
 		if (!response.ok) {
 			const errorData = await response.json();
 
-			// Send 5xx errors to Sentry
-			if (response.status >= 500) {
-				console.error("Server error:", errorData.message || "Server error", {
-					endpoint: url,
-					status: response.status,
-					code: errorData.error?.code,
-				});
-			}
-
 			throw new Error(errorData.message || "Request failed");
 		}
 
-		const responseData = await response.json();
-		return responseData.data as T;
+		return await response.json() as T;
 	} catch (error) {
 		const isNetworkError =
 			error instanceof TypeError && error.message.includes("fetch");
 
 		if (isDev) {
-			console.error(`🌐 Error [${method}] ${url}:`, error);
+			// Compact error logging to avoid clutter
+			const status = isNetworkError ? "Network Error" : "Error";
+			console.log(`💥 ${status} [${method}] ${url}:`, error);
 		}
 
 		throw error;

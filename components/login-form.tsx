@@ -68,9 +68,20 @@ export function LoginForm({
 
 			const response = await loginMutation.mutateAsync({ data: formData });
 
-			// IMPORTANT: The mutator unwraps the API response, so response IS the AuthResponse directly
-			// NOT ApiResponseAuthResponse. Access fields directly, not via .data
-			const authResponse = response as unknown as AuthResponse;
+			// The mutator now correctly returns ApiResponseAuthResponse (wrapped)
+			// So we need to access .data to get the actual AuthResponse
+			const authResponse = response.data;
+
+			if (!authResponse) {
+				throw new Error("Login failed - no data received");
+			}
+
+			// Add validation for critical fields
+			if (!authResponse.accessToken) {
+				console.error("Login response missing access token:", authResponse);
+				throw new Error("Login failed - missing access token");
+			}
+
 			const userProfile = {
 				id: authResponse.userId ?? "",
 				email: authResponse.email ?? "",
@@ -79,7 +90,7 @@ export function LoginForm({
 
 			login(
 				userProfile,
-				authResponse.accessToken ?? "",
+				authResponse.accessToken,
 				authResponse.refreshToken ?? "",
 				authResponse.expiresIn ?? 0,
 				authResponse.onboardingCompleted ?? false,
