@@ -1,10 +1,22 @@
 "use client";
 
 import Cookies from "js-cookie";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { performLogout } from "@/lib/auth/logout";
 import { authService } from "@/lib/services/auth";
 import { useUserStore } from "@/lib/store/userStore";
+
+/**
+ * Routes that require authentication
+ * When auth is corrupted and user is on these routes, redirect to login
+ */
+const PROTECTED_ROUTES = [
+	"/dashboard",
+	"/persona-lab",
+	"/onboarding",
+	"/explore", // Some explore features require auth
+];
 
 /**
  * Decode JWT token payload without verification (client-side only)
@@ -97,9 +109,19 @@ function markValidated(): void {
  * - Auto-logout only for token-based auth if refresh fails
  * - Uses sessionStorage to persist validation state across HMR remounts
  */
+/**
+ * Check if current path is a protected route that requires authentication
+ */
+function isProtectedRoute(pathname: string): boolean {
+	return PROTECTED_ROUTES.some(
+		(route) => pathname === route || pathname.startsWith(`${route}/`),
+	);
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
 	const { accessToken, isAuthenticated, login, profile } = useUserStore();
 	const validationInProgress = useRef(false);
+	const pathname = usePathname();
 
 	useEffect(() => {
 		// Skip if already validated this session (survives HMR)
@@ -123,12 +145,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				// Invalid cookie - will be handled below
 			}
 
+			// Helper: redirect to login if on protected route
+			const redirectIfProtected = () => {
+				if (isProtectedRoute(pathname)) {
+					console.log(
+						"On protected route with invalid auth, redirecting to login",
+					);
+					window.location.href = "/login?expired=true";
+				}
+			};
+
 			// Corruption Case 1: Cookie says auth, but Zustand says not auth
 			// This happens when logout() was called but cookie subscription didn't run
+			// Or after deployment when localStorage was cleared but stale cookie remains
 			if (cookieAuth && !isAuthenticated) {
 				console.warn("Auth state corruption detected: clearing stale cookie");
 				Cookies.remove("leaply-auth-state", { path: "/" });
 				validationInProgress.current = false;
+				redirectIfProtected();
 				return;
 			}
 
@@ -136,7 +170,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			// This happens when localStorage was cleared but cookie remains
 			if (isAuthenticated && !accessToken) {
 				console.warn("Auth state corruption detected: auth but no token");
-				performLogout();
+				performLogout({ redirect: "/login?expired=true" });
 				validationInProgress.current = false;
 				return;
 			}
@@ -220,7 +254,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		}
 
 		validateAuth();
-	}, [isAuthenticated, accessToken, login, profile]);
+	}, [isAuthenticated, accessToken, login, profile, pathname]);
 
 	return <>{children}</>;
 }
