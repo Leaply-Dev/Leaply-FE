@@ -261,14 +261,36 @@ export const useUserStore = create<UserState>()(
 				lastActivity: state.lastActivity,
 				// Note: _hasHydrated is intentionally NOT persisted
 			}),
-			onRehydrateStorage: () => (state) => {
+			onRehydrateStorage: () => (state, error) => {
 				// This callback is called when hydration finishes
-				// Set _hasHydrated to true to signal that store data is now available
+				if (error) {
+					console.error("Zustand hydration error:", error);
+				}
+				// Note: Calling setHasHydrated here may not trigger React re-renders reliably
+				// due to how persist merges state. The onFinishHydration listener below
+				// is the primary mechanism. This serves as a fallback.
 				state?.setHasHydrated(true);
 			},
 		},
 	),
 );
+
+// Register hydration listener using persist API
+// This is more reliable than onRehydrateStorage for triggering React updates
+// because it uses getState() which properly notifies subscribers
+// See: https://zustand.docs.pmnd.rs/integrations/persisting-store-data
+if (typeof window !== "undefined") {
+	// Handle case where hydration already completed before this code runs
+	// This covers the race condition where components subscribe after hydration
+	if (useUserStore.persist.hasHydrated()) {
+		useUserStore.getState().setHasHydrated(true);
+	}
+
+	// Listen for future hydration completions (e.g., after rehydrate() is called)
+	useUserStore.persist.onFinishHydration(() => {
+		useUserStore.getState().setHasHydrated(true);
+	});
+}
 
 // NOTE: We removed the useUserStore.subscribe() block that was here.
 // It was causing a race condition where:
