@@ -9,6 +9,7 @@ export {
 	useGetPersona as usePersonaGraph,
 	useResetConversation,
 	useSendGraphMessage as useSendMessage,
+	useStartConversation,
 } from "@/lib/generated/api/endpoints/persona-lab/persona-lab";
 
 // Query keys for cache management (for custom invalidation)

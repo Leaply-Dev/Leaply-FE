@@ -19,6 +19,7 @@ import {
 	useCoverage,
 	useResetConversation,
 	useSendMessage,
+	useStartConversation,
 } from "@/lib/hooks/usePersonaConversation";
 import { usePersonaStore } from "@/lib/store/personaStore";
 import type { ConversationMessage, Coverage } from "@/lib/types/persona";
@@ -56,6 +57,30 @@ export function ChatSidebar() {
 
 	// TanStack Query hooks for API interactions
 	const { data: coverageData } = useCoverage();
+
+	// Fetch opening message when no messages exist (for new users or after reset)
+	// Only enabled when messages array is empty to avoid re-fetching on refresh
+	const shouldFetchOpening = messages.length === 0;
+	const { data: conversationStart, isLoading: isLoadingOpening } =
+		useStartConversation({
+			query: { enabled: shouldFetchOpening },
+		});
+
+	// Add opening message to store when received
+	// biome-ignore lint/correctness/useExhaustiveDependencies: We only want to run this when conversationStart changes and messages is empty
+	useEffect(() => {
+		if (conversationStart?.data?.message && messages.length === 0) {
+			const openingMessage: ConversationMessage = {
+				id: conversationStart.data.message.id || `assistant-${Date.now()}`,
+				role: "assistant",
+				type: "text",
+				content: conversationStart.data.message.content || "",
+				timestamp:
+					conversationStart.data.message.timestamp || new Date().toISOString(),
+			};
+			addGraphMessage(openingMessage);
+		}
+	}, [conversationStart]);
 
 	const sendMessageMutation = useSendMessage();
 	const resetMutation = useResetConversation();
@@ -164,8 +189,11 @@ export function ChatSidebar() {
 	const isSending = sendMessageMutation.isPending || resetMutation.isPending;
 	const error = sendMessageMutation.error?.message;
 
-	// Show loading skeleton while sending first message
-	if (sendMessageMutation.isPending && messages.length === 0) {
+	// Show loading skeleton while fetching opening message or sending first message
+	if (
+		isLoadingOpening ||
+		(sendMessageMutation.isPending && messages.length === 0)
+	) {
 		return (
 			<div className="flex flex-col h-full">
 				<ChatHeader
