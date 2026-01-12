@@ -18,12 +18,12 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+} from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ProgramListItemResponse } from "@/lib/generated/api/models";
 import { formatCountryName } from "@/lib/utils/gapComputation";
@@ -513,16 +513,16 @@ export function CompareDialog({
 		.filter(Boolean) as ProgramListItemResponse[];
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-6xl max-h-[90vh] p-0 gap-0 overflow-hidden">
-				<DialogHeader className="sr-only">
-					<DialogTitle>So sánh chương trình</DialogTitle>
-					<DialogDescription>
+		<Drawer open={open} onOpenChange={onOpenChange}>
+			<DrawerContent className="max-h-[90vh] p-0 gap-0 overflow-hidden">
+				<DrawerHeader className="sr-only">
+					<DrawerTitle>So sánh chương trình</DrawerTitle>
+					<DrawerDescription>
 						So sánh các chương trình học đã chọn
-					</DialogDescription>
-				</DialogHeader>
+					</DrawerDescription>
+				</DrawerHeader>
 
-				<ScrollArea className="max-h-[90vh]">
+				<ScrollArea className="max-h-[90vh] overflow-y-auto">
 					<div className="p-6">
 						{/* Comparison Table */}
 						<div className="border border-border rounded-lg overflow-hidden">
@@ -631,7 +631,7 @@ export function CompareDialog({
 						)}
 					</div>
 				</ScrollArea>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	);
 }

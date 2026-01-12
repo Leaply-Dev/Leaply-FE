@@ -217,7 +217,7 @@ export function SwimLanes({
 	return (
 		<div className="space-y-0">
 			<CategoryContainer
-				title="Reach Schools"
+				title="Reach Programs"
 				description="High reward options. Acceptance probability < 30% based on current profile."
 				programs={reach}
 				variant="reach"
@@ -226,7 +226,7 @@ export function SwimLanes({
 				onProgramClick={onProgramClick}
 			/>
 			<CategoryContainer
-				title="Target Schools"
+				title="Target Programs"
 				description="Balanced options. Acceptance probability > 50%."
 				programs={target}
 				variant="target"
@@ -235,7 +235,7 @@ export function SwimLanes({
 				onProgramClick={onProgramClick}
 			/>
 			<CategoryContainer
-				title="Safety Schools"
+				title="Safety Programs"
 				description="Solid programs where you exceed the typical admission requirements."
 				programs={safety}
 				variant="safety"
