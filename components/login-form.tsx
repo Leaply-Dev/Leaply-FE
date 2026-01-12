@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { useLogin } from "@/lib/hooks/useLogin";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
+import type { AuthResponse } from "@/lib/generated/api/models";
 import { type LoginFormData, loginSchema } from "@/lib/validations/auth";
 
 export function LoginForm({
@@ -69,25 +70,26 @@ export function LoginForm({
 
 			// IMPORTANT: The mutator unwraps the API response, so response IS the AuthResponse directly
 			// NOT ApiResponseAuthResponse. Access fields directly, not via .data
+			const authResponse = response as unknown as AuthResponse;
 			const userProfile = {
-				id: response.userId ?? "",
-				email: response.email ?? "",
+				id: authResponse.userId ?? "",
+				email: authResponse.email ?? "",
 				fullName: "", // API doesn't return name on login yet, will need to fetch profile or adjust
 			};
 
 			login(
 				userProfile,
-				response.accessToken ?? "",
-				response.refreshToken ?? "",
-				response.expiresIn ?? 0,
-				response.onboardingCompleted ?? false,
+				authResponse.accessToken ?? "",
+				authResponse.refreshToken ?? "",
+				authResponse.expiresIn ?? 0,
+				authResponse.onboardingCompleted ?? false,
 			);
 
 			// Wait for Zustand persist to complete
 			// This ensures tokens are written to localStorage before redirect
 			await new Promise((resolve) => setTimeout(resolve, 200));
 
-			if (response.onboardingCompleted) {
+			if (authResponse.onboardingCompleted) {
 				router.push("/dashboard");
 			} else {
 				router.push("/onboarding");
