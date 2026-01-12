@@ -120,8 +120,6 @@ interface UserState {
 		expiresIn: number,
 	) => void;
 	logout: () => void;
-	// Legacy support for components still using 'token'
-	get token(): string | null;
 }
 
 export const useUserStore = create<UserState>()(
@@ -141,11 +139,6 @@ export const useUserStore = create<UserState>()(
 
 			setHasHydrated: (state: boolean) => {
 				set({ _hasHydrated: state });
-			},
-
-			// Legacy getter for 'token' - returns accessToken for backwards compatibility
-			get token() {
-				return get().accessToken;
 			},
 
 			setProfile: (profile) => set({ profile }),
