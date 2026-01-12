@@ -93,6 +93,9 @@ interface UserState {
 		title: string;
 		timestamp: number;
 	};
+	// Hydration state - set by onRehydrateStorage callback
+	_hasHydrated: boolean;
+	setHasHydrated: (state: boolean) => void;
 	setProfile: (profile: UserProfile) => void;
 	updateProfile: (updates: Partial<UserProfile>) => void;
 	setPreferences: (preferences: UserPreferences) => void;
@@ -133,6 +136,12 @@ export const useUserStore = create<UserState>()(
 			isOnboardingComplete: false,
 			isAuthenticated: false,
 			lastActivity: undefined,
+			// Hydration state - starts false, set to true by onRehydrateStorage
+			_hasHydrated: false,
+
+			setHasHydrated: (state: boolean) => {
+				set({ _hasHydrated: state });
+			},
 
 			// Legacy getter for 'token' - returns accessToken for backwards compatibility
 			get token() {
@@ -250,7 +259,13 @@ export const useUserStore = create<UserState>()(
 				isOnboardingComplete: state.isOnboardingComplete,
 				isAuthenticated: state.isAuthenticated,
 				lastActivity: state.lastActivity,
+				// Note: _hasHydrated is intentionally NOT persisted
 			}),
+			onRehydrateStorage: () => (state) => {
+				// This callback is called when hydration finishes
+				// Set _hasHydrated to true to signal that store data is now available
+				state?.setHasHydrated(true);
+			},
 		},
 	),
 );

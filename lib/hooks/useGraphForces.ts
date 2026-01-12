@@ -34,9 +34,7 @@ export function useGraphForces() {
 			);
 
 			// Check if profile_summary exists, if not add skeleton profile
-			const hasProfileSummary = nodes.some(
-				(n) => n.type === "profile_summary",
-			);
+			const hasProfileSummary = nodes.some((n) => n.type === "profile_summary");
 			if (!hasProfileSummary) {
 				const skeletonData = {
 					id: "skeleton-profile",
@@ -53,7 +51,8 @@ export function useGraphForces() {
 					color: "#f59e0b",
 					data: skeletonData,
 					// Required for ApiForceGraphNode type compatibility
-					nodeData: skeletonData as unknown as import("@/lib/types/persona").GraphNode,
+					nodeData:
+						skeletonData as unknown as import("@/lib/types/persona").GraphNode,
 				});
 			}
 

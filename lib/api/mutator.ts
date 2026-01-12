@@ -317,7 +317,7 @@ export const customInstance = async <T>(
 			throw new Error(errorData.message || "Request failed");
 		}
 
-		return await response.json() as T;
+		return (await response.json()) as T;
 	} catch (error) {
 		const isNetworkError =
 			error instanceof TypeError && error.message.includes("fetch");

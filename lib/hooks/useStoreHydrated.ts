@@ -1,12 +1,15 @@
-import { useEffect, useState } from "react";
 import { useUserStore } from "@/lib/store/userStore";
 
 /**
  * Hook that returns true only after the Zustand store has hydrated from localStorage.
  *
- * This is different from useMounted() which only tracks React component mounting.
- * Zustand's persist middleware hydrates asynchronously AFTER React mounts,
- * so we need to wait for store hydration before reading persisted state.
+ * This uses the recommended Zustand pattern of storing hydration state directly in the store
+ * via the `onRehydrateStorage` callback. This is more reliable than external hooks because:
+ * 1. The state is set as part of the hydration callback chain
+ * 2. It's reactive - components automatically re-render when hydration completes
+ * 3. Avoids race conditions with useEffect timing
+ *
+ * @see https://zustand.docs.pmnd.rs/integrations/persisting-store-data#how-can-i-check-if-my-store-has-been-hydrated
  *
  * @example
  * ```tsx
@@ -22,23 +25,5 @@ import { useUserStore } from "@/lib/store/userStore";
  * ```
  */
 export function useStoreHydrated(): boolean {
-	// Initialize with current hydration state to avoid SSR mismatch
-	const [hydrated, setHydrated] = useState(false);
-
-	useEffect(() => {
-		// Subscribe to hydration completion first to avoid race condition
-		const unsubscribe = useUserStore.persist.onFinishHydration(() => {
-			setHydrated(true);
-		});
-
-		// Then check if already hydrated (covers case where hydration finished
-		// before subscription or between subscription and this check)
-		if (useUserStore.persist.hasHydrated()) {
-			setHydrated(true);
-		}
-
-		return unsubscribe;
-	}, []);
-
-	return hydrated;
+	return useUserStore((state) => state._hasHydrated);
 }
