@@ -7,39 +7,37 @@ import { apiClient } from "./client";
 
 export const personaApi = {
 	async getPersonaState(): Promise<any> {
-		return apiClient.get<any>("/v1/persona-lab/state");
+		return apiClient.get<any>("/v1/persona");
 	},
 
 	async selectTrack(trackId: string): Promise<any> {
-		return apiClient.post<any>("/v1/persona-lab/track/select", {
+		return apiClient.post<any>("/v1/persona/track/select", {
 			trackId,
 		});
 	},
 
 	async sendMessage(content: string): Promise<any> {
-		return apiClient.post<any>("/v1/persona-lab/message", {
+		return apiClient.post<any>("/v1/persona/message", {
 			content,
 		});
 	},
 
 	async goBackToTrackSelection(): Promise<any> {
-		return apiClient.post<any>("/v1/persona-lab/track/back", {});
+		return apiClient.post<any>("/v1/persona/track/back", {});
 	},
 
 	async redoTrack(trackId: string): Promise<any> {
-		return apiClient.post<any>("/v1/persona-lab/track/redo", {
-			trackId,
-		});
+		return apiClient.post<any>(`/v1/persona/track/${trackId}/redo`, {});
 	},
 
 	async extractKeywords(content: string, trackId?: string): Promise<any> {
-		return apiClient.post<any>("/v1/persona-lab/keywords", {
+		return apiClient.post<any>("/v1/persona/extract-keywords", {
 			content,
 			trackId,
 		});
 	},
 
 	async getPersonaGraph(): Promise<any> {
-		return apiClient.get<any>("/v1/persona-lab/graph");
+		return apiClient.get<any>("/v1/persona/graph");
 	},
 };
