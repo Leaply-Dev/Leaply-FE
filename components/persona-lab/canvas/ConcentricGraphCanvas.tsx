@@ -121,11 +121,6 @@ export function ConcentricGraphCanvas({
 	// Check if graph is empty (no nodes)
 	const isEmpty = graphData.nodes.length === 0;
 
-	// Check if profile center node exists
-	const hasProfileCenter = graphData.nodes.some(
-		(node) => node.type === "profile_summary",
-	);
-
 	return (
 		<div ref={containerRef} className={cn("relative h-full w-full", className)}>
 			{/* Empty State */}
@@ -139,18 +134,6 @@ export function ConcentricGraphCanvas({
 					</h3>
 					<p className="text-sm text-muted-foreground max-w-xs">
 						{t("emptyCanvasDesc")}
-					</p>
-				</div>
-			)}
-
-			{/* Center Placeholder - show when graph has nodes but no profile_summary */}
-			{!isEmpty && !hasProfileCenter && (
-				<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center text-center pointer-events-none z-10">
-					<div className="w-20 h-20 rounded-full bg-amber-500/10 border-2 border-dashed border-amber-500/30 flex items-center justify-center">
-						<MessageCircle className="w-8 h-8 text-amber-500/50" />
-					</div>
-					<p className="text-sm text-muted-foreground mt-3 max-w-45">
-						{t("centerPlaceholder")}
 					</p>
 				</div>
 			)}

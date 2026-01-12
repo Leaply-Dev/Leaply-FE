@@ -7,6 +7,44 @@ import type {
 	NodeType,
 } from "@/lib/types/persona-canvas";
 
+// Helper function to draw rounded rectangles on canvas
+const roundRect = (
+	ctx: CanvasRenderingContext2D,
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+	r: number,
+) => {
+	ctx.beginPath();
+	ctx.moveTo(x + r, y);
+	ctx.lineTo(x + w - r, y);
+	ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+	ctx.lineTo(x + w, y + h - r);
+	ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+	ctx.lineTo(x + r, y + h);
+	ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+	ctx.lineTo(x, y + r);
+	ctx.quadraticCurveTo(x, y, x + r, y);
+	ctx.closePath();
+};
+
+// Get label background color based on node type
+const getLabelBg = (type: string): string => {
+	switch (type) {
+		case "profile_summary":
+			return "rgba(245, 158, 11, 0.9)"; // amber
+		case "essay_angle":
+			return "rgba(139, 92, 246, 0.9)"; // violet
+		case "key_story":
+			return "rgba(16, 185, 129, 0.9)"; // emerald
+		case "detail":
+			return "rgba(59, 130, 246, 0.85)"; // blue
+		default:
+			return "rgba(15, 23, 42, 0.9)"; // slate
+	}
+};
+
 interface UseGraphRenderersProps {
 	selectedNode: ForceGraphNode | null;
 	hoveredNode: ForceGraphNode | null;
@@ -34,10 +72,8 @@ export function useGraphRenderers({
 			const isHidden = hiddenNodeTypes.has(graphNode.type);
 			const isFaded = (selectedNode && !isHighlighted) || isHidden;
 			const config = getNodeConfig(graphNode.type);
-
-			// Node circle
-			ctx.beginPath();
-			ctx.arc(node.x || 0, node.y || 0, graphNode.size, 0, 2 * Math.PI);
+			const isSkeleton = (graphNode.data as { isSkeleton?: boolean })
+				?.isSkeleton;
 
 			// Apply fading effect
 			if (isFaded) {
@@ -46,22 +82,36 @@ export function useGraphRenderers({
 				ctx.globalAlpha = 1.0;
 			}
 
-			ctx.fillStyle =
-				isSelected || isHovered ? config.hoverColor : graphNode.color;
-			ctx.fill();
+			// Node circle
+			ctx.beginPath();
+			ctx.arc(node.x || 0, node.y || 0, graphNode.size, 0, 2 * Math.PI);
 
-			// Selection ring
-			if (isSelected) {
-				ctx.strokeStyle = config.hoverColor;
-				ctx.lineWidth = 3 / globalScale;
-				ctx.stroke();
-			}
-
-			// Highlight ring for connected nodes
-			if (isHighlighted && !isSelected) {
-				ctx.strokeStyle = config.color;
+			// Skeleton node: dashed border, no fill
+			if (isSkeleton) {
+				ctx.setLineDash([5 / globalScale, 3 / globalScale]);
+				ctx.strokeStyle = graphNode.color;
 				ctx.lineWidth = 2 / globalScale;
 				ctx.stroke();
+				ctx.setLineDash([]);
+			} else {
+				// Regular node: filled circle
+				ctx.fillStyle =
+					isSelected || isHovered ? config.hoverColor : graphNode.color;
+				ctx.fill();
+
+				// Selection ring
+				if (isSelected) {
+					ctx.strokeStyle = config.hoverColor;
+					ctx.lineWidth = 3 / globalScale;
+					ctx.stroke();
+				}
+
+				// Highlight ring for connected nodes
+				if (isHighlighted && !isSelected) {
+					ctx.strokeStyle = config.color;
+					ctx.lineWidth = 2 / globalScale;
+					ctx.stroke();
+				}
 			}
 
 			// Reset alpha
@@ -88,19 +138,23 @@ export function useGraphRenderers({
 					ctx.globalAlpha = 0.15;
 				}
 
-				// Background
+				// Background with rounded corners
 				const textWidth = ctx.measureText(label).width;
-				const padding = 4 / globalScale;
-				ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-				ctx.fillRect(
-					(node.x || 0) - textWidth / 2 - padding,
-					(node.y || 0) + graphNode.size + padding,
-					textWidth + padding * 2,
-					fontSize + padding * 2,
-				);
+				const padding = 5 / globalScale;
+				const radius = 4 / globalScale;
+				const labelX = (node.x || 0) - textWidth / 2 - padding;
+				const labelY = (node.y || 0) + graphNode.size + padding;
+				const labelW = textWidth + padding * 2;
+				const labelH = fontSize + padding * 2;
 
-				// Text
-				ctx.fillStyle = "#ffffff";
+				// Use node-type colored background
+				roundRect(ctx, labelX, labelY, labelW, labelH, radius);
+				ctx.fillStyle = getLabelBg(graphNode.type);
+				ctx.fill();
+
+				// Text - white for colored backgrounds, dark for amber
+				ctx.fillStyle =
+					graphNode.type === "profile_summary" ? "#1f2937" : "#ffffff";
 				ctx.fillText(
 					label,
 					node.x || 0,
@@ -197,11 +251,13 @@ export function useGraphRenderers({
 			scale: number,
 		) => {
 			const graphNode = node as unknown as ForceGraphNode;
-			// Minimum 20px in screen space - divide by scale to get canvas space
-			const minScreenRadius = 20;
+			// Fallback scale to 1 if not provided (older react-force-graph versions)
+			const effectiveScale = scale || 1;
+			// Minimum 25px in screen space for better clickability
+			const minScreenRadius = 25;
 			const clickRadius = Math.max(
-				graphNode.size * 1.5,
-				minScreenRadius / scale,
+				graphNode.size * 2,
+				minScreenRadius / effectiveScale,
 			);
 			ctx.beginPath();
 			ctx.arc(node.x || 0, node.y || 0, clickRadius, 0, 2 * Math.PI);

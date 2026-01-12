@@ -32,6 +32,31 @@ export function useGraphForces() {
 				apiGraphNodes,
 				apiGraphEdges,
 			);
+
+			// Check if profile_summary exists, if not add skeleton profile
+			const hasProfileSummary = nodes.some(
+				(n) => n.type === "profile_summary",
+			);
+			if (!hasProfileSummary) {
+				const skeletonData = {
+					id: "skeleton-profile",
+					content: "Keep chatting to build your profile",
+					tags: [] as string[],
+					isSkeleton: true,
+				};
+				nodes.unshift({
+					id: "skeleton-profile",
+					label: "Your Profile",
+					type: "profile_summary",
+					layer: 0,
+					size: 24,
+					color: "#f59e0b",
+					data: skeletonData,
+					// Required for ApiForceGraphNode type compatibility
+					nodeData: skeletonData as unknown as import("@/lib/types/persona").GraphNode,
+				});
+			}
+
 			setGraphData({ nodes, links });
 		} else {
 			// No API data - show empty graph
@@ -47,12 +72,13 @@ export function useGraphForces() {
 		// Configure charge force (repulsion between nodes) - strong for better separation
 		fgRef.current.d3Force("charge")?.strength(-600);
 
-		// Add collision force to prevent overlap - larger radius for smaller nodes
+		// Add collision force to prevent overlap - increased radius to account for labels
 		const collideForce = d3Force.forceCollide((node) => {
 			const graphNode = node as ForceGraphNode;
-			// Ensure minimum collision radius for small nodes (detail nodes)
-			const minRadius = 40;
-			return Math.max(graphNode.size * 2.5 + 30, minRadius);
+			// Larger collision radius to prevent label overlap
+			// For detail nodes (size=8): Math.max(8*3+50, 70) = 74px
+			const minRadius = 70;
+			return Math.max(graphNode.size * 3 + 50, minRadius);
 		});
 		fgRef.current.d3Force("collide", collideForce);
 
@@ -71,8 +97,15 @@ export function useGraphForces() {
 								return 150; // Inner ring - essay_angle
 							case 2:
 								return 280; // Middle ring - key_story
-							case 3:
-								return 420; // Outer ring - detail
+							case 3: {
+								// Outer ring - detail with jitter to spread nodes
+								// Add variance based on node id hash to prevent clustering
+								const hash = graphNode.id
+									.split("")
+									.reduce((a, c) => a + c.charCodeAt(0), 0);
+								const jitter = (hash % 80) - 40; // -40 to +40 variance
+								return 420 + jitter;
+							}
 							default:
 								return 280;
 						}
@@ -91,8 +124,8 @@ export function useGraphForces() {
 			.strength(0.8);
 		fgRef.current.d3Force("radial", radialForce);
 
-		// Configure link force for better spacing - increased distance
-		fgRef.current.d3Force("link")?.distance(150);
+		// Configure link force - increased distance and reduced strength to prevent clustering
+		fgRef.current.d3Force("link")?.distance(180).strength(0.3);
 
 		// Reheat simulation when data changes
 		fgRef.current.d3ReheatSimulation();
