@@ -188,11 +188,18 @@ export function useGraphRenderers({
 	);
 
 	// Paint node pointer area - larger clickable area with minimum size
+	// Scale parameter ensures minimum clickable area in SCREEN space, not canvas space
 	const paintNodePointerArea = useCallback(
-		(node: NodeObject, color: string, ctx: CanvasRenderingContext2D) => {
+		(
+			node: NodeObject,
+			color: string,
+			ctx: CanvasRenderingContext2D,
+			scale: number,
+		) => {
 			const graphNode = node as unknown as ForceGraphNode;
-			// Ensure minimum clickable area of 20px radius for small nodes
-			const clickRadius = Math.max(graphNode.size * 1.5, 20);
+			// Minimum 20px in screen space - divide by scale to get canvas space
+			const minScreenRadius = 20;
+			const clickRadius = Math.max(graphNode.size * 1.5, minScreenRadius / scale);
 			ctx.beginPath();
 			ctx.arc(node.x || 0, node.y || 0, clickRadius, 0, 2 * Math.PI);
 			ctx.fillStyle = color;

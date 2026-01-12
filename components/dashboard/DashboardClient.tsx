@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 import {
 	PageTransition,
 	SlideUp,
@@ -41,6 +42,47 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 	const { profile, lastActivity } = useUserStore();
 	const { data: homeData, isLoading } = useHomeData(initialData);
 
+	// Time-dependent state - computed only on client to prevent hydration mismatch
+	const [greeting, setGreeting] = useState<string>("");
+	const [formattedLastActivity, setFormattedLastActivity] = useState<
+		string | null
+	>(null);
+
+	// Compute greeting on client only (prevents hydration mismatch from server/client time difference)
+	useEffect(() => {
+		const hour = new Date().getHours();
+		if (hour < 12) {
+			setGreeting(tHome("greeting.morning"));
+		} else if (hour < 18) {
+			setGreeting(tHome("greeting.afternoon"));
+		} else {
+			setGreeting(tHome("greeting.evening"));
+		}
+	}, [tHome]);
+
+	// Compute last activity time on client only
+	useEffect(() => {
+		if (!lastActivity?.timestamp) {
+			setFormattedLastActivity(null);
+			return;
+		}
+
+		const diff = Date.now() - lastActivity.timestamp;
+		const minutes = Math.floor(diff / 60000);
+		const hours = Math.floor(minutes / 60);
+		const days = Math.floor(hours / 24);
+
+		if (days > 0) {
+			setFormattedLastActivity(`${days} ${tHome("daysAgo")}`);
+		} else if (hours > 0) {
+			setFormattedLastActivity(`${hours} ${tHome("hoursAgo")}`);
+		} else if (minutes > 0) {
+			setFormattedLastActivity(`${minutes} ${tHome("minutesAgo")}`);
+		} else {
+			setFormattedLastActivity(tHome("justNow"));
+		}
+	}, [lastActivity?.timestamp, tHome]);
+
 	// Derive values from homeData
 	const profileCompletion = homeData?.profileCompletion ?? 0;
 	const upcomingDeadlinesCount = homeData?.upcomingDeadlines?.length ?? 0;
@@ -52,28 +94,6 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 	const suggestedAction = homeData?.suggestedAction;
 	const recentApplications = homeData?.recentApplications ?? [];
 
-	// Get time of day for greeting
-	const getGreeting = () => {
-		const hour = new Date().getHours();
-		if (hour < 12) return tHome("greeting.morning");
-		if (hour < 18) return tHome("greeting.afternoon");
-		return tHome("greeting.evening");
-	};
-
-	// Format last activity time
-	const formatLastActivity = (timestamp?: number) => {
-		if (!timestamp) return null;
-		const diff = Date.now() - timestamp;
-		const minutes = Math.floor(diff / 60000);
-		const hours = Math.floor(minutes / 60);
-		const days = Math.floor(hours / 24);
-
-		if (days > 0) return `${days} ${tHome("daysAgo")}`;
-		if (hours > 0) return `${hours} ${tHome("hoursAgo")}`;
-		if (minutes > 0) return `${minutes} ${tHome("minutesAgo")}`;
-		return tHome("justNow");
-	};
-
 	return (
 		<PageTransition>
 			<div className="min-h-screen bg-background">
@@ -82,7 +102,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 					<SlideUp>
 						<div className="mb-8">
 							<h1 className="text-3xl font-bold text-foreground mb-2">
-								{getGreeting()},{" "}
+								{greeting || <span className="invisible">...</span>},{" "}
 								{homeData?.firstName ||
 									profile?.fullName?.split(" ").pop() ||
 									tHome("you")}
@@ -462,7 +482,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 												<div className="p-4 bg-muted/50 rounded-lg">
 													<div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
 														<Clock className="w-3 h-3" />
-														{formatLastActivity(lastActivity.timestamp)}
+														{formattedLastActivity}
 													</div>
 													<p className="font-medium text-foreground mb-1">
 														{lastActivity.title}

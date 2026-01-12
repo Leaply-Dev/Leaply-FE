@@ -2,6 +2,38 @@ import Cookies from "js-cookie";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+// Cookie configuration constants
+const AUTH_COOKIE_NAME = "leaply-auth-state";
+const AUTH_COOKIE_OPTIONS = {
+	expires: 7, // 7 days
+	path: "/",
+	sameSite: "lax" as const,
+};
+
+/**
+ * Sync auth state to cookie - called SYNCHRONOUSLY within actions
+ * This ensures cookie and store are always in sync and prevents race conditions
+ *
+ * When authenticated: Sets cookie with auth state
+ * When not authenticated: Removes cookie entirely (prevents stale cookie issues)
+ */
+function syncAuthCookie(
+	isAuthenticated: boolean,
+	isOnboardingComplete: boolean,
+) {
+	if (isAuthenticated) {
+		Cookies.set(
+			AUTH_COOKIE_NAME,
+			JSON.stringify({ isAuthenticated, isOnboardingComplete }),
+			AUTH_COOKIE_OPTIONS,
+		);
+	} else {
+		// When not authenticated, remove cookie entirely
+		// This prevents the "2 refresh" problem where stale cookies cause routing issues
+		Cookies.remove(AUTH_COOKIE_NAME, { path: "/" });
+	}
+}
+
 export interface UserProfile {
 	id: string;
 	email: string;
@@ -133,7 +165,11 @@ export const useUserStore = create<UserState>()(
 					},
 				}),
 
-			completeOnboarding: () => set({ isOnboardingComplete: true }),
+			completeOnboarding: () => {
+				// Sync cookie SYNCHRONOUSLY with new onboarding status
+				syncAuthCookie(true, true);
+				set({ isOnboardingComplete: true });
+			},
 
 			login: (
 				profile,
@@ -141,7 +177,10 @@ export const useUserStore = create<UserState>()(
 				refreshToken,
 				expiresIn,
 				isOnboardingComplete = false,
-			) =>
+			) => {
+				// Sync cookie SYNCHRONOUSLY before updating state
+				// This ensures middleware sees correct auth state immediately
+				syncAuthCookie(true, isOnboardingComplete);
 				set({
 					profile,
 					accessToken,
@@ -149,7 +188,8 @@ export const useUserStore = create<UserState>()(
 					tokenExpiresAt: Date.now() + expiresIn * 1000,
 					isAuthenticated: true,
 					isOnboardingComplete,
-				}),
+				});
+			},
 
 			setTokens: (accessToken, refreshToken, expiresIn) =>
 				set({
@@ -194,15 +234,11 @@ export const useUserStore = create<UserState>()(
 	),
 );
 
-// Subscribe to store changes to sync auth state to cookie for middleware
-useUserStore.subscribe((state) => {
-	const authState = {
-		isAuthenticated: state.isAuthenticated,
-		isOnboardingComplete: state.isOnboardingComplete,
-	};
-	Cookies.set("leaply-auth-state", JSON.stringify(authState), {
-		expires: 7, // 7 days
-		path: "/",
-		sameSite: "lax",
-	});
-});
+// NOTE: We removed the useUserStore.subscribe() block that was here.
+// It was causing a race condition where:
+// 1. logout() clears the cookie synchronously
+// 2. The async subscription fires and recreates the cookie
+// 3. Middleware reads stale cookie before it's properly cleared
+//
+// Cookie sync is now done SYNCHRONOUSLY inside login(), completeOnboarding(), and logout() actions.
+// This ensures the cookie is always in sync with the store state.
