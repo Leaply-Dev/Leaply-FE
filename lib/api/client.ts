@@ -17,12 +17,46 @@ const isDev = process.env.NODE_ENV === "development";
 // Special marker for cookie-based authentication (OAuth)
 const COOKIE_AUTH_TOKEN = "COOKIE_AUTH";
 
+// Token lifetime in seconds (matches backend JWT config)
+export const TOKEN_LIFETIME_SECONDS = 900; // 15 minutes
+
 // Token refresh state management
 let isRefreshing = false;
 let refreshSubscribers: Array<(token: string | null) => void> = [];
 
 // Refresh timeout in milliseconds (prevents hanging indefinitely)
 const REFRESH_TIMEOUT_MS = 10000;
+
+// Retry configuration for token refresh
+const MAX_REFRESH_RETRIES = 3;
+const RETRY_BASE_DELAY_MS = 1000; // 1s, 2s, 4s exponential backoff
+
+/**
+ * Sleep utility for retry delays
+ */
+function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Check if an error is retryable (network errors, 5xx server errors)
+ * 4xx errors (like invalid token) should not be retried
+ */
+function isRetryableError(error: unknown, status?: number): boolean {
+	// Network errors are retryable
+	if (error instanceof TypeError && error.message.includes("fetch")) {
+		return true;
+	}
+	// 5xx server errors are retryable
+	if (status && status >= 500) {
+		return true;
+	}
+	// Timeout errors are retryable
+	if (error instanceof Error && error.message.includes("timeout")) {
+		return true;
+	}
+	return false;
+}
 
 /**
  * Subscribe to token refresh completion
@@ -54,7 +88,7 @@ function clearRefreshSubscribers() {
 /**
  * Check if using cookie-based authentication (OAuth)
  */
-function isCookieAuth(): boolean {
+export function isCookieAuth(): boolean {
 	const { accessToken, refreshToken } = useUserStore.getState();
 	return (
 		accessToken === COOKIE_AUTH_TOKEN || refreshToken === COOKIE_AUTH_TOKEN
@@ -64,18 +98,54 @@ function isCookieAuth(): boolean {
 /**
  * Attempt to refresh the access token using the refresh token
  * Returns the new access token on success, null on failure
- * For cookie-based auth, returns special marker to indicate backend handles refresh
+ * For cookie-based auth, validates session and returns special marker
+ * Includes retry logic with exponential backoff for transient failures
  */
-async function refreshAccessToken(): Promise<string | null> {
+export async function refreshAccessToken(
+	retryCount = 0,
+): Promise<string | null> {
 	const { refreshToken, setTokens } = useUserStore.getState();
 
-	// For cookie-based auth, return special marker
-	// Backend handles cookie refresh via httpOnly cookies
-	// We should NOT logout - let the backend decide if session is expired
+	// For cookie-based auth, validate session with backend
+	// Backend may have refreshed the httpOnly cookie automatically
 	if (isCookieAuth()) {
 		if (isDev)
-			console.log("Cookie-based auth: backend handles session refresh");
-		return COOKIE_AUTH_TOKEN; // Return marker, not null - prevents logout
+			console.log("Cookie-based auth: validating session with backend");
+		try {
+			const response = await fetch(`${API_URL}/v1/auth/me`, {
+				credentials: "include",
+			});
+			if (response.ok) {
+				// Session is still valid, update local expiry tracking
+				const { login, profile, isOnboardingComplete } = useUserStore.getState();
+				if (profile) {
+					login(
+						profile,
+						COOKIE_AUTH_TOKEN,
+						COOKIE_AUTH_TOKEN,
+						TOKEN_LIFETIME_SECONDS,
+						isOnboardingComplete,
+					);
+				}
+				if (isDev) console.log("OAuth session validated and extended");
+				return COOKIE_AUTH_TOKEN;
+			}
+			// Session expired
+			if (isDev) console.warn("OAuth session expired");
+			return null;
+		} catch (error) {
+			if (retryCount < MAX_REFRESH_RETRIES && isRetryableError(error)) {
+				const delay = RETRY_BASE_DELAY_MS * Math.pow(2, retryCount);
+				if (isDev)
+					console.log(
+						`OAuth validation failed, retrying in ${delay}ms (attempt ${retryCount + 1}/${MAX_REFRESH_RETRIES})`,
+					);
+				await sleep(delay);
+				return refreshAccessToken(retryCount + 1);
+			}
+			if (isDev) console.error("OAuth session validation error:", error);
+			return null;
+		}
 	}
 
 	if (!refreshToken) {
@@ -92,7 +162,20 @@ async function refreshAccessToken(): Promise<string | null> {
 			body: JSON.stringify({ refreshToken }),
 		});
 
+		// Check if error is retryable (5xx server errors)
 		if (!response.ok) {
+			if (
+				retryCount < MAX_REFRESH_RETRIES &&
+				isRetryableError(null, response.status)
+			) {
+				const delay = RETRY_BASE_DELAY_MS * Math.pow(2, retryCount);
+				if (isDev)
+					console.log(
+						`Token refresh failed with ${response.status}, retrying in ${delay}ms (attempt ${retryCount + 1}/${MAX_REFRESH_RETRIES})`,
+					);
+				await sleep(delay);
+				return refreshAccessToken(retryCount + 1);
+			}
 			if (isDev)
 				console.warn("Token refresh failed with status:", response.status);
 			return null;
@@ -116,6 +199,16 @@ async function refreshAccessToken(): Promise<string | null> {
 
 		return null;
 	} catch (error) {
+		// Retry on network/transient errors
+		if (retryCount < MAX_REFRESH_RETRIES && isRetryableError(error)) {
+			const delay = RETRY_BASE_DELAY_MS * Math.pow(2, retryCount);
+			if (isDev)
+				console.log(
+					`Token refresh error, retrying in ${delay}ms (attempt ${retryCount + 1}/${MAX_REFRESH_RETRIES})`,
+				);
+			await sleep(delay);
+			return refreshAccessToken(retryCount + 1);
+		}
 		if (isDev) console.error("Token refresh error:", error);
 		return null;
 	}

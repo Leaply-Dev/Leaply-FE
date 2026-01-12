@@ -1,10 +1,27 @@
 "use client";
 
 import { QueryProvider } from "@/app/providers/query-provider";
-import { AuthProvider } from "./AuthProvider";
+import { AuthProvider, useSessionWarning } from "./AuthProvider";
+import { SessionTimeoutWarning } from "./SessionTimeoutWarning";
 
 interface ProvidersProps {
 	children: React.ReactNode;
+}
+
+/**
+ * Renders the session timeout warning modal
+ * Must be inside AuthProvider to access the context
+ */
+function SessionWarningRenderer() {
+	const { showWarning, secondsRemaining, onExtendSession } = useSessionWarning();
+
+	return (
+		<SessionTimeoutWarning
+			isOpen={showWarning}
+			secondsRemaining={secondsRemaining}
+			onExtendSession={onExtendSession}
+		/>
+	);
 }
 
 /**
@@ -14,7 +31,10 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
 	return (
 		<QueryProvider>
-			<AuthProvider>{children}</AuthProvider>
+			<AuthProvider>
+				{children}
+				<SessionWarningRenderer />
+			</AuthProvider>
 		</QueryProvider>
 	);
 }

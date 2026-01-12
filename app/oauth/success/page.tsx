@@ -3,6 +3,7 @@
 import { Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { TOKEN_LIFETIME_SECONDS } from "@/lib/api/client";
 import { useUserStore } from "@/lib/store/userStore";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
@@ -41,11 +42,12 @@ export default function OAuthSuccessPage() {
 					// Login to store with COOKIE_AUTH marker
 					// Backend sets httpOnly cookies (access_token, refresh_token)
 					// Frontend cannot access these cookies, so we use a marker token
+					// We track expiry using TOKEN_LIFETIME_SECONDS for session timeout warning
 					login(
 						userProfile,
 						"COOKIE_AUTH", // Special marker for cookie-based authentication
 						"COOKIE_AUTH", // Refresh token is also in httpOnly cookie
-						0, // expiresIn not needed for cookie auth - backend handles it
+						TOKEN_LIFETIME_SECONDS, // Track expiry for proactive refresh & warning modal
 						userContext.user.isOnboardingComplete,
 					);
 

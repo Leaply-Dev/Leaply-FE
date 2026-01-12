@@ -2,10 +2,23 @@
 
 import Cookies from "js-cookie";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import {
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
+import { refreshAccessToken } from "@/lib/api/client";
 import { performLogout } from "@/lib/auth/logout";
 import { authService } from "@/lib/services/auth";
 import { useUserStore } from "@/lib/store/userStore";
+
+// Session management configuration
+const PROACTIVE_REFRESH_BUFFER_MS = 120000; // Refresh 2 minutes before expiry
+const WARNING_BUFFER_MS = 60000; // Show warning 1 minute before expiry
+const REFRESH_CHECK_INTERVAL_MS = 10000; // Check every 10 seconds
 
 /**
  * Routes that require authentication
@@ -45,6 +58,28 @@ function isTokenExpired(token: string): boolean {
 
 interface AuthProviderProps {
 	children: React.ReactNode;
+}
+
+/**
+ * Context for session timeout warning state
+ */
+interface SessionWarningContextValue {
+	showWarning: boolean;
+	secondsRemaining: number;
+	onExtendSession: () => void;
+}
+
+const SessionWarningContext = createContext<SessionWarningContextValue>({
+	showWarning: false,
+	secondsRemaining: 0,
+	onExtendSession: () => {},
+});
+
+/**
+ * Hook to access session warning state
+ */
+export function useSessionWarning() {
+	return useContext(SessionWarningContext);
 }
 
 /**
@@ -119,9 +154,79 @@ function isProtectedRoute(pathname: string): boolean {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-	const { accessToken, isAuthenticated, login, profile } = useUserStore();
+	const { accessToken, isAuthenticated, login, profile, tokenExpiresAt } =
+		useUserStore();
 	const validationInProgress = useRef(false);
+	const proactiveRefreshInProgress = useRef(false);
 	const pathname = usePathname();
+
+	// Session timeout warning state
+	const [showWarning, setShowWarning] = useState(false);
+	const [secondsRemaining, setSecondsRemaining] = useState(0);
+
+	// Handler to dismiss warning after successful refresh
+	const handleExtendSession = useCallback(() => {
+		setShowWarning(false);
+		setSecondsRemaining(0);
+	}, []);
+
+	// Proactive token refresh and warning detection
+	useEffect(() => {
+		// Only run if authenticated
+		if (!isAuthenticated || !tokenExpiresAt) return;
+
+		const checkTokenExpiry = async () => {
+			const now = Date.now();
+			const timeUntilExpiry = tokenExpiresAt - now;
+
+			// Show warning if within WARNING_BUFFER_MS (1 minute)
+			if (timeUntilExpiry <= WARNING_BUFFER_MS && timeUntilExpiry > 0) {
+				const seconds = Math.ceil(timeUntilExpiry / 1000);
+				setSecondsRemaining(seconds);
+				setShowWarning(true);
+				return; // Don't proactively refresh while warning is shown
+			}
+
+			// Proactive refresh if within PROACTIVE_REFRESH_BUFFER_MS (2 minutes)
+			// but not yet in warning zone
+			if (
+				timeUntilExpiry <= PROACTIVE_REFRESH_BUFFER_MS &&
+				timeUntilExpiry > WARNING_BUFFER_MS
+			) {
+				if (proactiveRefreshInProgress.current) return;
+				proactiveRefreshInProgress.current = true;
+
+				try {
+					console.log("Proactively refreshing token before expiry...");
+					const result = await refreshAccessToken();
+					if (result) {
+						console.log("Proactive token refresh successful");
+					} else {
+						console.warn("Proactive token refresh failed");
+						// Don't logout here - let the warning modal handle it
+					}
+				} catch (error) {
+					console.error("Proactive token refresh error:", error);
+				} finally {
+					proactiveRefreshInProgress.current = false;
+				}
+			}
+
+			// Hide warning if we're no longer in warning zone (e.g., after refresh)
+			if (timeUntilExpiry > WARNING_BUFFER_MS && showWarning) {
+				setShowWarning(false);
+				setSecondsRemaining(0);
+			}
+		};
+
+		// Initial check
+		checkTokenExpiry();
+
+		// Set up interval
+		const interval = setInterval(checkTokenExpiry, REFRESH_CHECK_INTERVAL_MS);
+
+		return () => clearInterval(interval);
+	}, [isAuthenticated, tokenExpiresAt, showWarning]);
 
 	useEffect(() => {
 		// Skip if already validated this session (survives HMR)
@@ -256,5 +361,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		validateAuth();
 	}, [isAuthenticated, accessToken, login, profile, pathname]);
 
-	return <>{children}</>;
+	// Context value for session warning
+	const sessionWarningValue: SessionWarningContextValue = {
+		showWarning,
+		secondsRemaining,
+		onExtendSession: handleExtendSession,
+	};
+
+	return (
+		<SessionWarningContext.Provider value={sessionWarningValue}>
+			{children}
+		</SessionWarningContext.Provider>
+	);
 }
