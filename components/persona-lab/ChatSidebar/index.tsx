@@ -160,6 +160,7 @@ export function ChatSidebar() {
 				type: "text",
 				content,
 				timestamp: new Date().toISOString(),
+				status: "sending",
 			};
 			addGraphMessage(userMessage);
 
@@ -198,6 +199,7 @@ export function ChatSidebar() {
 								timestamp:
 									graphData.message.timestamp || new Date().toISOString(),
 								thinkingDuration,
+								status: "sent",
 							};
 							addGraphMessage(assistantMessage);
 						}

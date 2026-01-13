@@ -27,6 +27,8 @@ export interface ConversationMessage {
 	timestamp: string;
 	/** Duration in milliseconds for how long the AI took to respond */
 	thinkingDuration?: number;
+	/** Status of the message for optimistic UI updates */
+	status?: "sending" | "sent" | "error";
 }
 
 // STAR framework keys for gap tracking
@@ -271,17 +273,58 @@ export const usePersonaStore = create<PersonaStoreState>()(
 							};
 						}) || [];
 
-					// Only update if server has MORE messages than local
-					// This prevents overwriting messages just added by mutations
-					// that haven't been reflected in the server response yet
-					const shouldUseServerMessages =
-						serverMessages.length > state.graphMessages.length;
+					const localMessages = state.graphMessages;
 
-					return {
-						graphMessages: shouldUseServerMessages
-							? serverMessages
-							: state.graphMessages,
-					};
+					// Robust Sync Logic using Status:
+					// 1. Server is the source of truth for all confirmed history
+					// 2. We preserve local messages that are still "sending" (optimistic updates)
+
+					const pendingMessages = localMessages.filter(
+						(m) => m.status === "sending",
+					);
+
+					// If server has content, we generally trust it completely for the "sent" portion
+					// We only append our pending messages to the end
+
+					// Check if we effectively need to sync (avoid unnecessary re-renders)
+					// We sync if:
+					// 1. Server has more/different messages than our local "sent" messages
+					// 2. We have pending messages that need to be re-appended
+
+					const localSentMessages = localMessages.filter(
+						(m) => m.status !== "sending",
+					);
+
+					// Simple check: IDs of last confirmed message
+					const serverLastId =
+						serverMessages.length > 0
+							? serverMessages[serverMessages.length - 1].id
+							: null;
+					const localLastSentId =
+						localSentMessages.length > 0
+							? localSentMessages[localSentMessages.length - 1].id
+							: null;
+
+					const isServerDifferent =
+						serverLastId !== localLastSentId ||
+						serverMessages.length !== localSentMessages.length;
+
+					if (isServerDifferent) {
+						console.log(
+							"🔄 [PersonaStore] Syncing conversation with server (Server state preferred)",
+							{
+								serverCount: serverMessages.length,
+								localSentCount: localSentMessages.length,
+								pendingCount: pendingMessages.length,
+							},
+						);
+
+						return {
+							graphMessages: [...serverMessages, ...pendingMessages],
+						};
+					}
+
+					return { graphMessages: state.graphMessages };
 				});
 			},
 
@@ -291,14 +334,34 @@ export const usePersonaStore = create<PersonaStoreState>()(
 			// reflected in the server response.
 			syncGraph: (nodes: PersonaNodeDto[], edges: PersonaEdgeDto[]) => {
 				set((state) => {
-					// Only update if server has MORE nodes than local
-					// This prevents overwriting nodes just added by mutations
-					const shouldUseServerGraph =
-						nodes.length > state.apiGraphNodes.length;
+					const localNodes = state.apiGraphNodes;
+					let shouldSync = false;
+
+					// 1. Server has MORE nodes (new content)
+					if (nodes.length > localNodes.length) {
+						shouldSync = true;
+					}
+					// 2. Server is empty but local is not (Reset on another device)
+					else if (nodes.length === 0 && localNodes.length > 0) {
+						shouldSync = true;
+					}
+					// 3. Different Graph context
+					else if (nodes.length > 0 && localNodes.length > 0) {
+						// Check if the server's first node exists in local graph
+						// If not, it means the server graph is completely different
+						const serverFirstId = nodes[0].id;
+						const localHasFirstServerNode = localNodes.some(
+							(n) => n.id === serverFirstId,
+						);
+
+						if (!localHasFirstServerNode) {
+							shouldSync = true;
+						}
+					}
 
 					return {
-						apiGraphNodes: shouldUseServerGraph ? nodes : state.apiGraphNodes,
-						apiGraphEdges: shouldUseServerGraph ? edges : state.apiGraphEdges,
+						apiGraphNodes: shouldSync ? nodes : state.apiGraphNodes,
+						apiGraphEdges: shouldSync ? edges : state.apiGraphEdges,
 					};
 				});
 			},
