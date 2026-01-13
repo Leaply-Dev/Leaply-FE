@@ -1,414 +1,82 @@
-# Leaply Claude Code Configuration
+# Leaply
 
 ## Stack
 
-- **Next.js 16.1.1** App Router + **React 19.2.1**
-- **TypeScript 5.9** + **Tailwind CSS 4.1** + **Lucide** icons
-- **shadcn/ui** (New York style) + **next-intl** (i18n)
-- **TanStack Query v5** (React Query) - Server state management
-- **Orval 7.18** - API client code generation from OpenAPI
-- **Zod 4.3** - Runtime validation schemas
-- **Zustand** - Client state (auth) + **Framer Motion** animations
-- **Bun 1.3.3** runtime
-- **Biome 2.3** linting/formatting
-- **Knip 5.80** dead code removal
+Next.js 16 App Router, React 19, TypeScript 5.9, Tailwind CSS 4, shadcn/ui (New York), TanStack Query v5, Orval (API codegen), Zod 4, Zustand (auth), Bun 1.3, Biome 2.3
 
-## Core Principles
+## Architecture
 
-- **Client Components primary** - Current app uses `'use client'` extensively (marketing pages, animations)
-- **API-based architecture** - Backend API at `NEXT_PUBLIC_API_URL`
-- **Accessibility-first** - Full keyboard/screen reader support
-- **Type safety** - TypeScript strict mode
-- **i18n ready** - next-intl for internationalization
-
-## Code Quality Standards
-
-**Clean Code Principles (apply rigorously):**
-- **SOLID** - Single responsibility, Open/closed, Liskov substitution, Interface segregation, Dependency inversion
-- **DRY** - Don't Repeat Yourself (extract reusable logic)
-- **KISS** - Keep It Simple, Stupid (avoid over-engineering)
-- **YAGNI** - You Aren't Gonna Need It (don't add speculative features)
-
-**Web Security (OWASP Top 10 + SANS CWE):**
-- A01: Broken Access Control
-- A02: Cryptographic Failures
-- A03: Injection (SQL, XSS, Command)
-- A07: Identification/Authentication Failures
-- A08: Software/Data Integrity Failures
-- Always validate, sanitize, escape user input
-- Use parameterized queries, CSP headers, HTTPS only
-
-**MCP Tools Available:**
-- **next-devtools** - Next.js docs, runtime inspection, migrations
-- **shadcn** - Component search, examples, installation
-- **context7** - Any library documentation lookup
-
-**When Uncertain:**
-- **STOP and ASK** - If you don't know how to implement something correctly, ask the user for clarification
-- Never guess security-critical implementations
-- Never invent APIs - use MCP to lookup docs
-
-## IMPORTANT: Apply this checklist before start any request
-- [ ] Pulled latest code from main branch
-- [ ] Run `bun generate:api` to generate latest API code
-
-## Code Change Checklist
-
-**REQUIRED: Apply this checklist to EVERY code change before implementation:**
-
-**1. Security Review**
-- [ ] Input validation with Zod (forms, API params, user data)
-- [ ] XSS prevention (sanitize/escape user content)
-- [ ] SQL injection prevention (use parameterized queries/ORMs)
-- [ ] Authentication/authorization checks in place
-- [ ] No sensitive data in client code or logs
-- [ ] HTTPS only for API calls
-- [ ] Rate limiting on public endpoints
-
-**2. Code Quality**
-- [ ] SOLID principles applied (single responsibility per function/component)
-- [ ] DRY - no code duplication (extract reusable logic)
-- [ ] KISS - simplest solution that works
-- [ ] YAGNI - only implement what's requested
-- [ ] Meaningful variable/function names
-- [ ] No magic numbers/strings (use constants)
-- [ ] Proper error handling (try/catch, error boundaries)
-
-**3. TypeScript**
-- [ ] Full type safety (no `any`, use proper types)
-- [ ] Zod schemas for runtime validation
-- [ ] Type imports from proper sources
-
-**4. React/Next.js Best Practices**
-- [ ] Use Client Component (`'use client'`) only when needed
-- [ ] Proper use of hooks (useEffect cleanup, dependency arrays)
-- [ ] **TanStack Query for data fetching** (not useEffect)
-- [ ] Follow established patterns: Server Component wrapper → Client Component with hooks
-- [ ] Accessibility (ARIA labels, keyboard navigation, semantic HTML)
-- [ ] Performance (memoization, lazy loading if needed)
-
-**5. UI Implementation (shadcn/ui first)**
-- [ ] **BEFORE implementing ANY UI component:**
-  - Search shadcn MCP: `search_items_in_registries` for the component
-  - Check examples: `get_item_examples_from_registries` for usage patterns
-  - If exists: Install via `bunx shadcn@latest add [component]` (or `npx`)
-  - Only build custom if shadcn doesn't have it
-- [ ] Use installed components from `components/ui/`
-- [ ] Follow New York style conventions
-- [ ] Maintain Tailwind CSS + Lucide icons consistency
-
-**6. Code Formatting**
-- [ ] Run `bun check` before committing
-- [ ] Tabs for indentation, double quotes
-- [ ] Auto-organized imports (Biome)
-
-**7. Security Checklist**
-
-- [ ] Rate limiting
-- [ ] CSP headers to next.config.ts
-
-**8. Before Commit**
-- [ ] Build passes `bun build`
-- [ ] No Biome errors `bun check:ci`
-- [ ] No unused code `bun knip`
-- [ ] Test in browser if UI change
-- [ ] Review git diff for unintended changes
-- [ ] Env vars: `NEXT_PUBLIC_API_URL`
-- [ ] Implement Zod validation for forms
-- [ ] Add rate limiting + CSP headers
-- [ ] Test i18n locales
-
-## Runtime Preference
-
-**Runtime Detection (check BEFORE running commands):**
-
-```bash
-# Check if Bun is available
-which bun  # or: bun --version
-```
-
-**If Bun is installed (preferred):**
-- Use `bun` commands (faster, better performance)
-- Bun 1.3.3+ recommended
-
-
-**Installation (optional, recommended):**
-- macOS/Linux: `curl -fsSL https://bun.sh/install | bash`
-- Windows: `powershell -c "irm bun.sh/install.ps1 | iex"`
+- **API-based**: Backend at `NEXT_PUBLIC_API_URL`, client-side fetching only
+- **Auth**: Cookie (`leaply-auth-state`) + Zustand store (`useUserStore`) + `proxy.ts` route protection
+- **Data**: TanStack Query for server state, Zustand for client state
+- **Route groups**: `(auth)`, `(marketing)`, `(app)`, `oauth`, `onboarding`
 
 ## Commands
 
-**Detect runtime first, then use appropriate commands:**
-
 ```bash
-# Development (use bun if available, otherwise npm)
-bun install  OR  npm install
-bun dev      OR  npm run dev
-bun build    OR  npm run build
-bun start    OR  npm start
-
-# Code quality (Biome)
-bun check       OR  npm run check       # lint + format + fix
-bun check:ci    OR  npm run check:ci    # CI mode, no fixes
-bun format      OR  npm run format      # format only
-bun lint        OR  npm run lint        # lint only
-bun knip        OR  npm run knip        # find unused code
-
-# API Code Generation (Orval)
-bun generate:api         OR  npm run generate:api         # Generate from OpenAPI spec
-bun generate:api:watch   OR  npm run generate:api:watch   # Watch mode
-
-# Components
-bunx shadcn@latest add [component]  OR  npx shadcn@latest add [component]
+bun dev                  # Start dev server
+bun build                # Production build
+bun check                # Biome lint + format
+bun knip                 # Find unused code
+bun generate:api         # Regenerate API hooks from OpenAPI
+bunx shadcn@latest add   # Install shadcn component
 ```
 
-## API Code Generation with Orval
+## Before Any Task
 
-**IMPORTANT: Use Orval-generated hooks for ALL new API integrations.**
+1. Run `bun generate:api` if backend API changed
+2. Use Orval-generated hooks from `lib/generated/api/endpoints/` for all API calls
+3. Search shadcn MCP before building custom UI components
 
-Orval automatically generates type-safe React Query hooks from the OpenAPI specification at `https://api.leaply.ai.vn/api/api-docs`.
+## Critical Rules
 
-**Generated Structure:**
-```
-lib/generated/api/
-├── endpoints/        # React Query hooks by API tag
-│   ├── admin/       # useGetUsers, useUpdateUser, etc.
-│   ├── explore/     # useGetPrograms, useSaveProgram, etc.
-│   ├── home/        # useGetDashboard, etc.
-│   └── ...
-├── models/          # TypeScript types (Program, User, etc.)
-└── zod/             # Zod validation schemas
-```
+- **Use generated hooks**: Import from `@/lib/generated/api/endpoints/*`, not manual fetch
+- **Client components**: Use `'use client'` - Server Components can't access Zustand auth
+- **shadcn first**: Check MCP `search_items_in_registries` before custom components
+- **Ask when uncertain**: Use MCP tools for docs, never guess APIs
 
-**Using Generated Hooks (Queries):**
+## Data Fetching Pattern
+
 ```typescript
+// Page: app/(app)/feature/page.tsx
+export default function FeaturePage() {
+  return <FeatureClient />;
+}
+
+// Client: components/feature/FeatureClient.tsx
 "use client";
-import { useListPrograms } from "@/lib/generated/api/endpoints/explore/explore";
+import { useListItems } from "@/lib/generated/api/endpoints/feature/feature";
 
-export function ExploreClient() {
-  const { data, isLoading, error } = useListPrograms({
-    params: { page: 1, size: 20, keyword: "CS" },
-  });
-
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-
-  return <div>{data?.programs.map(...)}</div>;
+export function FeatureClient() {
+  const { data, isLoading, error } = useListItems();
+  // render
 }
 ```
 
-**Using Generated Hooks (Mutations):**
-```typescript
-"use client";
-import { useSaveProgram } from "@/lib/generated/api/endpoints/explore/explore";
+## File Conventions
 
-export function SaveButton({ programId }: { programId: string }) {
-  const { mutate, isPending } = useSaveProgram({
-    mutation: {
-      onSuccess: () => {
-        // Invalidate queries, show success message
-      },
-    },
-  });
+- `lib/generated/api/endpoints/` - Orval-generated React Query hooks
+- `lib/generated/api/models/` - TypeScript types from OpenAPI
+- `lib/hooks/use*.ts` - Custom hooks (only for complex business logic)
+- `components/ui/` - shadcn components
+- `components/*/` - Feature components (PascalCase)
 
-  return (
-    <button onClick={() => mutate({ id: programId })} disabled={isPending}>
-      {isPending ? "Saving..." : "Save"}
-    </button>
-  );
-}
-```
+## MCP Tools
 
-**When to Regenerate:**
-- Backend API schema changes
-- New endpoints added
-- Response/request types modified
+- **shadcn**: `search_items_in_registries`, `get_item_examples_from_registries`
+- **context7**: `resolve-library-id` then `query-docs` for any library
+- **next-devtools**: Next.js docs and migrations
 
-```bash
-bun generate:api  # Regenerate all hooks and types
-```
+## Security
 
-**Legacy Pattern (Manual Hooks - Migrate to Orval):**
-```typescript
-// lib/hooks/useHomeData.ts
-import { useQuery } from "@tanstack/react-query";
-import { getHomeData } from "@/lib/api/homeApi";
-import type { HomeResponse } from "@/lib/api/types";
+Validate all user input with Zod. No sensitive data in client code. HTTPS only.
 
-export function useHomeData(initialData?: HomeResponse) {
-  return useQuery({
-    queryKey: ["homeData"],
-    queryFn: getHomeData,
-    initialData,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-}
-```
+## Docs named in kebab-case
 
-**Migration Path:**
-1. Use Orval-generated hooks for new features
-2. Gradually replace manual hooks with generated ones
-3. Keep custom hooks only for complex business logic
+- `docs/agent/` - Claude instructions
+- `docs/artifact/` - Task outputs: audits, reports, completed task docs
+- `docs/context/` - Long-term project context
 
-**Creating Mutation Hooks with Optimistic Updates:**
-```typescript
-// lib/hooks/usePrograms.ts
-export function useSaveProgram() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, isSaved }) =>
-      isSaved ? exploreApi.unsaveProgram(id) : exploreApi.saveProgram(id),
-    onMutate: async ({ id, isSaved }) => {
-      await queryClient.cancelQueries({ queryKey: ["programs"] });
-      const previousPrograms = queryClient.getQueryData(["programs"]);
-
-      // Optimistic update
-      queryClient.setQueriesData({ queryKey: ["programs"] }, (old) => {
-        // Update UI immediately
-      });
-
-      return { previousPrograms }; // For rollback
-    },
-    onError: (err, variables, context) => {
-      // Rollback on error
-      if (context?.previousPrograms) {
-        queryClient.setQueryData(["programs"], context.previousPrograms);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["programs"] });
-    },
-  });
-}
-```
-
-**Using Hooks in Components:**
-```typescript
-"use client";
-export function ExploreClient() {
-  // Query
-  const { data, isLoading, error } = usePrograms(filters);
-
-  // Mutation
-  const saveMutation = useSaveProgram();
-
-  const handleSave = (id: string) => {
-    saveMutation.mutate({ id, isSaved: false });
-  };
-
-  return <>{/* UI */}</>;
-}
-```
-
-**File Naming Convention:**
-- Custom hooks: `lib/hooks/useFeatureName.ts` (camelCase)
-- Client components: `components/feature/FeatureClient.tsx` (PascalCase)
-- Server components: `app/(app)/feature/page.tsx`
-
-**Benefits:**
-- ✅ Automatic caching and deduplication
-- ✅ No double fetches in React Strict Mode
-- ✅ Optimistic updates with automatic rollback
-- ✅ Built-in loading/error states
-- ✅ Background refetching and stale-while-revalidate
-
-## Documentation Lookup
-
-**Always use MCP tools - never guess APIs:**
-
-- **Next.js:** next-devtools MCP (init, docs, index, call) or Context7 → `/vercel/next.js`
-- **React:** Context7 → `/facebook/react`
-- **TanStack Query:** Context7 → `/tanstack/query` (use for advanced patterns)
-- **shadcn/ui:** shadcn MCP (search, view, get_examples, add_command)
-- **Other libs:** Context7 → `resolve-library-id` then `query-docs`
-
-**Migrations:** Use next-devtools MCP (upgrade_nextjs_16, enable_cache_components) + codemods
-
-## File Conventions (App Router)
-
-- `page.tsx` - Route UI
-- `layout.tsx` - Shared layout
-- `loading.tsx` - Suspense fallback
-- `error.tsx` - Error boundary (Client Component)
-- `not-found.tsx` - 404
-- `route.ts` - API handler
-
-## Current Architecture
-
-**Data Flow:**
-- **TanStack Query** for all server state (API data fetching, caching, mutations)
-- External API calls via `NEXT_PUBLIC_API_URL`
-- Client-side data fetching (Server Components can't access browser-based auth)
-- Zustand for client state (authentication tokens)
-- No Server Actions currently implemented
-
-**Authentication:**
-- **Cookie-based** (`leaply-auth-state`) - Used by proxy.ts for route protection
-- **Zustand store** (`useUserStore`) - Provides Bearer token for API client
-- **proxy.ts** (Next.js 16) - Protects routes, redirects unauthenticated users
-
-**TanStack Query Setup:**
-- **Provider:** `app/providers/query-provider.tsx` - Global QueryClient config
-- **Hooks:** `lib/hooks/use*.ts` - Custom hooks for queries/mutations (camelCase naming)
-- **Cache:** 1min default staleTime, 5min gcTime, no window refocus
-- **DevTools:** Available in development mode
-
-**Data Fetching Pattern:**
-```typescript
-// Server Component (page.tsx)
-export default function DashboardPage() {
-  return <DashboardClient />; // Simple wrapper, no SSR
-}
-
-// Client Component (*Client.tsx)
-"use client";
-export function DashboardClient() {
-  const { data, isLoading, error } = useHomeData(); // TanStack Query hook
-  // Render UI with data
-}
-```
-
-**Why Client-Only Fetching:**
-- Server Components can't access Zustand store (browser-only)
-- Avoids 403 errors when server lacks auth token
-- TanStack Query provides caching benefits even without SSR
-- Can be enhanced with cookie-based SSR later (optional)
-
-**Route Groups:**
-- `(auth)`: login, register, verify-email, forgot/reset-password
-- `(marketing)`: landing, about, features, resources, privacy, tos
-- `(app)`: dashboard, applications, explore, persona-lab, profile
-- `oauth`: OAuth success handling
-- `onboarding`: user onboarding flow
-
-## Installed Components
+## Installed shadcn Components
 
 alert, avatar, badge, button, card, dialog, dropdown-menu, field, input, label, progress, scroll-area, select, separator, skeleton, tabs, toggle, toggle-group
-
-**shadcn config:** New York style, slate base, CSS variables, Lucide icons
-
-## Key Dependencies
-
-- **Data:** @tanstack/react-query v5, @tanstack/react-query-devtools
-- **Viz:** @xyflow/react, react-force-graph-2d, d3-force
-- **UI:** framer-motion, class-variance-authority, clsx, tailwind-merge
-- **State:** zustand (client state)
-- **Utils:** js-cookie, next-intl
-- **Radix:** 10+ primitives (dialog, dropdown, select, tabs, etc.)
-
-## Biome Config
-
-- **Format:** Tabs, double quotes
-- **VCS:** Git integration enabled
-- **CSS:** Tailwind directives support
-- **Assist:** Auto-organize imports
-
-## Path Aliases
-
-```typescript
-@/*            → ./*
-@/components/* → ./components/*
-@/lib/*        → ./lib/*
-@/app/*        → ./app/*
-```

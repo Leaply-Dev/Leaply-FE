@@ -44,7 +44,7 @@ Thumbs.db
 
 # Generated Claude Code configurations
 .claude/
-/docs
+/docs/artifacts
 .vercel
 
 # Sentry Config File
