@@ -91,14 +91,17 @@ export function ChatSidebar() {
 	// Add opening message to store when received
 	// biome-ignore lint/correctness/useExhaustiveDependencies: We only want to run this when conversationStart changes and messages is empty
 	useEffect(() => {
-		if (conversationStart?.data?.message && messages.length === 0) {
+		// Response is ApiResponseGraphMessageResponse (mutator returns wrapped response)
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const graphData = (conversationStart as any)?.data ?? conversationStart;
+		if (graphData?.message && messages.length === 0) {
 			const openingMessage: ConversationMessage = {
-				id: conversationStart.data.message.id || `assistant-${Date.now()}`,
+				id: graphData.message.id || `assistant-${Date.now()}`,
 				role: "assistant",
 				type: "text",
-				content: conversationStart.data.message.content || "",
+				content: graphData.message.content || "",
 				timestamp:
-					conversationStart.data.message.timestamp || new Date().toISOString(),
+					graphData.message.timestamp || new Date().toISOString(),
 			};
 			addGraphMessage(openingMessage);
 		}
@@ -211,14 +214,17 @@ export function ChatSidebar() {
 	]);
 
 	// Derived state - use CoverageMetrics directly from API
+	// Response is ApiResponseCoverageMetrics (mutator returns wrapped response)
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const coverageInner = (coverageData as any)?.data ?? coverageData;
 	const coverage: CoverageMetrics = {
-		goals: coverageData?.data?.goals ?? 0,
-		evidence: coverageData?.data?.evidence ?? 0,
-		skills: coverageData?.data?.skills ?? 0,
-		values: coverageData?.data?.values ?? 0,
-		tensions: coverageData?.data?.tensions ?? 0,
-		lowestCategory: coverageData?.data?.lowestCategory,
-		overallProgress: coverageData?.data?.overallProgress ?? 0,
+		goals: coverageInner?.goals ?? 0,
+		evidence: coverageInner?.evidence ?? 0,
+		skills: coverageInner?.skills ?? 0,
+		values: coverageInner?.values ?? 0,
+		tensions: coverageInner?.tensions ?? 0,
+		lowestCategory: coverageInner?.lowestCategory,
+		overallProgress: coverageInner?.overallProgress ?? 0,
 	};
 	const totalNodeCount = 0; // Not available in CoverageMetrics, use 0 as default
 	const completionReady = (coverage.overallProgress ?? 0) >= 100;
