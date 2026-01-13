@@ -1,8 +1,8 @@
 {
 	"$schema": "https://openapi.vercel.sh/vercel.json",
-	"buildCommand": "npm run build",
+	"buildCommand": "bun run build",
 	"framework": "nextjs",
 	"cleanUrls": true,
-	"installCommand": "npm install",
+	"installCommand": "bun i --frozen-lockfile",
 	"outputDirectory": ".next"
 }
