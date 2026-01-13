@@ -32,7 +32,26 @@ export function generateEdgesForNodes(
 		);
 	}
 
-	// Rule 2: Connect key_stories to related essay_angles (match by tags)
+	// Rule 2a: Connect all key_stories to profile_summary (root node)
+	// This ensures stories are always visible and connected to the center
+	for (const story of stories) {
+		const storyTags = story.tags || [];
+		// Strength based on number of tags (more context = stronger connection)
+		const baseStrength = 0.8;
+		const tagBonus = Math.min(storyTags.length * 0.02, 0.15);
+		edges.push(
+			createEdge(
+				`mock-edge-${edgeId++}`,
+				profile.id!,
+				story.id!,
+				"supports",
+				baseStrength + tagBonus,
+			),
+		);
+	}
+
+	// Rule 2b: Connect key_stories to related essay_angles (match by tags)
+	// This creates the story -> angle hierarchy connections
 	for (const story of stories) {
 		const storyTags = new Set(story.tags || []);
 

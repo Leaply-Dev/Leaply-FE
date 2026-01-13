@@ -55,6 +55,24 @@ export function useGraphForces() {
 					data: skeletonNodeData,
 					nodeData: skeletonNodeData,
 				});
+
+				// CRITICAL FIX: Connect all story nodes to the skeleton root
+				// When server doesn't have profile_summary, stories need to connect to mock root
+				const storyNodes = nodes.filter((n) => n.type === "key_story");
+				for (const story of storyNodes) {
+					links.push({
+						source: "skeleton-profile",
+						target: story.id,
+						type: "supports",
+						strength: 80, // Base strength for skeleton connections
+						color: "rgba(139, 92, 246, 0.3)", // violet
+						animated: false,
+						pulseColor: undefined,
+						edgeType: "connection",
+						label: "supports",
+						width: 2,
+					});
+				}
 			}
 
 			setGraphData({ nodes, links });
@@ -82,7 +100,19 @@ export function useGraphForces() {
 		});
 		fgRef.current.d3Force("collide", collideForce);
 
+		// ============================================================================
+		// GRAPH LAYER HIERARCHY - Concentric Circle Layout
+		// ============================================================================
+		// Layer 0 (CENTER)   - Profile Summary: User's core identity/archetype
+		// Layer 1 (INNER)    - Essay Angles: Thematic patterns for essays
+		// Layer 2 (MIDDLE)   - Stories: Key narratives with STAR structure
+		// Layer 3 (OUTER)    - Details: Specific evidence and achievements
+		// ============================================================================
+
 		// Add radial positioning force based on node layer
+		// Hierarchy: Root (0) -> Story (2) -> Essay Angle (1) -> Detail (3)
+		// Higher rank = LOWER radial strength = stays closer to intended position
+		// Lower rank = HIGHER radial strength = pushed to outer rings
 		const radialForce = d3Force
 			.forceRadial(
 				(node) => {
@@ -90,28 +120,72 @@ export function useGraphForces() {
 					// Layer-based radial distance for new API nodes
 					switch (graphNode.layer) {
 						case 0:
-							return 0; // Center - profile_summary
+							// LAYER 0 - CENTER (Profile Summary)
+							// - Node Type: profile_summary
+							// - Size: 24px (largest)
+							// - Color: Amber (#f59e0b)
+							// - Purpose: Core identity, synthesized from stories
+							return 0; // Center - profile_summary (Root)
 						case 1:
-							return 150; // Inner ring - essay_angle
+							// LAYER 1 - INNER RING (Essay Angles)
+							// - Node Type: essay_angle
+							// - Size: 16px
+							// - Color: Violet (#8b5cf6)
+							// - Purpose: Thematic patterns for college essays
+							return 200; // Inner ring - essay_angle
 						case 2:
-							return 280; // Middle ring - key_story
+							// LAYER 2 - MIDDLE RING (Stories)
+							// - Node Type: key_story
+							// - Size: 12px
+							// - Color: Emerald (#10b981)
+							// - Purpose: Complete narratives with STAR structure
+							return 320; // Middle ring - key_story
 						case 3: {
+							// LAYER 3 - OUTER RING (Details)
+							// - Node Type: detail
+							// - Size: 8px (smallest)
+							// - Color: Blue (#3b82f6)
+							// - Purpose: Specific achievements, evidence, metrics
 							// Outer ring - detail with jitter to spread nodes
 							// Add variance based on node id hash to prevent clustering
 							const hash = graphNode.id
 								.split("")
 								.reduce((a, c) => a + c.charCodeAt(0), 0);
 							const jitter = (hash % 80) - 40; // -40 to +40 variance
-							return 420 + jitter;
+							return 450 + jitter;
 						}
 						default:
-							return 280;
+							return 300;
 					}
 				},
 				0,
 				0,
 			)
-			.strength(0.8);
+			.strength((node) => {
+				const graphNode = node as ApiForceGraphNode;
+				// ============================================================================
+				// RADIAL FORCE STRENGTH - Inverted Hierarchy
+				// ============================================================================
+				// Higher rank (lower layer) = LOWER force = more flexible positioning
+				// Lower rank (higher layer) = HIGHER force = stays in outer rings
+				// ============================================================================
+				switch (graphNode.layer) {
+					case 0:
+						// Root: Weakest force (naturally gravitates to center)
+						return 0.2; // Root - weakest radial force (naturally centers)
+					case 1:
+						// Essay Angle: Moderate force (stays in inner ring)
+						return 0.5; // Essay Angle - moderate force
+					case 2:
+						// Story: Stronger force (stays in middle ring)
+						return 0.7; // Story - stronger force
+					case 3:
+						// Detail: Strongest force (locked to outer ring)
+						return 0.9; // Detail - strongest force (stays outer)
+					default:
+						return 0.7;
+				}
+			});
 		fgRef.current.d3Force("radial", radialForce);
 
 		// Configure link force - increased distance and reduced strength to prevent clustering

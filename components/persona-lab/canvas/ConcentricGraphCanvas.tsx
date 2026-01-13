@@ -220,51 +220,70 @@ export function ConcentricGraphCanvas({
 
 			{/* Legend - only show when there are nodes */}
 			{!isEmpty && (
-				<div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm border border-border rounded-lg p-4 shadow-lg">
+				<div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm border border-border rounded-lg p-4 shadow-lg max-w-xs">
 					<h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
 						<Info className="h-4 w-4" />
 						Graph Layers
 					</h3>
-					<div className="space-y-2 text-xs">
+					<div className="space-y-2.5 text-xs">
 						{/* Display hierarchical order of API node types */}
 						{(
 							[
-								"profile_summary",
-								"essay_angle",
-								"key_story",
-								"detail",
-							] as NodeType[]
-						).map((type) => {
+								{
+									type: "profile_summary",
+									layer: "Center",
+									desc: "Core identity",
+								},
+								{ type: "essay_angle", layer: "Inner", desc: "Essay themes" },
+								{ type: "key_story", layer: "Middle", desc: "Key narratives" },
+								{ type: "detail", layer: "Outer", desc: "Evidence" },
+							] as Array<{ type: NodeType; layer: string; desc: string }>
+						).map(({ type, layer, desc }) => {
 							const config = getNodeConfig(type);
 							const isHidden = hiddenNodeTypes.has(type);
 							return (
 								<button
 									key={type}
 									type="button"
-									className="flex items-center gap-2 w-full hover:bg-muted/50 rounded px-2 py-1 transition-colors"
+									className="flex items-start gap-2 w-full hover:bg-muted/50 rounded px-2 py-1.5 transition-colors"
 									onClick={() => toggleNodeTypeVisibility(type)}
 									title={
 										isHidden ? `Show ${config.label}` : `Hide ${config.label}`
 									}
 								>
 									<div
-										className="w-3 h-3 rounded-full shrink-0"
+										className="w-3 h-3 rounded-full shrink-0 mt-0.5"
 										style={{
 											backgroundColor: config.color,
 											opacity: isHidden ? 0.3 : 1,
 										}}
 									/>
-									<span
-										className="text-muted-foreground flex-1 text-left"
-										style={{ opacity: isHidden ? 0.5 : 1 }}
-									>
-										{config.label}
-										{config.layer === 0 && " (Center)"}
-									</span>
+									<div className="flex-1 text-left">
+										<div className="flex items-center gap-1.5">
+											<span
+												className="font-medium text-foreground"
+												style={{ opacity: isHidden ? 0.5 : 1 }}
+											>
+												{config.label}
+											</span>
+											<span
+												className="text-[10px] text-muted-foreground/60"
+												style={{ opacity: isHidden ? 0.5 : 1 }}
+											>
+												({layer})
+											</span>
+										</div>
+										<div
+											className="text-[10px] text-muted-foreground mt-0.5"
+											style={{ opacity: isHidden ? 0.5 : 1 }}
+										>
+											{desc}
+										</div>
+									</div>
 									{isHidden ? (
-										<EyeOff className="h-3 w-3 text-muted-foreground shrink-0" />
+										<EyeOff className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
 									) : (
-										<Eye className="h-3 w-3 text-muted-foreground shrink-0" />
+										<Eye className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
 									)}
 								</button>
 							);
@@ -272,20 +291,32 @@ export function ConcentricGraphCanvas({
 					</div>
 
 					<div className="mt-4 pt-3 border-t border-border">
-						<div className="text-xs text-muted-foreground space-y-1">
-							<div className="flex items-center gap-2">
-								<div className="w-8 h-0.5 bg-blue-500/40" />
-								<span>Connection</span>
+						<div className="text-xs text-muted-foreground space-y-2.5">
+							<div className="space-y-1">
+								<div className="flex items-center gap-2">
+									<div className="w-8 h-0.5 bg-blue-500/40" />
+									<span className="font-medium text-foreground">
+										Connection
+									</span>
+								</div>
+								<div className="text-[10px] ml-10">
+									Normal relationships (supports, builds on, enables)
+								</div>
 							</div>
-							<div className="flex items-center gap-2">
-								<div
-									className="w-8 h-0.5 animate-pulse"
-									style={{
-										background:
-											"linear-gradient(90deg, #f97316 0%, rgba(249, 115, 22, 0.3) 50%, #f97316 100%)",
-									}}
-								/>
-								<span>Tension</span>
+							<div className="space-y-1">
+								<div className="flex items-center gap-2">
+									<div
+										className="w-8 h-0.5 animate-pulse"
+										style={{
+											background:
+												"linear-gradient(90deg, #f97316 0%, rgba(249, 115, 22, 0.3) 50%, #f97316 100%)",
+										}}
+									/>
+									<span className="font-medium text-foreground">Tension</span>
+								</div>
+								<div className="text-[10px] ml-10">
+									Conflicts & evolution (contradicts, transforms)
+								</div>
 							</div>
 						</div>
 					</div>
