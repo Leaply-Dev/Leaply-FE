@@ -133,31 +133,34 @@ export function ChatSidebar() {
 				{ data: { content } },
 				{
 					onSuccess: (response) => {
-						// Response is already unwrapped by mutator (GraphMessageResponse)
+						// Response is ApiResponseGraphMessageResponse (mutator returns wrapped response)
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						const graphData = (response as any)?.data ?? response;
+
 						// Add assistant response to store (persisted)
-						if (response?.message) {
+						if (graphData?.message) {
 							const assistantMessage: ConversationMessage = {
-								id: response.message.id || `assistant-${Date.now()}`,
+								id: graphData.message.id || `assistant-${Date.now()}`,
 								role:
-									(response.message.role as "user" | "assistant") ||
+									(graphData.message.role as "user" | "assistant") ||
 									"assistant",
 								type:
-									(response.message.type as ConversationMessage["type"]) ||
+									(graphData.message.type as ConversationMessage["type"]) ||
 									"text",
-								content: response.message.content || "",
+								content: graphData.message.content || "",
 								timestamp:
-									response.message.timestamp || new Date().toISOString(),
+									graphData.message.timestamp || new Date().toISOString(),
 							};
 							addGraphMessage(assistantMessage);
 						}
 
 						// Update store with graph data (canvas subscribes to this)
-						if (response) {
-							processGraphUpdate(response);
+						if (graphData) {
+							processGraphUpdate(graphData);
 						}
 
 						// If completion is ready, add completion message
-						if (response?.completionReady) {
+						if (graphData?.completionReady) {
 							const completionMessage: ConversationMessage = {
 								id: `completion-${Date.now()}`,
 								role: "assistant",
@@ -177,17 +180,19 @@ export function ChatSidebar() {
 	const handleReset = useCallback(() => {
 		setShowResetDialog(false);
 		resetMutation.mutate(undefined, {
-			onSuccess: (data) => {
+			onSuccess: (response) => {
 				// Clear messages and add new opening message
 				clearGraphMessages();
-				// Reset API returns message as a string, create ConversationMessage from it
-				if (data?.message) {
+				// Response is ApiResponseGraphMessageResponse (mutator returns wrapped response)
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const graphData = (response as any)?.data ?? response;
+				if (graphData?.message) {
 					const assistantMessage: ConversationMessage = {
-						id: `assistant-${Date.now()}`,
+						id: graphData.message.id || `assistant-${Date.now()}`,
 						role: "assistant",
 						type: "text",
-						content: typeof data.message === "string" ? data.message : "",
-						timestamp: new Date().toISOString(),
+						content: graphData.message.content || "",
+						timestamp: graphData.message.timestamp || new Date().toISOString(),
 					};
 					addGraphMessage(assistantMessage);
 				}
