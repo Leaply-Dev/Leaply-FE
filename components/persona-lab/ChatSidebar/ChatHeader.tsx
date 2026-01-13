@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CheckCircle2, Sparkles } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { COVERAGE_COLORS, COVERAGE_LABELS } from "@/lib/config/graphConfig";
@@ -10,29 +10,30 @@ import type { CoverageMetrics } from "@/lib/generated/api/models";
 interface ChatHeaderProps {
 	coverage: CoverageMetrics;
 	completionReady?: boolean;
+	storyNodeCount?: number;
 	totalNodeCount?: number;
 }
 
-// Coverage keys that have progress bars (excluding metadata fields)
+// Coverage keys that have progress rings (excluding metadata fields)
 type CoverageCategory = "goals" | "evidence" | "skills" | "values" | "tensions";
 
-interface CoverageSegmentProps {
-	category: CoverageCategory;
+interface CoverageRingProps {
 	value: number;
 	color: string;
 	label: string;
+	size?: number;
 }
 
-function CoverageSegment({
-	category: _category,
-	value,
-	color,
-	label,
-}: CoverageSegmentProps) {
+function CoverageRing({ value, color, label, size = 40 }: CoverageRingProps) {
 	const isComplete = value >= 60;
+	const strokeWidth = 3;
+	const radius = (size - strokeWidth) / 2;
+	const circumference = 2 * Math.PI * radius;
+	const progress = Math.min(value, 100);
+	const strokeDashoffset = circumference - (progress / 100) * circumference;
 
 	return (
-		<div className="flex-1 min-w-0 group relative">
+		<div className="flex flex-col items-center gap-1 group relative">
 			{/* Tooltip */}
 			<div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
 				<div className="bg-popover text-popover-foreground text-[10px] px-2 py-1 rounded shadow-md whitespace-nowrap border border-border">
@@ -40,26 +41,68 @@ function CoverageSegment({
 				</div>
 			</div>
 
-			{/* Progress bar */}
-			<div className="h-2 bg-muted rounded-full overflow-hidden">
-				<motion.div
-					className="h-full rounded-full"
-					initial={{ width: 0 }}
-					animate={{ width: `${value}%` }}
-					transition={{ duration: 0.5, ease: "easeOut" }}
-					style={{ backgroundColor: color }}
-				/>
+			{/* Ring */}
+			<div className="relative" style={{ width: size, height: size }}>
+				<svg
+					width={size}
+					height={size}
+					className="transform -rotate-90"
+					viewBox={`0 0 ${size} ${size}`}
+					role="img"
+				>
+					<title>{`${label}: ${value}%`}</title>
+					{/* Background circle */}
+					<circle
+						cx={size / 2}
+						cy={size / 2}
+						r={radius}
+						fill="none"
+						stroke="currentColor"
+						strokeWidth={strokeWidth}
+						className="text-muted"
+					/>
+					{/* Progress circle */}
+					<motion.circle
+						cx={size / 2}
+						cy={size / 2}
+						r={radius}
+						fill="none"
+						stroke={color}
+						strokeWidth={strokeWidth}
+						strokeLinecap="round"
+						initial={{ strokeDashoffset: circumference }}
+						animate={{ strokeDashoffset }}
+						transition={{ duration: 0.6, ease: "easeOut" }}
+						style={{
+							strokeDasharray: circumference,
+						}}
+					/>
+				</svg>
+
+				{/* Center content: percentage or checkmark */}
+				<div className="absolute inset-0 flex items-center justify-center">
+					{isComplete ? (
+						<motion.div
+							initial={{ scale: 0 }}
+							animate={{ scale: 1 }}
+							transition={{ duration: 0.3, delay: 0.3 }}
+							className="rounded-full p-0.5"
+							style={{ backgroundColor: color }}
+						>
+							<Check className="w-3 h-3 text-white" />
+						</motion.div>
+					) : (
+						<span className="text-[9px] font-semibold" style={{ color }}>
+							{value}%
+						</span>
+					)}
+				</div>
 			</div>
 
-			{/* Completion indicator */}
-			{isComplete && (
-				<div
-					className="absolute -top-1 -right-1 w-3 h-3 rounded-full flex items-center justify-center"
-					style={{ backgroundColor: color }}
-				>
-					<CheckCircle2 className="w-2 h-2 text-white" />
-				</div>
-			)}
+			{/* Label */}
+			<span className="text-[9px] text-muted-foreground truncate max-w-11 text-center">
+				{label}
+			</span>
 		</div>
 	);
 }
@@ -67,7 +110,7 @@ function CoverageSegment({
 export function ChatHeader({
 	coverage,
 	completionReady = false,
-	totalNodeCount = 0,
+	storyNodeCount = 0,
 }: ChatHeaderProps) {
 	const t = useTranslations("personaLab");
 
@@ -128,7 +171,12 @@ export function ChatHeader({
 					<h2 className="font-semibold text-sm">{t("discoveryChat")}</h2>
 					<div className="flex items-center gap-2 mt-0.5">
 						<span className="text-[10px] text-muted-foreground">
-							{totalNodeCount} {totalNodeCount === 1 ? "story" : "stories"}
+							{storyNodeCount} {storyNodeCount === 1 ? "story" : "stories"}
+							{storyNodeCount < 10 && (
+								<span className="text-muted-foreground/60 ml-1">
+									({10 - storyNodeCount} left to unlock)
+								</span>
+							)}
 						</span>
 						{completionReady && (
 							<span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-medium">
@@ -142,28 +190,15 @@ export function ChatHeader({
 				</span>
 			</div>
 
-			{/* 5-segment coverage bar */}
-			<div className="flex items-center gap-1">
+			{/* 5 coverage rings */}
+			<div className="flex items-center justify-between gap-1">
 				{segments.map((segment) => (
-					<CoverageSegment
+					<CoverageRing
 						key={segment.key}
-						category={segment.key}
 						value={coverage[segment.key] ?? 0}
 						color={segment.color}
 						label={segment.label}
 					/>
-				))}
-			</div>
-
-			{/* Category labels (shown on hover or always on larger screens) */}
-			<div className="flex items-center gap-1 mt-1.5">
-				{segments.map((segment) => (
-					<div
-						key={segment.key}
-						className="flex-1 text-center text-[9px] text-muted-foreground truncate"
-					>
-						{segment.label}
-					</div>
 				))}
 			</div>
 		</div>

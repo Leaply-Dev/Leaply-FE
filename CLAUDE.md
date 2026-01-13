@@ -24,7 +24,7 @@ bunx shadcn@latest add   # Install shadcn component
 
 ## Before Any Task
 
-1. Run `bun generate:api` if backend API changed
+1. Run `bun generate:api` to check if backend API changed
 2. Use Orval-generated hooks from `lib/generated/api/endpoints/` for all API calls
 3. Search shadcn MCP before building custom UI components
 

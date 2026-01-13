@@ -1,6 +1,7 @@
 "use client";
 
 import { QueryProvider } from "@/app/providers/query-provider";
+import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider, useSessionWarning } from "./AuthProvider";
 import { SessionTimeoutWarning } from "./SessionTimeoutWarning";
 
@@ -35,6 +36,7 @@ export function Providers({ children }: ProvidersProps) {
 			<AuthProvider>
 				{children}
 				<SessionWarningRenderer />
+				<Toaster position="top-center" richColors closeButton />
 			</AuthProvider>
 		</QueryProvider>
 	);

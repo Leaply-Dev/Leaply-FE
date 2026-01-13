@@ -5,6 +5,7 @@ import { ArrowRight, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,27 +26,30 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
-import type {
-	CoverageMetrics,
-	PersonaNodeDto,
+import {
+	type CoverageMetrics,
+	type PersonaNodeDto,
+	PersonaNodeDtoType,
 } from "@/lib/generated/api/models";
 import {
 	getGetCoverageQueryKey,
+	getGetGraphQueryKey,
+	getGetPersonaStateQueryKey,
 	useCoverage,
 	useResetConversation,
 	useSendMessage,
 	useStartConversation,
+	useSynthesizeProfile,
 } from "@/lib/hooks/persona";
 import type { StarStructureKey } from "@/lib/store/personaStore";
 import {
 	type ConversationMessage,
+	selectApiGraphNodes,
 	usePersonaStore,
 } from "@/lib/store/personaStore";
 import { ChatHeader } from "./ChatHeader";
 import { ChatMessage, TypingIndicator } from "./ChatMessage";
 import { MessageInput } from "./MessageInput";
-import { StarGapsIndicator } from "./StarGapsIndicator";
-import { StoryExtractedCard } from "./StoryExtractedCard";
 
 // Default coverage for loading state
 const DEFAULT_COVERAGE: CoverageMetrics = {
@@ -63,6 +67,10 @@ export function ChatSidebar() {
 	const queryClient = useQueryClient();
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [showResetDialog, setShowResetDialog] = useState(false);
+	// Track when we started waiting for a response (for "Thought in X" display)
+	const [thinkingStartTime, setThinkingStartTime] = useState<number | null>(
+		null,
+	);
 	// Track latest extracted story for display in chat
 	const [latestStory, setLatestStory] = useState<{
 		node: PersonaNodeDto;
@@ -122,6 +130,13 @@ export function ChatSidebar() {
 
 	const sendMessageMutation = useSendMessage();
 	const resetMutation = useResetConversation();
+	const synthesizeProfileMutation = useSynthesizeProfile();
+
+	// Computed state from store
+	const apiGraphNodes = usePersonaStore(selectApiGraphNodes);
+	const storyNodeCount = apiGraphNodes.filter(
+		(n) => n.type === PersonaNodeDtoType.key_story,
+	).length;
 
 	// Scroll to bottom on new messages
 	const messageCount = messages.length;
@@ -134,6 +149,10 @@ export function ChatSidebar() {
 
 	const handleSendMessage = useCallback(
 		(content: string) => {
+			// Track when we started thinking
+			const startTime = Date.now();
+			setThinkingStartTime(startTime);
+
 			// Add user message to store immediately (persisted)
 			const userMessage: ConversationMessage = {
 				id: `user-${Date.now()}`,
@@ -149,6 +168,10 @@ export function ChatSidebar() {
 				{ data: { content } },
 				{
 					onSuccess: (response) => {
+						// Calculate thinking duration
+						const thinkingDuration = Date.now() - startTime;
+						setThinkingStartTime(null);
+
 						// Response is ApiResponseGraphMessageResponse (mutator returns wrapped response)
 						console.log("🐛 [ChatSidebar] Raw API Response:", response);
 						// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -174,6 +197,7 @@ export function ChatSidebar() {
 								content: graphData.message.content || "",
 								timestamp:
 									graphData.message.timestamp || new Date().toISOString(),
+								thinkingDuration,
 							};
 							addGraphMessage(assistantMessage);
 						}
@@ -194,6 +218,26 @@ export function ChatSidebar() {
 							} else {
 								setLatestStory(null);
 							}
+
+							// Show toast notification for created nodes
+							if (nodesCreated.length > 0) {
+								const storyCount = nodesCreated.filter(
+									(n: PersonaNodeDto) => n.type === "key_story",
+								).length;
+								const detailCount = nodesCreated.filter(
+									(n: PersonaNodeDto) => n.type === "detail",
+								).length;
+
+								if (storyCount > 0) {
+									toast.success("Story captured!", {
+										description: `Added ${storyCount} story${storyCount > 1 ? "s" : ""} to your profile`,
+									});
+								} else if (detailCount > 0) {
+									toast.info("Details added", {
+										description: `${detailCount} insight${detailCount > 1 ? "s" : ""} added to your graph`,
+									});
+								}
+							}
 						}
 
 						// If completion is ready, add completion message
@@ -208,15 +252,54 @@ export function ChatSidebar() {
 							addGraphMessage(completionMessage);
 						}
 
-						// Invalidate coverage query to submit new progress
+						// Invalidate queries to refresh data from server
 						queryClient.invalidateQueries({
 							queryKey: getGetCoverageQueryKey(),
 						});
+						queryClient.invalidateQueries({
+							queryKey: getGetPersonaStateQueryKey(),
+						});
+						queryClient.invalidateQueries({
+							queryKey: getGetGraphQueryKey(),
+						});
+
+						// Check for auto-synthesis (10+ story nodes)
+						const currentNodes = usePersonaStore.getState().apiGraphNodes;
+						const currentStoryCount = currentNodes.filter(
+							(n) => n.type === PersonaNodeDtoType.key_story,
+						).length;
+						const hasProfile = currentNodes.some(
+							(n) => n.type === PersonaNodeDtoType.profile_summary,
+						);
+
+						if (currentStoryCount >= 10 && !hasProfile) {
+							console.log(
+								"🤖 [ChatSidebar] Auto-triggering profile synthesis...",
+							);
+							synthesizeProfileMutation.mutate(undefined, {
+								onSuccess: (node) => {
+									toast.success(t("profileUnlocked"), {
+										description: t("profileUnlockedDesc"),
+									});
+									// Add the new node to the graph
+									processGraphUpdate({
+										nodesCreated: [node],
+									} as any);
+								},
+							});
+						}
 					},
 				},
 			);
 		},
-		[sendMessageMutation, t, processGraphUpdate, addGraphMessage, queryClient],
+		[
+			sendMessageMutation,
+			t,
+			processGraphUpdate,
+			addGraphMessage,
+			queryClient,
+			synthesizeProfileMutation,
+		],
 	);
 
 	const handleReset = useCallback(() => {
@@ -298,6 +381,7 @@ export function ChatSidebar() {
 			<ChatHeader
 				coverage={coverage}
 				totalNodeCount={totalNodeCount}
+				storyNodeCount={storyNodeCount}
 				completionReady={completionReady}
 			/>
 
@@ -382,7 +466,7 @@ export function ChatSidebar() {
 					))}
 
 					{/* Typing indicator */}
-					{isSending && <TypingIndicator />}
+					{isSending && <TypingIndicator startTime={thinkingStartTime} />}
 
 					{/* Error message */}
 					{error && (

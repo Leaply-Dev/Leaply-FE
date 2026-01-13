@@ -25,6 +25,8 @@ export interface ConversationMessage {
 	content: string;
 	type: "text" | "question" | "completion";
 	timestamp: string;
+	/** Duration in milliseconds for how long the AI took to respond */
+	thinkingDuration?: number;
 }
 
 // STAR framework keys for gap tracking
@@ -247,6 +249,9 @@ export const usePersonaStore = create<PersonaStoreState>()(
 			resetPersona: () => set(initialState),
 
 			// Sync state from server response (GET /v1/persona)
+			// Note: Only sync if server has MORE messages than local, to prevent
+			// overwriting messages that were just added by mutations but not yet
+			// reflected in the server response.
 			syncWithServer: (data: PersonaStateResponse) => {
 				set((state) => {
 					// Transform API messages to store format
@@ -266,21 +271,35 @@ export const usePersonaStore = create<PersonaStoreState>()(
 							};
 						}) || [];
 
-					// Only update if server has data
-					const newMessages =
-						serverMessages.length > 0 ? serverMessages : state.graphMessages;
+					// Only update if server has MORE messages than local
+					// This prevents overwriting messages just added by mutations
+					// that haven't been reflected in the server response yet
+					const shouldUseServerMessages =
+						serverMessages.length > state.graphMessages.length;
 
 					return {
-						graphMessages: newMessages,
+						graphMessages: shouldUseServerMessages
+							? serverMessages
+							: state.graphMessages,
 					};
 				});
 			},
 
 			// Sync graph data (GET /v1/persona-graph)
+			// Note: Only sync if server has MORE nodes than local, to prevent
+			// overwriting nodes that were just added by mutations but not yet
+			// reflected in the server response.
 			syncGraph: (nodes: PersonaNodeDto[], edges: PersonaEdgeDto[]) => {
-				set({
-					apiGraphNodes: nodes,
-					apiGraphEdges: edges,
+				set((state) => {
+					// Only update if server has MORE nodes than local
+					// This prevents overwriting nodes just added by mutations
+					const shouldUseServerGraph =
+						nodes.length > state.apiGraphNodes.length;
+
+					return {
+						apiGraphNodes: shouldUseServerGraph ? nodes : state.apiGraphNodes,
+						apiGraphEdges: shouldUseServerGraph ? edges : state.apiGraphEdges,
+					};
 				});
 			},
 
