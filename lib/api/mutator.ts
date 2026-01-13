@@ -302,10 +302,6 @@ export const customInstance = async <T>(
 				}
 
 				const retryData = await retryResponse.json();
-				// Unwrap ApiResponse wrapper if present
-				if (retryData && typeof retryData === "object" && "data" in retryData) {
-					return retryData.data as T;
-				}
 				return retryData as T;
 			}
 		}
@@ -322,10 +318,6 @@ export const customInstance = async <T>(
 		}
 
 		const jsonData = await response.json();
-		// Unwrap ApiResponse wrapper if present: { success: true, data: T } -> T
-		if (jsonData && typeof jsonData === "object" && "data" in jsonData) {
-			return jsonData.data as T;
-		}
 		return jsonData as T;
 	} catch (error) {
 		const isNetworkError =
