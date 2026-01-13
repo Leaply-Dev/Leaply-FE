@@ -25,7 +25,10 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
-import type { CoverageMetrics } from "@/lib/generated/api/models";
+import type {
+	CoverageMetrics,
+	PersonaNodeDto,
+} from "@/lib/generated/api/models";
 import {
 	getGetCoverageQueryKey,
 	useCoverage,
@@ -33,6 +36,7 @@ import {
 	useSendMessage,
 	useStartConversation,
 } from "@/lib/hooks/persona";
+import type { StarStructureKey } from "@/lib/store/personaStore";
 import {
 	type ConversationMessage,
 	usePersonaStore,
@@ -40,6 +44,8 @@ import {
 import { ChatHeader } from "./ChatHeader";
 import { ChatMessage, TypingIndicator } from "./ChatMessage";
 import { MessageInput } from "./MessageInput";
+import { StarGapsIndicator } from "./StarGapsIndicator";
+import { StoryExtractedCard } from "./StoryExtractedCard";
 
 // Default coverage for loading state
 const DEFAULT_COVERAGE: CoverageMetrics = {
@@ -57,6 +63,11 @@ export function ChatSidebar() {
 	const queryClient = useQueryClient();
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [showResetDialog, setShowResetDialog] = useState(false);
+	// Track latest extracted story for display in chat
+	const [latestStory, setLatestStory] = useState<{
+		node: PersonaNodeDto;
+		gaps: StarStructureKey[];
+	} | null>(null);
 
 	// Get messages from store (persisted to localStorage)
 	const messages = usePersonaStore((state) => state.graphMessages);
@@ -80,9 +91,12 @@ export function ChatSidebar() {
 	// TanStack Query hooks for API interactions
 	const { data: coverageData } = useCoverage();
 
+	// Hydration check to prevent premature fetching
+	const hydrated = usePersonaStore((state) => state._hasHydrated);
+
 	// Fetch opening message when no messages exist (for new users or after reset)
 	// Only enabled when messages array is empty to avoid re-fetching on refresh
-	const shouldFetchOpening = messages.length === 0;
+	const shouldFetchOpening = hydrated && messages.length === 0;
 	const { data: conversationStart, isLoading: isLoadingOpening } =
 		useStartConversation({
 			query: { enabled: shouldFetchOpening },
@@ -100,8 +114,7 @@ export function ChatSidebar() {
 				role: "assistant",
 				type: "text",
 				content: graphData.message.content || "",
-				timestamp:
-					graphData.message.timestamp || new Date().toISOString(),
+				timestamp: graphData.message.timestamp || new Date().toISOString(),
 			};
 			addGraphMessage(openingMessage);
 		}
@@ -137,8 +150,16 @@ export function ChatSidebar() {
 				{
 					onSuccess: (response) => {
 						// Response is ApiResponseGraphMessageResponse (mutator returns wrapped response)
+						console.log("🐛 [ChatSidebar] Raw API Response:", response);
 						// eslint-disable-next-line @typescript-eslint/no-explicit-any
 						const graphData = (response as any)?.data ?? response;
+						console.log("🐛 [ChatSidebar] Parsed GraphData:", graphData);
+
+						if (!graphData?.message) {
+							console.warn(
+								"🐛 [ChatSidebar] No message found in response data",
+							);
+						}
 
 						// Add assistant response to store (persisted)
 						if (graphData?.message) {
@@ -160,6 +181,19 @@ export function ChatSidebar() {
 						// Update store with graph data (canvas subscribes to this)
 						if (graphData) {
 							processGraphUpdate(graphData);
+
+							// Check if a key_story was extracted - show it in chat
+							const nodesCreated = graphData.nodesCreated ?? [];
+							const storyNode = nodesCreated.find(
+								(n: PersonaNodeDto) => n.type === "key_story",
+							);
+							if (storyNode) {
+								const gaps = (graphData.starGapsForLastStory ??
+									[]) as StarStructureKey[];
+								setLatestStory({ node: storyNode, gaps });
+							} else {
+								setLatestStory(null);
+							}
 						}
 
 						// If completion is ready, add completion message
@@ -173,11 +207,16 @@ export function ChatSidebar() {
 							};
 							addGraphMessage(completionMessage);
 						}
+
+						// Invalidate coverage query to submit new progress
+						queryClient.invalidateQueries({
+							queryKey: getGetCoverageQueryKey(),
+						});
 					},
 				},
 			);
 		},
-		[sendMessageMutation, t, processGraphUpdate, addGraphMessage],
+		[sendMessageMutation, t, processGraphUpdate, addGraphMessage, queryClient],
 	);
 
 	const handleReset = useCallback(() => {
@@ -233,6 +272,7 @@ export function ChatSidebar() {
 
 	// Show loading skeleton while fetching opening message or sending first message
 	if (
+		!hydrated ||
 		isLoadingOpening ||
 		(sendMessageMutation.isPending && messages.length === 0)
 	) {

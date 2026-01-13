@@ -661,7 +661,27 @@
 		"goToApplications": "Tiếp tục đến Ứng dụng",
 		"emptyCanvasTitle": "Persona Canvas",
 		"emptyCanvasDesc": "Bắt đầu trò chuyện để xây dựng persona của bạn. Câu chuyện và insight sẽ hiển thị tại đây.",
-		"centerPlaceholder": "Tiếp tục trò chuyện để xây dựng hồ sơ"
+		"centerPlaceholder": "Tiếp tục trò chuyện để xây dựng hồ sơ",
+		"star": {
+			"title": "Phương pháp STAR",
+			"description": "Những câu chuyện hay có Hoàn cảnh, Nhiệm vụ, Hành động và Kết quả rõ ràng",
+			"situation": "Hoàn cảnh",
+			"situationDesc": "Đặt bối cảnh - ở đâu và khi nào?",
+			"task": "Nhiệm vụ",
+			"taskDesc": "Bạn đối mặt với thử thách gì?",
+			"action": "Hành động",
+			"actionDesc": "Bạn đã làm gì cụ thể?",
+			"result": "Kết quả",
+			"resultDesc": "Kết quả hoặc tác động là gì?",
+			"emotion": "Cảm xúc",
+			"emotionDesc": "Bạn cảm thấy như thế nào?",
+			"insight": "Bài học",
+			"insightDesc": "Bạn học được gì?",
+			"missingHint": "Câu chuyện của bạn sẽ mạnh mẽ hơn với chi tiết về: {elements}",
+			"expandStory": "Kể thêm về {element}",
+			"complete": "Tuyệt vời! Câu chuyện có đủ các yếu tố STAR",
+			"storyExtracted": "Đã lưu câu chuyện! Chúng tôi tìm thấy:"
+		}
 	},
 	"home": {
 		"greeting": {

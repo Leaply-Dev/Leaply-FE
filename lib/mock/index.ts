@@ -4,21 +4,19 @@ import type {
 	PersonaEdgeDto,
 	PersonaNodeDto,
 } from "@/lib/generated/api/models";
-import type { ConversationScenario, DetailFixture } from "./types";
-
+import conversationTurnsData from "./fixtures/conversation-turns.json";
+import detailsData from "./fixtures/details.json";
 import essayAnglesData from "./fixtures/essay-angles.json";
 import keyStoriesData from "./fixtures/key-stories.json";
-import detailsData from "./fixtures/details.json";
-import conversationTurnsData from "./fixtures/conversation-turns.json";
-
+import { calculateCoverage } from "./generators/coverageGenerator";
+import { generateEdgesForNodes } from "./generators/edgeGenerator";
 import {
-	createProfileSummaryNode,
+	createDetailNode,
 	createEssayAngleNode,
 	createKeyStoryNode,
-	createDetailNode,
+	createProfileSummaryNode,
 } from "./generators/nodeGenerator";
-import { generateEdgesForNodes } from "./generators/edgeGenerator";
-import { calculateCoverage } from "./generators/coverageGenerator";
+import type { ConversationScenario, DetailFixture } from "./types";
 
 export type { ConversationScenario };
 
@@ -60,7 +58,9 @@ const SCENARIO_CONFIG: Record<ConversationScenario, ScenarioConfig> = {
 /**
  * Gets the complete state for a given conversation scenario
  */
-export function getScenarioState(scenario: ConversationScenario): ScenarioState {
+export function getScenarioState(
+	scenario: ConversationScenario,
+): ScenarioState {
 	const config = SCENARIO_CONFIG[scenario];
 
 	// Create profile summary node (always present except fresh-start)

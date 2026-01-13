@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
 import { ChatSidebar } from "@/components/persona-lab/ChatSidebar";
+import { PersonaStateSync } from "@/components/persona-lab/PersonaStateSync";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePersonaStore } from "@/lib/store/personaStore";
@@ -92,6 +93,7 @@ export default function PersonaLabPage() {
 
 	return (
 		<PageTransition className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
+			<PersonaStateSync />
 			<div className="flex flex-1 min-h-0 h-full w-full bg-background overflow-hidden relative">
 				{/* Left Sidebar - Chat Interface */}
 				<motion.aside

@@ -1,6 +1,9 @@
 import Cookies from "js-cookie";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
+
+// ... (keep lines 5-242 unchanged, just showing context for replacement if needed,
+// but since this is a specific tool usage, I will target the imports and the persist options)
 
 // Cookie configuration constants
 const AUTH_COOKIE_NAME = "leaply-auth-state";
@@ -242,6 +245,7 @@ export const useUserStore = create<UserState>()(
 		}),
 		{
 			name: "leaply-user-store",
+			storage: createJSONStorage(() => localStorage),
 			partialize: (state) => ({
 				profile: state.profile,
 				accessToken: state.accessToken,

@@ -129,15 +129,13 @@ function findTensionPairs(
 
 	// Look for stories with "failure" tag and success-oriented angles
 	const failureStories = nodes.filter(
-		(n) =>
-			n.type === "key_story" && (n.tags?.includes("failure") || false),
+		(n) => n.type === "key_story" && (n.tags?.includes("failure") || false),
 	);
 
 	const successAngles = nodes.filter(
 		(n) =>
 			n.type === "essay_angle" &&
-			(n.primaryArchetype === "Innovator" ||
-				n.primaryArchetype === "Leader"),
+			(n.primaryArchetype === "Innovator" || n.primaryArchetype === "Leader"),
 	);
 
 	// Create tension edges between failure stories and success angles

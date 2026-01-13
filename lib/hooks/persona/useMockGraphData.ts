@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePersonaStore } from "@/lib/store/personaStore";
 import { getScenarioState } from "@/lib/mock";
+import { usePersonaStore } from "@/lib/store/personaStore";
 
 /**
  * Hook to load mock data when mock mode is enabled (development only)
@@ -42,10 +42,6 @@ export function useMockGraphData() {
 					timestamp: msg.timestamp || new Date().toISOString(),
 				});
 			});
-		} else {
-			// Clear mock data when disabled
-			usePersonaStore.getState().clearApiGraph();
-			usePersonaStore.getState().clearGraphMessages();
 		}
 	}, [mockMode, mockScenario]);
 }

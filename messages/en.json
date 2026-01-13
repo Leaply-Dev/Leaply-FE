@@ -661,7 +661,27 @@
 		"goToApplications": "Continue to Applications",
 		"emptyCanvasTitle": "Your Persona Canvas",
 		"emptyCanvasDesc": "Start chatting in the Discovery panel to build your persona graph. Your stories and insights will appear here as interactive nodes.",
-		"centerPlaceholder": "Keep chatting to build your profile"
+		"centerPlaceholder": "Keep chatting to build your profile",
+		"star": {
+			"title": "STAR Framework",
+			"description": "Great stories have clear Situation, Task, Action, and Result",
+			"situation": "Situation",
+			"situationDesc": "Set the scene - where and when?",
+			"task": "Task",
+			"taskDesc": "What challenge did you face?",
+			"action": "Action",
+			"actionDesc": "What did you specifically do?",
+			"result": "Result",
+			"resultDesc": "What was the outcome or impact?",
+			"emotion": "Emotion",
+			"emotionDesc": "How did you feel during this?",
+			"insight": "Insight",
+			"insightDesc": "What did you learn?",
+			"missingHint": "Your story would be stronger with more detail about: {elements}",
+			"expandStory": "Tell me more about {element}",
+			"complete": "Great! Your story has all STAR elements",
+			"storyExtracted": "Story captured! We found:"
+		}
 	},
 	"home": {
 		"greeting": {
