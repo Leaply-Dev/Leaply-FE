@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { PartyPopper, Sparkles, User } from "lucide-react";
-import type { ConversationMessage } from "@/lib/types/persona";
+import type { ConversationMessage } from "@/lib/store/personaStore";
 import { cn } from "@/lib/utils";
 
 interface ChatMessageProps {

@@ -1,10 +1,15 @@
 import { useCallback, useState } from "react";
 import type { ForceGraphMethods, NodeObject } from "react-force-graph-2d";
 import type {
+	ApiForceGraphNode,
 	ForceGraphLink,
-	ForceGraphNode,
-	NodeType,
-} from "@/lib/types/persona-canvas";
+} from "@/lib/utils/graphTransform";
+
+// Node types in the graph (matching API)
+type NodeType = "profile_summary" | "essay_angle" | "key_story" | "detail";
+
+// Alias for backwards compatibility
+type ForceGraphNode = ApiForceGraphNode;
 
 interface UseGraphInteractionProps {
 	graphData: {

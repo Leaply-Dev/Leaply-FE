@@ -14,19 +14,28 @@ import { useTranslations } from "next-intl";
 import ForceGraph2D from "react-force-graph-2d";
 import { Button } from "@/components/ui/button";
 import { getNodeConfig } from "@/lib/config/graphConfig";
+import type { PersonaNodeDto } from "@/lib/generated/api/models";
 import { useContainerDimensions } from "@/lib/hooks/useContainerDimensions";
 import { useGraphControls } from "@/lib/hooks/useGraphControls";
 import { useGraphForces } from "@/lib/hooks/useGraphForces";
 import { useGraphInteraction } from "@/lib/hooks/useGraphInteraction";
 import { useGraphRenderers } from "@/lib/hooks/useGraphRenderers";
 import { useExpandNode } from "@/lib/hooks/usePersonaConversation";
-import { usePersonaStore } from "@/lib/store/personaStore";
-import type { GraphNode, StarStructure } from "@/lib/types/persona";
-import type { ForceGraphNode, NodeType } from "@/lib/types/persona-canvas";
+import {
+	type StarStructureKey,
+	usePersonaStore,
+} from "@/lib/store/personaStore";
 import { cn } from "@/lib/utils";
+import type { ApiForceGraphNode } from "@/lib/utils/graphTransform";
+
+// Node types in the graph (matching API)
+type NodeType = "profile_summary" | "essay_angle" | "key_story" | "detail";
+
+// Alias for backwards compatibility
+type ForceGraphNode = ApiForceGraphNode;
 
 // STAR element labels for display
-const STAR_LABELS: Record<keyof StarStructure, string> = {
+const STAR_LABELS: Record<StarStructureKey, string> = {
 	situation: "Situation",
 	task: "Task",
 	action: "Action",
@@ -95,16 +104,12 @@ export function ConcentricGraphCanvas({
 		expandNodeMutation.mutate({ nodeId });
 	};
 
-	// Get GraphNode data for selected node with validation
-	const selectedGraphNode: GraphNode | undefined = selectedNode?.data
+	// Get PersonaNodeDto data for selected node with validation
+	const selectedGraphNode: PersonaNodeDto | undefined = selectedNode?.data
 		? (() => {
-				const data = selectedNode.data as GraphNode;
+				const data = selectedNode.data as PersonaNodeDto;
 				// Validate required fields exist
-				if (
-					data &&
-					typeof data.id === "string" &&
-					typeof data.content === "string"
-				) {
+				if (data && typeof data.id === "string") {
 					return data;
 				}
 				console.warn("[ConcentricGraphCanvas] Invalid node data:", data);
@@ -335,21 +340,22 @@ export function ConcentricGraphCanvas({
 							<>
 								<div className="p-3 bg-muted/50 rounded-md">
 									<p className="text-xs leading-relaxed">
-										{selectedGraphNode.content}
+										{selectedGraphNode.content || "No content"}
 									</p>
 								</div>
-								{selectedGraphNode.tags.length > 0 && (
-									<div className="flex flex-wrap gap-1">
-										{selectedGraphNode.tags.map((tag) => (
-											<span
-												key={tag}
-												className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary"
-											>
-												{tag}
-											</span>
-										))}
-									</div>
-								)}
+								{selectedGraphNode.tags &&
+									selectedGraphNode.tags.length > 0 && (
+										<div className="flex flex-wrap gap-1">
+											{selectedGraphNode.tags.map((tag) => (
+												<span
+													key={tag}
+													className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary"
+												>
+													{tag}
+												</span>
+											))}
+										</div>
+									)}
 							</>
 						)}
 
@@ -358,7 +364,7 @@ export function ConcentricGraphCanvas({
 							<>
 								<div className="p-3 bg-muted/50 rounded-md">
 									<p className="text-xs leading-relaxed">
-										{selectedGraphNode.content}
+										{selectedGraphNode.content || "No content"}
 									</p>
 								</div>
 								{selectedGraphNode.essayAngle && (
@@ -397,7 +403,7 @@ export function ConcentricGraphCanvas({
 							<>
 								<div className="p-3 bg-muted/50 rounded-md">
 									<p className="text-xs leading-relaxed">
-										{selectedGraphNode.content}
+										{selectedGraphNode.content || "No content"}
 									</p>
 								</div>
 
@@ -408,35 +414,40 @@ export function ConcentricGraphCanvas({
 											STAR Structure
 										</span>
 										<div className="space-y-2">
-											{(
-												Object.keys(STAR_LABELS) as (keyof StarStructure)[]
-											).map((key) => {
-												const value =
-													selectedGraphNode.structuredContent?.[key];
-												const hasGap = selectedNodeStarGaps.includes(key);
-												return (
-													<div
-														key={key}
-														className={cn("text-xs", hasGap && "opacity-50")}
-													>
-														<span
-															className={cn(
-																"font-medium",
-																hasGap ? "text-orange-500" : "text-foreground",
-															)}
+											{(Object.keys(STAR_LABELS) as StarStructureKey[]).map(
+												(key) => {
+													const structuredContent =
+														selectedGraphNode.structuredContent as
+															| Record<string, string>
+															| undefined;
+													const value = structuredContent?.[key];
+													const hasGap = selectedNodeStarGaps.includes(key);
+													return (
+														<div
+															key={key}
+															className={cn("text-xs", hasGap && "opacity-50")}
 														>
-															{STAR_LABELS[key]}:
-														</span>{" "}
-														<span className="text-muted-foreground">
-															{value || (
-																<span className="italic text-orange-500">
-																	Missing - expand for details
-																</span>
-															)}
-														</span>
-													</div>
-												);
-											})}
+															<span
+																className={cn(
+																	"font-medium",
+																	hasGap
+																		? "text-orange-500"
+																		: "text-foreground",
+																)}
+															>
+																{STAR_LABELS[key]}:
+															</span>{" "}
+															<span className="text-muted-foreground">
+																{value || (
+																	<span className="italic text-orange-500">
+																		Missing - expand for details
+																	</span>
+																)}
+															</span>
+														</div>
+													);
+												},
+											)}
 										</div>
 									</div>
 								)}
@@ -466,18 +477,19 @@ export function ConcentricGraphCanvas({
 								)}
 
 								{/* Tags */}
-								{selectedGraphNode.tags.length > 0 && (
-									<div className="flex flex-wrap gap-1">
-										{selectedGraphNode.tags.map((tag) => (
-											<span
-												key={tag}
-												className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary"
-											>
-												{tag}
-											</span>
-										))}
-									</div>
-								)}
+								{selectedGraphNode.tags &&
+									selectedGraphNode.tags.length > 0 && (
+										<div className="flex flex-wrap gap-1">
+											{selectedGraphNode.tags.map((tag) => (
+												<span
+													key={tag}
+													className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary"
+												>
+													{tag}
+												</span>
+											))}
+										</div>
+									)}
 							</>
 						)}
 
@@ -486,7 +498,7 @@ export function ConcentricGraphCanvas({
 							<>
 								<div className="p-3 bg-muted/50 rounded-md">
 									<p className="text-xs leading-relaxed">
-										{selectedGraphNode.content}
+										{selectedGraphNode.content || "No content"}
 									</p>
 								</div>
 								{selectedGraphNode.wordCountPotential && (

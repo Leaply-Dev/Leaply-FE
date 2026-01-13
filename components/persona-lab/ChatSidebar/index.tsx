@@ -16,6 +16,7 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import type { CoverageMetrics } from "@/lib/generated/api/models";
 import {
 	getGetCoverageQueryKey,
 	useCoverage,
@@ -23,19 +24,22 @@ import {
 	useSendMessage,
 	useStartConversation,
 } from "@/lib/hooks/persona";
-import { usePersonaStore } from "@/lib/store/personaStore";
-import type { ConversationMessage, Coverage } from "@/lib/types/persona";
+import {
+	type ConversationMessage,
+	usePersonaStore,
+} from "@/lib/store/personaStore";
 import { ChatHeader } from "./ChatHeader";
 import { ChatMessage, TypingIndicator } from "./ChatMessage";
 import { MessageInput } from "./MessageInput";
 
 // Default coverage for loading state
-const DEFAULT_COVERAGE: Coverage = {
+const DEFAULT_COVERAGE: CoverageMetrics = {
 	goals: 0,
 	evidence: 0,
 	skills: 0,
 	values: 0,
 	tensions: 0,
+	overallProgress: 0,
 };
 
 export function ChatSidebar() {
@@ -114,41 +118,31 @@ export function ChatSidebar() {
 				{ data: { content } },
 				{
 					onSuccess: (response) => {
-						// Handle API response structure
-						// At runtime, API returns wrapper { data: GraphMessageResponse }
-						// but TypeScript thinks it's GraphMessageResponse directly
-						const wrappedResponse = response as unknown as {
-							data?: typeof response;
-						};
-						const graphData = wrappedResponse.data ?? response;
-
+						// Response is already unwrapped by mutator (GraphMessageResponse)
 						// Add assistant response to store (persisted)
-						// Convert ChatMessageDto to ConversationMessage
-						if (graphData?.message) {
+						if (response?.message) {
 							const assistantMessage: ConversationMessage = {
-								id: graphData.message.id || `assistant-${Date.now()}`,
+								id: response.message.id || `assistant-${Date.now()}`,
 								role:
-									(graphData.message.role as "user" | "assistant") ||
+									(response.message.role as "user" | "assistant") ||
 									"assistant",
 								type:
-									(graphData.message.type as ConversationMessage["type"]) ||
+									(response.message.type as ConversationMessage["type"]) ||
 									"text",
-								content: graphData.message.content || "",
+								content: response.message.content || "",
 								timestamp:
-									graphData.message.timestamp || new Date().toISOString(),
+									response.message.timestamp || new Date().toISOString(),
 							};
 							addGraphMessage(assistantMessage);
 						}
 
 						// Update store with graph data (canvas subscribes to this)
-						if (graphData) {
-							processGraphUpdate(
-								graphData as import("@/lib/types/persona").GraphMessageResponse,
-							);
+						if (response) {
+							processGraphUpdate(response);
 						}
 
 						// If completion is ready, add completion message
-						if (graphData?.completionReady) {
+						if (response?.completionReady) {
 							const completionMessage: ConversationMessage = {
 								id: `completion-${Date.now()}`,
 								role: "assistant",
@@ -196,17 +190,18 @@ export function ChatSidebar() {
 		queryClient,
 	]);
 
-	// Derived state - access CoverageMetrics fields directly
-	// Convert API CoverageMetrics to local Coverage type
-	const coverage: Coverage = {
+	// Derived state - use CoverageMetrics directly from API
+	const coverage: CoverageMetrics = {
 		goals: coverageData?.data?.goals ?? 0,
 		evidence: coverageData?.data?.evidence ?? 0,
 		skills: coverageData?.data?.skills ?? 0,
 		values: coverageData?.data?.values ?? 0,
 		tensions: coverageData?.data?.tensions ?? 0,
+		lowestCategory: coverageData?.data?.lowestCategory,
+		overallProgress: coverageData?.data?.overallProgress ?? 0,
 	};
 	const totalNodeCount = 0; // Not available in CoverageMetrics, use 0 as default
-	const completionReady = (coverageData?.data?.overallProgress || 0) >= 100;
+	const completionReady = (coverage.overallProgress ?? 0) >= 100;
 	const isSending = sendMessageMutation.isPending || resetMutation.isPending;
 	const error = sendMessageMutation.error?.message;
 

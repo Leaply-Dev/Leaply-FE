@@ -12,10 +12,13 @@ import {
 	Target,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import type { PersonaNodeDto } from "@/lib/generated/api/models";
 import { LAYOUT_CONFIG } from "@/lib/hooks/useForceLayout";
 import { usePersonaStore } from "@/lib/store/personaStore";
-import type { GraphNode, GraphNodeLayer } from "@/lib/types/persona";
 import { cn } from "@/lib/utils";
+
+// Layer type for the persona graph (0 = center, 3 = outermost)
+type GraphNodeLayer = 0 | 1 | 2 | 3;
 
 // Hook for responsive mobile detection
 function useIsMobile(breakpoint = 768) {
@@ -86,14 +89,14 @@ export function GraphListView({ className }: GraphListViewProps) {
 	// Group nodes by layer with validation
 	const nodesByLayer = useMemo(() => {
 		const validLayers: GraphNodeLayer[] = [0, 1, 2, 3];
-		const groups = new Map<GraphNodeLayer, GraphNode[]>();
+		const groups = new Map<GraphNodeLayer, PersonaNodeDto[]>();
 		validLayers.forEach((layer) => {
 			groups.set(layer, []);
 		});
 
 		apiGraphNodes.forEach((node) => {
 			// Validate layer is a valid GraphNodeLayer (0-3)
-			const layer = node.layer as number;
+			const layer = (node.layer ?? 3) as number;
 			if (!validLayers.includes(layer as GraphNodeLayer)) {
 				console.warn(
 					`[GraphListView] Invalid layer ${layer} for node ${node.id}, defaulting to layer 3`,
@@ -238,15 +241,17 @@ export function GraphListView({ className }: GraphListViewProps) {
 											</div>
 										) : (
 											<div className="px-4 pb-4 pl-14 space-y-2">
-												{nodes.map((node) => (
+												{nodes.map((node, index) => (
 													<NodeListItem
-														key={node.id}
+														key={node.id ?? `node-${index}`}
 														node={node}
 														layerColor={layerColor}
 														isSelected={selectedNodeId === node.id}
 														onClick={() =>
 															setSelectedNodeId(
-																selectedNodeId === node.id ? null : node.id,
+																selectedNodeId === node.id
+																	? null
+																	: (node.id ?? null),
 															)
 														}
 													/>
@@ -266,7 +271,7 @@ export function GraphListView({ className }: GraphListViewProps) {
 
 // Individual node item component
 interface NodeListItemProps {
-	node: GraphNode;
+	node: PersonaNodeDto;
 	layerColor: string;
 	isSelected: boolean;
 	onClick: () => void;
@@ -296,16 +301,18 @@ function NodeListItem({
 			animate={{ scale: isSelected ? 1.01 : 1 }}
 		>
 			{/* Title */}
-			<h4 className="text-sm font-medium text-foreground mb-1">{node.title}</h4>
+			<h4 className="text-sm font-medium text-foreground mb-1">
+				{node.title || "Untitled"}
+			</h4>
 
-			{/* Content (was description in old API) */}
+			{/* Content */}
 			<p
 				className={cn(
 					"text-xs text-muted-foreground",
 					isSelected ? "" : "line-clamp-2",
 				)}
 			>
-				{node.content}
+				{node.content || "No content"}
 			</p>
 
 			{/* Essay angle badge (for profile_summary nodes) */}

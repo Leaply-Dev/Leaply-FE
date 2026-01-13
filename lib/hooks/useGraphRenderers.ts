@@ -2,10 +2,15 @@ import { useCallback } from "react";
 import type { LinkObject, NodeObject } from "react-force-graph-2d";
 import { EDGE_CONFIG, getNodeConfig } from "@/lib/config/graphConfig";
 import type {
+	ApiForceGraphNode,
 	ForceGraphLink,
-	ForceGraphNode,
-	NodeType,
-} from "@/lib/types/persona-canvas";
+} from "@/lib/utils/graphTransform";
+
+// Node types in the graph (matching API)
+type NodeType = "profile_summary" | "essay_angle" | "key_story" | "detail";
+
+// Alias for backwards compatibility
+type ForceGraphNode = ApiForceGraphNode;
 
 // Helper function to draw rounded rectangles on canvas
 const roundRect = (
@@ -69,9 +74,9 @@ export function useGraphRenderers({
 			const isSelected = selectedNode?.id === graphNode.id;
 			const isHovered = hoveredNode?.id === graphNode.id;
 			const isHighlighted = highlightNodes.has(graphNode.id);
-			const isHidden = hiddenNodeTypes.has(graphNode.type);
+			const isHidden = hiddenNodeTypes.has(graphNode.type as NodeType);
 			const isFaded = (selectedNode && !isHighlighted) || isHidden;
-			const config = getNodeConfig(graphNode.type);
+			const config = getNodeConfig(graphNode.type as NodeType);
 			const isSkeleton = (graphNode.data as { isSkeleton?: boolean })
 				?.isSkeleton;
 
@@ -203,8 +208,8 @@ export function useGraphRenderers({
 					? (link.target as ForceGraphNode)
 					: null;
 			const isConnectedToHidden =
-				(sourceNode && hiddenNodeTypes.has(sourceNode.type)) ||
-				(targetNode && hiddenNodeTypes.has(targetNode.type));
+				(sourceNode && hiddenNodeTypes.has(sourceNode.type as NodeType)) ||
+				(targetNode && hiddenNodeTypes.has(targetNode.type as NodeType));
 
 			const isFaded = (selectedNode && !isHighlighted) || isConnectedToHidden;
 

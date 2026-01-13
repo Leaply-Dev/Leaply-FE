@@ -13,14 +13,38 @@ import {
 } from "d3-force";
 import { useCallback, useRef, useState } from "react";
 import type {
-	GraphNodeData,
-	LayerNumber,
 	PersonaEdgeDto,
 	PersonaNodeDto,
-} from "@/lib/types/persona-graph";
+} from "@/lib/generated/api/models";
 
-// Re-export layer config for convenience
-export { LAYER_CONFIGS } from "@/lib/types/persona-graph";
+// Layer number type (0 = center, 3 = outermost)
+export type LayerNumber = 0 | 1 | 2 | 3;
+
+// Layer configuration for visual styling
+export interface LayerConfig {
+	radius: number;
+	nodeSize: number;
+	color: string;
+	opacity: number;
+}
+
+export const LAYER_CONFIGS: Record<LayerNumber, LayerConfig> = {
+	0: { radius: 0, nodeSize: 150, color: "#6366F1", opacity: 1.0 }, // Indigo - profile
+	1: { radius: 180, nodeSize: 100, color: "#8B5CF6", opacity: 1.0 }, // Purple - angles
+	2: { radius: 320, nodeSize: 70, color: "#10B981", opacity: 0.9 }, // Emerald - stories
+	3: { radius: 460, nodeSize: 40, color: "#94A3B8", opacity: 0.7 }, // Slate - details
+};
+
+// Graph node data for React Flow
+export interface GraphNodeData extends PersonaNodeDto {
+	isSelected: boolean;
+	isHovered: boolean;
+	isHighlighted: boolean;
+	isVisible: boolean;
+	zoom: number;
+	childCount?: number;
+	[key: string]: unknown;
+}
 
 // Layout configuration - Obsidian-style
 export const LAYOUT_CONFIG = {
@@ -122,7 +146,8 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 	 * Find parent node ID for a given node based on edges
 	 */
 	const findParentNodeId = useCallback(
-		(nodeId: string, edges: PersonaEdgeDto[]): string | null => {
+		(nodeId: string | undefined, edges: PersonaEdgeDto[]): string | null => {
+			if (!nodeId) return null;
 			const edge = edges.find((e) => e.target === nodeId);
 			return edge?.source || null;
 		},
@@ -140,7 +165,7 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 			hoveredId: string | null,
 			showAll: boolean,
 		): boolean => {
-			if (node.layer !== 3) return true;
+			if ((node.layer ?? 3) !== 3) return true;
 			if (showAll) return true;
 
 			const parentId = findParentNodeId(node.id, edges);
@@ -162,12 +187,13 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 			const edges = [...apiEdges];
 
 			// Find center node (layer 0)
-			const centerNode = apiNodes.find((n) => n.layer === 0);
-			if (!centerNode) return edges;
+			const centerNode = apiNodes.find((n) => (n.layer ?? 3) === 0);
+			if (!centerNode || !centerNode.id) return edges;
 
 			// Add edges from center to all layer 2 (key story) nodes
-			const layer2Nodes = apiNodes.filter((n) => n.layer === 2);
+			const layer2Nodes = apiNodes.filter((n) => (n.layer ?? 3) === 2);
 			layer2Nodes.forEach((storyNode) => {
+				if (!storyNode.id) return;
 				// Check if edge already exists
 				const exists = edges.some(
 					(e) =>
@@ -204,36 +230,41 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 			const allEdges = createEdgesWithCenterConnections(apiNodes, apiEdges);
 
 			// Create force nodes
-			const forceNodes: ForceNode[] = apiNodes.map((node) => {
-				// Center node is fixed at center
-				if (node.layer === 0) {
+			const forceNodes: ForceNode[] = apiNodes
+				.filter((node) => node.id) // Filter out nodes without IDs
+				.map((node) => {
+					const layer = (node.layer ?? 3) as LayerNumber;
+					// Center node is fixed at center
+					if (layer === 0) {
+						return {
+							id: node.id as string,
+							layer,
+							x: centerX,
+							y: centerY,
+							fx: centerX, // Fixed position
+							fy: centerY,
+						};
+					}
+					// Other nodes start with random positions around center
+					const angle = Math.random() * Math.PI * 2;
+					const radius = 100 + layer * 80 + Math.random() * 50;
 					return {
-						id: node.id,
-						layer: node.layer,
-						x: centerX,
-						y: centerY,
-						fx: centerX, // Fixed position
-						fy: centerY,
+						id: node.id as string,
+						layer,
+						x: centerX + Math.cos(angle) * radius,
+						y: centerY + Math.sin(angle) * radius,
 					};
-				}
-				// Other nodes start with random positions around center
-				const angle = Math.random() * Math.PI * 2;
-				const radius = 100 + node.layer * 80 + Math.random() * 50;
-				return {
-					id: node.id,
-					layer: node.layer,
-					x: centerX + Math.cos(angle) * radius,
-					y: centerY + Math.sin(angle) * radius,
-				};
-			});
+				});
 
-			// Create force links
-			const forceLinks: ForceLink[] = allEdges.map((edge) => ({
-				id: edge.id,
-				source: edge.source,
-				target: edge.target,
-				strength: edge.strength,
-			}));
+			// Create force links (filter out edges without required fields)
+			const forceLinks: ForceLink[] = allEdges
+				.filter((edge) => edge.id && edge.source && edge.target)
+				.map((edge) => ({
+					id: edge.id!,
+					source: edge.source!,
+					target: edge.target!,
+					strength: edge.strength ?? 1,
+				}));
 
 			// Create node map for quick lookup
 			const nodeMap = new Map(forceNodes.map((n) => [n.id, n]));
@@ -348,74 +379,80 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 			const allEdges = createEdgesWithCenterConnections(apiNodes, apiEdges);
 
 			// Convert to React Flow nodes
-			const nodes: Node<GraphNodeData>[] = apiNodes.map((node) => {
-				const position = nodePositions.get(node.id) || {
-					x: centerX,
-					y: centerY,
-				};
-				const isVisible = isDetailNodeVisible(
-					node,
-					apiEdges,
-					selId,
-					hovId,
-					showAll,
-				);
+			const nodes: Node<GraphNodeData>[] = apiNodes
+				.filter((node) => node.id) // Filter out nodes without IDs
+				.map((node) => {
+					const nodeId = node.id as string;
+					const layer = (node.layer ?? 3) as LayerNumber;
+					const position = nodePositions.get(nodeId) || {
+						x: centerX,
+						y: centerY,
+					};
+					const isVisible = isDetailNodeVisible(
+						node,
+						apiEdges,
+						selId,
+						hovId,
+						showAll,
+					);
 
-				// Count children for layer 2 nodes
-				let childCount = 0;
-				if (node.layer === 2) {
-					childCount = apiEdges.filter((e) => e.source === node.id).length;
-				}
+					// Count children for layer 2 nodes
+					let childCount = 0;
+					if (layer === 2) {
+						childCount = apiEdges.filter((e) => e.source === nodeId).length;
+					}
 
-				const nodeData: GraphNodeData = {
-					...node,
-					isSelected: node.id === selId,
-					isHovered: node.id === hovId,
-					isHighlighted: false,
-					isVisible,
-					zoom,
-					childCount,
-				};
+					const nodeData: GraphNodeData = {
+						...node,
+						isSelected: nodeId === selId,
+						isHovered: nodeId === hovId,
+						isHighlighted: false,
+						isVisible,
+						zoom,
+						childCount,
+					};
 
-				return {
-					id: node.id,
-					type: node.type,
-					position: {
-						x: position.x - LAYOUT_CONFIG.nodeSize[node.layer] / 2,
-						y: position.y - LAYOUT_CONFIG.nodeSize[node.layer] / 2,
-					},
-					data: nodeData,
-					hidden: !isVisible,
-					style: {
-						width: LAYOUT_CONFIG.nodeSize[node.layer],
-						height: LAYOUT_CONFIG.nodeSize[node.layer],
-					},
-				};
-			});
+					return {
+						id: nodeId,
+						type: node.type,
+						position: {
+							x: position.x - LAYOUT_CONFIG.nodeSize[layer] / 2,
+							y: position.y - LAYOUT_CONFIG.nodeSize[layer] / 2,
+						},
+						data: nodeData,
+						hidden: !isVisible,
+						style: {
+							width: LAYOUT_CONFIG.nodeSize[layer],
+							height: LAYOUT_CONFIG.nodeSize[layer],
+						},
+					};
+				});
 
 			// Convert to React Flow edges - simple straight lines like Obsidian
-			const edges: Edge[] = allEdges.map((edge) => {
-				const sourceNode = apiNodes.find((n) => n.id === edge.source);
-				const targetNode = apiNodes.find((n) => n.id === edge.target);
-				const isDetailEdge = targetNode?.layer === 3;
-				const isCenterEdge = sourceNode?.layer === 0;
+			const edges: Edge[] = allEdges
+				.filter((edge) => edge.id && edge.source && edge.target) // Filter out incomplete edges
+				.map((edge) => {
+					const sourceNode = apiNodes.find((n) => n.id === edge.source);
+					const targetNode = apiNodes.find((n) => n.id === edge.target);
+					const isDetailEdge = (targetNode?.layer ?? 3) === 3;
+					const isCenterEdge = (sourceNode?.layer ?? 3) === 0;
 
-				// Obsidian uses a consistent neutral color for all edges
-				const edgeColor = "#94a3b8"; // Slate-400 - subtle gray
+					// Obsidian uses a consistent neutral color for all edges
+					const edgeColor = "#94a3b8"; // Slate-400 - subtle gray
 
-				return {
-					id: edge.id,
-					source: edge.source,
-					target: edge.target,
-					type: "straight", // Simple straight lines like Obsidian
-					animated: false,
-					style: {
-						stroke: edgeColor,
-						strokeWidth: isDetailEdge ? 0.75 : 1,
-						opacity: isDetailEdge ? 0.4 : isCenterEdge ? 0.5 : 0.6,
-					},
-				};
-			});
+					return {
+						id: edge.id as string,
+						source: edge.source as string,
+						target: edge.target as string,
+						type: "straight", // Simple straight lines like Obsidian
+						animated: false,
+						style: {
+							stroke: edgeColor,
+							strokeWidth: isDetailEdge ? 0.75 : 1,
+							opacity: isDetailEdge ? 0.4 : isCenterEdge ? 0.5 : 0.6,
+						},
+					};
+				});
 
 			return { nodes, edges };
 		},
@@ -458,18 +495,26 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 	 * Get node size for a given layer
 	 */
 	const getNodeSize = useCallback(
-		(layer: LayerNumber): { width: number; height: number } => ({
-			width: LAYOUT_CONFIG.nodeSize[layer],
-			height: LAYOUT_CONFIG.nodeSize[layer],
-		}),
+		(layer: number): { width: number; height: number } => {
+			const validLayer = (
+				[0, 1, 2, 3].includes(layer) ? layer : 3
+			) as LayerNumber;
+			return {
+				width: LAYOUT_CONFIG.nodeSize[validLayer],
+				height: LAYOUT_CONFIG.nodeSize[validLayer],
+			};
+		},
 		[],
 	);
 
 	/**
 	 * Get color for a given layer
 	 */
-	const getLayerColor = useCallback((layer: LayerNumber): string => {
-		return LAYOUT_CONFIG.colors[layer];
+	const getLayerColor = useCallback((layer: number): string => {
+		const validLayer = (
+			[0, 1, 2, 3].includes(layer) ? layer : 3
+		) as LayerNumber;
+		return LAYOUT_CONFIG.colors[validLayer];
 	}, []);
 
 	return {

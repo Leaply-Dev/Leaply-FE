@@ -5,16 +5,19 @@ import { CheckCircle2, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { COVERAGE_COLORS, COVERAGE_LABELS } from "@/lib/config/graphConfig";
-import type { Coverage } from "@/lib/types/persona";
+import type { CoverageMetrics } from "@/lib/generated/api/models";
 
 interface ChatHeaderProps {
-	coverage: Coverage;
+	coverage: CoverageMetrics;
 	completionReady?: boolean;
 	totalNodeCount?: number;
 }
 
+// Coverage keys that have progress bars (excluding metadata fields)
+type CoverageCategory = "goals" | "evidence" | "skills" | "values" | "tensions";
+
 interface CoverageSegmentProps {
-	category: keyof Coverage;
+	category: CoverageCategory;
 	value: number;
 	color: string;
 	label: string;
@@ -68,14 +71,25 @@ export function ChatHeader({
 }: ChatHeaderProps) {
 	const t = useTranslations("personaLab");
 
-	// Calculate average coverage
+	// Calculate average coverage (only from the 5 coverage categories)
 	const averageCoverage = useMemo(() => {
-		const values = Object.values(coverage);
+		// Use overallProgress if available, otherwise calculate from categories
+		if (coverage.overallProgress !== undefined) {
+			return Math.round(coverage.overallProgress);
+		}
+		const categories: CoverageCategory[] = [
+			"goals",
+			"evidence",
+			"skills",
+			"values",
+			"tensions",
+		];
+		const values = categories.map((key) => coverage[key] ?? 0);
 		return Math.round(values.reduce((sum, v) => sum + v, 0) / values.length);
 	}, [coverage]);
 
 	// Coverage segments configuration
-	const segments: { key: keyof Coverage; label: string; color: string }[] = [
+	const segments: { key: CoverageCategory; label: string; color: string }[] = [
 		{
 			key: "goals",
 			label: COVERAGE_LABELS.goals,
@@ -134,7 +148,7 @@ export function ChatHeader({
 					<CoverageSegment
 						key={segment.key}
 						category={segment.key}
-						value={coverage[segment.key]}
+						value={coverage[segment.key] ?? 0}
 						color={segment.color}
 						label={segment.label}
 					/>
