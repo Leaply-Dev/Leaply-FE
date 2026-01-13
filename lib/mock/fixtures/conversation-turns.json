@@ -1,0 +1,72 @@
+[
+	{
+		"userMessage": "I want to apply to strong CS graduate programs and position myself for research roles. I’ve done internships, projects, and some volunteering, but I’m not sure how they connect into a clear narrative yet.",
+		"assistantMessage": "That’s a good starting point. Before we dive into details, what outcome are you aiming for long term—industry research, a PhD, or something else? This helps anchor which experiences matter most.",
+		"triggeredNodes": ["Graduate Research"],
+		"coverageIncrease": 14,
+		"starGapsDetected": []
+	},
+	{
+		"userMessage": "I’m leaning toward research-heavy programs, possibly a PhD later. I enjoy systems and ML, especially when theory meets messy real-world constraints.",
+		"assistantMessage": "That combination is compelling. Let’s ground it in concrete stories. Can you describe one experience where systems or ML work clearly shaped how you think or work today?",
+		"triggeredNodes": ["Bridging Theory and Practice"],
+		"coverageIncrease": 13,
+		"starGapsDetected": []
+	},
+	{
+		"userMessage": "During an internship, I worked on a backend API that suddenly had latency spikes in production after traffic grew. It was stressful because customers were affected.",
+		"assistantMessage": "Good situation context. What exactly was your responsibility in that moment, and what actions did you personally take to diagnose or address the issue?",
+		"triggeredNodes": ["Production Latency Spike"],
+		"coverageIncrease": 10,
+		"starGapsDetected": ["result"]
+	},
+	{
+		"userMessage": "I dug into metrics and traces, noticed a correlation with cache evictions, reproduced it locally, and proposed changes to cache TTLs and indexes. I coordinated rollout with the team.",
+		"assistantMessage": "That’s strong action detail. What happened after the rollout, and how did that experience change how you approach debugging or system design?",
+		"triggeredNodes": ["Systems Debugging"],
+		"coverageIncrease": 9,
+		"starGapsDetected": ["result", "insight"]
+	},
+	{
+		"userMessage": "Another example is a hackathon ML project where our initial model failed badly. We pivoted to simpler baselines and focused on error analysis instead.",
+		"assistantMessage": "This sounds like a valuable failure story. Can you clarify the outcome and, more importantly, what you took away intellectually or emotionally from that pivot?",
+		"triggeredNodes": ["Hackathon Model Pivot"],
+		"coverageIncrease": 9,
+		"starGapsDetected": []
+	},
+	{
+		"userMessage": "I’ve also noticed a tension: I like leading teams, but I’m often more comfortable doing deep technical work quietly rather than being visible.",
+		"assistantMessage": "That tension is common and useful to surface. Can you point to a concrete moment where you had to balance leadership with individual contribution?",
+		"triggeredNodes": ["Leading the Build"],
+		"coverageIncrease": 8,
+		"starGapsDetected": []
+	},
+	{
+		"userMessage": "In a course project, I stepped up to organize tasks and reviews, but I still spent most of my time fixing tricky parts myself because it felt safer.",
+		"assistantMessage": "Interesting. Reflect on that choice—did it help or hurt the team, and how has it influenced how you think about mentorship and delegation?",
+		"triggeredNodes": ["Course Project Leadership"],
+		"coverageIncrease": 8,
+		"starGapsDetected": ["insight"]
+	},
+	{
+		"userMessage": "Teaching programming to high school students made me realize I care a lot about access. Seeing them understand concepts was more motivating than grades or awards.",
+		"assistantMessage": "That points to a core value. Why do you think that kind of impact resonates with you, and how do you see it fitting into a research-focused career?",
+		"triggeredNodes": ["Inclusivity"],
+		"coverageIncrease": 7,
+		"starGapsDetected": []
+	},
+	{
+		"userMessage": "I think it’s because I struggled early on and benefited from patient mentors. I want research and systems work to feel less gatekept and more human.",
+		"assistantMessage": "That connects resilience, mentorship, and impact nicely. We can weave this into both personal statements and diversity prompts.",
+		"triggeredNodes": ["Resilience", "Mentorship"],
+		"coverageIncrease": 6,
+		"starGapsDetected": []
+	},
+	{
+		"userMessage": "Yes, this feels much clearer now. I can see how my systems work, failures, and teaching all reinforce the same direction rather than being random.",
+		"assistantMessage": "Great. At this point, your persona graph has enough coverage to synthesize essays. Next step is refining emphasis per school, but the core narrative is solid.",
+		"triggeredNodes": ["Debugging at Scale", "Intellectual Curiosity"],
+		"coverageIncrease": 5,
+		"starGapsDetected": []
+	}
+]

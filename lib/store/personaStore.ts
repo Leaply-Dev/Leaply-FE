@@ -38,10 +38,21 @@ export type StarStructureKey =
 // View mode for canvas/list toggle
 export type ViewMode = "list" | "canvas";
 
+// Mock mode scenario types (development only)
+export type ConversationScenario =
+	| "fresh-start"
+	| "building-momentum"
+	| "tension-discovery"
+	| "completion-ready";
+
 // Store State
 interface PersonaStoreState {
 	// === UI State ===
 	viewMode: ViewMode;
+
+	// === Mock Mode (Development Only) ===
+	mockMode: boolean;
+	mockScenario: ConversationScenario;
 
 	// === Graph-Based Conversation State (from chat mutations) ===
 	apiGraphNodes: PersonaNodeDto[];
@@ -58,6 +69,10 @@ interface PersonaStoreState {
 
 	// UI actions
 	setViewMode: (mode: ViewMode) => void;
+
+	// Mock mode actions (development only)
+	setMockMode: (enabled: boolean) => void;
+	setMockScenario: (scenario: ConversationScenario) => void;
 
 	// Graph update actions (called from ChatSidebar mutation callbacks)
 	processGraphUpdate: (response: GraphMessageResponse) => void;
@@ -79,6 +94,10 @@ interface PersonaStoreState {
 const initialState = {
 	// UI state
 	viewMode: "canvas" as ViewMode,
+
+	// Mock mode (development only)
+	mockMode: false,
+	mockScenario: "fresh-start" as ConversationScenario,
 
 	// Graph-based conversation state
 	apiGraphNodes: [] as PersonaNodeDto[],
@@ -108,6 +127,10 @@ export const usePersonaStore = create<PersonaStoreState>()(
 
 			// === UI Actions ===
 			setViewMode: (mode) => set({ viewMode: mode }),
+
+			// === Mock Mode Actions ===
+			setMockMode: (enabled) => set({ mockMode: enabled }),
+			setMockScenario: (scenario) => set({ mockScenario: scenario }),
 
 			// === Graph Update Actions ===
 

@@ -15,6 +15,7 @@ import ForceGraph2D from "react-force-graph-2d";
 import { Button } from "@/components/ui/button";
 import { getNodeConfig } from "@/lib/config/graphConfig";
 import type { PersonaNodeDto } from "@/lib/generated/api/models";
+import { useMockGraphData } from "@/lib/hooks/persona/useMockGraphData";
 import { useContainerDimensions } from "@/lib/hooks/useContainerDimensions";
 import { useGraphControls } from "@/lib/hooks/useGraphControls";
 import { useGraphForces } from "@/lib/hooks/useGraphForces";
@@ -56,6 +57,9 @@ export function ConcentricGraphCanvas({
 	className,
 }: ConcentricGraphCanvasProps) {
 	const t = useTranslations("personaLab");
+
+	// Load mock data when mock mode is enabled (development only)
+	useMockGraphData();
 
 	// Use all custom hooks for clean composition
 	const { fgRef, graphData } = useGraphForces();

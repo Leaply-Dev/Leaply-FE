@@ -5,6 +5,7 @@ import { ArrowRight, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -16,6 +17,14 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Toggle } from "@/components/ui/toggle";
 import type { CoverageMetrics } from "@/lib/generated/api/models";
 import {
 	getGetCoverageQueryKey,
@@ -61,6 +70,12 @@ export function ChatSidebar() {
 		(state) => state.processGraphUpdate,
 	);
 	const clearApiGraph = usePersonaStore((state) => state.clearApiGraph);
+
+	// Mock mode state (development only)
+	const mockMode = usePersonaStore((state) => state.mockMode);
+	const mockScenario = usePersonaStore((state) => state.mockScenario);
+	const setMockMode = usePersonaStore((state) => state.setMockMode);
+	const setMockScenario = usePersonaStore((state) => state.setMockScenario);
 
 	// TanStack Query hooks for API interactions
 	const { data: coverageData } = useCoverage();
@@ -234,6 +249,43 @@ export function ChatSidebar() {
 				totalNodeCount={totalNodeCount}
 				completionReady={completionReady}
 			/>
+
+			{/* Mock Mode Controls (Development Only) */}
+			{process.env.NODE_ENV === "development" && (
+				<div className="border-b bg-muted/50 p-2">
+					<div className="flex items-center justify-between gap-3">
+						<div className="flex items-center gap-2">
+							<Toggle
+								pressed={mockMode}
+								onPressedChange={(pressed) => {
+									setMockMode(pressed);
+									if (!pressed) {
+										clearApiGraph();
+										clearGraphMessages();
+									}
+								}}
+								size="sm"
+								className="h-7"
+							>
+								Mock mode
+							</Toggle>
+						</div>
+						{mockMode && (
+							<Select value={mockScenario} onValueChange={setMockScenario}>
+								<SelectTrigger className="h-7 w-35 text-xs">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="fresh-start">Fresh Start</SelectItem>
+									<SelectItem value="building-momentum">Building</SelectItem>
+									<SelectItem value="tension-discovery">Tensions</SelectItem>
+									<SelectItem value="completion-ready">Complete</SelectItem>
+								</SelectContent>
+							</Select>
+						)}
+					</div>
+				</div>
+			)}
 
 			{/* Reset button with confirmation dialog */}
 			<div className="px-3 py-2 border-b border-border flex justify-end">

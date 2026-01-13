@@ -1,0 +1,173 @@
+[
+	{
+		"title": "Python Systems",
+		"type": "skill",
+		"content": "Experienced using Python for backend services, data pipelines, and experimentation, with emphasis on readable code, profiling, and incremental optimization in production-like environments.",
+		"tags": ["systems", "debugging"],
+		"relatedStories": ["Production Latency Spike", "Algorithm Meets Reality"]
+	},
+	{
+		"title": "Machine Learning",
+		"type": "skill",
+		"content": "Hands-on experience training, evaluating, and iterating ML models, focusing on data quality, baselines, and error analysis rather than blind model complexity.",
+		"tags": ["machine-learning", "research"],
+		"relatedStories": ["Hackathon Model Pivot", "Research Experiment Setback"]
+	},
+	{
+		"title": "Systems Debugging",
+		"type": "skill",
+		"content": "Ability to diagnose performance and reliability issues using metrics, traces, and hypothesis-driven investigation under time and operational constraints.",
+		"tags": ["systems", "resilience"],
+		"relatedStories": ["Production Latency Spike", "Incomplete Incident Report"]
+	},
+	{
+		"title": "Problem Solving",
+		"type": "skill",
+		"content": "Approaches ambiguous problems by decomposing them, validating assumptions, and iterating toward evidence-backed solutions instead of premature optimization.",
+		"tags": ["problem-solving", "iteration"],
+		"relatedStories": ["Algorithm Meets Reality", "Research Experiment Setback"]
+	},
+	{
+		"title": "Technical Communication",
+		"type": "skill",
+		"content": "Communicates complex technical ideas clearly through documentation, diagrams, and structured explanations tailored to different audiences.",
+		"tags": ["communication", "collaboration"],
+		"relatedStories": ["Cross-Team Misalignment", "Incomplete Incident Report"]
+	},
+	{
+		"title": "Team Leadership",
+		"type": "skill",
+		"content": "Provides direction and structure in team settings by clarifying goals, delegating tasks, and supporting peers rather than centralizing decisions.",
+		"tags": ["leadership", "collaboration"],
+		"relatedStories": ["Course Project Leadership", "Mentoring Junior Teammate"]
+	},
+	{
+		"title": "Mentorship",
+		"type": "skill",
+		"content": "Supports less experienced teammates through pairing, feedback, and documentation, enabling long-term contribution rather than short-term fixes.",
+		"tags": ["mentorship", "leadership"],
+		"relatedStories": [
+			"Mentoring Junior Teammate",
+			"Teaching Intro Programming"
+		]
+	},
+	{
+		"title": "Adaptability",
+		"type": "skill",
+		"content": "Adjusts approaches when assumptions fail, whether due to data limitations, cultural differences, or unclear problem definitions.",
+		"tags": ["adaptability", "reflection"],
+		"relatedStories": ["Cross-Team Misalignment", "Adapting Study Methods"]
+	},
+	{
+		"title": "Intellectual Curiosity",
+		"type": "value",
+		"content": "Motivated by understanding how and why systems work, even when exploration leads to negative or inconclusive results.",
+		"tags": ["research", "reflection"],
+		"relatedStories": ["Research Experiment Setback", "Algorithm Meets Reality"]
+	},
+	{
+		"title": "Impact Focus",
+		"type": "value",
+		"content": "Prioritizes meaningful outcomes and learning over external recognition, especially in collaborative and experimental settings.",
+		"tags": ["impact", "collaboration"],
+		"relatedStories": ["Hackathon Model Pivot", "Teaching Intro Programming"]
+	},
+	{
+		"title": "Collaboration",
+		"type": "value",
+		"content": "Believes strong technical results emerge from shared ownership, clear communication, and respect for diverse perspectives.",
+		"tags": ["collaboration", "communication"],
+		"relatedStories": ["Course Project Leadership", "Cross-Team Misalignment"]
+	},
+	{
+		"title": "Inclusivity",
+		"type": "value",
+		"content": "Values making technical knowledge accessible and welcoming, especially for learners from nontraditional or underserved backgrounds.",
+		"tags": ["inclusion", "education"],
+		"relatedStories": ["Teaching Intro Programming"]
+	},
+	{
+		"title": "Resilience",
+		"type": "value",
+		"content": "Views setbacks as signals to reflect and adapt rather than reasons to disengage from challenging technical work.",
+		"tags": ["resilience", "failure"],
+		"relatedStories": ["Research Experiment Setback", "Early Imposter Syndrome"]
+	},
+	{
+		"title": "Clarity",
+		"type": "value",
+		"content": "Values clear reasoning and documentation to reduce ambiguity and enable others to build effectively on prior work.",
+		"tags": ["communication", "reflection"],
+		"relatedStories": ["Incomplete Incident Report", "Cross-Team Misalignment"]
+	},
+	{
+		"title": "Graduate Research",
+		"type": "goal",
+		"content": "Pursue a research-focused graduate degree to develop rigorous problem formulation, experimental design, and theoretical grounding.",
+		"tags": ["research", "growth"],
+		"relatedStories": ["Research Experiment Setback", "Algorithm Meets Reality"]
+	},
+	{
+		"title": "PhD Path",
+		"type": "goal",
+		"content": "Prepare for a potential PhD by building depth in systems and machine learning research through mentorship and publication-quality work.",
+		"tags": ["research", "perseverance"],
+		"relatedStories": ["Hackathon Model Pivot", "Research Experiment Setback"]
+	},
+	{
+		"title": "Inclusive Teaching",
+		"type": "goal",
+		"content": "Continue teaching and mentoring students from diverse backgrounds alongside advanced technical training.",
+		"tags": ["education", "inclusion"],
+		"relatedStories": ["Teaching Intro Programming"]
+	},
+	{
+		"title": "Technical Leadership",
+		"type": "goal",
+		"content": "Grow into roles that combine deep technical contribution with guiding teams through complex engineering decisions.",
+		"tags": ["leadership", "collaboration"],
+		"relatedStories": ["Course Project Leadership", "Mentoring Junior Teammate"]
+	},
+	{
+		"title": "System Builder",
+		"type": "goal",
+		"content": "Design and deploy reliable, scalable systems that translate theoretical ideas into real-world impact.",
+		"tags": ["systems", "impact"],
+		"relatedStories": ["Production Latency Spike", "Algorithm Meets Reality"]
+	},
+	{
+		"title": "Latency Reduction",
+		"type": "evidence",
+		"content": "Reduced P95 API latency by approximately 38% during an internship through targeted caching and indexing changes.",
+		"tags": ["systems", "debugging"],
+		"relatedStories": ["Production Latency Spike"]
+	},
+	{
+		"title": "Hackathon Output",
+		"type": "evidence",
+		"content": "Delivered a functional ML prototype and accompanying error analysis under a 48-hour deadline.",
+		"tags": ["machine-learning", "iteration"],
+		"relatedStories": ["Hackathon Model Pivot"]
+	},
+	{
+		"title": "Course Recognition",
+		"type": "evidence",
+		"content": "Received strong instructor feedback for code quality and teamwork in a multi-person software engineering project.",
+		"tags": ["leadership", "collaboration"],
+		"relatedStories": ["Course Project Leadership"]
+	},
+	{
+		"title": "Mentorship Impact",
+		"type": "evidence",
+		"content": "Helped onboard junior teammates who later independently owned and delivered features.",
+		"tags": ["mentorship", "leadership"],
+		"relatedStories": ["Mentoring Junior Teammate"]
+	},
+	{
+		"title": "Outreach Participation",
+		"type": "evidence",
+		"content": "Volunteered consistently in introductory programming workshops, supporting multiple cohorts of high school students.",
+		"tags": ["education", "inclusion"],
+		"relatedStories": ["Teaching Intro Programming"]
+	}
+]

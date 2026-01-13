@@ -1,0 +1,94 @@
+[
+	{
+		"title": "Debugging at Scale",
+		"primaryArchetype": "Problem Solver",
+		"secondaryArchetype": "Innovator",
+		"archetypeSummary": "Applies systematic reasoning to diagnose and resolve complex technical failures under real constraints.",
+		"bestFor": [
+			"Describe a technical challenge",
+			"Problem-solving experience",
+			"Research or project essay"
+		],
+		"wordCountPotential": "300-450",
+		"tags": ["systems", "debugging", "resilience", "collaboration"],
+		"essayAngle": "Frame a production incident during an internship where a distributed system degraded under load. Describe forming hypotheses, instrumenting metrics, and iterating fixes with teammates. Emphasize trade-offs, learning to communicate uncertainty, and how the experience sharpened rigor in systems thinking and experimental design relevant to graduate research."
+	},
+	{
+		"title": "From Idea to Prototype",
+		"primaryArchetype": "Innovator",
+		"archetypeSummary": "Turns open-ended ideas into validated technical artifacts through experimentation and iteration.",
+		"bestFor": [
+			"Innovation or creativity essay",
+			"Research interests statement",
+			"Future goals prompt"
+		],
+		"wordCountPotential": "250-350",
+		"tags": ["research", "prototyping", "machine-learning", "iteration"],
+		"essayAngle": "Anchor the story in a hackathon or independent study where an initial ML concept failed to generalize. Detail dataset curation, baseline modeling, and ablation-driven insights that reshaped the approach. Connect curiosity-driven iteration to a desire for research training and mentorship at a top program."
+	},
+	{
+		"title": "Leading the Build",
+		"primaryArchetype": "Leader",
+		"archetypeSummary": "Coordinates people and priorities to deliver outcomes while elevating team members.",
+		"bestFor": [
+			"Leadership experience",
+			"Teamwork essay",
+			"Community impact prompt"
+		],
+		"wordCountPotential": "250-350",
+		"tags": ["leadership", "collaboration", "delivery", "mentorship"],
+		"essayAngle": "Describe captaining a project team for a course or startup prototype. Focus on setting technical direction, unblocking peers, and resolving conflicts between scope and quality. Reflect on learning to listen, delegate, and create psychological safety—skills you plan to bring to research groups."
+	},
+	{
+		"title": "Teaching Through Service",
+		"primaryArchetype": "Leader",
+		"secondaryArchetype": "Cultural Navigator",
+		"archetypeSummary": "Leads by empowering others through education across differing backgrounds.",
+		"bestFor": ["Service or outreach essay", "Leadership and impact prompt"],
+		"wordCountPotential": "200-300",
+		"tags": ["education", "volunteering", "inclusion", "collaboration"],
+		"essayAngle": "Center on volunteering to teach coding to underrepresented students. Highlight adapting explanations to varied contexts, measuring learning outcomes, and sustaining engagement. Link the experience to a commitment to inclusive research communities and mentoring within graduate programs."
+	},
+	{
+		"title": "Recovering from Failure",
+		"primaryArchetype": "Resilient Overcomer",
+		"archetypeSummary": "Transforms setbacks into durable growth through reflection and adaptation.",
+		"bestFor": ["Failure or challenge essay", "Personal growth prompt"],
+		"wordCountPotential": "300-450",
+		"tags": ["failure", "reflection", "growth", "perseverance"],
+		"essayAngle": "Recount a research or internship misstep—an experiment that invalidated months of work. Focus on diagnosing flawed assumptions, seeking feedback, and rebuilding momentum. Emphasize how disciplined postmortems and humility reshaped your approach to science."
+	},
+	{
+		"title": "Bridging Theory and Practice",
+		"primaryArchetype": "Problem Solver",
+		"archetypeSummary": "Connects theoretical foundations with real-world constraints to create robust solutions.",
+		"bestFor": ["Academic preparation", "Technical depth essay"],
+		"wordCountPotential": "250-350",
+		"tags": ["theory", "applied-systems", "optimization", "research"],
+		"essayAngle": "Describe translating algorithms coursework into a performant implementation during an internship or lab. Discuss constraints like memory, latency, and data quality, and how proofs informed design choices. Tie this synthesis to readiness for rigorous graduate study."
+	},
+	{
+		"title": "Adapting Across Cultures",
+		"primaryArchetype": "Cultural Navigator",
+		"archetypeSummary": "Learns and contributes effectively across cultural and disciplinary boundaries.",
+		"bestFor": ["Diversity statement", "Background or identity essay"],
+		"wordCountPotential": "200-300",
+		"tags": [
+			"cross-cultural",
+			"communication",
+			"adaptability",
+			"collaboration"
+		],
+		"essayAngle": "Narrate collaborating on an international or interdisciplinary team where norms differed. Emphasize listening, aligning expectations, and translating technical ideas. Connect these skills to thriving in global research environments at top universities."
+	},
+	{
+		"title": "Rebuilding Confidence",
+		"primaryArchetype": "Resilient Overcomer",
+		"secondaryArchetype": "Leader",
+		"archetypeSummary": "Reclaims momentum after doubt and channels growth into impact.",
+		"bestFor": ["Personal statement", "Adversity essay"],
+		"wordCountPotential": "300-450",
+		"tags": ["self-improvement", "mentorship", "confidence", "reflection"],
+		"essayAngle": "Focus on a period of imposter syndrome during early research or internships. Show concrete steps—seeking mentors, setting learning goals, contributing documentation—that rebuilt confidence. Conclude with how this resilience informs leadership and collaboration in graduate research."
+	}
+]
