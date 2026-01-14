@@ -11,29 +11,55 @@ interface QuickFactsBarProps {
  * Quick Facts Bar - Displays key program metrics
  */
 export function QuickFactsBar({ program }: QuickFactsBarProps) {
-	const formatCurrency = (amount?: number) => {
+	const formatCurrency = (amount?: number, currency?: string) => {
 		if (!amount) return "N/A";
+		const currencyCode = currency || "USD";
 		return new Intl.NumberFormat("en-US", {
 			style: "currency",
-			currency: "USD",
+			currency: currencyCode,
 			maximumFractionDigits: 0,
 		}).format(amount);
+	};
+
+	const formatDuration = () => {
+		const min = program.durationMonthsMin;
+		const max = program.durationMonthsMax;
+
+		if (!min && !max) {
+			// Fallback to durationMonths for backwards compatibility
+			return program.durationMonths ? `${program.durationMonths} months` : "N/A";
+		}
+
+		if (min && max && min !== max) {
+			return `${min}-${max} months`;
+		}
+
+		return min ? `${min} months` : "N/A";
+	};
+
+	const formatTuition = () => {
+		if (!program.tuition?.annualUsd) return "N/A";
+
+		const currency = program.tuitionCurrency || "USD";
+		const formatted = formatCurrency(program.tuition.annualUsd, currency);
+
+		// Show currency code if not USD
+		if (currency !== "USD") {
+			return `${formatted} ${currency}/yr`;
+		}
+		return `${formatted}/yr`;
 	};
 
 	const facts = [
 		{
 			icon: DollarSign,
 			label: "Tuition",
-			value: program.tuition?.annualUsd
-				? `${formatCurrency(program.tuition.annualUsd)}/yr`
-				: "N/A",
+			value: formatTuition(),
 		},
 		{
 			icon: Clock,
 			label: "Duration",
-			value: program.durationMonths
-				? `${program.durationMonths} months`
-				: "N/A",
+			value: formatDuration(),
 		},
 		{
 			icon: GraduationCap,
