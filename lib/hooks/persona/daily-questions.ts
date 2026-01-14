@@ -10,7 +10,6 @@ export {
 	getGetUnansweredQuestionsQueryKey,
 	useAnswerDailyQuestion,
 	// Mutations
-	useGetDailyQuestions,
 	useGetQuestion,
 	// Queries
 	useGetTodaysQuestions,

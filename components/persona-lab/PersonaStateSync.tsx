@@ -54,21 +54,21 @@ export function PersonaStateSync() {
 			);
 
 			// 1. Sync History (ignore nodes from this response as they are simplified)
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			// biome-ignore lint/suspicious/noExplicitAny: API response wrapper typing workaround
 			const stateData = (personaState as any)?.data ?? personaState;
 			if (stateData) {
 				syncWithServer(stateData);
 			}
 
 			// 2. Sync Graph (Nodes + Edges)
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			// biome-ignore lint/suspicious/noExplicitAny: API response wrapper typing workaround
 			const graphData = (graphState as any)?.data ?? graphState;
 			if (graphData) {
 				syncGraph(graphData.nodes ?? [], graphData.edges ?? []);
 			}
 
 			// 3. Sync Coverage
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			// biome-ignore lint/suspicious/noExplicitAny: API response wrapper typing workaround
 			const covData = (coverageData as any)?.data ?? coverageData;
 			if (covData) {
 				setCoverage(covData);

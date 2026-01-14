@@ -38,7 +38,7 @@ export function StarGapsIndicator({
 	const t = useTranslations("personaLab.star");
 
 	// Calculate which elements are complete
-	const completedElements = ALL_STAR_ELEMENTS.filter(
+	const _completedElements = ALL_STAR_ELEMENTS.filter(
 		(el) => !gaps.includes(el),
 	);
 	const coreComplete = CORE_STAR_ELEMENTS.every((el) => !gaps.includes(el));

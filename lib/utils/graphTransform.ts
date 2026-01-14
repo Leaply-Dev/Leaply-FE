@@ -95,10 +95,10 @@ export function transformApiGraphData(
 
 	// Layer radii (must match useGraphForces)
 	const layerRadii: Record<number, number> = {
-		0: 0,    // Center
-		1: 200,  // Inner ring
-		2: 320,  // Middle ring
-		3: 450,  // Outer ring
+		0: 0, // Center
+		1: 200, // Inner ring
+		2: 320, // Middle ring
+		3: 450, // Outer ring
 	};
 
 	const forceNodes: ApiForceGraphNode[] = nodes.map((node, index) => {
@@ -113,7 +113,7 @@ export function transformApiGraphData(
 		let initialY = 0;
 
 		// Find parent node (source of incoming edge)
-		const parentEdge = edges.find(e => e.target === node.id);
+		const parentEdge = edges.find((e) => e.target === node.id);
 		if (parentEdge?.source) {
 			const siblings = childrenByParent.get(parentEdge.source) || [];
 			const siblingIndex = siblings.indexOf(node.id || "");
@@ -124,7 +124,7 @@ export function transformApiGraphData(
 				// Add offset to avoid perfect vertical/horizontal alignment
 				const angleOffset = Math.PI / 6; // 30 degree offset
 				angle = (siblingIndex / siblingCount) * 2 * Math.PI + angleOffset;
-				
+
 				// Calculate initial position on the circle
 				initialX = radius * Math.cos(angle);
 				initialY = radius * Math.sin(angle);

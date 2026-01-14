@@ -27,23 +27,18 @@ export {
 	getGetTodaysQuestionsQueryKey,
 	getGetUnansweredQuestionsQueryKey,
 	useAnswerDailyQuestion,
-	useGetDailyQuestions,
 	useGetQuestion,
 	useGetTodaysQuestions,
 	useGetUnansweredQuestions,
 } from "./daily-questions";
 // === Graph (Visualization) ===
 export {
-	getGetCanvasQueryKey,
 	getGetCompactContextQueryKey,
 	getGetCoverageQueryKey,
 	getGetGraphQueryKey,
-	getGetPersonaQueryKey,
-	useGetCanvas,
 	useGetCompactContext,
 	useGetCoverage,
 	useGetGraph,
-	useGetPersona,
 } from "./graph";
 
 // === Profile & Synthesis ===
@@ -51,11 +46,9 @@ export {
 	getGetPersonaStateQueryKey,
 	getGetVoiceProfileQueryKey,
 	useExtractKeywords,
-	useGenerateArchetype,
 	useGetPersonaState,
 	useGetVoiceProfile,
 	useSynthesizeProfile,
-	useSynthesizeTrack,
 } from "./profile";
 
 // === Convenience Aliases ===
@@ -64,11 +57,7 @@ export {
 /** @alias useSendGraphMessage - Send a message in graph-based conversation */
 export { useSendGraphMessage as useSendMessage } from "./conversation";
 /** @alias useGetCoverage - Get coverage metrics */
-/** @alias useGetPersona - Get persona graph data */
-export {
-	useGetCoverage as useCoverage,
-	useGetPersona as usePersonaGraph,
-} from "./graph";
+export { useGetCoverage as useCoverage } from "./graph";
 
 // === Query Keys (for custom cache operations) ===
 export const personaQueryKeys = {

@@ -127,7 +127,7 @@ interface UserState {
 
 export const useUserStore = create<UserState>()(
 	persist(
-		(set, get) => ({
+		(set, _get) => ({
 			profile: null,
 			accessToken: null,
 			refreshToken: null,

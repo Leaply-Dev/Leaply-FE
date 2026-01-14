@@ -11,6 +11,7 @@ import {
 	computeGapGrid,
 	formatCountryName,
 	type GapGridData,
+	type GapStatus,
 	getGapStatusColor,
 } from "@/lib/utils/gapComputation";
 
@@ -66,7 +67,7 @@ function GapChip({
 	requiredValue?: string | number;
 	status: string;
 }) {
-	const colors = getGapStatusColor(status as any);
+	const colors = getGapStatusColor(status as GapStatus);
 
 	// Generate readable message
 	let message = "";
@@ -111,6 +112,7 @@ export function ProgramCard({
 	const netCost = totalCost - estimatedAid;
 
 	return (
+		// biome-ignore lint/a11y/useSemanticElements: Complex card layout requires div with role=button
 		<div
 			className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:border-primary/30 cursor-pointer"
 			onClick={() => onClick?.(program)}

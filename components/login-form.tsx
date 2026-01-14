@@ -23,7 +23,6 @@ import {
 	FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import type { AuthResponse } from "@/lib/generated/api/models";
 import { useLogin } from "@/lib/hooks/useLogin";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";

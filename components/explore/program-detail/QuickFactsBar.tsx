@@ -27,7 +27,9 @@ export function QuickFactsBar({ program }: QuickFactsBarProps) {
 
 		if (!min && !max) {
 			// Fallback to durationMonths for backwards compatibility
-			return program.durationMonths ? `${program.durationMonths} months` : "N/A";
+			return program.durationMonths
+				? `${program.durationMonths} months`
+				: "N/A";
 		}
 
 		if (min && max && min !== max) {

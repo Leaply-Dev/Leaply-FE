@@ -171,43 +171,46 @@ export function ProgramTabs({ program }: ProgramTabsProps) {
 							</ul>
 						</div>
 
-					{/* Standardized Tests */}
-					{(program.requirements?.greMinimum ||
-						program.requirements?.gmatMinimum ||
-						(program.requirements?.otherTests &&
-							program.requirements.otherTests.length > 0)) && (
-						<div className="bg-muted/30 rounded-xl p-6">
-							<h4 className="font-bold text-foreground mb-4">
-								Standardized Tests
-							</h4>
-							<ul className="space-y-3 text-sm">
-								{program.requirements?.greMinimum && (
-									<li className="flex justify-between">
-										<span className="text-muted-foreground">GRE</span>
-										<span className="font-medium text-foreground">
-											{program.requirements.greMinimum}+
-										</span>
-									</li>
-								)}
-								{program.requirements?.gmatMinimum && (
-									<li className="flex justify-between">
-										<span className="text-muted-foreground">GMAT</span>
-										<span className="font-medium text-foreground">
-											{program.requirements.gmatMinimum}+
-										</span>
-									</li>
-								)}
-								{program.requirements?.otherTests?.map((test, index) => (
-									<li key={`${test.name}-${index}`} className="flex justify-between">
-										<span className="text-muted-foreground">{test.name}</span>
-										<span className="font-medium text-foreground">
-											{test.value}
-										</span>
-									</li>
-								))}
-							</ul>
-						</div>
-					)}
+						{/* Standardized Tests */}
+						{(program.requirements?.greMinimum ||
+							program.requirements?.gmatMinimum ||
+							(program.requirements?.otherTests &&
+								program.requirements.otherTests.length > 0)) && (
+							<div className="bg-muted/30 rounded-xl p-6">
+								<h4 className="font-bold text-foreground mb-4">
+									Standardized Tests
+								</h4>
+								<ul className="space-y-3 text-sm">
+									{program.requirements?.greMinimum && (
+										<li className="flex justify-between">
+											<span className="text-muted-foreground">GRE</span>
+											<span className="font-medium text-foreground">
+												{program.requirements.greMinimum}+
+											</span>
+										</li>
+									)}
+									{program.requirements?.gmatMinimum && (
+										<li className="flex justify-between">
+											<span className="text-muted-foreground">GMAT</span>
+											<span className="font-medium text-foreground">
+												{program.requirements.gmatMinimum}+
+											</span>
+										</li>
+									)}
+									{program.requirements?.otherTests?.map((test, index) => (
+										<li
+											key={`${test.name}-${index}`}
+											className="flex justify-between"
+										>
+											<span className="text-muted-foreground">{test.name}</span>
+											<span className="font-medium text-foreground">
+												{test.value}
+											</span>
+										</li>
+									))}
+								</ul>
+							</div>
+						)}
 
 						{/* Required Documents */}
 						{program.requirements?.documents &&

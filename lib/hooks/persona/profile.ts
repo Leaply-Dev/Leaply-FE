@@ -8,11 +8,9 @@ export {
 	// Query keys for cache management
 	getGetVoiceProfileQueryKey,
 	useExtractKeywords,
-	useGenerateArchetype,
 	useGetPersonaState,
 	// Queries
 	useGetVoiceProfile,
 	// Mutations
 	useSynthesizeProfile,
-	useSynthesizeTrack,
 } from "@/lib/generated/api/endpoints/persona-lab/persona-lab";

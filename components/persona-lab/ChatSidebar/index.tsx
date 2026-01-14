@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -72,7 +71,7 @@ export function ChatSidebar() {
 		null,
 	);
 	// Track latest extracted story for display in chat
-	const [latestStory, setLatestStory] = useState<{
+	const [_latestStory, setLatestStory] = useState<{
 		node: PersonaNodeDto;
 		gaps: StarStructureKey[];
 	} | null>(null);
@@ -114,7 +113,7 @@ export function ChatSidebar() {
 	// biome-ignore lint/correctness/useExhaustiveDependencies: We only want to run this when conversationStart changes and messages is empty
 	useEffect(() => {
 		// Response is ApiResponseGraphMessageResponse (mutator returns wrapped response)
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		// biome-ignore lint/suspicious/noExplicitAny: API response wrapper typing workaround
 		const graphData = (conversationStart as any)?.data ?? conversationStart;
 		if (graphData?.message && messages.length === 0) {
 			const openingMessage: ConversationMessage = {
@@ -175,7 +174,7 @@ export function ChatSidebar() {
 
 						// Response is ApiResponseGraphMessageResponse (mutator returns wrapped response)
 						console.log("🐛 [ChatSidebar] Raw API Response:", response);
-						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						// biome-ignore lint/suspicious/noExplicitAny: API response wrapper typing workaround
 						const graphData = (response as any)?.data ?? response;
 						console.log("🐛 [ChatSidebar] Parsed GraphData:", graphData);
 
@@ -286,6 +285,7 @@ export function ChatSidebar() {
 									// Add the new node to the graph
 									processGraphUpdate({
 										nodesCreated: [node],
+										// biome-ignore lint/suspicious/noExplicitAny: Type cast for partial graph update
 									} as any);
 								},
 							});
@@ -311,7 +311,7 @@ export function ChatSidebar() {
 				// Clear messages and add new opening message
 				clearGraphMessages();
 				// Response is ApiResponseGraphMessageResponse (mutator returns wrapped response)
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				// biome-ignore lint/suspicious/noExplicitAny: API response wrapper typing workaround
 				const graphData = (response as any)?.data ?? response;
 				if (graphData?.message) {
 					const assistantMessage: ConversationMessage = {
@@ -339,7 +339,7 @@ export function ChatSidebar() {
 
 	// Derived state - use CoverageMetrics directly from API
 	// Response is ApiResponseCoverageMetrics (mutator returns wrapped response)
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// biome-ignore lint/suspicious/noExplicitAny: API response wrapper typing workaround
 	const coverageInner = (coverageData as any)?.data ?? coverageData;
 	const coverage: CoverageMetrics = {
 		goals: coverageInner?.goals ?? 0,

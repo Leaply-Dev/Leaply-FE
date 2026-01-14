@@ -19,7 +19,6 @@ export {
 	personaQueryKeys,
 	useCoverage,
 	useExpandNode,
-	usePersonaGraph,
 	useResetConversation,
 	useSendMessage,
 	useStartConversation,

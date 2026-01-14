@@ -226,11 +226,11 @@ export function useGraphRenderers({
 			// BOLD = Connections involving Root (Layer 0) - Most important
 			// FADED = Peer-to-peer connections - Less important
 			// ============================================================================
-			
+
 			const sourceLayer = sourceNode?.layer ?? 3;
 			const targetLayer = targetNode?.layer ?? 3;
 			const hasRootConnection = sourceLayer === 0 || targetLayer === 0;
-			
+
 			// Calculate base opacity based on hierarchy
 			let baseOpacity: number;
 			if (hasRootConnection) {
@@ -241,9 +241,9 @@ export function useGraphRenderers({
 				const avgLayer = (sourceLayer + targetLayer) / 2;
 				// Layer 1-2 (Angle-Story): 0.25-0.35
 				// Layer 2-3 (Story-Detail): 0.15-0.25
-				baseOpacity = isHighlighted ? 0.45 : (0.4 - avgLayer * 0.08);
+				baseOpacity = isHighlighted ? 0.45 : 0.4 - avgLayer * 0.08;
 			}
-			
+
 			const strengthBonus = (graphLink.strength / 100) * 0.1;
 			const opacity = Math.min(baseOpacity + strengthBonus, 0.8);
 
@@ -251,12 +251,12 @@ export function useGraphRenderers({
 			// Higher rank (lower layer) = thicker line
 			// Hierarchy: Root(0) -> Story(2) -> Angle(1) -> Detail(3)
 			const avgLayer = (sourceLayer + targetLayer) / 2;
-			
+
 			// Thickness multiplier based on average layer
 			// Root connections: 3-4x thicker
 			// Other connections: based on layer depth
-			const hierarchyMultiplier = hasRootConnection 
-				? 3.5  // Root connections are very prominent
+			const hierarchyMultiplier = hasRootConnection
+				? 3.5 // Root connections are very prominent
 				: 1 + (3 - avgLayer) * 0.4; // Other connections vary
 
 			ctx.strokeStyle = graphLink.color.replace(/[\d.]+\)$/, `${opacity})`);
