@@ -3,6 +3,8 @@
 import { Sparkles, Table } from "lucide-react";
 import { useState } from "react";
 import { TabBasedCategories } from "@/components/explore/AIMatchMode";
+import { CompareDialog } from "@/components/explore/CompareDrawer";
+import { CompareTray } from "@/components/explore/CompareTray";
 import { ManualMode } from "@/components/explore/ManualMode";
 import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { PageTransition } from "@/components/PageTransition";
@@ -95,6 +97,51 @@ export function ExploreClient({
 		saveMutation.mutate({ id, isSaved: program.isSaved ?? false });
 	};
 
+	// Compare state
+	const MAX_COMPARE_PROGRAMS = 4;
+	const [selectedPrograms, setSelectedPrograms] = useState<Set<string>>(
+		new Set(),
+	);
+	const [isCompareDialogOpen, setIsCompareDialogOpen] = useState(false);
+
+	// Toggle program selection
+	const toggleProgramSelection = (id: string) => {
+		setSelectedPrograms((prev) => {
+			const newSet = new Set(prev);
+			if (newSet.has(id)) {
+				newSet.delete(id);
+			} else if (newSet.size < MAX_COMPARE_PROGRAMS) {
+				newSet.add(id);
+			}
+			return newSet;
+		});
+	};
+
+	const isMaxReached = selectedPrograms.size >= MAX_COMPARE_PROGRAMS;
+	const selectedCount = selectedPrograms.size;
+	const selectedProgramsList = Array.from(selectedPrograms)
+		.map((id) => {
+			// Search in valid programs list first
+			const inPrograms = programs.find(
+				(p: ProgramListItemResponse) => p.id === id,
+			);
+			if (inPrograms) return inPrograms;
+
+			// If not found, search in AI Match data
+			if (aiMatchData?.data) {
+				const { reach, target, safety, unknown } = aiMatchData.data;
+				const inAi = [
+					...(reach || []),
+					...(target || []),
+					...(safety || []),
+					...(unknown || []),
+				].find((p) => p.id === id);
+				if (inAi) return inAi;
+			}
+			return undefined;
+		})
+		.filter((p): p is ProgramListItemResponse => !!p);
+
 	// Compute swimlane programs from AI Match or programs
 	const swimLanePrograms: ProgramListItemResponse[] = aiMatchData?.data
 		? [
@@ -157,7 +204,7 @@ export function ExploreClient({
 			</div>
 
 			{/* Main Content */}
-			<div className="flex-1 container mx-auto px-6 py-4">
+			<div className="flex-1 container mx-auto px-6 py-4 pb-24">
 				{/* AI Enhanced Mode */}
 				{activeMode === "ai" && (
 					<div className="space-y-3">
@@ -239,6 +286,9 @@ export function ExploreClient({
 										setSelectedProgram(program);
 										setIsDetailDrawerOpen(true);
 									}}
+									selectedPrograms={selectedPrograms}
+									onToggleSelection={toggleProgramSelection}
+									isMaxReached={isMaxReached}
 								/>
 							</>
 						)}
@@ -246,16 +296,51 @@ export function ExploreClient({
 				)}
 
 				{/* Manual Mode */}
-				{activeMode === "manual" && <ManualMode programs={swimLanePrograms} />}
+				{activeMode === "manual" && (
+					<ManualMode
+						programs={swimLanePrograms}
+						selectedPrograms={selectedPrograms}
+						onToggleSelection={toggleProgramSelection}
+						isMaxReached={isMaxReached}
+					/>
+				)}
 			</div>
+
+			{/* Zone 3: Compare Tray (Sticky Bottom - Checkout Style) */}
+			<CompareTray
+				selectedCount={selectedCount}
+				maxPrograms={MAX_COMPARE_PROGRAMS}
+				selectedProgramsList={selectedProgramsList}
+				onRemoveProgram={toggleProgramSelection}
+				onClearAll={() => setSelectedPrograms(new Set())}
+				onCompare={() => setIsCompareDialogOpen(true)}
+			/>
+
+			{/* Compare Dialog */}
+			<CompareDialog
+				open={isCompareDialogOpen}
+				onOpenChange={setIsCompareDialogOpen}
+				selectedProgramsList={selectedProgramsList}
+				onRemoveProgram={(id) => {
+					toggleProgramSelection(id);
+					// Close dialog if no programs left
+					if (selectedPrograms.size <= 1) {
+						setIsCompareDialogOpen(false);
+					}
+				}}
+				onAddToDashboard={(id) => {
+					// TODO: Implement add to dashboard functionality
+					console.log("Add to dashboard:", id);
+				}}
+			/>
 
 			{/* Program Detail Drawer for AI Mode */}
 			<ProgramDetailDrawer
-				program={selectedProgram}
+				programId={selectedProgram?.id || null}
 				open={isDetailDrawerOpen}
 				onOpenChange={setIsDetailDrawerOpen}
 				onCompare={(id) => {
-					console.log("Compare:", id);
+					toggleProgramSelection(id);
 					setIsDetailDrawerOpen(false);
 				}}
 				onAddToDashboard={(id) => {

@@ -28,14 +28,14 @@ import {
 	SheetFooter,
 	SheetTitle,
 } from "@/components/ui/sheet";
+import { useGetProgramDetail } from "@/lib/generated/api/endpoints/explore/explore";
 import type {
-	ProgramDetailResponse,
 	ProgramIntakeResponse,
 	UserContextResponse,
 } from "@/lib/generated/api/models";
 
 interface ProgramDetailDrawerProps {
-	program: ProgramDetailResponse | null;
+	programId: string | null;
 	userProfile?: UserContextResponse | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
@@ -186,7 +186,7 @@ function IntakeCard({
 }
 
 export function ProgramDetailDrawer({
-	program,
+	programId,
 	userProfile,
 	open,
 	onOpenChange,
@@ -195,9 +195,21 @@ export function ProgramDetailDrawer({
 }: ProgramDetailDrawerProps) {
 	const [expandedIntake, setExpandedIntake] = useState<string | null>(null);
 
-	if (!program) return null;
+	// Fetch detailed program data
+	const {
+		data: programDetail,
+		isLoading,
+		error,
+	} = useGetProgramDetail(programId || "", {
+		query: {
+			enabled: !!programId && open,
+			staleTime: 5 * 60 * 1000, // cache for 5 minutes
+		},
+	});
 
-	const req = program.requirements;
+	const program = programDetail?.data;
+
+	const req = program?.requirements;
 	const userProfileData = userProfile?.profile;
 	const userGpa = userProfileData?.gpa
 		? Number.parseFloat(userProfileData.gpa)
@@ -217,222 +229,256 @@ export function ProgramDetailDrawer({
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetContent
 				side="right"
-				className="w-full sm:max-w-lg p-0 flex flex-col"
+				className="w-full sm:max-w-lg p-0 flex flex-col h-full"
 			>
 				<SheetTitle className="sr-only">Program Details</SheetTitle>
-				<ScrollArea className="flex-1">
-					<div className="p-6 space-y-6">
-						{/* Header */}
-						<header className="space-y-4">
-							<div className="flex items-start gap-4">
-								<div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center shrink-0 border border-border overflow-hidden">
-									{program.universityLogoUrl ? (
-										<Image
-											src={program.universityLogoUrl}
-											alt={program.universityName || "University"}
-											width={64}
-											height={64}
-											className="object-contain"
-										/>
-									) : (
-										<GraduationCap className="w-8 h-8 text-primary" />
+				{isLoading ? (
+					<div className="flex-1 flex items-center justify-center">
+						<div className="flex flex-col items-center gap-3">
+							<div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+							<p className="text-sm text-muted-foreground">
+								Loading program details...
+							</p>
+						</div>
+					</div>
+				) : error || !program ? (
+					<div className="flex-1 flex items-center justify-center p-6 text-center">
+						<div className="space-y-3">
+							<div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+								<AlertTriangle className="w-6 h-6 text-destructive" />
+							</div>
+							<h3 className="text-lg font-semibold">Failed to load details</h3>
+							<p className="text-sm text-muted-foreground max-w-xs mx-auto">
+								{error instanceof Error
+									? error.message
+									: "Could not retrieve program information. Please try again."}
+							</p>
+							<Button onClick={() => onOpenChange(false)} variant="outline">
+								Close
+							</Button>
+						</div>
+					</div>
+				) : (
+					<>
+						<ScrollArea className="flex-1">
+							<div className="p-6 space-y-6">
+								{/* Header */}
+								<header className="space-y-4">
+									<div className="flex items-start gap-4">
+										<div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center shrink-0 border border-border overflow-hidden">
+											{program.universityLogoUrl ? (
+												<Image
+													src={program.universityLogoUrl}
+													alt={program.universityName || "University"}
+													width={64}
+													height={64}
+													className="object-contain"
+												/>
+											) : (
+												<GraduationCap className="w-8 h-8 text-primary" />
+											)}
+										</div>
+										<div className="flex-1 min-w-0">
+											<h1 className="text-xl font-bold text-foreground leading-tight">
+												{program.programName || "N/A"}
+											</h1>
+											<p className="text-sm font-medium text-muted-foreground mt-1">
+												{program.universityName || "N/A"}
+											</p>
+											<div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">
+												<MapPin className="w-3.5 h-3.5" />
+												<span>
+													{program.universityCity || "N/A"},{" "}
+													{program.universityCountry || "N/A"}
+												</span>
+											</div>
+										</div>
+									</div>
+
+									{/* Ranking Badges */}
+									<div className="flex flex-wrap gap-2">
+										{program.rankingQsDisplay && (
+											<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium">
+												<Award className="w-3 h-3 mr-1" />
+												QS #{program.rankingQsDisplay}
+											</Badge>
+										)}
+										{program.rankingTimesDisplay && (
+											<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium">
+												<Award className="w-3 h-3 mr-1" />
+												Times #{program.rankingTimesDisplay}
+											</Badge>
+										)}
+										{program.fitScore && (
+											<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium">
+												{program.fitScore}% Match
+											</Badge>
+										)}
+									</div>
+								</header>
+
+								{/* Info Grid */}
+								<section className="grid grid-cols-3 gap-3">
+									<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
+										<Clock className="w-5 h-5 text-primary mx-auto mb-2" />
+										<p className="text-xs text-muted-foreground">Duration</p>
+										<p className="font-semibold text-sm text-foreground mt-0.5">
+											{formatDuration(program.durationMonths)}
+										</p>
+									</div>
+									<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
+										<BookOpen className="w-5 h-5 text-primary mx-auto mb-2" />
+										<p className="text-xs text-muted-foreground">Study Mode</p>
+										<p className="font-semibold text-sm text-foreground mt-0.5">
+											{program.deliveryMode || "N/A"}
+										</p>
+									</div>
+									<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
+										<Globe className="w-5 h-5 text-primary mx-auto mb-2" />
+										<p className="text-xs text-muted-foreground">Language</p>
+										<p className="font-semibold text-sm text-foreground mt-0.5">
+											{program.language || "N/A"}
+										</p>
+									</div>
+								</section>
+
+								{/* Tuition Fees */}
+								<section className="bg-primary/5 rounded-xl p-4 border border-primary/20">
+									<div className="flex items-center gap-2 mb-3">
+										<DollarSign className="w-5 h-5 text-primary" />
+										<h3 className="font-semibold text-foreground">
+											Tuition Fees
+										</h3>
+									</div>
+									<div className="grid grid-cols-3 gap-4">
+										<div>
+											<p className="text-xs text-muted-foreground">Per Year</p>
+											<p className="text-lg font-bold text-foreground">
+												{formatCurrency(program.tuition?.annualUsd)}
+											</p>
+										</div>
+										<div>
+											<p className="text-xs text-muted-foreground">
+												Total Program
+											</p>
+											<p className="text-lg font-bold text-foreground">
+												{formatCurrency(program.tuition?.totalUsd)}
+											</p>
+										</div>
+										<div>
+											<p className="text-xs text-muted-foreground">App Fee</p>
+											<p className="text-lg font-bold text-foreground">
+												{formatCurrency(program.applicationFeeUsd)}
+											</p>
+										</div>
+									</div>
+									{program.tuition?.notes && (
+										<p className="text-xs text-muted-foreground mt-2">
+											{program.tuition.notes}
+										</p>
 									)}
-								</div>
-								<div className="flex-1 min-w-0">
-									<h1 className="text-xl font-bold text-foreground leading-tight">
-										{program.programName || "N/A"}
-									</h1>
-									<p className="text-sm font-medium text-muted-foreground mt-1">
-										{program.universityName || "N/A"}
-									</p>
-									<div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">
-										<MapPin className="w-3.5 h-3.5" />
-										<span>
-											{program.universityCity || "N/A"},{" "}
-											{program.universityCountry || "N/A"}
-										</span>
-									</div>
-								</div>
-							</div>
-
-							{/* Ranking Badges */}
-							<div className="flex flex-wrap gap-2">
-								{program.rankingQsDisplay && (
-									<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium">
-										<Award className="w-3 h-3 mr-1" />
-										QS #{program.rankingQsDisplay}
-									</Badge>
-								)}
-								{program.rankingTimesDisplay && (
-									<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium">
-										<Award className="w-3 h-3 mr-1" />
-										Times #{program.rankingTimesDisplay}
-									</Badge>
-								)}
-								{program.fitScore && (
-									<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium">
-										{program.fitScore}% Match
-									</Badge>
-								)}
-							</div>
-						</header>
-
-						{/* Info Grid */}
-						<section className="grid grid-cols-3 gap-3">
-							<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
-								<Clock className="w-5 h-5 text-primary mx-auto mb-2" />
-								<p className="text-xs text-muted-foreground">Duration</p>
-								<p className="font-semibold text-sm text-foreground mt-0.5">
-									{formatDuration(program.durationMonths)}
-								</p>
-							</div>
-							<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
-								<BookOpen className="w-5 h-5 text-primary mx-auto mb-2" />
-								<p className="text-xs text-muted-foreground">Study Mode</p>
-								<p className="font-semibold text-sm text-foreground mt-0.5">
-									{program.deliveryMode || "N/A"}
-								</p>
-							</div>
-							<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
-								<Globe className="w-5 h-5 text-primary mx-auto mb-2" />
-								<p className="text-xs text-muted-foreground">Language</p>
-								<p className="font-semibold text-sm text-foreground mt-0.5">
-									{program.language || "N/A"}
-								</p>
-							</div>
-						</section>
-
-						{/* Tuition Fees */}
-						<section className="bg-primary/5 rounded-xl p-4 border border-primary/20">
-							<div className="flex items-center gap-2 mb-3">
-								<DollarSign className="w-5 h-5 text-primary" />
-								<h3 className="font-semibold text-foreground">Tuition Fees</h3>
-							</div>
-							<div className="grid grid-cols-3 gap-4">
-								<div>
-									<p className="text-xs text-muted-foreground">Per Year</p>
-									<p className="text-lg font-bold text-foreground">
-										{formatCurrency(program.tuition?.annualUsd)}
-									</p>
-								</div>
-								<div>
-									<p className="text-xs text-muted-foreground">Total Program</p>
-									<p className="text-lg font-bold text-foreground">
-										{formatCurrency(program.tuition?.totalUsd)}
-									</p>
-								</div>
-								<div>
-									<p className="text-xs text-muted-foreground">App Fee</p>
-									<p className="text-lg font-bold text-foreground">
-										{formatCurrency(program.applicationFeeUsd)}
-									</p>
-								</div>
-							</div>
-							{program.tuition?.notes && (
-								<p className="text-xs text-muted-foreground mt-2">
-									{program.tuition.notes}
-								</p>
-							)}
-							{program.scholarshipAvailable && (
-								<p className="text-xs text-primary mt-2">
-									✓ Scholarship available
-								</p>
-							)}
-						</section>
-
-						{/* Requirements Section */}
-						<section>
-							<div className="flex items-center gap-2 mb-3">
-								<CheckCircle2 className="w-5 h-5 text-primary" />
-								<h3 className="font-semibold text-foreground">
-									Entry Requirements
-								</h3>
-							</div>
-							<div className="space-y-2">
-								{/* GPA */}
-								<RequirementCheckItem
-									label="GPA"
-									required={req?.gpaMinimum}
-									userValue={userGpa}
-								/>
-								{/* IELTS */}
-								<RequirementCheckItem
-									label="IELTS"
-									required={req?.ieltsMinimum}
-									userValue={userIelts}
-								/>
-								{/* TOEFL */}
-								<RequirementCheckItem
-									label="TOEFL"
-									required={req?.toeflMinimum}
-									userValue={userToefl}
-								/>
-								{/* GRE */}
-								<RequirementCheckItem
-									label="GRE"
-									required={req?.greMinimum}
-									userValue={userGre}
-								/>
-								{/* GMAT */}
-								<RequirementCheckItem
-									label="GMAT"
-									required={req?.gmatMinimum}
-									userValue={userGmat}
-								/>
-								{/* Additional Requirements */}
-								{req?.documents && req.documents.length > 0 && (
-									<div className="p-3 rounded-lg border border-border bg-muted/50">
-										<p className="font-medium text-foreground text-sm mb-2">
-											Additional Requirements
+									{program.scholarshipAvailable && (
+										<p className="text-xs text-primary mt-2">
+											✓ Scholarship available
 										</p>
-										<ul className="text-xs text-muted-foreground space-y-1">
-											{req.documents.map((doc) => (
-												<li key={doc}>• {doc}</li>
-											))}
-										</ul>
-									</div>
-								)}
-								{/* Work Experience */}
-								{req?.workExperienceYears && (
-									<div className="flex items-center justify-between p-3 rounded-lg border border-primary/20 bg-primary/5">
-										<p className="font-medium text-foreground text-sm">
-											Work Experience
-										</p>
-										<Badge className="bg-primary text-primary-foreground border-0">
-											{req.workExperienceYears}+ years
-										</Badge>
-									</div>
-								)}
-							</div>
-							{req?.notes && (
-								<p className="text-xs text-muted-foreground mt-3">
-									{req.notes}
-								</p>
-							)}
-						</section>
-					</div>
-				</ScrollArea>
+									)}
+								</section>
 
-				{/* Sticky Footer */}
-				<SheetFooter className="border-t border-border p-4 bg-background">
-					<div className="flex gap-3 w-full">
-						<Button
-							variant="outline"
-							className="flex-1 gap-2"
-							onClick={() => program?.id && onCompare?.(program.id)}
-						>
-							<Scale className="w-4 h-4" />
-							Compare
-						</Button>
-						<Button
-							className="flex-2 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-							onClick={() => program?.id && onAddToDashboard?.(program.id)}
-						>
-							<Plus className="w-4 h-4" />
-							Apply Now
-						</Button>
-					</div>
-				</SheetFooter>
+								{/* Requirements Section */}
+								<section>
+									<div className="flex items-center gap-2 mb-3">
+										<CheckCircle2 className="w-5 h-5 text-primary" />
+										<h3 className="font-semibold text-foreground">
+											Entry Requirements
+										</h3>
+									</div>
+									<div className="space-y-2">
+										{/* GPA */}
+										<RequirementCheckItem
+											label="GPA"
+											required={req?.gpaMinimum}
+											userValue={userGpa}
+										/>
+										{/* IELTS */}
+										<RequirementCheckItem
+											label="IELTS"
+											required={req?.ieltsMinimum}
+											userValue={userIelts}
+										/>
+										{/* TOEFL */}
+										<RequirementCheckItem
+											label="TOEFL"
+											required={req?.toeflMinimum}
+											userValue={userToefl}
+										/>
+										{/* GRE */}
+										<RequirementCheckItem
+											label="GRE"
+											required={req?.greMinimum}
+											userValue={userGre}
+										/>
+										{/* GMAT */}
+										<RequirementCheckItem
+											label="GMAT"
+											required={req?.gmatMinimum}
+											userValue={userGmat}
+										/>
+										{/* Additional Requirements */}
+										{req?.documents && req.documents.length > 0 && (
+											<div className="p-3 rounded-lg border border-border bg-muted/50">
+												<p className="font-medium text-foreground text-sm mb-2">
+													Additional Requirements
+												</p>
+												<ul className="text-xs text-muted-foreground space-y-1">
+													{req.documents.map((doc) => (
+														<li key={doc}>• {doc}</li>
+													))}
+												</ul>
+											</div>
+										)}
+										{/* Work Experience */}
+										{req?.workExperienceYears && (
+											<div className="flex items-center justify-between p-3 rounded-lg border border-primary/20 bg-primary/5">
+												<p className="font-medium text-foreground text-sm">
+													Work Experience
+												</p>
+												<Badge className="bg-primary text-primary-foreground border-0">
+													{req.workExperienceYears}+ years
+												</Badge>
+											</div>
+										)}
+									</div>
+									{req?.notes && (
+										<p className="text-xs text-muted-foreground mt-3">
+											{req.notes}
+										</p>
+									)}
+								</section>
+							</div>
+						</ScrollArea>
+
+						{/* Sticky Footer */}
+						<SheetFooter className="border-t border-border p-4 bg-background">
+							<div className="flex gap-3 w-full">
+								<Button
+									variant="outline"
+									className="flex-1 gap-2"
+									onClick={() => program?.id && onCompare?.(program.id)}
+								>
+									<Scale className="w-4 h-4" />
+									Compare
+								</Button>
+								<Button
+									className="flex-2 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+									onClick={() => program?.id && onAddToDashboard?.(program.id)}
+								>
+									<Plus className="w-4 h-4" />
+									Apply Now
+								</Button>
+							</div>
+						</SheetFooter>
+					</>
+				)}
 			</SheetContent>
 		</Sheet>
 	);

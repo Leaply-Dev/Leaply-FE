@@ -27,6 +27,9 @@ export function CategoryContainer({
 	onSaveToggle,
 	onProgramClick,
 	defaultExpanded = true,
+	selectedPrograms,
+	onToggleSelection,
+	isMaxReached,
 }: {
 	title: string;
 	description: string;
@@ -36,6 +39,9 @@ export function CategoryContainer({
 	onSaveToggle?: (id: string) => void;
 	onProgramClick?: (program: ProgramListItemResponse) => void;
 	defaultExpanded?: boolean;
+	selectedPrograms?: Set<string>;
+	onToggleSelection?: (id: string) => void;
+	isMaxReached?: boolean;
 }) {
 	const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 	const [showAll, setShowAll] = useState(false);
@@ -165,6 +171,9 @@ export function CategoryContainer({
 										userProfile={userProfile}
 										onSaveToggle={onSaveToggle}
 										onClick={onProgramClick}
+										isSelected={selectedPrograms?.has(program.id || "")}
+										onToggleSelection={onToggleSelection}
+										isMaxReached={isMaxReached}
 									/>
 								))}
 							</div>
@@ -222,11 +231,17 @@ export function SwimLanes({
 	userProfile,
 	onSaveToggle,
 	onProgramClick,
+	selectedPrograms,
+	onToggleSelection,
+	isMaxReached,
 }: {
 	programs: ProgramListItemResponse[];
 	userProfile?: UserContextResponse | null;
 	onSaveToggle?: (id: string) => void;
 	onProgramClick?: (program: ProgramListItemResponse) => void;
+	selectedPrograms?: Set<string>;
+	onToggleSelection?: (id: string) => void;
+	isMaxReached?: boolean;
 }) {
 	const reach = programs.filter((p) => p.fitCategory === "reach");
 	const target = programs.filter((p) => p.fitCategory === "target");
@@ -242,6 +257,9 @@ export function SwimLanes({
 				userProfile={userProfile}
 				onSaveToggle={onSaveToggle}
 				onProgramClick={onProgramClick}
+				selectedPrograms={selectedPrograms}
+				onToggleSelection={onToggleSelection}
+				isMaxReached={isMaxReached}
 			/>
 			<CategoryContainer
 				title="Target Programs"
@@ -251,6 +269,9 @@ export function SwimLanes({
 				userProfile={userProfile}
 				onSaveToggle={onSaveToggle}
 				onProgramClick={onProgramClick}
+				selectedPrograms={selectedPrograms}
+				onToggleSelection={onToggleSelection}
+				isMaxReached={isMaxReached}
 			/>
 			<CategoryContainer
 				title="Safety Programs"
@@ -260,6 +281,9 @@ export function SwimLanes({
 				userProfile={userProfile}
 				onSaveToggle={onSaveToggle}
 				onProgramClick={onProgramClick}
+				selectedPrograms={selectedPrograms}
+				onToggleSelection={onToggleSelection}
+				isMaxReached={isMaxReached}
 			/>
 		</div>
 	);
@@ -273,11 +297,17 @@ export function TabBasedCategories({
 	userProfile,
 	onSaveToggle,
 	onProgramClick,
+	selectedPrograms,
+	onToggleSelection,
+	isMaxReached,
 }: {
 	programs: ProgramListItemResponse[];
 	userProfile?: UserContextResponse | null;
 	onSaveToggle?: (id: string) => void;
 	onProgramClick?: (program: ProgramListItemResponse) => void;
+	selectedPrograms?: Set<string>;
+	onToggleSelection?: (id: string) => void;
+	isMaxReached?: boolean;
 }) {
 	const reach = programs.filter((p) => p.fitCategory === "reach");
 	const target = programs.filter((p) => p.fitCategory === "target");
@@ -425,6 +455,9 @@ export function TabBasedCategories({
 										userProfile={userProfile}
 										onSaveToggle={onSaveToggle}
 										onClick={onProgramClick}
+										isSelected={selectedPrograms?.has(program.id || "")}
+										onToggleSelection={onToggleSelection}
+										isMaxReached={isMaxReached}
 									/>
 								))}
 							</div>

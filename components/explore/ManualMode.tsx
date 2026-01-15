@@ -3,8 +3,7 @@
 import { ArrowRight, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { CompareDialog } from "@/components/explore/CompareDialog";
-import { CompareTray } from "@/components/explore/CompareTray";
+
 import {
 	type FilterState,
 	HorizontalFilterBar,
@@ -25,6 +24,9 @@ import { formatCountryName } from "@/lib/utils/gapComputation";
 
 interface ManualModeProps {
 	programs: ProgramListItemResponse[];
+	selectedPrograms: Set<string>;
+	onToggleSelection: (id: string) => void;
+	isMaxReached: boolean;
 }
 
 /**
@@ -235,18 +237,12 @@ function ProgramTableRow({
 /**
  * Manual Mode - Table view with filtering per spec
  */
-export function ManualMode({ programs }: ManualModeProps) {
-	// Constants
-	const MAX_COMPARE_PROGRAMS = 4;
-
-	// Selection state
-	const [selectedPrograms, setSelectedPrograms] = useState<Set<string>>(
-		new Set(),
-	);
-
-	// Compare dialog state
-	const [isCompareDialogOpen, setIsCompareDialogOpen] = useState(false);
-
+export function ManualMode({
+	programs,
+	selectedPrograms,
+	onToggleSelection,
+	isMaxReached,
+}: ManualModeProps) {
 	// Detail drawer state
 	const [selectedProgram, setSelectedProgram] =
 		useState<ProgramListItemResponse | null>(null);
@@ -276,26 +272,6 @@ export function ManualMode({ programs }: ManualModeProps) {
 		setFilters(newFilters);
 		setCurrentPage(1);
 	};
-
-	// Toggle program selection
-	const toggleProgramSelection = (id: string) => {
-		setSelectedPrograms((prev) => {
-			const newSet = new Set(prev);
-			if (newSet.has(id)) {
-				// Always allow deselecting
-				newSet.delete(id);
-			} else {
-				// Only add if under the limit
-				if (newSet.size < MAX_COMPARE_PROGRAMS) {
-					newSet.add(id);
-				}
-			}
-			return newSet;
-		});
-	};
-
-	// Check if max selection limit is reached
-	const isMaxReached = selectedPrograms.size >= MAX_COMPARE_PROGRAMS;
 
 	// Apply filters to programs
 	const filteredPrograms = programs.filter((program) => {
@@ -399,12 +375,6 @@ export function ManualMode({ programs }: ManualModeProps) {
 		currentPage * itemsPerPage,
 	);
 
-	const selectedCount = selectedPrograms.size;
-	const selectedProgramsList = Array.from(selectedPrograms)
-		.map((id) => programs.find((p) => p.id === id))
-		.filter(Boolean)
-		.slice(0, 3); // Max 3 for display
-
 	return (
 		<div className="space-y-6">
 			{/* Filter Bar */}
@@ -488,7 +458,7 @@ export function ManualMode({ programs }: ManualModeProps) {
 										key={program.id}
 										program={program}
 										selected={selectedPrograms.has(program.id || "")}
-										onSelect={() => toggleProgramSelection(program.id || "")}
+										onSelect={() => onToggleSelection(program.id || "")}
 										onClick={() => {
 											setSelectedProgram(program);
 											setIsDetailDrawerOpen(true);
@@ -572,42 +542,13 @@ export function ManualMode({ programs }: ManualModeProps) {
 				)}
 			</div>
 
-			{/* Zone 3: Compare Tray (Sticky Bottom - Checkout Style) */}
-			<CompareTray
-				selectedCount={selectedCount}
-				maxPrograms={MAX_COMPARE_PROGRAMS}
-				selectedProgramsList={selectedProgramsList}
-				onRemoveProgram={toggleProgramSelection}
-				onClearAll={() => setSelectedPrograms(new Set())}
-				onCompare={() => setIsCompareDialogOpen(true)}
-			/>
-
-			{/* Compare Dialog */}
-			<CompareDialog
-				open={isCompareDialogOpen}
-				onOpenChange={setIsCompareDialogOpen}
-				selectedPrograms={selectedPrograms}
-				programs={programs}
-				onRemoveProgram={(id) => {
-					toggleProgramSelection(id);
-					// Close dialog if no programs left
-					if (selectedPrograms.size <= 1) {
-						setIsCompareDialogOpen(false);
-					}
-				}}
-				onAddToDashboard={(id) => {
-					// TODO: Implement add to dashboard functionality
-					console.log("Add to dashboard:", id);
-				}}
-			/>
-
 			{/* Program Detail Drawer */}
 			<ProgramDetailDrawer
-				program={selectedProgram}
+				programId={selectedProgram?.id || null}
 				open={isDetailDrawerOpen}
 				onOpenChange={setIsDetailDrawerOpen}
 				onCompare={(id) => {
-					toggleProgramSelection(id);
+					onToggleSelection(id);
 					setIsDetailDrawerOpen(false);
 				}}
 				onAddToDashboard={(id) => {

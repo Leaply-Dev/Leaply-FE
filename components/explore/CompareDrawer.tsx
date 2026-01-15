@@ -36,8 +36,7 @@ import { formatCountryName } from "@/lib/utils/gapComputation";
 interface CompareDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	selectedPrograms: Set<string>;
-	programs: ProgramListItemResponse[];
+	selectedProgramsList: ProgramListItemResponse[];
 	onRemoveProgram: (id: string) => void;
 	onAddToDashboard: (id: string) => void;
 }
@@ -412,15 +411,10 @@ function RowLabel({
 export function CompareDialog({
 	open,
 	onOpenChange,
-	selectedPrograms,
-	programs,
+	selectedProgramsList,
 	onRemoveProgram,
 	onAddToDashboard,
 }: CompareDialogProps) {
-	const selectedProgramsList = Array.from(selectedPrograms)
-		.map((id) => programs.find((p) => p.id === id))
-		.filter(Boolean) as ProgramListItemResponse[];
-
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange}>
 			<DrawerContent className="max-h-[90vh] p-0 gap-0 overflow-hidden">

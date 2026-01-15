@@ -4,20 +4,27 @@ import {
 	AlertTriangle,
 	ArrowRight,
 	Building2,
-	CheckCircle2,
+	Check,
 	MapPin,
-	Scale,
+	Plus,
 } from "lucide-react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { ProgramDetailResponse } from "@/lib/generated/api/models";
+import type {
+	ProgramDetailResponse,
+	ProgramListItemResponse,
+	UserContextResponse,
+} from "@/lib/generated/api/models";
 
 interface ProgramCardProps {
-	program: ProgramDetailResponse;
-	onCompare?: (id: string) => void;
-	onApply?: (id: string) => void;
-	onClick?: (program: ProgramDetailResponse) => void;
+	program: ProgramListItemResponse;
+	userProfile?: UserContextResponse | null;
+	onSaveToggle?: (id: string) => void;
+	onClick?: (program: ProgramListItemResponse) => void;
+	isSelected?: boolean;
+	onToggleSelection?: (id: string) => void;
+	isMaxReached?: boolean;
 }
 
 function formatCurrency(value?: number): string {
@@ -39,9 +46,11 @@ function formatCountryName(country?: string): string {
 
 export function ProgramCard({
 	program,
-	onCompare,
-	onApply,
+	onSaveToggle,
 	onClick,
+	isSelected,
+	onToggleSelection,
+	isMaxReached,
 }: ProgramCardProps) {
 	return (
 		<div
@@ -96,11 +105,7 @@ export function ProgramCard({
 							QS #{program.rankingQsDisplay}
 						</Badge>
 					)}
-					{program.rankingTimesDisplay && (
-						<Badge className="bg-primary/10 text-primary border-0 text-xs">
-							Times #{program.rankingTimesDisplay}
-						</Badge>
-					)}
+
 					{program.fitScore && (
 						<Badge className="bg-primary/10 text-primary border-0 text-xs">
 							{program.fitScore}% Match
@@ -137,26 +142,40 @@ export function ProgramCard({
 			{/* Footer Actions */}
 			<div className="px-4 pb-4 flex gap-2">
 				<Button
-					variant="outline"
+					variant={isSelected ? "secondary" : "outline"}
 					size="sm"
-					className="flex-1 font-medium text-sm gap-2"
+					className={`flex-1 font-medium text-sm gap-2 ${
+						isSelected
+							? "bg-primary/10 text-primary hover:bg-primary/20 border-primary/20"
+							: ""
+					}`}
+					disabled={!isSelected && isMaxReached}
 					onClick={(e) => {
 						e.stopPropagation();
-						// Opens detail drawer for gap analysis
-						onClick?.(program);
+						program.id && onToggleSelection?.(program.id);
 					}}
 				>
-					Xem chi tiết
+					{isSelected ? (
+						<>
+							<Check className="w-4 h-4" />
+							Added
+						</>
+					) : (
+						<>
+							<Plus className="w-4 h-4" />
+							Compare
+						</>
+					)}
 				</Button>
 				<Button
 					size="sm"
 					className="flex-1 font-medium gap-2 bg-primary hover:bg-primary/90 text-sm"
 					onClick={(e) => {
 						e.stopPropagation();
-						// TODO: Implement add to dashboard
+						// TODO: Implement apply
 					}}
 				>
-					Thêm vào Dashboard
+					Apply
 					<ArrowRight className="w-4 h-4" />
 				</Button>
 			</div>

@@ -760,7 +760,7 @@ export default function HomePage() {
 				</div>
 			</section>
 
-			<style jsx global>{`
+			<style>{`
 				@keyframes leaply-marquee {
 					from { transform: translateX(0); }
 					to { transform: translateX(-50%); }
@@ -771,6 +771,7 @@ export default function HomePage() {
 				}
 				.cta-pattern {
 					--s: 185px;
+					/* Converted colors to hex for consistency if needed, but keeping vars is fine */
 					--c1: #9bdb70;
 					--c2: #e3ffd1;
 					--c3: #638e57;

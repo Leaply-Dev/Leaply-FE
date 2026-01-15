@@ -75,21 +75,16 @@ export function CompareTray({
 						{/* Selected programs chips */}
 						<div className="flex items-center gap-3 flex-wrap">
 							<div className="flex items-center gap-2 flex-wrap">
-								{selectedProgramsList.map(
-									(program) =>
-										program && (
-											<SelectedProgramChip
-												key={program.id}
-												program={program}
-												onRemove={() => onRemoveProgram(program.id ?? "")}
-											/>
-										),
-								)}
-								{selectedCount > 3 && (
-									<Badge variant="outline" className="font-medium">
-										+{selectedCount - 3} chương trình
-									</Badge>
-								)}
+								{selectedProgramsList.map((program) => {
+									if (!program) return null;
+									return (
+										<SelectedProgramChip
+											key={program.id}
+											program={program}
+											onRemove={() => onRemoveProgram(program.id ?? "")}
+										/>
+									);
+								})}
 							</div>
 
 							{/* Clear all button */}
@@ -107,7 +102,12 @@ export function CompareTray({
 					<div className="shrink-0">
 						<Button
 							size="lg"
-							className="gap-2 px-8 py-6 text-base font-bold shadow-lg hover:shadow-xl transition-all hover:scale-105"
+							disabled={selectedCount < 2}
+							className={`gap-2 px-8 py-6 text-base font-bold shadow-lg hover:shadow-xl transition-all ${
+								selectedCount < 2
+									? "opacity-50 cursor-not-allowed"
+									: "hover:scale-105"
+							}`}
 							onClick={onCompare}
 						>
 							So sánh ngay
