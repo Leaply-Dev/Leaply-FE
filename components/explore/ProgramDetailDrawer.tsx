@@ -1,145 +1,217 @@
 "use client";
 
 import {
+	AlertTriangle,
 	Award,
+	BookOpen,
 	Calendar,
+	Check,
 	CheckCircle2,
+	ChevronDown,
+	Circle,
 	Clock,
 	DollarSign,
-	Gift,
 	Globe,
 	GraduationCap,
-	Info,
+	MapPin,
 	Plus,
-	RefreshCw,
+	Scale,
 } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
 	Sheet,
 	SheetContent,
-	SheetDescription,
 	SheetFooter,
-	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import type { ProgramListItemResponse } from "@/lib/generated/api/models";
-import { formatCountryName } from "@/lib/utils/gapComputation";
+import type {
+	ProgramDetailResponse,
+	ProgramIntakeResponse,
+	UserContextResponse,
+} from "@/lib/generated/api/models";
 
 interface ProgramDetailDrawerProps {
-	program: ProgramListItemResponse | null;
+	program: ProgramDetailResponse | null;
+	userProfile?: UserContextResponse | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	onCompare?: (id: string) => void;
 	onAddToDashboard?: (id: string) => void;
 }
 
-// Helper to get country flag emoji
-function getCountryFlag(country: string): string {
-	const countryMap: Record<string, string> = {
-		Netherlands: "🇳🇱",
-		Germany: "🇩🇪",
-		France: "🇫🇷",
-		"United States": "🇺🇸",
-		USA: "🇺🇸",
-		"United Kingdom": "🇬🇧",
-		UK: "🇬🇧",
-		Canada: "🇨🇦",
-		Australia: "🇦🇺",
-		Spain: "🇪🇸",
-		Italy: "🇮🇹",
-		Sweden: "🇸🇪",
-		Denmark: "🇩🇰",
-		Switzerland: "🇨🇭",
-		Singapore: "🇸🇬",
-		Japan: "🇯🇵",
-		"South Korea": "🇰🇷",
-		China: "🇨🇳",
-		"Hong Kong": "🇭🇰",
-	};
-	return countryMap[country] || "🌍";
+// Requirement check item component
+function RequirementCheckItem({
+	label,
+	required,
+	userValue,
+}: {
+	label: string;
+	required?: number;
+	userValue?: number;
+}) {
+	const hasRequired = required !== undefined && required > 0;
+	const hasUserValue = userValue !== undefined && userValue > 0;
+	const isMet = hasRequired && hasUserValue && userValue >= required;
+
+	return (
+		<div
+			className={`flex items-center justify-between p-3 rounded-lg border ${
+				isMet
+					? "border-primary/30 bg-primary/10"
+					: hasRequired && hasUserValue
+						? "border-destructive/30 bg-destructive/10"
+						: "border-border bg-muted/50"
+			}`}
+		>
+			<div className="flex items-center gap-3">
+				{isMet ? (
+					<div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+						<Check className="w-3 h-3 text-primary-foreground" />
+					</div>
+				) : hasRequired && hasUserValue ? (
+					<div className="w-5 h-5 rounded-full bg-destructive flex items-center justify-center">
+						<AlertTriangle className="w-3 h-3 text-destructive-foreground" />
+					</div>
+				) : (
+					<Circle className="w-5 h-5 text-muted-foreground" />
+				)}
+				<div>
+					<p className="font-medium text-foreground text-sm">{label}</p>
+					{hasUserValue && (
+						<p className="text-xs text-muted-foreground">
+							Your score: {userValue}
+						</p>
+					)}
+				</div>
+			</div>
+			<span className="text-sm font-medium text-foreground">
+				{hasRequired ? `${required}+` : "N/A"}
+			</span>
+		</div>
+	);
 }
 
-// Helper to format currency
-function formatCurrency(value: number, currency = "USD"): string {
+function formatCurrency(value?: number): string {
+	if (!value) return "N/A";
 	return new Intl.NumberFormat("en-US", {
 		style: "currency",
-		currency,
+		currency: "USD",
 		maximumFractionDigits: 0,
 	}).format(value);
 }
 
-// Helper to convert USD to VND (approximate rate)
-function usdToVnd(usd: number): string {
-	const rate = 24500;
-	const vnd = usd * rate;
-	if (vnd >= 1000000000) {
-		return `~ ${(vnd / 1000000000).toFixed(2)} tỷ VND`;
-	}
-	return `~ ${(vnd / 1000000).toFixed(0)} triệu VND`;
-}
-
-// Helper to format duration
 function formatDuration(months?: number): string {
 	if (!months) return "N/A";
 	const years = Math.floor(months / 12);
 	const remainingMonths = months % 12;
-	if (years === 0) return `${remainingMonths} Tháng`;
-	if (remainingMonths === 0) return `${years} Năm`;
-	return `${years} Năm ${remainingMonths} Tháng`;
+	if (years === 0) return `${remainingMonths} months`;
+	if (remainingMonths === 0) return `${years} year${years > 1 ? "s" : ""}`;
+	return `${years}y ${remainingMonths}m`;
 }
 
-// Helper to format intake months
-function formatIntakeMonths(intake?: string): string {
-	if (!intake) return "N/A";
-	// Parse intake like "Fall 2025" -> "Tháng 9"
-	const intakeMonth: Record<string, string> = {
-		Spring: "Tháng 2",
-		Summer: "Tháng 6",
-		Fall: "Tháng 9",
-		Winter: "Tháng 1",
-	};
-	const season = intake.split(" ")[0];
-	return intakeMonth[season] || intake;
+function IntakeCard({
+	intake,
+	isExpanded,
+	onToggle,
+}: {
+	intake: ProgramIntakeResponse;
+	isExpanded: boolean;
+	onToggle: () => void;
+}) {
+	return (
+		<div className="border border-border rounded-xl overflow-hidden">
+			<button
+				type="button"
+				onClick={onToggle}
+				className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+			>
+				<div className="flex items-center gap-3">
+					<div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+						<Calendar className="w-5 h-5 text-primary" />
+					</div>
+					<div className="text-left">
+						<p className="font-semibold text-foreground">
+							{intake.seasonDisplay || intake.season || "N/A"}
+						</p>
+						<p className="text-xs text-muted-foreground">
+							Deadline: {intake.applicationDeadline || "N/A"}
+						</p>
+					</div>
+				</div>
+				<div className="flex items-center gap-2">
+					{intake.isActive && (
+						<Badge className="bg-primary/10 text-primary border-0">Open</Badge>
+					)}
+					<ChevronDown
+						className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`}
+					/>
+				</div>
+			</button>
+			{isExpanded && (
+				<div className="px-4 pb-4 pt-0 border-t border-border bg-muted/30">
+					<div className="pt-3 space-y-2 text-sm">
+						<div className="flex justify-between">
+							<span className="text-muted-foreground">Application Opens</span>
+							<span className="font-medium">
+								{intake.applicationStartDate || "N/A"}
+							</span>
+						</div>
+						<div className="flex justify-between">
+							<span className="text-muted-foreground">Early Deadline</span>
+							<span className="font-medium">
+								{intake.earlyDeadline || "N/A"}
+							</span>
+						</div>
+						<div className="flex justify-between">
+							<span className="text-muted-foreground">
+								Application Deadline
+							</span>
+							<span className="font-medium">
+								{intake.applicationDeadline || "N/A"}
+							</span>
+						</div>
+						<div className="flex justify-between">
+							<span className="text-muted-foreground">Classes Begin</span>
+							<span className="font-medium">{intake.startDate || "N/A"}</span>
+						</div>
+					</div>
+				</div>
+			)}
+		</div>
+	);
 }
 
 export function ProgramDetailDrawer({
 	program,
+	userProfile,
 	open,
 	onOpenChange,
 	onCompare,
 	onAddToDashboard,
 }: ProgramDetailDrawerProps) {
+	const [expandedIntake, setExpandedIntake] = useState<string | null>(null);
+
 	if (!program) return null;
 
-	// Build entry requirements from actual program data
-	// Only include requirements that the program has specified
-	const entryRequirements: Array<{
-		name: string;
-		requiredValue: string;
-		status: "met" | "warning" | "unknown";
-	}> = [];
-
-	if (program.ieltsMinimum) {
-		entryRequirements.push({
-			name: "IELTS",
-			requiredValue: `${program.ieltsMinimum}+`,
-			status: "unknown", // Would be "met" or "warning" if we had user data
-		});
-	}
-
-	if (program.toeflMinimum) {
-		entryRequirements.push({
-			name: "TOEFL",
-			requiredValue: `${program.toeflMinimum}+`,
-			status: "unknown",
-		});
-	}
-
-	// Note: GPA requirement is not available in ProgramListItemResponse
-	// When we have program detail API, we can add it from program.requirements.gpaMinimum
+	const req = program.requirements;
+	const userProfileData = userProfile?.profile;
+	const userGpa = userProfileData?.gpa
+		? Number.parseFloat(userProfileData.gpa)
+		: undefined;
+	const testScores = userProfileData?.testScores || {};
+	// Helper to safely parse scores that might be strings in the map
+	const getScore = (key: string) => {
+		const val = testScores[key];
+		return val ? Number.parseFloat(val) : undefined;
+	};
+	const userIelts = getScore("IELTS");
+	const userToefl = getScore("TOEFL");
+	const userGre = getScore("GRE");
+	const userGmat = getScore("GMAT");
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
@@ -147,291 +219,201 @@ export function ProgramDetailDrawer({
 				side="right"
 				className="w-full sm:max-w-lg p-0 flex flex-col"
 			>
-				{/* Scrollable Content */}
+				<SheetTitle className="sr-only">Program Details</SheetTitle>
 				<ScrollArea className="flex-1">
 					<div className="p-6 space-y-6">
-						{/* Header - University Info */}
-						<SheetHeader className="p-0 space-y-4">
+						{/* Header */}
+						<header className="space-y-4">
 							<div className="flex items-start gap-4">
-								{/* University Logo */}
-								<div className="w-14 h-14 rounded-xl bg-linear-to-br from-emerald-800 to-emerald-900 flex items-center justify-center shrink-0 shadow-lg border-2 border-emerald-600/30 overflow-hidden">
+								<div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center shrink-0 border border-border overflow-hidden">
 									{program.universityLogoUrl ? (
 										<Image
 											src={program.universityLogoUrl}
 											alt={program.universityName || "University"}
-											width={56}
-											height={56}
+											width={64}
+											height={64}
 											className="object-contain"
 										/>
 									) : (
-										<GraduationCap className="w-7 h-7 text-amber-400" />
+										<GraduationCap className="w-8 h-8 text-primary" />
 									)}
 								</div>
 								<div className="flex-1 min-w-0">
-									<div className="flex items-center gap-2">
-										<SheetTitle className="text-lg font-bold text-foreground">
-											{program.universityName}
-										</SheetTitle>
-										<span className="text-xl shrink-0">
-											{getCountryFlag(
-												formatCountryName(program.universityCountry),
-											)}
+									<h1 className="text-xl font-bold text-foreground leading-tight">
+										{program.programName || "N/A"}
+									</h1>
+									<p className="text-sm font-medium text-muted-foreground mt-1">
+										{program.universityName || "N/A"}
+									</p>
+									<div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">
+										<MapPin className="w-3.5 h-3.5" />
+										<span>
+											{program.universityCity || "N/A"},{" "}
+											{program.universityCountry || "N/A"}
 										</span>
 									</div>
-									<SheetDescription className="text-sm text-muted-foreground mt-0.5">
-										{program.universityCity || "City"},{" "}
-										{formatCountryName(program.universityCountry)}
-									</SheetDescription>
 								</div>
 							</div>
 
-							{/* Program Name */}
-							<h2 className="text-xl font-bold text-foreground leading-tight">
-								{program.programName}
-							</h2>
-
-							{/* Badges */}
+							{/* Ranking Badges */}
 							<div className="flex flex-wrap gap-2">
 								{program.rankingQsDisplay && (
-									<Badge
-										variant="outline"
-										className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-300 dark:border-blue-800 px-3 py-1"
-									>
-										<Award className="w-3.5 h-3.5 mr-1.5" />
+									<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium">
+										<Award className="w-3 h-3 mr-1" />
 										QS #{program.rankingQsDisplay}
 									</Badge>
 								)}
-								{program.rankingQsDisplay && (
-									<Badge
-										variant="outline"
-										className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800 px-3 py-1"
-									>
-										<Award className="w-3.5 h-3.5 mr-1.5" />
-										Times #{program.rankingQsDisplay}
+								{program.rankingTimesDisplay && (
+									<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium">
+										<Award className="w-3 h-3 mr-1" />
+										Times #{program.rankingTimesDisplay}
 									</Badge>
 								)}
 								{program.fitScore && (
-									<Badge
-										variant="outline"
-										className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800 px-3 py-1"
-									>
-										<RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-										Fit Score: {program.fitScore}%
+									<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium">
+										{program.fitScore}% Match
 									</Badge>
 								)}
 							</div>
-						</SheetHeader>
+						</header>
 
-						{/* Overview Section */}
-						<section>
-							<div className="flex items-center gap-2 mb-4">
-								<Info className="w-5 h-5 text-blue-600" />
-								<h3 className="font-semibold text-foreground">Tổng quan</h3>
+						{/* Info Grid */}
+						<section className="grid grid-cols-3 gap-3">
+							<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
+								<Clock className="w-5 h-5 text-primary mx-auto mb-2" />
+								<p className="text-xs text-muted-foreground">Duration</p>
+								<p className="font-semibold text-sm text-foreground mt-0.5">
+									{formatDuration(program.durationMonths)}
+								</p>
 							</div>
-							<div className="grid grid-cols-3 gap-3">
-								{/* Duration */}
-								<div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-									<div className="flex justify-center mb-3">
-										<div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
-											<Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-										</div>
-									</div>
-									<p className="text-xs text-muted-foreground text-center">
-										Thời lượng
-									</p>
-									<p className="font-semibold text-foreground text-center text-sm mt-1">
-										{formatDuration(program.durationMonths)}
-									</p>
-								</div>
-
-								{/* Language */}
-								<div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-									<div className="flex justify-center mb-3">
-										<div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
-											<Globe className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-										</div>
-									</div>
-									<p className="text-xs text-muted-foreground text-center">
-										Ngôn ngữ
-									</p>
-									<p className="font-semibold text-foreground text-center text-sm mt-1">
-										Tiếng Anh
-									</p>
-								</div>
-
-								{/* Intake */}
-								<div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-									<div className="flex justify-center mb-3">
-										<div className="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center">
-											<Calendar className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-										</div>
-									</div>
-									<p className="text-xs text-muted-foreground text-center">
-										Kỳ nhập học
-									</p>
-									<p className="font-semibold text-foreground text-center text-sm mt-1">
-										{formatIntakeMonths(program.nextIntake) || "Tháng 2, 7"}
-									</p>
-								</div>
+							<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
+								<BookOpen className="w-5 h-5 text-primary mx-auto mb-2" />
+								<p className="text-xs text-muted-foreground">Study Mode</p>
+								<p className="font-semibold text-sm text-foreground mt-0.5">
+									{program.deliveryMode || "N/A"}
+								</p>
+							</div>
+							<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
+								<Globe className="w-5 h-5 text-primary mx-auto mb-2" />
+								<p className="text-xs text-muted-foreground">Language</p>
+								<p className="font-semibold text-sm text-foreground mt-0.5">
+									{program.language || "N/A"}
+								</p>
 							</div>
 						</section>
 
-						{/* Cost & Scholarship Section */}
-						<section>
-							<div className="flex items-center gap-2 mb-4">
-								<DollarSign className="w-5 h-5 text-emerald-600" />
-								<h3 className="font-semibold text-foreground">
-									Chi phí & Học bổng
-								</h3>
+						{/* Tuition Fees */}
+						<section className="bg-primary/5 rounded-xl p-4 border border-primary/20">
+							<div className="flex items-center gap-2 mb-3">
+								<DollarSign className="w-5 h-5 text-primary" />
+								<h3 className="font-semibold text-foreground">Tuition Fees</h3>
 							</div>
-							<div className="grid grid-cols-2 gap-3 mb-3">
-								{/* Annual Tuition */}
-								<div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-									<div className="flex items-center justify-between mb-2">
-										<p className="text-xs text-muted-foreground uppercase tracking-wide">
-											Học phí năm
-										</p>
-										<DollarSign className="w-4 h-4 text-emerald-500" />
-									</div>
-									<p className="text-xl font-bold text-foreground">
-										{program.tuitionAnnualUsd
-											? formatCurrency(program.tuitionAnnualUsd, "AUD")
-											: "N/A"}
-									</p>
-									<p className="text-xs text-muted-foreground mt-1">
-										{program.tuitionAnnualUsd
-											? usdToVnd(program.tuitionAnnualUsd)
-											: ""}
+							<div className="grid grid-cols-3 gap-4">
+								<div>
+									<p className="text-xs text-muted-foreground">Per Year</p>
+									<p className="text-lg font-bold text-foreground">
+										{formatCurrency(program.tuition?.annualUsd)}
 									</p>
 								</div>
-
-								{/* Total Cost */}
-								<div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-									<div className="flex items-center justify-between mb-2">
-										<p className="text-xs text-muted-foreground uppercase tracking-wide">
-											Tổng khóa
-										</p>
-										<Gift className="w-4 h-4 text-purple-500" />
-									</div>
-									<p className="text-xl font-bold text-foreground">
-										{program.tuitionAnnualUsd && program.durationMonths
-											? formatCurrency(
-													(program.tuitionAnnualUsd * program.durationMonths) /
-														12,
-													"AUD",
-												)
-											: "N/A"}
+								<div>
+									<p className="text-xs text-muted-foreground">Total Program</p>
+									<p className="text-lg font-bold text-foreground">
+										{formatCurrency(program.tuition?.totalUsd)}
 									</p>
-									<p className="text-xs text-muted-foreground mt-1">
-										{program.tuitionAnnualUsd && program.durationMonths
-											? usdToVnd(
-													(program.tuitionAnnualUsd * program.durationMonths) /
-														12,
-												)
-											: ""}
+								</div>
+								<div>
+									<p className="text-xs text-muted-foreground">App Fee</p>
+									<p className="text-lg font-bold text-foreground">
+										{formatCurrency(program.applicationFeeUsd)}
 									</p>
 								</div>
 							</div>
-
-							{/* Scholarship Info */}
+							{program.tuition?.notes && (
+								<p className="text-xs text-muted-foreground mt-2">
+									{program.tuition.notes}
+								</p>
+							)}
 							{program.scholarshipAvailable && (
-								<div className="bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-4 border border-blue-200/50 dark:border-blue-800/50">
-									<div className="flex items-start gap-3">
-										<div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0">
-											<GraduationCap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-										</div>
-										<div>
-											<h4 className="font-semibold text-foreground text-sm">
-												International Fee Remission
-											</h4>
-											<p className="text-sm text-muted-foreground mt-1">
-												Cơ hội nhận học bổng lên đến{" "}
-												<span className="font-semibold text-blue-600 dark:text-blue-400">
-													10,000 AUD
-												</span>{" "}
-												cho năm đầu tiên dựa trên GPA xuất sắc.
-											</p>
-										</div>
-									</div>
-								</div>
+								<p className="text-xs text-primary mt-2">
+									✓ Scholarship available
+								</p>
 							)}
 						</section>
 
-						{/* Entry Requirements Section */}
-						{entryRequirements.length > 0 && (
-							<section>
-								<div className="flex items-center gap-2 mb-4">
-									<CheckCircle2 className="w-5 h-5 text-violet-600" />
-									<h3 className="font-semibold text-foreground">
-										Yêu cầu đầu vào
-									</h3>
-								</div>
-								<div className="border border-border rounded-xl overflow-hidden">
-									{/* Table Header */}
-									<div className="grid grid-cols-2 bg-muted/50 px-4 py-3 border-b border-border">
-										<p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-											Tiêu chí
+						{/* Requirements Section */}
+						<section>
+							<div className="flex items-center gap-2 mb-3">
+								<CheckCircle2 className="w-5 h-5 text-primary" />
+								<h3 className="font-semibold text-foreground">
+									Entry Requirements
+								</h3>
+							</div>
+							<div className="space-y-2">
+								{/* GPA */}
+								<RequirementCheckItem
+									label="GPA"
+									required={req?.gpaMinimum}
+									userValue={userGpa}
+								/>
+								{/* IELTS */}
+								<RequirementCheckItem
+									label="IELTS"
+									required={req?.ieltsMinimum}
+									userValue={userIelts}
+								/>
+								{/* TOEFL */}
+								<RequirementCheckItem
+									label="TOEFL"
+									required={req?.toeflMinimum}
+									userValue={userToefl}
+								/>
+								{/* GRE */}
+								<RequirementCheckItem
+									label="GRE"
+									required={req?.greMinimum}
+									userValue={userGre}
+								/>
+								{/* GMAT */}
+								<RequirementCheckItem
+									label="GMAT"
+									required={req?.gmatMinimum}
+									userValue={userGmat}
+								/>
+								{/* Additional Requirements */}
+								{req?.documents && req.documents.length > 0 && (
+									<div className="p-3 rounded-lg border border-border bg-muted/50">
+										<p className="font-medium text-foreground text-sm mb-2">
+											Additional Requirements
 										</p>
-										<p className="text-xs text-muted-foreground uppercase tracking-wide font-medium text-right">
-											Yêu cầu tối thiểu
-										</p>
+										<ul className="text-xs text-muted-foreground space-y-1">
+											{req.documents.map((doc) => (
+												<li key={doc}>• {doc}</li>
+											))}
+										</ul>
 									</div>
-
-									{/* Table Rows */}
-									{entryRequirements.map((req, index) => (
-										<div
-											key={req.name}
-											className={`grid grid-cols-2 px-4 py-3 items-center ${
-												index < entryRequirements.length - 1
-													? "border-b border-border"
-													: ""
-											}`}
-										>
-											<div className="flex items-center gap-2">
-												<div
-													className={`w-6 h-6 rounded-full flex items-center justify-center ${
-														req.status === "met"
-															? "bg-emerald-100 dark:bg-emerald-900/50"
-															: req.status === "warning"
-																? "bg-amber-100 dark:bg-amber-900/50"
-																: "bg-gray-100 dark:bg-gray-800/50"
-													}`}
-												>
-													{req.status === "met" ? (
-														<CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-													) : req.status === "warning" ? (
-														<Info className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-													) : (
-														<Info className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-													)}
-												</div>
-												<span className="text-sm font-medium text-foreground">
-													{req.name}
-												</span>
-											</div>
-											<div className="text-right">
-												<Badge
-													variant="outline"
-													className={`${
-														req.status === "met"
-															? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800"
-															: req.status === "warning"
-																? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800"
-																: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/30 dark:text-gray-300 dark:border-gray-700"
-													}`}
-												>
-													{req.requiredValue}
-												</Badge>
-											</div>
-										</div>
-									))}
-								</div>
-							</section>
-						)}
+								)}
+								{/* Work Experience */}
+								{req?.workExperienceYears && (
+									<div className="flex items-center justify-between p-3 rounded-lg border border-primary/20 bg-primary/5">
+										<p className="font-medium text-foreground text-sm">
+											Work Experience
+										</p>
+										<Badge className="bg-primary text-primary-foreground border-0">
+											{req.workExperienceYears}+ years
+										</Badge>
+									</div>
+								)}
+							</div>
+							{req?.notes && (
+								<p className="text-xs text-muted-foreground mt-3">
+									{req.notes}
+								</p>
+							)}
+						</section>
 					</div>
 				</ScrollArea>
 
-				{/* Fixed Footer */}
+				{/* Sticky Footer */}
 				<SheetFooter className="border-t border-border p-4 bg-background">
 					<div className="flex gap-3 w-full">
 						<Button
@@ -439,15 +421,15 @@ export function ProgramDetailDrawer({
 							className="flex-1 gap-2"
 							onClick={() => program?.id && onCompare?.(program.id)}
 						>
-							<RefreshCw className="w-4 h-4" />
-							So sánh
+							<Scale className="w-4 h-4" />
+							Compare
 						</Button>
 						<Button
-							className="flex-2 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+							className="flex-2 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
 							onClick={() => program?.id && onAddToDashboard?.(program.id)}
 						>
 							<Plus className="w-4 h-4" />
-							Thêm vào Dashboard
+							Apply Now
 						</Button>
 					</div>
 				</SheetFooter>

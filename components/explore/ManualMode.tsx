@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { CompareDialog } from "@/components/explore/CompareDialog";
@@ -130,15 +130,17 @@ function ProgramTableRow({
 			}}
 		>
 			{/* Checkbox */}
-			<td className="p-4 w-12">
-				<input
-					type="checkbox"
-					checked={selected}
-					onChange={onSelect}
-					onClick={(e) => e.stopPropagation()}
-					disabled={isMaxReached && !selected}
-					className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-				/>
+			<td className="p-4 text-center align-middle">
+				<div className="flex items-center justify-center">
+					<input
+						type="checkbox"
+						checked={selected}
+						onChange={onSelect}
+						onClick={(e) => e.stopPropagation()}
+						disabled={isMaxReached && !selected}
+						className="w-5 h-5 rounded border-border text-primary focus:ring-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+					/>
+				</div>
 			</td>
 
 			{/* University + Program */}
@@ -160,27 +162,26 @@ function ProgramTableRow({
 						)}
 					</div>
 					<div className="flex-1 min-w-0">
-						<div className="flex items-center gap-2 mb-1">
-							<h3 className="font-semibold text-foreground text-sm">
-								{program.universityName}
-							</h3>
-							<span className="text-xs text-muted-foreground">
-								{formatCountryName(program.universityCountry)}
-							</span>
+						<h3
+							className="font-semibold text-foreground text-sm mb-1 line-clamp-1"
+							title={program.displayName || program.programName}
+						>
+							{program.displayName || program.programName}
+						</h3>
+						<div className="flex items-center gap-2 text-sm text-muted-foreground">
+							<span>{program.universityName}</span>
+							<span>•</span>
+							<span>{formatCountryName(program.universityCountry)}</span>
 						</div>
-						<p className="text-sm text-muted-foreground">
-							{program.programName}
-						</p>
 					</div>
 				</div>
 			</td>
 
 			{/* Ranking */}
 			<td className="p-4 text-center">
-				{program.rankingQsDisplay || program.rankingQsDisplay ? (
+				{program.rankingQsDisplay ? (
 					<div className="flex flex-col items-center gap-1.5">
 						{getRankingBadge(program.rankingQsDisplay, "QS")}
-						{getRankingBadge(program.rankingQsDisplay, "Times")}
 					</div>
 				) : (
 					<span className="text-muted-foreground">N/A</span>
@@ -216,16 +217,15 @@ function ProgramTableRow({
 			{/* Quick Action */}
 			<td className="p-4 text-center">
 				<Button
-					variant="outline"
 					size="sm"
 					onClick={(e) => {
 						e.stopPropagation();
 						onAddToDashboard();
 					}}
-					className="gap-2"
+					className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
 				>
-					<Plus className="w-4 h-4" />
-					Add to dashboard
+					Apply
+					<ArrowRight className="w-4 h-4" />
 				</Button>
 			</td>
 		</tr>
@@ -459,7 +459,7 @@ export function ManualMode({ programs }: ManualModeProps) {
 						<table className="w-full">
 							<thead className="bg-muted/50">
 								<tr className="border-b border-border">
-									<th className="p-4 text-left font-semibold text-sm text-foreground">
+									<th className="p-4 text-center font-semibold text-sm text-foreground w-30">
 										So sánh
 									</th>
 									<th className="p-4 text-left font-semibold text-sm text-foreground">

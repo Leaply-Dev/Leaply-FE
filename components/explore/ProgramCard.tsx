@@ -1,118 +1,49 @@
 "use client";
 
-import { ArrowRight, Building2, MapPin, TrendingUp } from "lucide-react";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import type {
-	ProgramListItemResponse,
-	UserContextResponse,
-} from "@/lib/generated/api/models";
 import {
-	computeGapGrid,
-	formatCountryName,
-	type GapGridData,
-	type GapStatus,
-	getGapStatusColor,
-} from "@/lib/utils/gapComputation";
+	AlertTriangle,
+	ArrowRight,
+	Building2,
+	CheckCircle2,
+	MapPin,
+	Scale,
+} from "lucide-react";
+import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import type { ProgramDetailResponse } from "@/lib/generated/api/models";
 
 interface ProgramCardProps {
-	program: ProgramListItemResponse;
-	userProfile?: UserContextResponse | null;
-	onSaveToggle?: (id: string) => void;
-	onClick?: (program: ProgramListItemResponse) => void;
+	program: ProgramDetailResponse;
+	onCompare?: (id: string) => void;
+	onApply?: (id: string) => void;
+	onClick?: (program: ProgramDetailResponse) => void;
 }
 
-// Helper to get country flag emoji
-function getCountryFlag(country: string): string {
-	const countryMap: Record<string, string> = {
-		Netherlands: "🇳🇱",
-		Germany: "🇩🇪",
-		France: "🇫🇷",
-		"United States": "🇺🇸",
-		USA: "🇺🇸",
-		"United Kingdom": "🇬🇧",
-		UK: "🇬🇧",
-		Canada: "🇨🇦",
-		Australia: "🇦🇺",
-		Spain: "🇪🇸",
-		Italy: "🇮🇹",
-		Sweden: "🇸🇪",
-		Denmark: "🇩🇰",
-		Switzerland: "🇨🇭",
-		Singapore: "🇸🇬",
-		Japan: "🇯🇵",
-		"South Korea": "🇰🇷",
-		"New Zealand": "🇳🇿",
-		"Hong Kong": "🇭🇰",
-		Ireland: "🇮🇪",
-		Belgium: "🇧🇪",
-		Austria: "🇦🇹",
-		Finland: "🇫🇮",
-		Norway: "🇳🇴",
-	};
-	return countryMap[country] || "🌍";
+function formatCurrency(value?: number): string {
+	if (!value) return "N/A";
+	return new Intl.NumberFormat("en-US", {
+		style: "currency",
+		currency: "USD",
+		maximumFractionDigits: 0,
+	}).format(value);
 }
 
-/**
- * Gap Chip Component - Shows requirement status as readable chip
- */
-function GapChip({
-	label,
-	userValue,
-	requiredValue,
-	status,
-}: {
-	label: string;
-	userValue?: string | number;
-	requiredValue?: string | number;
-	status: string;
-}) {
-	const colors = getGapStatusColor(status as GapStatus);
-
-	// Generate readable message
-	let message = "";
-	if (status === "gap") {
-		const delta =
-			typeof userValue === "number" && typeof requiredValue === "number"
-				? Math.abs(requiredValue - userValue).toFixed(1)
-				: "";
-		message = delta
-			? `${label} ${userValue} (need ${delta} more)`
-			: `${label} ${userValue || "N/A"} (need ${requiredValue})`;
-	} else if (status === "match" || status === "clear") {
-		message = `${label} ${userValue} matched`;
-	} else if (status === "bonus") {
-		message = `${label} ${userValue} (bonus)`;
-	} else {
-		message = `${label} N/A`;
-	}
-
-	return (
-		<div
-			className={`inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium ${colors.bg} ${colors.text} border ${colors.border}`}
-		>
-			{message}
-		</div>
-	);
+function formatCountryName(country?: string): string {
+	if (!country) return "N/A";
+	return country
+		.split("_")
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+		.join(" ");
 }
 
-/**
- * New Data-Driven Program Card with Gap Grid
- */
 export function ProgramCard({
 	program,
-	userProfile,
+	onCompare,
+	onApply,
 	onClick,
 }: ProgramCardProps) {
-	const gapGrid: GapGridData = computeGapGrid(program, userProfile);
-
-	// Calculate net cost (simplified - assuming 13k aid as in screenshot)
-	const totalCost = program.tuitionAnnualUsd || 0;
-	const estimatedAid = program.scholarshipAvailable ? 13000 : 0;
-	const netCost = totalCost - estimatedAid;
-
 	return (
-		// biome-ignore lint/a11y/useSemanticElements: Complex card layout requires div with role=button
 		<div
 			className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:border-primary/30 cursor-pointer"
 			onClick={() => onClick?.(program)}
@@ -126,147 +57,89 @@ export function ProgramCard({
 		>
 			{/* Header */}
 			<div className="p-4">
-				{/* University Header */}
-				<div className="flex items-start gap-3 mb-3">
-					{/* University Logo */}
-					<div className="h-12 w-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden border border-border">
+				{/* University Info */}
+				<div className="flex items-center gap-3 mb-3">
+					<div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden border border-border">
 						{program.universityLogoUrl ? (
 							<Image
 								src={program.universityLogoUrl}
 								alt={program.universityName || "University"}
-								width={48}
-								height={48}
+								width={64}
+								height={64}
 								className="object-contain"
 							/>
 						) : (
-							<Building2 className="w-6 h-6 text-muted-foreground" />
+							<Building2 className="w-5 h-5 text-muted-foreground" />
 						)}
 					</div>
-
-					{/* University Info */}
 					<div className="flex-1 min-w-0">
-						<h3 className="font-semibold text-sm text-foreground truncate">
-							{program.universityName}
+						<h3 className="font-bold text-base text-foreground line-clamp-2 leading-snug">
+							{program.displayName || program.programName || "N/A"}
 						</h3>
-						<div className="flex items-center gap-1.5 mt-1 flex-wrap">
-							<MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-							<span className="text-xs text-muted-foreground">
-								{program.universityCity && `${program.universityCity}, `}
-								{formatCountryName(program.universityCountry)}{" "}
-								{getCountryFlag(formatCountryName(program.universityCountry))}
+						<p className="font-medium text-sm text-foreground truncate">
+							{program.universityName || "N/A"}
+						</p>
+						<div className="flex items-center gap-1 mt-0.5">
+							<MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
+							<span className="text-xs text-muted-foreground truncate">
+								{program.universityCity || "N/A"},{" "}
+								{formatCountryName(program.universityCountry)}
 							</span>
-							{program.rankingQsDisplay && (
-								<span className="text-xs font-medium px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300">
-									QS #{program.rankingQsDisplay}
-								</span>
-							)}
-							{/* Times ranking not available in API */}
 						</div>
 					</div>
 				</div>
 
-				{/* Program Name - Prominent */}
-				<h4 className="font-bold text-base text-foreground line-clamp-2 leading-snug mb-3">
-					{program.programName}
-				</h4>
+				{/* Badges */}
+				<div className="flex flex-wrap gap-1.5 mb-3">
+					{program.rankingQsDisplay && (
+						<Badge className="bg-primary/10 text-primary border-0 text-xs">
+							QS #{program.rankingQsDisplay}
+						</Badge>
+					)}
+					{program.rankingTimesDisplay && (
+						<Badge className="bg-primary/10 text-primary border-0 text-xs">
+							Times #{program.rankingTimesDisplay}
+						</Badge>
+					)}
+					{program.fitScore && (
+						<Badge className="bg-primary/10 text-primary border-0 text-xs">
+							{program.fitScore}% Match
+						</Badge>
+					)}
+				</div>
 			</div>
 
-			{/* Requirements Status Chips */}
-			<div className="px-4 pb-3">
-				<div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-3 border border-slate-200 dark:border-slate-800">
-					{/* Section Title */}
-					<div className="flex items-center gap-2 mb-2.5">
-						<TrendingUp className="w-4 h-4 text-primary" />
-						<span className="text-xs font-semibold text-foreground uppercase tracking-wide">
-							Profile Match
-						</span>
-					</div>
-
-					{/* Gap Chips - Wrapped layout, only show chips with data */}
-					<div className="flex flex-wrap gap-2">
-						{/* Only show GPA if we have both user value and requirement */}
-						{gapGrid.gpa.status !== "unknown" && gapGrid.gpa.requiredValue && (
-							<GapChip
-								label={gapGrid.gpa.label}
-								userValue={gapGrid.gpa.userValue}
-								requiredValue={gapGrid.gpa.requiredValue}
-								status={gapGrid.gpa.status}
-							/>
-						)}
-						{/* Only show IELTS if program has requirement */}
-						{gapGrid.ielts.requiredValue && (
-							<GapChip
-								label={gapGrid.ielts.label}
-								userValue={gapGrid.ielts.userValue}
-								requiredValue={gapGrid.ielts.requiredValue}
-								status={gapGrid.ielts.status}
-							/>
-						)}
-						{/* Only show Budget if we have program cost */}
-						{gapGrid.budget.userValue && (
-							<GapChip
-								label={gapGrid.budget.label}
-								userValue={gapGrid.budget.userValue}
-								requiredValue={gapGrid.budget.requiredValue}
-								status={gapGrid.budget.status}
-							/>
-						)}
-						{/* Only show Work Exp if program has requirement */}
-						{gapGrid.workExp.status !== "unknown" &&
-							gapGrid.workExp.requiredValue && (
-								<GapChip
-									label={gapGrid.workExp.label}
-									userValue={gapGrid.workExp.userValue}
-									requiredValue={gapGrid.workExp.requiredValue}
-									status={gapGrid.workExp.status}
-								/>
-							)}
-						{/* Show message if no chips visible */}
-						{!gapGrid.ielts.requiredValue && !gapGrid.budget.userValue && (
-							<span className="text-xs text-muted-foreground italic">
-								Không đủ dữ liệu để so sánh
+			{/* Fit Gaps */}
+			{program.fitGaps && program.fitGaps.length > 0 && (
+				<div className="px-4 pb-3">
+					<div className="bg-destructive/5 rounded-lg p-3 border border-destructive/20">
+						<div className="flex items-center gap-2 mb-2">
+							<AlertTriangle className="w-4 h-4 text-destructive" />
+							<span className="text-xs font-semibold text-foreground uppercase tracking-wide">
+								To improve
 							</span>
-						)}
-					</div>
-				</div>
-			</div>
-
-			{/* Net Cost Section */}
-			<div className="px-4 pb-3">
-				<div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
-					<div className="flex items-center justify-between">
-						<div>
-							<div className="text-xs text-muted-foreground mb-1 uppercase tracking-wide font-medium">
-								EST. NET COST
-							</div>
-							<div className="flex items-baseline gap-2">
-								<span className="text-xl font-bold text-foreground leading-none">
-									${(netCost / 1000).toFixed(0)}k
-								</span>
-								{estimatedAid > 0 && (
-									<span className="text-xs text-green-600 dark:text-green-400">
-										(-${(estimatedAid / 1000).toFixed(0)}k Aid)
-									</span>
-								)}
-							</div>
 						</div>
-						{program.scholarshipAvailable && (
-							<div className="text-right">
-								<span className="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300">
-									Scholarship
-								</span>
-							</div>
-						)}
+						<ul className="space-y-1">
+							{program.fitGaps.slice(0, 2).map((gap) => (
+								<li
+									key={gap}
+									className="flex items-start gap-2 text-xs text-muted-foreground"
+								>
+									<AlertTriangle className="w-3 h-3 text-destructive mt-0.5 shrink-0" />
+									<span className="line-clamp-1">{gap}</span>
+								</li>
+							))}
+						</ul>
 					</div>
 				</div>
-			</div>
+			)}
 
 			{/* Footer Actions */}
 			<div className="px-4 pb-4 flex gap-2">
 				<Button
 					variant="outline"
 					size="sm"
-					className="flex-1 font-medium text-sm"
+					className="flex-1 font-medium text-sm gap-2"
 					onClick={(e) => {
 						e.stopPropagation();
 						// Opens detail drawer for gap analysis
