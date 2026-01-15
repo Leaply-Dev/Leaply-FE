@@ -20,8 +20,9 @@ import {
 	User,
 	X,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
 	PageTransition,
 	SlideUp,
@@ -51,10 +52,24 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+	BUDGET_OPTIONS,
+	FIELD_OPTIONS,
+	mapBudgetKeyToLabel,
+	mapFieldKeyToLabel,
+	mapRegionKeyToLabel,
+	REGION_OPTIONS,
+} from "@/lib/constants/onboardingMappings";
 import type { UserMeResponse } from "@/lib/generated/api/models";
 import { authService } from "@/lib/services/auth";
 import { userService } from "@/lib/services/user";
 import { useUserStore } from "@/lib/store/userStore";
+
+// Term options for start term selection
+const TERM_OPTIONS = [
+	{ value: "Kỳ thu", labelKey: "fallTerm" },
+	{ value: "Kỳ xuân", labelKey: "springTerm" },
+];
 
 const EDUCATION_LEVELS = [
 	{ value: "high_school", labelKey: "highSchool" },
@@ -76,15 +91,41 @@ const CAMPUS_SETTINGS = [
 	{ value: "rural", labelKey: "rural" },
 ];
 
+// Parse intendedStartTerm into year and term (e.g., "2026 Kỳ thu" -> { year: "2026", term: "Kỳ thu" })
+function parseStartTerm(term: string | null | undefined): {
+	year: string;
+	term: string;
+} {
+	if (!term) return { year: "", term: "" };
+	const match = term.match(/^(\d{4})\s+(.+)$/);
+	if (match) {
+		return { year: match[1], term: match[2] };
+	}
+	return { year: "", term: "" };
+}
+
+// Generate year options (current year to +5 years)
+function getYearOptions(): string[] {
+	const currentYear = new Date().getFullYear();
+	return Array.from({ length: 6 }, (_, i) => String(currentYear + i));
+}
+
 export default function ProfilePage() {
 	const t = useTranslations("profile");
+	const searchParams = useSearchParams();
 	const { profile: _storeProfile, updateProfile: updateStoreProfile } =
 		useUserStore();
+
+	// Refs for scrolling to sections
+	const testScoresRef = useRef<HTMLDivElement>(null);
+	const preferencesRef = useRef<HTMLDivElement>(null);
 
 	const [userData, setUserData] = useState<UserMeResponse | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isEditing, setIsEditing] = useState(false);
+	const [isEditingPreferences, setIsEditingPreferences] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
+	const [isSavingPreferences, setIsSavingPreferences] = useState(false);
 	const [isResettingPassword, setIsResettingPassword] = useState(false);
 	const [isSendingVerification, setIsSendingVerification] = useState(false);
 	const [message, setMessage] = useState<{
@@ -92,7 +133,7 @@ export default function ProfilePage() {
 		text: string;
 	} | null>(null);
 
-	// Form state
+	// Form state for profile
 	const [formData, setFormData] = useState({
 		fullName: "",
 		currentEducationLevel: "",
@@ -101,6 +142,15 @@ export default function ProfilePage() {
 		gpaScale: "",
 		workExperienceYears: "",
 		testScores: {} as Record<string, string>,
+	});
+
+	// Form state for preferences
+	const [preferencesForm, setPreferencesForm] = useState({
+		budgetLabel: "",
+		fieldOfInterest: [] as string[],
+		preferredRegions: [] as string[],
+		intendedStartYear: "",
+		intendedStartTerm: "",
 	});
 
 	// Fetch user data
@@ -118,6 +168,16 @@ export default function ProfilePage() {
 					workExperienceYears: data.workExperienceYears?.toString() || "",
 					testScores: data.testScores || {},
 				});
+
+				// Initialize preferences form
+				const parsed = parseStartTerm(data.intendedStartTerm);
+				setPreferencesForm({
+					budgetLabel: data.budgetLabel || "",
+					fieldOfInterest: data.fieldOfInterest || [],
+					preferredRegions: data.preferredRegions || [],
+					intendedStartYear: parsed.year,
+					intendedStartTerm: parsed.term,
+				});
 			} catch (error) {
 				console.error("Failed to fetch user data:", error);
 			} finally {
@@ -126,6 +186,32 @@ export default function ProfilePage() {
 		}
 		fetchData();
 	}, []);
+
+	// Handle ?focus parameter for scrolling and auto-edit
+	useEffect(() => {
+		if (isLoading) return;
+
+		const focus = searchParams.get("focus");
+		if (focus === "english" || focus === "test-scores") {
+			// Scroll to test scores section and enable edit mode
+			setTimeout(() => {
+				testScoresRef.current?.scrollIntoView({
+					behavior: "smooth",
+					block: "center",
+				});
+				setIsEditing(true);
+			}, 100);
+		} else if (focus === "preferences") {
+			// Scroll to preferences section and enable edit mode
+			setTimeout(() => {
+				preferencesRef.current?.scrollIntoView({
+					behavior: "smooth",
+					block: "center",
+				});
+				setIsEditingPreferences(true);
+			}, 100);
+		}
+	}, [isLoading, searchParams]);
 
 	// Get user initials for avatar
 	const getInitials = (name?: string) => {
@@ -265,6 +351,101 @@ export default function ProfilePage() {
 				[type]: value,
 			},
 		}));
+	};
+
+	// Handle save preferences
+	const handleSavePreferences = async () => {
+		setIsSavingPreferences(true);
+		setMessage(null);
+
+		try {
+			// Combine year and term into intendedStartTerm format
+			const intendedStartTerm =
+				preferencesForm.intendedStartYear && preferencesForm.intendedStartTerm
+					? `${preferencesForm.intendedStartYear} ${preferencesForm.intendedStartTerm}`
+					: undefined;
+
+			const updateData = {
+				budgetLabel: preferencesForm.budgetLabel || undefined,
+				fieldOfInterest:
+					preferencesForm.fieldOfInterest.length > 0
+						? preferencesForm.fieldOfInterest
+						: undefined,
+				preferredRegions:
+					preferencesForm.preferredRegions.length > 0
+						? preferencesForm.preferredRegions
+						: undefined,
+				intendedStartTerm,
+			};
+
+			await userService.updatePreferences(updateData);
+
+			// Refresh user data
+			const data = await userService.getMe();
+			setUserData(data);
+
+			setIsEditingPreferences(false);
+			setMessage({ type: "success", text: t("updateSuccess") });
+
+			// Clear message after 3 seconds
+			setTimeout(() => setMessage(null), 3000);
+		} catch (error) {
+			console.error("Failed to update preferences:", error);
+			setMessage({ type: "error", text: t("updateError") });
+		} finally {
+			setIsSavingPreferences(false);
+		}
+	};
+
+	// Toggle field selection (max 3)
+	const toggleField = (field: string) => {
+		setPreferencesForm((prev) => {
+			const isSelected = prev.fieldOfInterest.includes(field);
+			if (isSelected) {
+				return {
+					...prev,
+					fieldOfInterest: prev.fieldOfInterest.filter((f) => f !== field),
+				};
+			}
+			// Max 3 fields
+			if (prev.fieldOfInterest.length >= 3) {
+				return prev;
+			}
+			return {
+				...prev,
+				fieldOfInterest: [...prev.fieldOfInterest, field],
+			};
+		});
+	};
+
+	// Toggle region selection
+	const toggleRegion = (region: string) => {
+		setPreferencesForm((prev) => {
+			const isSelected = prev.preferredRegions.includes(region);
+			if (isSelected) {
+				return {
+					...prev,
+					preferredRegions: prev.preferredRegions.filter((r) => r !== region),
+				};
+			}
+			return {
+				...prev,
+				preferredRegions: [...prev.preferredRegions, region],
+			};
+		});
+	};
+
+	// Cancel preferences editing
+	const cancelPreferencesEdit = () => {
+		const parsed = parseStartTerm(userData?.intendedStartTerm);
+		setPreferencesForm({
+			budgetLabel: userData?.budgetLabel || "",
+			fieldOfInterest: userData?.fieldOfInterest || [],
+			preferredRegions: userData?.preferredRegions || [],
+			intendedStartYear: parsed.year,
+			intendedStartTerm: parsed.term,
+		});
+		setIsEditingPreferences(false);
 	};
 
 	// Calculate profile completion color
@@ -688,7 +869,7 @@ export default function ProfilePage() {
 
 							{/* Test Scores */}
 							<StaggerItem>
-								<Card>
+								<Card ref={testScoresRef}>
 									<CardHeader className="flex flex-row items-center justify-between">
 										<div>
 											<CardTitle className="flex items-center gap-2">
@@ -774,153 +955,348 @@ export default function ProfilePage() {
 
 							{/* Preferences */}
 							<StaggerItem>
-								<Card>
-									<CardHeader>
-										<CardTitle className="flex items-center gap-2">
-											<Sparkles className="h-5 w-5 text-muted-foreground" />
-											{t("preferences")}
-										</CardTitle>
-										<CardDescription>
-											Your study abroad preferences
-										</CardDescription>
+								<Card ref={preferencesRef}>
+									<CardHeader className="flex flex-row items-center justify-between">
+										<div>
+											<CardTitle className="flex items-center gap-2">
+												<Sparkles className="h-5 w-5 text-muted-foreground" />
+												{t("preferences")}
+											</CardTitle>
+											<CardDescription>
+												Your study abroad preferences
+											</CardDescription>
+										</div>
+										{!isEditingPreferences ? (
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() => setIsEditingPreferences(true)}
+											>
+												<Edit2 className="h-4 w-4 mr-2" />
+												{t("editProfile")}
+											</Button>
+										) : (
+											<div className="flex gap-2">
+												<Button
+													variant="ghost"
+													size="sm"
+													onClick={cancelPreferencesEdit}
+												>
+													<X className="h-4 w-4 mr-2" />
+													{t("cancel")}
+												</Button>
+												<Button
+													size="sm"
+													onClick={handleSavePreferences}
+													disabled={isSavingPreferences}
+												>
+													{isSavingPreferences ? (
+														<>
+															<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+															{t("saving")}
+														</>
+													) : (
+														<>
+															<Check className="h-4 w-4 mr-2" />
+															{t("saveChanges")}
+														</>
+													)}
+												</Button>
+											</div>
+										)}
 									</CardHeader>
 									<CardContent>
-										<div className="grid gap-4 sm:grid-cols-2">
-											<div className="flex items-start gap-3">
-												<div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-													<BookOpen className="h-4 w-4 text-muted-foreground" />
-												</div>
-												<div>
-													<p className="text-sm text-muted-foreground">
-														{t("fieldsOfInterest")}
-													</p>
-													<div className="flex flex-wrap gap-1 mt-1">
-														{userData?.fieldOfInterest &&
-														userData.fieldOfInterest.length > 0 ? (
-															userData.fieldOfInterest.map((field: string) => (
-																<Badge
-																	key={field}
-																	variant="secondary"
-																	className="text-xs"
+										{isEditingPreferences ? (
+											<div className="space-y-6">
+												{/* Budget Range */}
+												<div className="space-y-2">
+													<Label>{t("budgetRange")}</Label>
+													<Select
+														value={preferencesForm.budgetLabel}
+														onValueChange={(value) =>
+															setPreferencesForm((prev) => ({
+																...prev,
+																budgetLabel: value,
+															}))
+														}
+													>
+														<SelectTrigger>
+															<SelectValue placeholder={t("selectBudget")} />
+														</SelectTrigger>
+														<SelectContent>
+															{BUDGET_OPTIONS.map((option) => (
+																<SelectItem
+																	key={option.value}
+																	value={option.value}
 																>
-																	{field}
-																</Badge>
-															))
-														) : (
-															<span className="text-muted-foreground">
-																{t("noData")}
-															</span>
-														)}
-													</div>
-												</div>
-											</div>
-											<div className="flex items-start gap-3">
-												<div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-													<MapPin className="h-4 w-4 text-muted-foreground" />
-												</div>
-												<div>
-													<p className="text-sm text-muted-foreground">
-														{t("preferredRegions")}
-													</p>
-													<div className="flex flex-wrap gap-1 mt-1">
-														{userData?.preferredRegions &&
-														userData.preferredRegions.length > 0 ? (
-															userData.preferredRegions.map(
-																(region: string) => (
-																	<Badge
-																		key={region}
-																		variant="secondary"
-																		className="text-xs"
-																	>
-																		{region}
-																	</Badge>
-																),
-															)
-														) : (
-															<span className="text-muted-foreground">
-																{t("noData")}
-															</span>
-														)}
-													</div>
-												</div>
-											</div>
-											<div className="flex items-start gap-3">
-												<div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-													<Calendar className="h-4 w-4 text-muted-foreground" />
-												</div>
-												<div>
-													<p className="text-sm text-muted-foreground">
-														{t("intendedStartTerm")}
-													</p>
-													<p className="font-medium">
-														{userData?.intendedStartTerm || t("noData")}
-													</p>
-												</div>
-											</div>
-											<div className="flex items-start gap-3">
-												<div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-													<Target className="h-4 w-4 text-muted-foreground" />
-												</div>
-												<div>
-													<p className="text-sm text-muted-foreground">
-														{t("budgetRange")}
-													</p>
-													<p className="font-medium">
-														{userData?.budgetLabel || t("noData")}
-													</p>
-												</div>
-											</div>
-											<div className="flex items-start gap-3">
-												<div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-													<Sparkles className="h-4 w-4 text-muted-foreground" />
-												</div>
-												<div>
-													<p className="text-sm text-muted-foreground">
-														{t("journeyType")}
-													</p>
-													<p className="font-medium">
-														{getJourneyLabel(userData?.journeyType)}
-													</p>
-												</div>
-											</div>
-											<div className="flex items-start gap-3">
-												<div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-													<MapPin className="h-4 w-4 text-muted-foreground" />
-												</div>
-												<div>
-													<p className="text-sm text-muted-foreground">
-														{t("campusSetting")}
-													</p>
-													<p className="font-medium">
-														{getCampusLabel(userData?.campusSetting)}
-													</p>
-												</div>
-											</div>
-										</div>
-										{userData?.interests && userData.interests.length > 0 && (
-											<>
-												<Separator className="my-4" />
-												<div className="flex items-start gap-3">
-													<div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-														<Sparkles className="h-4 w-4 text-muted-foreground" />
-													</div>
-													<div>
-														<p className="text-sm text-muted-foreground mb-2">
-															{t("interests")}
-														</p>
-														<div className="flex flex-wrap gap-1">
-															{userData.interests.map((interest: string) => (
-																<Badge
-																	key={interest}
-																	variant="outline"
-																	className="text-xs"
-																>
-																	{interest}
-																</Badge>
+																	{option.label}
+																</SelectItem>
 															))}
+														</SelectContent>
+													</Select>
+												</div>
+
+												{/* Fields of Interest */}
+												<div className="space-y-2">
+													<Label>
+														{t("fieldsOfInterest")} (
+														{preferencesForm.fieldOfInterest.length}/3)
+													</Label>
+													<div className="flex flex-wrap gap-2">
+														{FIELD_OPTIONS.map((option) => {
+															const isSelected =
+																preferencesForm.fieldOfInterest.includes(
+																	option.value,
+																);
+															const isDisabled =
+																!isSelected &&
+																preferencesForm.fieldOfInterest.length >= 3;
+															return (
+																<Badge
+																	key={option.value}
+																	variant={isSelected ? "default" : "outline"}
+																	className={`cursor-pointer transition-colors ${
+																		isDisabled
+																			? "opacity-50 cursor-not-allowed"
+																			: "hover:bg-primary/10"
+																	}`}
+																	onClick={() =>
+																		!isDisabled && toggleField(option.value)
+																	}
+																>
+																	{isSelected && (
+																		<Check className="h-3 w-3 mr-1" />
+																	)}
+																	{option.label}
+																</Badge>
+															);
+														})}
+													</div>
+												</div>
+
+												{/* Preferred Regions */}
+												<div className="space-y-2">
+													<Label>{t("preferredRegions")}</Label>
+													<div className="flex flex-wrap gap-2">
+														{REGION_OPTIONS.map((option) => {
+															const isSelected =
+																preferencesForm.preferredRegions.includes(
+																	option.value,
+																);
+															return (
+																<Badge
+																	key={option.value}
+																	variant={isSelected ? "default" : "outline"}
+																	className="cursor-pointer transition-colors hover:bg-primary/10"
+																	onClick={() => toggleRegion(option.value)}
+																>
+																	{isSelected && (
+																		<Check className="h-3 w-3 mr-1" />
+																	)}
+																	{option.label}
+																</Badge>
+															);
+														})}
+													</div>
+												</div>
+
+												{/* Intended Start Term */}
+												<div className="space-y-2">
+													<Label>{t("intendedStartTerm")}</Label>
+													<div className="flex gap-2">
+														<Select
+															value={preferencesForm.intendedStartYear}
+															onValueChange={(value) =>
+																setPreferencesForm((prev) => ({
+																	...prev,
+																	intendedStartYear: value,
+																}))
+															}
+														>
+															<SelectTrigger className="w-[120px]">
+																<SelectValue placeholder={t("year")} />
+															</SelectTrigger>
+															<SelectContent>
+																{getYearOptions().map((year) => (
+																	<SelectItem key={year} value={year}>
+																		{year}
+																	</SelectItem>
+																))}
+															</SelectContent>
+														</Select>
+														<Select
+															value={preferencesForm.intendedStartTerm}
+															onValueChange={(value) =>
+																setPreferencesForm((prev) => ({
+																	...prev,
+																	intendedStartTerm: value,
+																}))
+															}
+														>
+															<SelectTrigger className="flex-1">
+																<SelectValue placeholder={t("term")} />
+															</SelectTrigger>
+															<SelectContent>
+																{TERM_OPTIONS.map((option) => (
+																	<SelectItem
+																		key={option.value}
+																		value={option.value}
+																	>
+																		{t(option.labelKey)}
+																	</SelectItem>
+																))}
+															</SelectContent>
+														</Select>
+													</div>
+												</div>
+											</div>
+										) : (
+											<>
+												<div className="grid gap-4 sm:grid-cols-2">
+													<div className="flex items-start gap-3">
+														<div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+															<Target className="h-4 w-4 text-muted-foreground" />
+														</div>
+														<div>
+															<p className="text-sm text-muted-foreground">
+																{t("budgetRange")}
+															</p>
+															<p className="font-medium">
+																{userData?.budgetLabel
+																	? mapBudgetKeyToLabel(userData.budgetLabel)
+																	: t("noData")}
+															</p>
+														</div>
+													</div>
+													<div className="flex items-start gap-3">
+														<div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+															<Calendar className="h-4 w-4 text-muted-foreground" />
+														</div>
+														<div>
+															<p className="text-sm text-muted-foreground">
+																{t("intendedStartTerm")}
+															</p>
+															<p className="font-medium">
+																{userData?.intendedStartTerm || t("noData")}
+															</p>
+														</div>
+													</div>
+													<div className="flex items-start gap-3">
+														<div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+															<BookOpen className="h-4 w-4 text-muted-foreground" />
+														</div>
+														<div>
+															<p className="text-sm text-muted-foreground">
+																{t("fieldsOfInterest")}
+															</p>
+															<div className="flex flex-wrap gap-1 mt-1">
+																{userData?.fieldOfInterest &&
+																userData.fieldOfInterest.length > 0 ? (
+																	userData.fieldOfInterest.map(
+																		(field: string) => (
+																			<Badge
+																				key={field}
+																				variant="secondary"
+																				className="text-xs"
+																			>
+																				{mapFieldKeyToLabel(field)}
+																			</Badge>
+																		),
+																	)
+																) : (
+																	<span className="text-muted-foreground">
+																		{t("noData")}
+																	</span>
+																)}
+															</div>
+														</div>
+													</div>
+													<div className="flex items-start gap-3">
+														<div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+															<MapPin className="h-4 w-4 text-muted-foreground" />
+														</div>
+														<div>
+															<p className="text-sm text-muted-foreground">
+																{t("preferredRegions")}
+															</p>
+															<div className="flex flex-wrap gap-1 mt-1">
+																{userData?.preferredRegions &&
+																userData.preferredRegions.length > 0 ? (
+																	userData.preferredRegions.map(
+																		(region: string) => (
+																			<Badge
+																				key={region}
+																				variant="secondary"
+																				className="text-xs"
+																			>
+																				{mapRegionKeyToLabel(region)}
+																			</Badge>
+																		),
+																	)
+																) : (
+																	<span className="text-muted-foreground">
+																		{t("noData")}
+																	</span>
+																)}
+															</div>
+														</div>
+													</div>
+													<div className="flex items-start gap-3">
+														<div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+															<Sparkles className="h-4 w-4 text-muted-foreground" />
+														</div>
+														<div>
+															<p className="text-sm text-muted-foreground">
+																{t("journeyType")}
+															</p>
+															<p className="font-medium">
+																{getJourneyLabel(userData?.journeyType)}
+															</p>
+														</div>
+													</div>
+													<div className="flex items-start gap-3">
+														<div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+															<MapPin className="h-4 w-4 text-muted-foreground" />
+														</div>
+														<div>
+															<p className="text-sm text-muted-foreground">
+																{t("campusSetting")}
+															</p>
+															<p className="font-medium">
+																{getCampusLabel(userData?.campusSetting)}
+															</p>
 														</div>
 													</div>
 												</div>
+												{userData?.interests &&
+													userData.interests.length > 0 && (
+														<>
+															<Separator className="my-4" />
+															<div className="flex items-start gap-3">
+																<div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+																	<Sparkles className="h-4 w-4 text-muted-foreground" />
+																</div>
+																<div>
+																	<p className="text-sm text-muted-foreground mb-2">
+																		{t("interests")}
+																	</p>
+																	<div className="flex flex-wrap gap-1">
+																		{userData.interests.map(
+																			(interest: string) => (
+																				<Badge
+																					key={interest}
+																					variant="outline"
+																					className="text-xs"
+																				>
+																					{interest}
+																				</Badge>
+																			),
+																		)}
+																	</div>
+																</div>
+															</div>
+														</>
+													)}
 											</>
 										)}
 									</CardContent>

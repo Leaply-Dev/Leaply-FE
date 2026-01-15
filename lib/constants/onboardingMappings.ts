@@ -142,3 +142,78 @@ export function mapBudgetIndexToKey(index: number): string {
 export function mapBudgetLabelToKey(label: string): string {
 	return BUDGET_LABEL_TO_KEY[label] ?? "500m_1b";
 }
+
+// ============================================
+// Reverse mappings (key → label for display)
+// ============================================
+
+/**
+ * Maps backend enum keys to Vietnamese display labels
+ */
+export const FIELD_KEY_TO_LABEL: Record<string, string> = {
+	cs_it: "Khoa học máy tính / IT",
+	business: "Kinh doanh / Quản trị",
+	finance: "Kinh tế / Tài chính",
+	engineering: "Khoa học kỹ thuật",
+	data_science: "Khoa học Dữ liệu / Phân tích",
+	design: "Thiết kế (UX/UI, Công nghiệp)",
+	health: "Y tế cộng đồng / Y tế",
+	other: "Khác / Chưa xác định",
+};
+
+export const REGION_KEY_TO_LABEL: Record<string, string> = {
+	east_asia: "Đông Á",
+	western_europe: "Tây Âu",
+	northern_europe: "Bắc Âu",
+	north_america: "Bắc Mỹ",
+	oceania: "Châu Đại Dương",
+};
+
+export const BUDGET_KEY_TO_LABEL: Record<string, string> = {
+	under_500m: "<500 triệu",
+	"500m_1b": "500 triệu - 1 tỷ",
+	over_1b: ">1 tỷ",
+	need_full_scholarship: "Cần học bổng full",
+};
+
+/**
+ * Transform an enum key to display label (field)
+ */
+export function mapFieldKeyToLabel(key: string): string {
+	return FIELD_KEY_TO_LABEL[key] ?? key;
+}
+
+/**
+ * Transform an enum key to display label (region)
+ */
+export function mapRegionKeyToLabel(key: string): string {
+	return REGION_KEY_TO_LABEL[key] ?? key;
+}
+
+/**
+ * Transform an enum key to display label (budget)
+ */
+export function mapBudgetKeyToLabel(key: string): string {
+	return BUDGET_KEY_TO_LABEL[key] ?? key;
+}
+
+/**
+ * Get all field options as { value, label } pairs for Select components
+ */
+export const FIELD_OPTIONS = Object.entries(FIELD_KEY_TO_LABEL).map(
+	([value, label]) => ({ value, label }),
+);
+
+/**
+ * Get all region options as { value, label } pairs for Select components
+ */
+export const REGION_OPTIONS = Object.entries(REGION_KEY_TO_LABEL).map(
+	([value, label]) => ({ value, label }),
+);
+
+/**
+ * Get all budget options as { value, label } pairs for Select components
+ */
+export const BUDGET_OPTIONS = Object.entries(BUDGET_KEY_TO_LABEL).map(
+	([value, label]) => ({ value, label }),
+);
