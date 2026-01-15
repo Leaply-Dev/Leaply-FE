@@ -79,6 +79,9 @@ export function ChatSidebar() {
 	// Get messages from store (persisted to localStorage)
 	const messages = usePersonaStore((state) => state.graphMessages);
 	const addGraphMessage = usePersonaStore((state) => state.addGraphMessage);
+	const updateMessageStatus = usePersonaStore(
+		(state) => state.updateMessageStatus,
+	);
 	const clearGraphMessages = usePersonaStore(
 		(state) => state.clearGraphMessages,
 	);
@@ -171,6 +174,9 @@ export function ChatSidebar() {
 						// Calculate thinking duration
 						const thinkingDuration = Date.now() - startTime;
 						setThinkingStartTime(null);
+
+						// Mark user message as sent (prevents duplication in syncWithServer)
+						updateMessageStatus(userMessage.id, "sent");
 
 						// Response is ApiResponseGraphMessageResponse (mutator returns wrapped response)
 						console.log("🐛 [ChatSidebar] Raw API Response:", response);
@@ -299,6 +305,7 @@ export function ChatSidebar() {
 			t,
 			processGraphUpdate,
 			addGraphMessage,
+			updateMessageStatus,
 			queryClient,
 			synthesizeProfileMutation,
 		],

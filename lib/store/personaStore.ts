@@ -89,6 +89,7 @@ interface PersonaStoreState {
 
 	// Chat message actions
 	addGraphMessage: (message: ConversationMessage) => void;
+	updateMessageStatus: (id: string, status: "sent" | "error") => void;
 	clearGraphMessages: () => void;
 
 	// Utility
@@ -239,6 +240,15 @@ export const usePersonaStore = create<PersonaStoreState>()(
 			addGraphMessage: (message: ConversationMessage) => {
 				set((state) => ({
 					graphMessages: [...state.graphMessages, message],
+				}));
+			},
+
+			// Update the status of a message (e.g., from "sending" to "sent")
+			updateMessageStatus: (id: string, status: "sent" | "error") => {
+				set((state) => ({
+					graphMessages: state.graphMessages.map((msg) =>
+						msg.id === id ? { ...msg, status } : msg,
+					),
 				}));
 			},
 
