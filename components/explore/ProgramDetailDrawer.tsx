@@ -473,7 +473,7 @@ export function ProgramDetailDrawer({
 									onClick={() => program?.id && onAddToDashboard?.(program.id)}
 								>
 									<Plus className="w-4 h-4" />
-									Apply Now
+									Nộp học bổng
 								</Button>
 							</div>
 						</SheetFooter>

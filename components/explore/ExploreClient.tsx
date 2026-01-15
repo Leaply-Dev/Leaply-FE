@@ -19,6 +19,9 @@ import { useAiMatch } from "@/lib/hooks/useAiMatch";
 import { usePrograms, useSaveProgram } from "@/lib/hooks/usePrograms";
 import { useUserMe } from "@/lib/hooks/useUserMe";
 import { cn } from "@/lib/utils";
+import { useCreateApplication } from "@/lib/generated/api/endpoints/applications/applications";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface ExploreClientProps {
 	initialPrograms?: ApiResponseProgramListResponse;
@@ -85,6 +88,8 @@ export function ExploreClient({
 	const { data: userProfile } = useUserMe(initialUserProfile);
 
 	const saveMutation = useSaveProgram();
+	const router = useRouter();
+	const { mutate: createApplication } = useCreateApplication();
 
 	// Extract data from responses (unwrap ApiResponse)
 	const programs = programsResponse?.data?.data ?? [];
@@ -95,6 +100,29 @@ export function ExploreClient({
 
 		// Trigger mutation (includes optimistic update)
 		saveMutation.mutate({ id, isSaved: program.isSaved ?? false });
+	};
+
+	const handleAddToDashboard = (programId: string) => {
+		createApplication(
+			{
+				data: {
+					programId,
+				},
+			},
+			{
+				onSuccess: () => {
+					toast.success("Application created", {
+						description: "The program has been added to your dashboard.",
+					});
+					router.push("/dashboard/applications");
+				},
+				onError: () => {
+					toast.error("Failed to create application", {
+						description: "Please try again later.",
+					});
+				},
+			},
+		);
 	};
 
 	// Compare state
@@ -289,6 +317,7 @@ export function ExploreClient({
 									selectedPrograms={selectedPrograms}
 									onToggleSelection={toggleProgramSelection}
 									isMaxReached={isMaxReached}
+									onAddToDashboard={handleAddToDashboard}
 								/>
 							</>
 						)}
@@ -302,6 +331,7 @@ export function ExploreClient({
 						selectedPrograms={selectedPrograms}
 						onToggleSelection={toggleProgramSelection}
 						isMaxReached={isMaxReached}
+						onAddToDashboard={handleAddToDashboard}
 					/>
 				)}
 			</div>
@@ -328,10 +358,7 @@ export function ExploreClient({
 						setIsCompareDialogOpen(false);
 					}
 				}}
-				onAddToDashboard={(id) => {
-					// TODO: Implement add to dashboard functionality
-					console.log("Add to dashboard:", id);
-				}}
+				onAddToDashboard={handleAddToDashboard}
 			/>
 
 			{/* Program Detail Drawer for AI Mode */}
@@ -343,10 +370,7 @@ export function ExploreClient({
 					toggleProgramSelection(id);
 					setIsDetailDrawerOpen(false);
 				}}
-				onAddToDashboard={(id) => {
-					console.log("Add to dashboard:", id);
-					setIsDetailDrawerOpen(false);
-				}}
+				onAddToDashboard={handleAddToDashboard}
 			/>
 		</PageTransition>
 	);

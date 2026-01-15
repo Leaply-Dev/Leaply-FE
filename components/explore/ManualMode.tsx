@@ -27,6 +27,7 @@ interface ManualModeProps {
 	selectedPrograms: Set<string>;
 	onToggleSelection: (id: string) => void;
 	isMaxReached: boolean;
+	onAddToDashboard?: (id: string) => void;
 }
 
 /**
@@ -44,7 +45,7 @@ function ProgramTableRow({
 	selected: boolean;
 	onSelect: () => void;
 	onClick: () => void;
-	onAddToDashboard: () => void;
+	onAddToDashboard: (id: string) => void;
 	isMaxReached: boolean;
 }) {
 	const getDeadlineUrgency = (deadline?: string) => {
@@ -222,7 +223,7 @@ function ProgramTableRow({
 					size="sm"
 					onClick={(e) => {
 						e.stopPropagation();
-						onAddToDashboard();
+						program.id && onAddToDashboard(program.id);
 					}}
 					className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
 				>
@@ -242,6 +243,7 @@ export function ManualMode({
 	selectedPrograms,
 	onToggleSelection,
 	isMaxReached,
+	onAddToDashboard,
 }: ManualModeProps) {
 	// Detail drawer state
 	const [selectedProgram, setSelectedProgram] =
@@ -464,8 +466,7 @@ export function ManualMode({
 											setIsDetailDrawerOpen(true);
 										}}
 										onAddToDashboard={() => {
-											// TODO: Implement add to dashboard functionality
-											console.log("Add to dashboard:", program.id);
+											program.id && onAddToDashboard?.(program.id);
 										}}
 										isMaxReached={isMaxReached}
 									/>
@@ -551,11 +552,9 @@ export function ManualMode({
 					onToggleSelection(id);
 					setIsDetailDrawerOpen(false);
 				}}
-				onAddToDashboard={(id) => {
-					// TODO: Implement add to dashboard functionality
-					console.log("Add to dashboard:", id);
-					setIsDetailDrawerOpen(false);
-				}}
+				onAddToDashboard={onAddToDashboard}
+				// 	setIsDetailDrawerOpen(false);
+				// }}
 			/>
 		</div>
 	);

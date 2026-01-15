@@ -14,6 +14,8 @@ import {
 	ThumbsUp,
 	TrendingUp,
 	Trophy,
+	BookOpen,
+	Clock,
 } from "lucide-react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -214,7 +216,7 @@ function TuitionCell({ program }: { program: ProgramListItemResponse }) {
 						: "N/A"}
 				</p>
 				{program.scholarshipAvailable && (
-					<p className="text-sm text-green-600">✓ Có học bổng (đến 20%)</p>
+					<p className="text-sm text-green-600">✓ Có học bổng</p>
 				)}
 				{!program.scholarshipAvailable && (
 					<p className="text-sm text-muted-foreground italic">
@@ -244,16 +246,16 @@ function RankingCell({ program }: { program: ProgramListItemResponse }) {
 							</Badge>
 						</div>
 					)}
-					{program.rankingQsDisplay && (
+					{/* {program.rankingTimesDisplay && (
 						<div className="flex items-center gap-2">
 							<Badge
 								variant="outline"
 								className="font-semibold text-amber-700 border-amber-300 bg-amber-50 dark:bg-amber-950/30"
 							>
-								Times #{program.rankingQsDisplay}
+								Times #{program.rankingTimesDisplay}
 							</Badge>
 						</div>
-					)}
+					)} */}
 				</div>
 			) : (
 				<span className="text-muted-foreground">N/A</span>
@@ -261,7 +263,39 @@ function RankingCell({ program }: { program: ProgramListItemResponse }) {
 		</td>
 	);
 }
+/**
+ * Degree and Delivery row cell
+ */
+function DegreeDeliveryCell({ program }: { program: ProgramListItemResponse }) {
+	return (
+		<td className="p-4 border-l border-border align-top">
+			<div className="space-y-1">
+				<div className="flex items-center gap-2 text-sm text-muted-foreground">
+					<span>
+						{[program.degreeName, program.deliveryMode]
+							.filter(Boolean)
+							.join(" • ")}
+					</span>
+				</div>
+			</div>
+		</td>
+	);
+}
 
+/**
+ * Duration row cell
+ */
+function DurationCell({ program }: { program: ProgramListItemResponse }) {
+	return (
+		<td className="p-4 border-l border-border align-top">
+			<span className="text-foreground">
+				{program.durationMonths
+					? `${program.durationMonths} months`
+					: "Varies / Unknown"}
+			</span>
+		</td>
+	);
+}
 /**
  * Deadline row cell
  */
@@ -286,9 +320,22 @@ function DeadlineCell({ program }: { program: ProgramListItemResponse }) {
  * GPA requirements row cell
  * Note: GPA requirements data is sparse in our database, so we show N/A when not available
  */
-function GpaCell({ program: _program }: { program: ProgramListItemResponse }) {
-	// GPA requirements would come from _program.gpaMinimum if available
-	// Currently most programs don't have this data
+/**
+ * GPA requirements row cell
+ */
+function GpaCell({ program }: { program: ProgramListItemResponse }) {
+	if (program.gpaGap?.requiredValue) {
+		return (
+			<td className="p-4 border-l border-border align-top">
+				<p className="font-semibold text-foreground">
+					{program.gpaGap.requiredValue}
+					{program.gpaGap.requiredScale
+						? ` / ${program.gpaGap.requiredScale}`
+						: ""}
+				</p>
+			</td>
+		);
+	}
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<span className="text-muted-foreground">N/A</span>
@@ -365,9 +412,12 @@ function ActionsCell({
 			<div className="space-y-3">
 				<Button
 					className="w-full"
-					onClick={() => onAddToDashboard(program.id ?? "")}
+					onClick={(e) => {
+						e.stopPropagation();
+						program.id && onAddToDashboard(program.id);
+					}}
 				>
-					Thêm vào Dashboard
+					Nộp học bổng
 				</Button>
 				<button
 					type="button"
@@ -458,6 +508,22 @@ export function CompareDialog({
 										<RowLabel icon={Trophy} label="Xếp hạng QS" />
 										{selectedProgramsList.map((program) => (
 											<RankingCell key={program.id} program={program} />
+										))}
+									</tr>
+
+									{/* Degree & Delivery Row */}
+									<tr className="border-b border-border">
+										<RowLabel icon={BookOpen} label="Bằng cấp & Hình thức" />
+										{selectedProgramsList.map((program) => (
+											<DegreeDeliveryCell key={program.id} program={program} />
+										))}
+									</tr>
+
+									{/* Duration Row */}
+									<tr className="border-b border-border">
+										<RowLabel icon={Clock} label="Thời gian học" />
+										{selectedProgramsList.map((program) => (
+											<DurationCell key={program.id} program={program} />
 										))}
 									</tr>
 

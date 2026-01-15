@@ -25,6 +25,7 @@ interface ProgramCardProps {
 	isSelected?: boolean;
 	onToggleSelection?: (id: string) => void;
 	isMaxReached?: boolean;
+	onAddToDashboard?: (id: string) => void;
 }
 
 function formatCurrency(value?: number): string {
@@ -51,6 +52,7 @@ export function ProgramCard({
 	isSelected,
 	onToggleSelection,
 	isMaxReached,
+	onAddToDashboard,
 }: ProgramCardProps) {
 	return (
 		<div
@@ -172,7 +174,7 @@ export function ProgramCard({
 					className="flex-1 font-medium gap-2 bg-primary hover:bg-primary/90 text-sm"
 					onClick={(e) => {
 						e.stopPropagation();
-						// TODO: Implement apply
+						program.id && onAddToDashboard?.(program.id);
 					}}
 				>
 					Apply

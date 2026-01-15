@@ -30,6 +30,7 @@ export function CategoryContainer({
 	selectedPrograms,
 	onToggleSelection,
 	isMaxReached,
+	onAddToDashboard,
 }: {
 	title: string;
 	description: string;
@@ -42,6 +43,7 @@ export function CategoryContainer({
 	selectedPrograms?: Set<string>;
 	onToggleSelection?: (id: string) => void;
 	isMaxReached?: boolean;
+	onAddToDashboard?: (id: string) => void;
 }) {
 	const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 	const [showAll, setShowAll] = useState(false);
@@ -174,6 +176,7 @@ export function CategoryContainer({
 										isSelected={selectedPrograms?.has(program.id || "")}
 										onToggleSelection={onToggleSelection}
 										isMaxReached={isMaxReached}
+										onAddToDashboard={onAddToDashboard}
 									/>
 								))}
 							</div>
@@ -234,6 +237,7 @@ export function SwimLanes({
 	selectedPrograms,
 	onToggleSelection,
 	isMaxReached,
+	onAddToDashboard,
 }: {
 	programs: ProgramListItemResponse[];
 	userProfile?: UserContextResponse | null;
@@ -242,6 +246,7 @@ export function SwimLanes({
 	selectedPrograms?: Set<string>;
 	onToggleSelection?: (id: string) => void;
 	isMaxReached?: boolean;
+	onAddToDashboard?: (id: string) => void;
 }) {
 	const reach = programs.filter((p) => p.fitCategory === "reach");
 	const target = programs.filter((p) => p.fitCategory === "target");
@@ -260,6 +265,7 @@ export function SwimLanes({
 				selectedPrograms={selectedPrograms}
 				onToggleSelection={onToggleSelection}
 				isMaxReached={isMaxReached}
+				onAddToDashboard={onAddToDashboard}
 			/>
 			<CategoryContainer
 				title="Target Programs"
@@ -272,6 +278,7 @@ export function SwimLanes({
 				selectedPrograms={selectedPrograms}
 				onToggleSelection={onToggleSelection}
 				isMaxReached={isMaxReached}
+				onAddToDashboard={onAddToDashboard}
 			/>
 			<CategoryContainer
 				title="Safety Programs"
@@ -284,6 +291,7 @@ export function SwimLanes({
 				selectedPrograms={selectedPrograms}
 				onToggleSelection={onToggleSelection}
 				isMaxReached={isMaxReached}
+				onAddToDashboard={onAddToDashboard}
 			/>
 		</div>
 	);
@@ -300,6 +308,7 @@ export function TabBasedCategories({
 	selectedPrograms,
 	onToggleSelection,
 	isMaxReached,
+	onAddToDashboard,
 }: {
 	programs: ProgramListItemResponse[];
 	userProfile?: UserContextResponse | null;
@@ -308,6 +317,7 @@ export function TabBasedCategories({
 	selectedPrograms?: Set<string>;
 	onToggleSelection?: (id: string) => void;
 	isMaxReached?: boolean;
+	onAddToDashboard?: (id: string) => void;
 }) {
 	const reach = programs.filter((p) => p.fitCategory === "reach");
 	const target = programs.filter((p) => p.fitCategory === "target");
@@ -322,7 +332,7 @@ export function TabBasedCategories({
 	const categories = [
 		{
 			id: "target",
-			title: "Target Schools",
+			title: "Target Programs",
 			description: "Balanced options. Acceptance probability > 50%.",
 			programs: target,
 			icon: <Sparkles className="w-4 h-4" />,
@@ -335,7 +345,7 @@ export function TabBasedCategories({
 		},
 		{
 			id: "reach",
-			title: "Reach Schools",
+			title: "Reach Programs",
 			description:
 				"High reward options. Acceptance probability < 30% based on current profile.",
 			programs: reach,
@@ -349,7 +359,7 @@ export function TabBasedCategories({
 		},
 		{
 			id: "safety",
-			title: "Safety Schools",
+			title: "Safety Programs",
 			description:
 				"Solid programs where you exceed the typical admission requirements.",
 			programs: safety,
@@ -458,6 +468,7 @@ export function TabBasedCategories({
 										isSelected={selectedPrograms?.has(program.id || "")}
 										onToggleSelection={onToggleSelection}
 										isMaxReached={isMaxReached}
+										onAddToDashboard={onAddToDashboard}
 									/>
 								))}
 							</div>

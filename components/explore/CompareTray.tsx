@@ -19,7 +19,9 @@ export function SelectedProgramChip({
 }: SelectedProgramChipProps) {
 	return (
 		<Badge variant="secondary" className="gap-2 pr-1 text-sm py-1.5 px-3">
-			<span className="font-medium">{program.universityName}</span>
+			<span className="font-medium">
+				{program.universityName} - {program.programName}
+			</span>
 			<button
 				type="button"
 				onClick={onRemove}

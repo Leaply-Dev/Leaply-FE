@@ -8643,21 +8643,21 @@ export function SwimLanes({
 	return (
 		<div className="space-y-2">
 			<CategoryContainer
-				title="Reach Schools"
+				title="Reach Programs"
 				programs={reach}
 				variant="reach"
 				onSaveToggle={onSaveToggle}
 				onProgramClick={onProgramClick}
 			/>
 			<CategoryContainer
-				title="Target Schools"
+				title="Target Programs"
 				programs={target}
 				variant="target"
 				onSaveToggle={onSaveToggle}
 				onProgramClick={onProgramClick}
 			/>
 			<CategoryContainer
-				title="Safety Schools"
+				title="Safety Programs"
 				programs={safety}
 				variant="safety"
 				onSaveToggle={onSaveToggle}
