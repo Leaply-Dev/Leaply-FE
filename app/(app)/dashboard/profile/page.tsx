@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
 	PageTransition,
 	SlideUp,
@@ -64,6 +64,12 @@ import type { UserMeResponse } from "@/lib/generated/api/models";
 import { authService } from "@/lib/services/auth";
 import { userService } from "@/lib/services/user";
 import { useUserStore } from "@/lib/store/userStore";
+import {
+	type PreferencesFormData,
+	type ProfileFormData,
+	preferencesSchema,
+	profileSchema,
+} from "@/lib/validations/profile";
 
 // Term options for start term selection
 const TERM_OPTIONS = [
@@ -120,6 +126,23 @@ export default function ProfilePage() {
 	const testScoresRef = useRef<HTMLDivElement>(null);
 	const preferencesRef = useRef<HTMLDivElement>(null);
 
+	// Generate unique IDs for form fields
+	const fullNameId = useId();
+	const educationLevelId = useId();
+	const targetDegreeId = useId();
+	const gpaId = useId();
+	const gpaScaleId = useId();
+	const workExpId = useId();
+	const testScoreIds = {
+		IELTS: useId(),
+		TOEFL: useId(),
+		GRE: useId(),
+		GMAT: useId(),
+	};
+	const budgetId = useId();
+	const yearId = useId();
+	const termId = useId();
+
 	const [userData, setUserData] = useState<UserMeResponse | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isEditing, setIsEditing] = useState(false);
@@ -132,6 +155,9 @@ export default function ProfilePage() {
 		type: "success" | "error";
 		text: string;
 	} | null>(null);
+	const [fieldErrors, setFieldErrors] = useState<
+		Partial<Record<keyof ProfileFormData | keyof PreferencesFormData, string>>
+	>({});
 
 	// Form state for profile
 	const [formData, setFormData] = useState({
@@ -263,19 +289,32 @@ export default function ProfilePage() {
 	const handleSave = async () => {
 		setIsSaving(true);
 		setMessage(null);
+		setFieldErrors({});
 
 		try {
+			// Validate form data
+			const validatedData = profileSchema.parse({
+				...formData,
+				gpa: formData.gpa === "" ? undefined : Number(formData.gpa),
+				gpaScale: formData.gpaScale === "" ? 4.0 : Number(formData.gpaScale),
+				workExperienceYears:
+					formData.workExperienceYears === ""
+						? undefined
+						: Number(formData.workExperienceYears),
+			});
+
+			// Only send defined fields
 			const updateData = {
-				fullName: formData.fullName || undefined,
-				currentEducationLevel: formData.currentEducationLevel || undefined,
-				targetDegree: formData.targetDegree || undefined,
-				gpa: formData.gpa ? Number.parseFloat(formData.gpa) : undefined,
-				gpaScale: formData.gpaScale
-					? Number.parseFloat(formData.gpaScale)
-					: undefined,
-				workExperienceYears: formData.workExperienceYears
-					? Number.parseInt(formData.workExperienceYears, 10)
-					: undefined,
+				fullName: validatedData.fullName,
+				currentEducationLevel: validatedData.currentEducationLevel,
+				targetDegree: validatedData.targetDegree,
+				gpa:
+					typeof validatedData.gpa === "number" ? validatedData.gpa : undefined,
+				gpaScale: validatedData.gpaScale,
+				workExperienceYears:
+					typeof validatedData.workExperienceYears === "number"
+						? validatedData.workExperienceYears
+						: undefined,
 				testScores:
 					Object.keys(formData.testScores).length > 0
 						? formData.testScores
@@ -300,7 +339,25 @@ export default function ProfilePage() {
 			setTimeout(() => setMessage(null), 3000);
 		} catch (error) {
 			console.error("Failed to update profile:", error);
-			setMessage({ type: "error", text: t("updateError") });
+
+			// Handle Zod validation errors
+			if (error && typeof error === "object" && "errors" in error) {
+				const zodError = error as {
+					errors: Array<{ path: string[]; message: string }>;
+				};
+				const errors: Partial<Record<keyof ProfileFormData, string>> = {};
+				zodError.errors.forEach((err) => {
+					// Use the last path segment as the field key (e.g. valid for nested objects if needed, but here simple)
+					const field = err.path[err.path.length - 1] as keyof ProfileFormData;
+					if (field) {
+						errors[field] = err.message;
+					}
+				});
+				setFieldErrors(errors);
+				setMessage({ type: "error", text: t("updateError") });
+			} else {
+				setMessage({ type: "error", text: t("updateError") });
+			}
 		} finally {
 			setIsSaving(false);
 		}
@@ -357,23 +414,38 @@ export default function ProfilePage() {
 	const handleSavePreferences = async () => {
 		setIsSavingPreferences(true);
 		setMessage(null);
+		setFieldErrors({});
 
 		try {
-			// Combine year and term into intendedStartTerm format
+			// Combine year and term into intendedStartTerm format if possible, else let schema enforce logic if needed
+			// But here we rely on the schema to validate the individual parts if we added key mappings,
+			// OR we validate the combined object.
+
+			// Let's validate against preferencesSchema which has helpers intendedStartYear/Term
+			const validatedPreferences = preferencesSchema.parse({
+				...preferencesForm,
+				// Ensure arrays are arrays
+				fieldOfInterest: preferencesForm.fieldOfInterest || [],
+				preferredRegions: preferencesForm.preferredRegions || [],
+			});
+
 			const intendedStartTerm =
-				preferencesForm.intendedStartYear && preferencesForm.intendedStartTerm
-					? `${preferencesForm.intendedStartYear} ${preferencesForm.intendedStartTerm}`
+				validatedPreferences.intendedStartYear &&
+				validatedPreferences.intendedStartTerm
+					? `${validatedPreferences.intendedStartYear} ${validatedPreferences.intendedStartTerm}`
 					: undefined;
 
 			const updateData = {
-				budgetLabel: preferencesForm.budgetLabel || undefined,
+				budgetLabel: validatedPreferences.budgetLabel || undefined,
 				fieldOfInterest:
-					preferencesForm.fieldOfInterest.length > 0
-						? preferencesForm.fieldOfInterest
+					validatedPreferences.fieldOfInterest &&
+					validatedPreferences.fieldOfInterest.length > 0
+						? validatedPreferences.fieldOfInterest
 						: undefined,
 				preferredRegions:
-					preferencesForm.preferredRegions.length > 0
-						? preferencesForm.preferredRegions
+					validatedPreferences.preferredRegions &&
+					validatedPreferences.preferredRegions.length > 0
+						? validatedPreferences.preferredRegions
 						: undefined,
 				intendedStartTerm,
 			};
@@ -391,7 +463,26 @@ export default function ProfilePage() {
 			setTimeout(() => setMessage(null), 3000);
 		} catch (error) {
 			console.error("Failed to update preferences:", error);
-			setMessage({ type: "error", text: t("updateError") });
+
+			// Handle Zod validation errors
+			if (error && typeof error === "object" && "errors" in error) {
+				const zodError = error as {
+					errors: Array<{ path: string[]; message: string }>;
+				};
+				const errors: Partial<Record<keyof PreferencesFormData, string>> = {};
+				zodError.errors.forEach((err) => {
+					const field = err.path[
+						err.path.length - 1
+					] as keyof PreferencesFormData;
+					if (field) {
+						errors[field] = err.message;
+					}
+				});
+				setFieldErrors((prev) => ({ ...prev, ...errors }));
+				setMessage({ type: "error", text: t("updateError") });
+			} else {
+				setMessage({ type: "error", text: t("updateError") });
+			}
 		} finally {
 			setIsSavingPreferences(false);
 		}
@@ -615,7 +706,8 @@ export default function ProfilePage() {
 													size="sm"
 													onClick={() => {
 														setIsEditing(false);
-														// Reset form data
+														// Reset form data and errors
+														setFieldErrors({});
 														setFormData({
 															fullName: userData?.fullName || "",
 															currentEducationLevel:
@@ -656,9 +748,9 @@ export default function ProfilePage() {
 										{isEditing ? (
 											<div className="grid gap-6 sm:grid-cols-2">
 												<div className="space-y-2">
-													<Label htmlFor="fullName">{t("fullName")}</Label>
+													<Label htmlFor={fullNameId}>{t("fullName")}</Label>
 													<Input
-														id="fullName"
+														id={fullNameId}
 														value={formData.fullName}
 														onChange={(e) =>
 															setFormData((prev) => ({
@@ -667,10 +759,18 @@ export default function ProfilePage() {
 															}))
 														}
 														placeholder={t("fullNamePlaceholder")}
+														className={
+															fieldErrors.fullName ? "border-destructive" : ""
+														}
 													/>
+													{fieldErrors.fullName && (
+														<p className="text-sm text-destructive mt-1">
+															{fieldErrors.fullName}
+														</p>
+													)}
 												</div>
 												<div className="space-y-2">
-													<Label htmlFor="educationLevel">
+													<Label htmlFor={educationLevelId}>
 														{t("educationLevel")}
 													</Label>
 													<Select
@@ -698,7 +798,7 @@ export default function ProfilePage() {
 													</Select>
 												</div>
 												<div className="space-y-2">
-													<Label htmlFor="targetDegree">
+													<Label htmlFor={targetDegreeId}>
 														{t("targetDegree")}
 													</Label>
 													<Select
@@ -726,10 +826,10 @@ export default function ProfilePage() {
 													</Select>
 												</div>
 												<div className="space-y-2">
-													<Label htmlFor="gpa">{t("gpa")}</Label>
+													<Label htmlFor={gpaId}>{t("gpa")}</Label>
 													<div className="flex gap-2">
 														<Input
-															id="gpa"
+															id={gpaId}
 															type="number"
 															step="0.01"
 															min="0"
@@ -742,12 +842,13 @@ export default function ProfilePage() {
 																}))
 															}
 															placeholder="3.5"
-															className="flex-1"
+															className={`flex-1 ${fieldErrors.gpa ? "border-destructive" : ""}`}
 														/>
 														<span className="flex items-center text-muted-foreground">
 															/
 														</span>
 														<Input
+															id={gpaScaleId}
 															type="number"
 															step="0.1"
 															min="1"
@@ -760,15 +861,27 @@ export default function ProfilePage() {
 																}))
 															}
 															placeholder="4.0"
-															className="w-20"
+															className={`w-20 ${fieldErrors.gpaScale ? "border-destructive" : ""}`}
 														/>
 													</div>
+													{fieldErrors.gpa && (
+														<p className="text-sm text-destructive mt-1">
+															{fieldErrors.gpa}
+														</p>
+													)}
+													{fieldErrors.gpaScale && (
+														<p className="text-sm text-destructive mt-1">
+															{fieldErrors.gpaScale}
+														</p>
+													)}
 												</div>
 												<div className="space-y-2">
-													<Label htmlFor="workExp">{t("workExperience")}</Label>
+													<Label htmlFor={workExpId}>
+														{t("workExperience")}
+													</Label>
 													<div className="flex gap-2 items-center">
 														<Input
-															id="workExp"
+															id={workExpId}
 															type="number"
 															min="0"
 															max="50"
@@ -780,12 +893,17 @@ export default function ProfilePage() {
 																}))
 															}
 															placeholder="0"
-															className="w-24"
+															className={`w-24 ${fieldErrors.workExperienceYears ? "border-destructive" : ""}`}
 														/>
 														<span className="text-muted-foreground">
 															{t("years")}
 														</span>
 													</div>
+													{fieldErrors.workExperienceYears && (
+														<p className="text-sm text-destructive mt-1">
+															{fieldErrors.workExperienceYears}
+														</p>
+													)}
 												</div>
 											</div>
 										) : (
@@ -884,37 +1002,44 @@ export default function ProfilePage() {
 									<CardContent>
 										{isEditing ? (
 											<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-												{["IELTS", "TOEFL", "GRE", "GMAT"].map((testType) => (
-													<div key={testType} className="space-y-2">
-														<Label htmlFor={testType}>{testType}</Label>
-														<Input
-															id={testType}
-															type="number"
-															step={testType === "IELTS" ? "0.5" : "1"}
-															min="0"
-															max={
-																testType === "IELTS"
-																	? "9"
-																	: testType === "TOEFL"
-																		? "120"
-																		: "800"
-															}
-															value={formData.testScores[testType] || ""}
-															onChange={(e) =>
-																handleTestScoreChange(testType, e.target.value)
-															}
-															placeholder={
-																testType === "IELTS"
-																	? "7.0"
-																	: testType === "TOEFL"
-																		? "100"
-																		: testType === "GRE"
-																			? "320"
-																			: "700"
-															}
-														/>
-													</div>
-												))}
+												{(["IELTS", "TOEFL", "GRE", "GMAT"] as const).map(
+													(testType) => (
+														<div key={testType} className="space-y-2">
+															<Label htmlFor={testScoreIds[testType]}>
+																{testType}
+															</Label>
+															<Input
+																id={testScoreIds[testType]}
+																type="number"
+																step={testType === "IELTS" ? "0.5" : "1"}
+																min="0"
+																max={
+																	testType === "IELTS"
+																		? "9"
+																		: testType === "TOEFL"
+																			? "120"
+																			: "800"
+																}
+																value={formData.testScores[testType] || ""}
+																onChange={(e) =>
+																	handleTestScoreChange(
+																		testType,
+																		e.target.value,
+																	)
+																}
+																placeholder={
+																	testType === "IELTS"
+																		? "7.0"
+																		: testType === "TOEFL"
+																			? "100"
+																			: testType === "GRE"
+																				? "320"
+																				: "700"
+																}
+															/>
+														</div>
+													),
+												)}
 											</div>
 										) : userData?.testScores &&
 											Object.keys(userData.testScores).length > 0 ? (
@@ -1010,7 +1135,7 @@ export default function ProfilePage() {
 											<div className="space-y-6">
 												{/* Budget Range */}
 												<div className="space-y-2">
-													<Label>{t("budgetRange")}</Label>
+													<Label htmlFor={budgetId}>{t("budgetRange")}</Label>
 													<Select
 														value={preferencesForm.budgetLabel}
 														onValueChange={(value) =>
@@ -1020,7 +1145,14 @@ export default function ProfilePage() {
 															}))
 														}
 													>
-														<SelectTrigger>
+														<SelectTrigger
+															id={budgetId}
+															className={
+																fieldErrors.budgetLabel
+																	? "border-destructive"
+																	: ""
+															}
+														>
 															<SelectValue placeholder={t("selectBudget")} />
 														</SelectTrigger>
 														<SelectContent>
@@ -1034,6 +1166,11 @@ export default function ProfilePage() {
 															))}
 														</SelectContent>
 													</Select>
+													{fieldErrors.budgetLabel && (
+														<p className="text-sm text-destructive mt-1">
+															{fieldErrors.budgetLabel}
+														</p>
+													)}
 												</div>
 
 												{/* Fields of Interest */}
@@ -1059,7 +1196,7 @@ export default function ProfilePage() {
 																		isDisabled
 																			? "opacity-50 cursor-not-allowed"
 																			: "hover:bg-primary/10"
-																	}`}
+																	} ${fieldErrors.fieldOfInterest ? "border-destructive" : ""}`}
 																	onClick={() =>
 																		!isDisabled && toggleField(option.value)
 																	}
@@ -1072,6 +1209,11 @@ export default function ProfilePage() {
 															);
 														})}
 													</div>
+													{fieldErrors.fieldOfInterest && (
+														<p className="text-sm text-destructive mt-1">
+															{fieldErrors.fieldOfInterest}
+														</p>
+													)}
 												</div>
 
 												{/* Preferred Regions */}
@@ -1087,7 +1229,7 @@ export default function ProfilePage() {
 																<Badge
 																	key={option.value}
 																	variant={isSelected ? "default" : "outline"}
-																	className="cursor-pointer transition-colors hover:bg-primary/10"
+																	className={`cursor-pointer transition-colors hover:bg-primary/10 ${fieldErrors.preferredRegions ? "border-destructive" : ""}`}
 																	onClick={() => toggleRegion(option.value)}
 																>
 																	{isSelected && (
@@ -1098,11 +1240,18 @@ export default function ProfilePage() {
 															);
 														})}
 													</div>
+													{fieldErrors.preferredRegions && (
+														<p className="text-sm text-destructive mt-1">
+															{fieldErrors.preferredRegions}
+														</p>
+													)}
 												</div>
 
 												{/* Intended Start Term */}
 												<div className="space-y-2">
-													<Label>{t("intendedStartTerm")}</Label>
+													<Label htmlFor={yearId}>
+														{t("intendedStartTerm")}
+													</Label>
 													<div className="flex gap-2">
 														<Select
 															value={preferencesForm.intendedStartYear}
@@ -1113,7 +1262,10 @@ export default function ProfilePage() {
 																}))
 															}
 														>
-															<SelectTrigger className="w-[120px]">
+															<SelectTrigger
+																id={yearId}
+																className={`w-30 ${fieldErrors.intendedStartYear ? "border-destructive" : ""}`}
+															>
 																<SelectValue placeholder={t("year")} />
 															</SelectTrigger>
 															<SelectContent>
@@ -1133,7 +1285,10 @@ export default function ProfilePage() {
 																}))
 															}
 														>
-															<SelectTrigger className="flex-1">
+															<SelectTrigger
+																id={termId}
+																className={`flex-1 ${fieldErrors.intendedStartTerm ? "border-destructive" : ""}`}
+															>
 																<SelectValue placeholder={t("term")} />
 															</SelectTrigger>
 															<SelectContent>
@@ -1148,6 +1303,16 @@ export default function ProfilePage() {
 															</SelectContent>
 														</Select>
 													</div>
+													{fieldErrors.intendedStartYear && (
+														<p className="text-sm text-destructive mt-1">
+															{fieldErrors.intendedStartYear}
+														</p>
+													)}
+													{fieldErrors.intendedStartTerm && (
+														<p className="text-sm text-destructive mt-1">
+															{fieldErrors.intendedStartTerm}
+														</p>
+													)}
 												</div>
 											</div>
 										) : (
