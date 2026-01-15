@@ -182,32 +182,51 @@ export function ProgramCard({
 						</span>
 					</div>
 
-					{/* Gap Chips - Wrapped layout */}
+					{/* Gap Chips - Wrapped layout, only show chips with data */}
 					<div className="flex flex-wrap gap-2">
-						<GapChip
-							label={gapGrid.gpa.label}
-							userValue={gapGrid.gpa.userValue}
-							requiredValue={gapGrid.gpa.requiredValue}
-							status={gapGrid.gpa.status}
-						/>
-						<GapChip
-							label={gapGrid.ielts.label}
-							userValue={gapGrid.ielts.userValue}
-							requiredValue={gapGrid.ielts.requiredValue}
-							status={gapGrid.ielts.status}
-						/>
-						<GapChip
-							label={gapGrid.budget.label}
-							userValue={gapGrid.budget.userValue}
-							requiredValue={gapGrid.budget.requiredValue}
-							status={gapGrid.budget.status}
-						/>
-						<GapChip
-							label={gapGrid.workExp.label}
-							userValue={gapGrid.workExp.userValue}
-							requiredValue={gapGrid.workExp.requiredValue}
-							status={gapGrid.workExp.status}
-						/>
+						{/* Only show GPA if we have both user value and requirement */}
+						{gapGrid.gpa.status !== "unknown" && gapGrid.gpa.requiredValue && (
+							<GapChip
+								label={gapGrid.gpa.label}
+								userValue={gapGrid.gpa.userValue}
+								requiredValue={gapGrid.gpa.requiredValue}
+								status={gapGrid.gpa.status}
+							/>
+						)}
+						{/* Only show IELTS if program has requirement */}
+						{gapGrid.ielts.requiredValue && (
+							<GapChip
+								label={gapGrid.ielts.label}
+								userValue={gapGrid.ielts.userValue}
+								requiredValue={gapGrid.ielts.requiredValue}
+								status={gapGrid.ielts.status}
+							/>
+						)}
+						{/* Only show Budget if we have program cost */}
+						{gapGrid.budget.userValue && (
+							<GapChip
+								label={gapGrid.budget.label}
+								userValue={gapGrid.budget.userValue}
+								requiredValue={gapGrid.budget.requiredValue}
+								status={gapGrid.budget.status}
+							/>
+						)}
+						{/* Only show Work Exp if program has requirement */}
+						{gapGrid.workExp.status !== "unknown" &&
+							gapGrid.workExp.requiredValue && (
+								<GapChip
+									label={gapGrid.workExp.label}
+									userValue={gapGrid.workExp.userValue}
+									requiredValue={gapGrid.workExp.requiredValue}
+									status={gapGrid.workExp.status}
+								/>
+							)}
+						{/* Show message if no chips visible */}
+						{!gapGrid.ielts.requiredValue && !gapGrid.budget.userValue && (
+							<span className="text-xs text-muted-foreground italic">
+								Không đủ dữ liệu để so sánh
+							</span>
+						)}
 					</div>
 				</div>
 			</div>
@@ -250,20 +269,21 @@ export function ProgramCard({
 					className="flex-1 font-medium text-sm"
 					onClick={(e) => {
 						e.stopPropagation();
-						// TODO: Implement analyze gap
+						// Opens detail drawer for gap analysis
+						onClick?.(program);
 					}}
 				>
-					Analyze Gap
+					Xem chi tiết
 				</Button>
 				<Button
 					size="sm"
 					className="flex-1 font-medium gap-2 bg-primary hover:bg-primary/90 text-sm"
 					onClick={(e) => {
 						e.stopPropagation();
-						// TODO: Implement apply now
+						// TODO: Implement add to dashboard
 					}}
 				>
-					Apply Now
+					Thêm vào Dashboard
 					<ArrowRight className="w-4 h-4" />
 				</Button>
 			</div>

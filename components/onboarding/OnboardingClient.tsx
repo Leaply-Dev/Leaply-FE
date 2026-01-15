@@ -7,6 +7,11 @@ import { useEffect, useState } from "react";
 import { OnboardingProgress } from "@/components/OnboardingProgress";
 import { PageTransition } from "@/components/PageTransition";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+	mapBudgetIndexToKey,
+	mapFieldsToKeys,
+	mapRegionsToKeys,
+} from "@/lib/constants/onboardingMappings";
 import { onboardingService } from "@/lib/services/onboarding";
 import { userService } from "@/lib/services/user";
 import { type JourneyType, useUserStore } from "@/lib/store/userStore";
@@ -212,16 +217,20 @@ export function OnboardingClient({
 	};
 	const handleStep2Next = async () => {
 		try {
-			// Update local store
+			// Update local store with display labels (for UI consistency)
 			updatePreferences({
 				fieldOfInterest: prefs.fields,
 				preferredRegions: prefs.regions,
 			});
 
-			// Update onboarding progress (this also persists preferences on backend)
+			// Transform labels to enum keys for API
+			const fieldKeys = mapFieldsToKeys(prefs.fields);
+			const regionKeys = mapRegionsToKeys(prefs.regions);
+
+			// Update onboarding progress with enum keys
 			await onboardingService.updateOnboarding({
-				targetFields: prefs.fields,
-				targetRegions: prefs.regions,
+				targetFields: fieldKeys,
+				targetRegions: regionKeys,
 			});
 
 			setCurrentStep(2);
@@ -238,16 +247,19 @@ export function OnboardingClient({
 			const formattedTimeline = `${prefs.startYear} ${prefs.startTerm}`;
 			const budgetLabel = constants.budgetOptions[prefs.budgetIndex].label;
 
-			// Update local store
+			// Update local store with display labels (for UI consistency)
 			updatePreferences({
 				intendedStartTerm: formattedTimeline,
 				budgetLabel: budgetLabel,
 			});
 
-			// Update onboarding progress (this also persists preferences on backend)
+			// Transform budget index to enum key for API
+			const budgetKey = mapBudgetIndexToKey(prefs.budgetIndex);
+
+			// Update onboarding progress with enum key
 			await onboardingService.updateOnboarding({
 				targetIntake: formattedTimeline,
-				budgetRange: budgetLabel,
+				budgetRange: budgetKey,
 			});
 
 			setCurrentStep(3);

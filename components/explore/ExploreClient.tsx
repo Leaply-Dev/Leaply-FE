@@ -101,6 +101,7 @@ export function ExploreClient({
 				...(aiMatchData.data.reach || []),
 				...(aiMatchData.data.target || []),
 				...(aiMatchData.data.safety || []),
+				...(aiMatchData.data.unknown || []),
 			]
 		: programs;
 

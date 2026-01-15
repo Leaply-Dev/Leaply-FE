@@ -114,24 +114,32 @@ export function ProgramDetailDrawer({
 }: ProgramDetailDrawerProps) {
 	if (!program) return null;
 
-	// Mock data for entry requirements (would come from ProgramDetailResponse in real app)
-	const entryRequirements = [
-		{
-			name: "Điểm trung bình (GPA)",
-			userValue: "3.6",
-			status: "met" as const,
-		},
-		{
+	// Build entry requirements from actual program data
+	// Only include requirements that the program has specified
+	const entryRequirements: Array<{
+		name: string;
+		requiredValue: string;
+		status: "met" | "warning" | "unknown";
+	}> = [];
+
+	if (program.ieltsMinimum) {
+		entryRequirements.push({
 			name: "IELTS",
-			userValue: program.ieltsMinimum ? `${program.ieltsMinimum}+` : "6.5+",
-			status: "met" as const,
-		},
-		{
+			requiredValue: `${program.ieltsMinimum}+`,
+			status: "unknown", // Would be "met" or "warning" if we had user data
+		});
+	}
+
+	if (program.toeflMinimum) {
+		entryRequirements.push({
 			name: "TOEFL",
-			userValue: program.toeflMinimum ? `${program.toeflMinimum}+` : "90+",
-			status: "warning" as const,
-		},
-	];
+			requiredValue: `${program.toeflMinimum}+`,
+			status: "unknown",
+		});
+	}
+
+	// Note: GPA requirement is not available in ProgramListItemResponse
+	// When we have program detail API, we can add it from program.requirements.gpaMinimum
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
@@ -350,68 +358,76 @@ export function ProgramDetailDrawer({
 						</section>
 
 						{/* Entry Requirements Section */}
-						<section>
-							<div className="flex items-center gap-2 mb-4">
-								<CheckCircle2 className="w-5 h-5 text-violet-600" />
-								<h3 className="font-semibold text-foreground">
-									Yêu cầu đầu vào
-								</h3>
-							</div>
-							<div className="border border-border rounded-xl overflow-hidden">
-								{/* Table Header */}
-								<div className="grid grid-cols-2 bg-muted/50 px-4 py-3 border-b border-border">
-									<p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-										Tiêu chí
-									</p>
-									<p className="text-xs text-muted-foreground uppercase tracking-wide font-medium text-right">
-										Trạng thái của bạn
-									</p>
+						{entryRequirements.length > 0 && (
+							<section>
+								<div className="flex items-center gap-2 mb-4">
+									<CheckCircle2 className="w-5 h-5 text-violet-600" />
+									<h3 className="font-semibold text-foreground">
+										Yêu cầu đầu vào
+									</h3>
 								</div>
-
-								{/* Table Rows */}
-								{entryRequirements.map((req, index) => (
-									<div
-										key={req.name}
-										className={`grid grid-cols-2 px-4 py-3 items-center ${
-											index < entryRequirements.length - 1
-												? "border-b border-border"
-												: ""
-										}`}
-									>
-										<div className="flex items-center gap-2">
-											<div
-												className={`w-6 h-6 rounded-full flex items-center justify-center ${
-													req.status === "met"
-														? "bg-emerald-100 dark:bg-emerald-900/50"
-														: "bg-amber-100 dark:bg-amber-900/50"
-												}`}
-											>
-												{req.status === "met" ? (
-													<CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-												) : (
-													<Info className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-												)}
-											</div>
-											<span className="text-sm font-medium text-foreground">
-												{req.name}
-											</span>
-										</div>
-										<div className="text-right">
-											<Badge
-												variant="outline"
-												className={`${
-													req.status === "met"
-														? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800"
-														: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800"
-												}`}
-											>
-												{req.userValue}
-											</Badge>
-										</div>
+								<div className="border border-border rounded-xl overflow-hidden">
+									{/* Table Header */}
+									<div className="grid grid-cols-2 bg-muted/50 px-4 py-3 border-b border-border">
+										<p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+											Tiêu chí
+										</p>
+										<p className="text-xs text-muted-foreground uppercase tracking-wide font-medium text-right">
+											Yêu cầu tối thiểu
+										</p>
 									</div>
-								))}
-							</div>
-						</section>
+
+									{/* Table Rows */}
+									{entryRequirements.map((req, index) => (
+										<div
+											key={req.name}
+											className={`grid grid-cols-2 px-4 py-3 items-center ${
+												index < entryRequirements.length - 1
+													? "border-b border-border"
+													: ""
+											}`}
+										>
+											<div className="flex items-center gap-2">
+												<div
+													className={`w-6 h-6 rounded-full flex items-center justify-center ${
+														req.status === "met"
+															? "bg-emerald-100 dark:bg-emerald-900/50"
+															: req.status === "warning"
+																? "bg-amber-100 dark:bg-amber-900/50"
+																: "bg-gray-100 dark:bg-gray-800/50"
+													}`}
+												>
+													{req.status === "met" ? (
+														<CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+													) : req.status === "warning" ? (
+														<Info className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+													) : (
+														<Info className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+													)}
+												</div>
+												<span className="text-sm font-medium text-foreground">
+													{req.name}
+												</span>
+											</div>
+											<div className="text-right">
+												<Badge
+													variant="outline"
+													className={`${
+														req.status === "met"
+															? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800"
+															: req.status === "warning"
+																? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800"
+																: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/30 dark:text-gray-300 dark:border-gray-700"
+													}`}
+												>
+													{req.requiredValue}
+												</Badge>
+											</div>
+										</div>
+									))}
+								</div>
+							</section>
+						)}
 					</div>
 				</ScrollArea>
 

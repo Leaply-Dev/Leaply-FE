@@ -6,6 +6,7 @@ import {
 	CheckCircle2,
 	DollarSign,
 	GraduationCap,
+	HelpCircle,
 	Info,
 	Languages,
 	MapPin,
@@ -48,30 +49,9 @@ interface DeadlineInfo {
 	color?: string;
 }
 
-interface GpaRequirement {
-	min: string;
-	scale: string | null;
-	userGpa: string | null;
-	status: "pass" | "high";
-}
-
 interface EnglishRequirement {
-	type: string;
-	score: string;
-	detail: string | null;
-	status: "pass" | "need_improve";
-	gap?: string;
-}
-
-interface ProgramRequirements {
-	gpa: GpaRequirement;
-	english: EnglishRequirement;
-}
-
-interface ProgramAnalysis {
-	pros: string[];
-	cons: string[];
-	icon: "info" | "success" | "warning";
+	type: "IELTS" | "TOEFL" | null;
+	score: number | null;
 }
 
 // ============================================================================
@@ -103,6 +83,13 @@ function getMatchBadge(fitCategory?: string, fitScore?: number) {
 				<Badge className="bg-orange-100 text-orange-700 border-orange-200 gap-1">
 					<TrendingUp className="w-3 h-3" />
 					Reach ({score}%)
+				</Badge>
+			);
+		case "unknown":
+			return (
+				<Badge className="bg-amber-100 text-amber-700 border-amber-200 gap-1">
+					<HelpCircle className="w-3 h-3" />
+					Chưa đủ dữ liệu
 				</Badge>
 			);
 		default:
@@ -149,65 +136,19 @@ function getDeadlineInfo(deadline?: string): DeadlineInfo {
 }
 
 /**
- * Get mock requirements data (would come from API in real implementation)
+ * Get English requirement from program data
  */
-function getMockRequirements(
+function getEnglishRequirement(
 	program: ProgramListItemResponse,
-): ProgramRequirements {
-	const hash = (program.id ?? "").charCodeAt(0) % 3;
-	const gpaRequirements: GpaRequirement[] = [
-		{ min: "3.0", scale: "4.0", userGpa: "3.8", status: "pass" },
-		{ min: "Honors Class II", scale: null, userGpa: null, status: "pass" },
-		{ min: "2.5", scale: "4.0", userGpa: "3.8", status: "high" },
-	];
-	const englishRequirements: EnglishRequirement[] = [
-		{ type: "IELTS", score: "6.5", detail: "(all band > 6.0)", status: "pass" },
-		{
-			type: "IELTS",
-			score: "7.0",
-			detail: null,
-			status: "need_improve",
-			gap: "+0.5",
-		},
-		{ type: "IELTS", score: "6.0", detail: null, status: "pass" },
-	];
-	return {
-		gpa: gpaRequirements[hash],
-		english: englishRequirements[hash],
-	};
-}
-
-/**
- * Get detailed analysis based on fit category
- */
-function getDetailedAnalysis(
-	program: ProgramListItemResponse,
-): ProgramAnalysis {
-	const analyses: Record<string, ProgramAnalysis> = {
-		safety: {
-			icon: "info",
-			pros: ["Chương trình an toàn. Có khả năng cao nhận offer trong 2 tuần."],
-			cons: [
-				`Chi phí sinh hoạt tại ${program.universityCity || formatCountryName(program.universityCountry ?? "")} cao hơn dự kiến ngân sách của bạn.`,
-			],
-		},
-		target: {
-			icon: "warning",
-			pros: ["Background Toán học rất mạnh, phù hợp ngành Data Science."],
-			cons: [
-				`Điểm Writing của bạn (6.0) thấp hơn yêu cầu ${program.universityName ?? ""} (6.5). Cần thi lại.`,
-			],
-		},
-		reach: {
-			icon: "success",
-			pros: [
-				"GPA của bạn (3.8) cao hơn mức yêu cầu, tăng khả năng nhận học bổng.",
-				"Hoạt động ngoại khóa phù hợp với tiêu chí tuyển sinh.",
-			],
-			cons: [],
-		},
-	};
-	return analyses[program.fitCategory || "safety"] || analyses.safety;
+): EnglishRequirement {
+	// Prefer IELTS if available, otherwise TOEFL
+	if (program.ieltsMinimum) {
+		return { type: "IELTS", score: program.ieltsMinimum };
+	}
+	if (program.toeflMinimum) {
+		return { type: "TOEFL", score: program.toeflMinimum };
+	}
+	return { type: null, score: null };
 }
 
 // ============================================================================
@@ -344,33 +285,14 @@ function DeadlineCell({ program }: { program: ProgramListItemResponse }) {
 
 /**
  * GPA requirements row cell
+ * Note: GPA requirements data is sparse in our database, so we show N/A when not available
  */
-function GpaCell({ program }: { program: ProgramListItemResponse }) {
-	const req = getMockRequirements(program);
+function GpaCell({ program: _program }: { program: ProgramListItemResponse }) {
+	// GPA requirements would come from _program.gpaMinimum if available
+	// Currently most programs don't have this data
 	return (
 		<td className="p-4 border-l border-border align-top">
-			<div className="space-y-1">
-				<p className="font-semibold text-foreground">
-					{req.gpa.scale
-						? `Min ${req.gpa.min} / ${req.gpa.scale}`
-						: req.gpa.min}
-				</p>
-				{req.gpa.userGpa && (
-					<p
-						className={`text-sm ${req.gpa.status === "high" ? "text-green-600" : "text-muted-foreground"}`}
-					>
-						Bạn đạt: {req.gpa.userGpa}{" "}
-						{req.gpa.status === "high"
-							? "(Cao)"
-							: req.gpa.status === "pass"
-								? "(Dư sức)"
-								: ""}
-					</p>
-				)}
-				{!req.gpa.userGpa && req.gpa.status === "pass" && (
-					<p className="text-sm text-muted-foreground">Bạn đạt yêu cầu</p>
-				)}
-			</div>
+			<span className="text-muted-foreground">N/A</span>
 		</td>
 	);
 }
@@ -379,62 +301,49 @@ function GpaCell({ program }: { program: ProgramListItemResponse }) {
  * English requirements row cell
  */
 function EnglishCell({ program }: { program: ProgramListItemResponse }) {
-	const req = getMockRequirements(program);
+	const req = getEnglishRequirement(program);
+
+	if (!req.type || !req.score) {
+		return (
+			<td className="p-4 border-l border-border align-top">
+				<span className="text-muted-foreground">N/A</span>
+			</td>
+		);
+	}
+
 	return (
 		<td className="p-4 border-l border-border align-top">
-			<div className="space-y-1">
-				<p className="font-semibold text-foreground">
-					{req.english.type} {req.english.score}
-					{req.english.detail && (
-						<span className="font-normal text-muted-foreground">
-							{" "}
-							{req.english.detail}
-						</span>
-					)}
-				</p>
-				{req.english.status === "pass" && (
-					<p className="text-sm text-green-600 flex items-center gap-1">
-						<CheckCircle2 className="w-3.5 h-3.5" />
-						Đạt
-					</p>
-				)}
-				{req.english.status === "need_improve" && (
-					<p className="text-sm text-orange-600 flex items-center gap-1">
-						<AlertTriangle className="w-3.5 h-3.5" />
-						Bạn cần cải thiện ({req.english.gap})
-					</p>
-				)}
-			</div>
+			<p className="font-semibold text-foreground">
+				{req.type} {req.score}
+			</p>
 		</td>
 	);
 }
 
 /**
  * Detailed analysis row cell
+ * Note: In the future, this will show AI-generated analysis from the backend
  */
 function AnalysisCell({ program }: { program: ProgramListItemResponse }) {
-	const analysis = getDetailedAnalysis(program);
+	// Fit category-based simple insight
+	const getFitInsight = () => {
+		switch (program.fitCategory) {
+			case "safety":
+				return "Chương trình an toàn - khả năng cao đạt yêu cầu";
+			case "target":
+				return "Chương trình phù hợp - cần chuẩn bị kỹ hồ sơ";
+			case "reach":
+				return "Chương trình thử thách - cần nỗ lực nhiều hơn";
+			default:
+				return "Chưa đủ dữ liệu để phân tích chi tiết";
+		}
+	};
+
 	return (
 		<td className="p-4 border-l border-border align-top">
-			<div className="space-y-2">
-				{analysis.pros.map((pro, idx) => (
-					<div key={`pro-${idx}`} className="flex items-start gap-2 text-sm">
-						<CheckCircle2 className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
-						<span className="text-foreground">{pro}</span>
-					</div>
-				))}
-				{analysis.cons.map((con, idx) => (
-					<div key={`con-${idx}`} className="flex items-start gap-2 text-sm">
-						<AlertTriangle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
-						<span className="text-foreground">{con}</span>
-					</div>
-				))}
-				{analysis.pros.length === 0 && analysis.cons.length === 0 && (
-					<div className="flex items-start gap-2 text-sm">
-						<Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-						<span className="text-muted-foreground">Đang phân tích...</span>
-					</div>
-				)}
+			<div className="flex items-start gap-2 text-sm">
+				<Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+				<span className="text-muted-foreground">{getFitInsight()}</span>
 			</div>
 		</td>
 	);

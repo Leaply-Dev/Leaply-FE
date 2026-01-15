@@ -111,8 +111,9 @@ export function computeGapGrid(
 	const userGpa = userProfile?.profile?.gpa
 		? Number.parseFloat(userProfile.profile.gpa)
 		: undefined;
-	// Default to 3.0 for master's programs (gpaMinimum not available in list view)
-	const requiredGpa = 3.0;
+	// Don't hardcode GPA requirement - if program doesn't specify, return unknown
+	// In the future, this could come from program.requirements.gpaMinimum
+	const requiredGpa = undefined; // Programs often don't have GPA requirements in our data
 	const gpaStatus = computeGapStatus(userGpa, requiredGpa, true);
 	const gpaDelta = userGpa && requiredGpa ? userGpa - requiredGpa : undefined;
 
@@ -177,14 +178,15 @@ export function computeGapGrid(
 	// Keep as unknown/default since field doesn't exist
 	const userWorkExp = undefined;
 	// TODO: Get from program.requirements.workExperienceYears when available
-	// Default to 0 (no requirement) for most programs
-	const requiredWorkExp = 0;
+	// Default to undefined (no requirement known) for most programs
+	const requiredWorkExp = undefined;
 	const workExpStatus = computeGapStatus(userWorkExp, requiredWorkExp, true);
 
 	const workExp: GapGridItem = {
 		label: "Exp",
 		userValue: userWorkExp !== undefined ? `${userWorkExp}y` : undefined,
-		requiredValue: requiredWorkExp !== undefined ? `${requiredWorkExp}y` : "0y",
+		requiredValue:
+			requiredWorkExp !== undefined ? `${requiredWorkExp}y` : undefined,
 		status: workExpStatus,
 		note:
 			workExpStatus === "match" || workExpStatus === "bonus"
