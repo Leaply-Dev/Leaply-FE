@@ -179,34 +179,15 @@ async function handleUnauthorized(): Promise<string | null> {
  * Custom fetch instance for Orval-generated hooks
  * This wraps the native fetch API with authentication and error handling
  */
-export interface CustomInstanceConfig {
-	url: string;
-	method: string;
-	params?: Record<string, unknown>;
-	data?: unknown;
-	headers?: HeadersInit;
-	signal?: AbortSignal;
-}
 
 export const customInstance = async <T>(
-	config: CustomInstanceConfig,
+	url: string,
+	options: RequestInit = {},
 ): Promise<T> => {
-	const { url, method, params, data, headers, signal } = config;
+	const { method = "GET", headers, signal, body } = options;
 
-	// Build query string from params
-	let fullUrl = `${API_URL}${url}`;
-	if (params) {
-		const searchParams = new URLSearchParams();
-		for (const [key, value] of Object.entries(params)) {
-			if (value !== undefined && value !== null) {
-				searchParams.append(key, String(value));
-			}
-		}
-		const queryString = searchParams.toString();
-		if (queryString) {
-			fullUrl += `?${queryString}`;
-		}
-	}
+	// Build full URL
+	const fullUrl = `${API_URL}${url}`;
 
 	// Build headers
 	const requestHeaders: Record<string, string> = {
@@ -265,8 +246,8 @@ export const customInstance = async <T>(
 		signal,
 	};
 
-	if (data) {
-		fetchConfig.body = JSON.stringify(data);
+	if (body) {
+		fetchConfig.body = typeof body === "string" ? body : JSON.stringify(body);
 	}
 
 	try {
@@ -302,7 +283,11 @@ export const customInstance = async <T>(
 				}
 
 				const retryData = await retryResponse.json();
-				return retryData as T;
+				return {
+					data: retryData,
+					status: retryResponse.status,
+					headers: retryResponse.headers,
+				} as T;
 			}
 		}
 
@@ -318,7 +303,11 @@ export const customInstance = async <T>(
 		}
 
 		const jsonData = await response.json();
-		return jsonData as T;
+		return {
+			data: jsonData,
+			status: response.status,
+			headers: response.headers,
+		} as T;
 	} catch (error) {
 		const isNetworkError =
 			error instanceof TypeError && error.message.includes("fetch");

@@ -1,10 +1,98 @@
-import { getTranslations } from "next-intl/server";
-import { OnboardingClient } from "@/components/onboarding/OnboardingClient";
+"use client";
+
+import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Dynamic import for OnboardingClient (415 lines - large multi-step component)
+const OnboardingClient = dynamic(
+	() =>
+		import("@/components/onboarding/OnboardingClient").then(
+			(mod) => mod.OnboardingClient,
+		),
+	{
+		ssr: false, // Complex form state and navigation
+		loading: () => <OnboardingPageSkeleton />,
+	},
+);
+
+// Loading skeleton for onboarding
+function OnboardingPageSkeleton() {
+	return (
+		<div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+			<div className="container mx-auto px-4 py-8">
+				{/* Progress bar skeleton */}
+				<div className="max-w-2xl mx-auto mb-8">
+					<div className="flex items-center gap-4 mb-4">
+						{[1, 2, 3, 4, 5].map((step) => (
+							<div key={step} className="flex items-center flex-1">
+								<div className="w-8 h-8 rounded-full bg-muted border-2 flex items-center justify-center">
+									<Skeleton className="w-4 h-4 rounded-full" />
+								</div>
+								{step < 5 && <div className="flex-1 h-0.5 bg-muted ml-2" />}
+							</div>
+						))}
+					</div>
+					<Skeleton className="h-4 w-32 mx-auto" />
+				</div>
+
+				{/* Main content skeleton */}
+				<div className="max-w-2xl mx-auto">
+					<div className="bg-card border border-border rounded-xl p-8">
+						{/* Header */}
+						<div className="text-center mb-8">
+							<Skeleton className="h-8 w-64 mx-auto mb-3" />
+							<Skeleton className="h-5 w-80 mx-auto" />
+						</div>
+
+						{/* Form content */}
+						<div className="space-y-6">
+							<div>
+								<Skeleton className="h-4 w-32 mb-3" />
+								<div className="grid grid-cols-2 gap-3">
+									{[1, 2, 3, 4].map((i) => (
+										<div
+											key={i}
+											className="p-4 border border-border rounded-lg"
+										>
+											<Skeleton className="h-4 w-24" />
+										</div>
+									))}
+								</div>
+							</div>
+
+							<div>
+								<Skeleton className="h-4 w-28 mb-3" />
+								<div className="grid grid-cols-2 gap-3">
+									{[1, 2].map((i) => (
+										<div
+											key={i}
+											className="p-4 border border-border rounded-lg"
+										>
+											<Skeleton className="h-4 w-20" />
+										</div>
+									))}
+								</div>
+							</div>
+						</div>
+
+						{/* Navigation buttons */}
+						<div className="flex justify-between pt-8 mt-8 border-t border-border">
+							<Skeleton className="h-10 w-20" />
+							<Skeleton className="h-10 w-24" />
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
 
 const START_YEARS = ["2026", "2027", "2028", "2029"];
 
-export default async function OnboardingPage() {
-	const t = await getTranslations("onboarding");
+export default function OnboardingPage() {
+	const t = useTranslations("onboarding");
 
 	// Build translation-aware constants
 	const educationLevels = [
@@ -159,5 +247,9 @@ export default async function OnboardingPage() {
 		journeyOptions,
 	};
 
-	return <OnboardingClient translations={translations} constants={constants} />;
+	return (
+		<Suspense fallback={<OnboardingPageSkeleton />}>
+			<OnboardingClient translations={translations} constants={constants} />
+		</Suspense>
+	);
 }

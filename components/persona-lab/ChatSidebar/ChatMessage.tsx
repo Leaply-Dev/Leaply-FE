@@ -107,12 +107,15 @@ function MessageContent({ content }: { content: string }) {
 			{parts.map((part, index) => {
 				if (part.startsWith("**") && part.endsWith("**")) {
 					return (
-						<strong key={`${part}-${index}`} className="font-semibold">
+						<strong
+							key={`${part.slice(2, -2)}-${index}`}
+							className="font-semibold"
+						>
 							{part.slice(2, -2)}
 						</strong>
 					);
 				}
-				return <span key={`text-${index}`}>{part}</span>;
+				return <span key={`${part.substring(0, 10)}-${index}`}>{part}</span>;
 			})}
 		</span>
 	);

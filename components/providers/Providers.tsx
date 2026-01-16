@@ -3,6 +3,7 @@
 import { QueryProvider } from "@/app/providers/query-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider, useSessionWarning } from "./AuthProvider";
+import { MotionProvider } from "./MotionProvider";
 import { SessionTimeoutWarning } from "./SessionTimeoutWarning";
 
 interface ProvidersProps {
@@ -34,9 +35,11 @@ export function Providers({ children }: ProvidersProps) {
 	return (
 		<QueryProvider>
 			<AuthProvider>
-				{children}
-				<SessionWarningRenderer />
-				<Toaster position="top-center" richColors closeButton />
+				<MotionProvider>
+					{children}
+					<SessionWarningRenderer />
+					<Toaster position="top-center" richColors closeButton />
+				</MotionProvider>
 			</AuthProvider>
 		</QueryProvider>
 	);

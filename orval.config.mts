@@ -18,6 +18,10 @@ export default defineConfig({
 					path: "./lib/api/mutator.ts",
 					name: "customInstance",
 				},
+				formData: {
+					path: "./lib/api/form-data.ts",
+					name: "customFormDataFn",
+				},
 				query: {
 					useQuery: true,
 					useMutation: true,

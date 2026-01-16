@@ -22,11 +22,10 @@ import {
 } from "@/components/explore/program-detail";
 import { PageTransition, SlideUp } from "@/components/PageTransition";
 import {
-	getProgramDetail,
 	saveProgram,
 	unsaveProgram,
+	useGetProgramDetail,
 } from "@/lib/generated/api/endpoints/explore/explore";
-import type { ProgramDetailResponse } from "@/lib/generated/api/models";
 import { useApplicationsStore } from "@/lib/store/applicationsStore";
 
 export default function ProgramDetailPage({
@@ -36,8 +35,6 @@ export default function ProgramDetailPage({
 }) {
 	const resolvedParams = use(params);
 	const router = useRouter();
-	const [program, setProgram] = useState<ProgramDetailResponse | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [isSaved, setIsSaved] = useState(false);
 	const [isAddingToApplications, setIsAddingToApplications] = useState(false);
@@ -45,6 +42,26 @@ export default function ProgramDetailPage({
 
 	const { addApplication, applications, fetchApplications } =
 		useApplicationsStore();
+
+	// Use React Query hook for data fetching
+	const {
+		data: response,
+		isLoading,
+		error: queryError,
+	} = useGetProgramDetail(resolvedParams.id);
+
+	const program = response?.data?.data;
+
+	// Handle query errors
+	useEffect(() => {
+		if (queryError) {
+			setError(
+				queryError instanceof Error
+					? queryError.message
+					: "Failed to load program details",
+			);
+		}
+	}, [queryError]);
 
 	// Fetch applications to check if already added
 	useEffect(() => {
@@ -61,28 +78,12 @@ export default function ProgramDetailPage({
 		}
 	}, [program, applications]);
 
+	// Set initial saved state when program data is loaded
 	useEffect(() => {
-		async function fetchProgram() {
-			try {
-				setIsLoading(true);
-				setError(null);
-				const response = await getProgramDetail(resolvedParams.id);
-				if (response.data) {
-					setProgram(response.data);
-					setIsSaved(response.data.isSaved ?? false);
-				}
-			} catch (err) {
-				console.error("Failed to fetch program detail:", err);
-				setError(
-					err instanceof Error ? err.message : "Failed to load program details",
-				);
-			} finally {
-				setIsLoading(false);
-			}
+		if (program) {
+			setIsSaved(program.isSaved ?? false);
 		}
-
-		fetchProgram();
-	}, [resolvedParams.id]);
+	}, [program]);
 
 	const handleSaveToggle = async () => {
 		if (!program?.id) return;

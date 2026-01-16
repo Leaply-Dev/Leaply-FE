@@ -190,7 +190,7 @@ export function ApplicationDashboard({
 				{/* Quick Stats Row */}
 				<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 					{/* Fit Score */}
-					<Card className="bg-gradient-to-br from-primary/5 to-primary/10">
+					<Card className="bg-linear-to-br from-primary/5 to-primary/10">
 						<CardContent className="p-4">
 							<div className="flex items-center gap-2 mb-1">
 								<Target className="w-4 h-4 text-primary" />
@@ -319,13 +319,13 @@ export function ApplicationDashboard({
 						</CardHeader>
 						<CardContent>
 							<div className="space-y-3">
-								{application.gaps?.map((gap: GapDto, index: number) => {
+								{application.gaps?.map((gap: GapDto) => {
 									const severityConfig =
 										gapSeverityConfig[gap.severity ?? "info"] ||
 										gapSeverityConfig.info;
 									return (
 										<div
-											key={index}
+											key={gap.field}
 											className={cn(
 												"flex items-start gap-3 p-3 rounded-lg border",
 												severityConfig.color,

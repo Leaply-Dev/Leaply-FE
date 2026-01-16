@@ -4,7 +4,7 @@ import {
 	deleteApplication as deleteApplicationApi,
 	getApplications,
 	updateApplication as updateApplicationApi,
-} from "@/lib/api/applicationsApi";
+} from "@/lib/generated/api/endpoints/applications/applications";
 import type {
 	ApplicationListResponse,
 	ApplicationResponse,
@@ -51,11 +51,17 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
 	fetchApplications: async () => {
 		set({ isLoading: true, error: null });
 		try {
-			const response: ApplicationListResponse = await getApplications();
+			const response = await getApplications();
+			// Explicitly cast the response because generated types incorrectly say Blob
+			const typedResponse = response as unknown as {
+				data: ApplicationListResponse;
+			};
+			const listResponse = typedResponse.data;
+
 			set({
-				applications: response.applications,
-				summary: response.summary,
-				upcomingDeadlines: response.upcomingDeadlines,
+				applications: listResponse.applications ?? [],
+				summary: listResponse.summary ?? null,
+				upcomingDeadlines: listResponse.upcomingDeadlines ?? [],
 				isLoading: false,
 			});
 
@@ -63,10 +69,10 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
 			const state = get();
 			if (
 				!state.selectedApplicationId &&
-				response.applications &&
-				response.applications.length > 0
+				listResponse.applications &&
+				listResponse.applications.length > 0
 			) {
-				set({ selectedApplicationId: response.applications[0]?.id });
+				set({ selectedApplicationId: listResponse.applications[0]?.id });
 			}
 		} catch (error) {
 			// Capture unexpected errors (non-API errors) to console
@@ -89,14 +95,16 @@ export const useApplicationsStore = create<ApplicationsState>((set, get) => ({
 		set({ isLoading: true, error: null });
 		try {
 			const response = await createApplication(request);
+			// Explicitly cast to expected response
+			const typedResponse = response as unknown as { data: { id: string } };
 
 			// Refresh the list to get the new application with full data
 			await get().fetchApplications();
 
 			// Select the new application
-			set({ selectedApplicationId: response.id });
+			set({ selectedApplicationId: typedResponse.data.id });
 
-			return response.id;
+			return typedResponse.data.id;
 		} catch (error) {
 			// Capture unexpected errors to console
 			if (!(error instanceof Error && error.name === "ApiError")) {

@@ -12,64 +12,41 @@ import { ManualMode } from "@/components/explore/ManualMode";
 import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useCreateApplication } from "@/lib/generated/api/endpoints/applications/applications";
-import type {
-	ApiResponseAiMatchResponse,
-	ApiResponseProgramListResponse,
-	ApiResponseUserContextResponse,
-	ProgramListItemResponse,
-} from "@/lib/generated/api/models";
-import { useAiMatch } from "@/lib/hooks/useAiMatch";
-import { usePrograms, useSaveProgram } from "@/lib/hooks/usePrograms";
-import { useUserMe } from "@/lib/hooks/useUserMe";
-import { cn } from "@/lib/utils";
-
-interface ExploreClientProps {
-	initialPrograms?: ApiResponseProgramListResponse;
-	initialAiMatch?: ApiResponseAiMatchResponse;
-	initialUserProfile?: ApiResponseUserContextResponse;
-}
+import type { ProgramListItemResponse } from "@/lib/generated/api/models";
 
 /**
- * Loading Skeleton for Program Cards
+ * Loading skeleton component for program cards
  */
 function ProgramCardSkeleton() {
 	return (
-		<div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm animate-pulse">
-			<div className="p-4 border-b border-border">
-				<div className="flex items-center gap-3">
-					<div className="h-12 w-12 rounded-lg bg-muted" />
-					<div className="flex-1 space-y-2">
-						<div className="h-4 bg-muted rounded w-3/4" />
-						<div className="h-3 bg-muted rounded w-1/2" />
-					</div>
+		<div className="bg-card border border-border rounded-lg p-4 space-y-3">
+			<div className="flex items-start justify-between">
+				<div className="space-y-2 flex-1">
+					<Skeleton className="h-4 w-3/4" />
+					<Skeleton className="h-3 w-1/2" />
 				</div>
+				<Skeleton className="h-8 w-8 rounded" />
 			</div>
-			<div className="p-4 space-y-4">
-				<div className="h-5 bg-muted rounded w-full" />
-				<div className="h-4 bg-muted rounded w-2/3" />
-				<div className="bg-muted/30 rounded-lg p-4 space-y-3">
-					<div className="h-6 bg-muted rounded w-1/3" />
-					<div className="h-2 bg-muted rounded w-full" />
-					<div className="space-y-2">
-						<div className="h-3 bg-muted rounded w-4/5" />
-						<div className="h-3 bg-muted rounded w-3/5" />
-					</div>
-				</div>
+			<div className="space-y-2">
+				<Skeleton className="h-3 w-full" />
+				<Skeleton className="h-3 w-2/3" />
 			</div>
-			<div className="p-4 border-t border-border flex justify-between">
-				<div className="h-9 w-9 bg-muted rounded-lg" />
-				<div className="h-9 w-24 bg-muted rounded-lg" />
+			<div className="flex items-center gap-2">
+				<Skeleton className="h-5 w-16 rounded-full" />
+				<Skeleton className="h-5 w-12 rounded-full" />
 			</div>
 		</div>
 	);
 }
 
-export function ExploreClient({
-	initialPrograms,
-	initialAiMatch,
-	initialUserProfile,
-}: ExploreClientProps) {
+import { useAiMatch } from "@/lib/hooks/useAiMatch";
+import { usePrograms, useSaveProgram } from "@/lib/hooks/usePrograms";
+import { useUserMe } from "@/lib/hooks/useUserMe";
+import { cn } from "@/lib/utils";
+
+export function ExploreClient() {
 	const [activeMode, setActiveMode] = useState<"ai" | "manual">("ai");
 
 	// Detail drawer state for AI mode
@@ -77,23 +54,23 @@ export function ExploreClient({
 		useState<ProgramListItemResponse | null>(null);
 	const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
 
-	// Use TanStack Query hooks with SSR data
-	const { data: programsResponse } = usePrograms({}, initialPrograms);
+	// Use TanStack Query hooks
+	const { data: programsResponse } = usePrograms({});
 
 	const {
 		data: aiMatchData,
 		isLoading: isLoadingAiMatch,
 		error: aiMatchError,
-	} = useAiMatch(initialAiMatch);
+	} = useAiMatch();
 
-	const { data: userProfile } = useUserMe(initialUserProfile);
+	const { data: userProfile } = useUserMe();
 
 	const saveMutation = useSaveProgram();
 	const router = useRouter();
 	const { mutate: createApplication } = useCreateApplication();
 
 	// Extract data from responses (unwrap ApiResponse)
-	const programs = programsResponse?.data?.data ?? [];
+	const programs = programsResponse?.data?.data?.data ?? [];
 
 	const handleSaveToggle = (id: string) => {
 		const program = programs.find((p: ProgramListItemResponse) => p.id === id);
@@ -157,8 +134,8 @@ export function ExploreClient({
 			if (inPrograms) return inPrograms;
 
 			// If not found, search in AI Match data (no unknown category)
-			if (aiMatchData?.data) {
-				const { reach, target, safety } = aiMatchData.data;
+			if (aiMatchData?.data?.data) {
+				const { reach, target, safety } = aiMatchData.data.data;
 				const inAi = [
 					...(reach || []),
 					...(target || []),
@@ -171,11 +148,11 @@ export function ExploreClient({
 		.filter((p): p is ProgramListItemResponse => !!p);
 
 	// Compute swimlane programs from AI Match or programs (no unknown category)
-	const swimLanePrograms: ProgramListItemResponse[] = aiMatchData?.data
+	const swimLanePrograms: ProgramListItemResponse[] = aiMatchData?.data?.data
 		? [
-				...(aiMatchData.data.reach || []),
-				...(aiMatchData.data.target || []),
-				...(aiMatchData.data.safety || []),
+				...(aiMatchData.data.data.reach || []),
+				...(aiMatchData.data.data.target || []),
+				...(aiMatchData.data.data.safety || []),
 			]
 		: programs;
 
@@ -190,8 +167,8 @@ export function ExploreClient({
 								Explore Programs
 							</h1>
 							<p className="text-xs text-muted-foreground mt-0.5">
-								{aiMatchData?.data?.totalMatched || programs.length} programs
-								matched to your profile
+								{aiMatchData?.data?.data?.totalMatched || programs.length}{" "}
+								programs matched to your profile
 							</p>
 						</div>
 
@@ -284,7 +261,7 @@ export function ExploreClient({
 						) : (
 							<>
 								{/* Live Analyzer Section */}
-								{aiMatchData?.data?.recommendation && (
+								{aiMatchData?.data?.data?.recommendation && (
 									<div className="mb-6 bg-primary/5 dark:bg-primary/10 rounded-xl p-6 border border-primary/20">
 										<div className="flex items-start gap-4">
 											<div className="shrink-0">
@@ -297,7 +274,7 @@ export function ExploreClient({
 													Live Analyzer
 												</h3>
 												<p className="text-sm text-muted-foreground leading-relaxed">
-													{aiMatchData.data.recommendation}
+													{aiMatchData.data.data.recommendation}
 												</p>
 											</div>
 										</div>
@@ -305,8 +282,8 @@ export function ExploreClient({
 								)}
 
 								{/* Incomplete Profile Warning Banner */}
-								{aiMatchData?.data?.criticalMissingFields &&
-									aiMatchData.data.criticalMissingFields.length > 0 && (
+								{aiMatchData?.data?.data?.criticalMissingFields &&
+									aiMatchData.data.data.criticalMissingFields.length > 0 && (
 										<div className="mb-6 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
 											<div className="flex items-start gap-3">
 												<AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
@@ -336,7 +313,7 @@ export function ExploreClient({
 								{/* Tab-Based Categories Layout */}
 								<TabBasedCategories
 									programs={swimLanePrograms}
-									userProfile={userProfile?.data}
+									userProfile={userProfile?.data?.data}
 									onSaveToggle={handleSaveToggle}
 									onProgramClick={(program) => {
 										setSelectedProgram(program);

@@ -4,17 +4,14 @@
  */
 
 import { useGetHomeData } from "@/lib/generated/api/endpoints/home/home";
-import type { ApiResponseHomeResponse } from "@/lib/generated/api/models";
 
 /**
  * React Query hook for fetching home dashboard data
- * @param initialData - Optional initial data from SSR
  * @returns Query result with home data, loading, and error states
  */
-export function useHomeData(initialData?: ApiResponseHomeResponse) {
+export function useHomeData() {
 	return useGetHomeData({
 		query: {
-			initialData,
 			staleTime: 5 * 60 * 1000, // 5 minutes - consider data fresh
 		},
 	});

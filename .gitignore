@@ -44,6 +44,8 @@ Thumbs.db
 
 # Generated Claude Code configurations
 .claude/
+.cursor/
+.opencode/
 /docs/artifacts
 .vercel
 

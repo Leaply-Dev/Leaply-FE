@@ -4,28 +4,20 @@
  */
 
 import { useGetMatchedPrograms } from "@/lib/generated/api/endpoints/explore/explore";
-import type {
-	ApiResponseAiMatchResponse,
-	GetMatchedProgramsParams,
-} from "@/lib/generated/api/models";
+import type { GetMatchedProgramsParams } from "@/lib/generated/api/models";
 
 /**
  * React Query hook for fetching AI-matched programs
- * @param initialData - Optional initial data from SSR
  * @param limitPerCategory - Optional limit per category (reach/target/safety)
  * @returns Query result with AI match data, loading, and error states
  */
-export function useAiMatch(
-	initialData?: ApiResponseAiMatchResponse,
-	limitPerCategory?: number,
-) {
+export function useAiMatch(limitPerCategory?: number) {
 	const params: GetMatchedProgramsParams = limitPerCategory
 		? { limit_per_category: limitPerCategory }
 		: {};
 
 	return useGetMatchedPrograms(params, {
 		query: {
-			initialData,
 			staleTime: 10 * 60 * 1000, // 10 minutes - AI match data changes less frequently
 		},
 	});

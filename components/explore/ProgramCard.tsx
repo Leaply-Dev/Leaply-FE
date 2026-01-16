@@ -12,7 +12,6 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type {
-	ProgramDetailResponse,
 	ProgramListItemResponse,
 	UserContextResponse,
 } from "@/lib/generated/api/models";
@@ -28,15 +27,6 @@ interface ProgramCardProps {
 	onAddToDashboard?: (id: string) => void;
 }
 
-function formatCurrency(value?: number): string {
-	if (!value) return "N/A";
-	return new Intl.NumberFormat("en-US", {
-		style: "currency",
-		currency: "USD",
-		maximumFractionDigits: 0,
-	}).format(value);
-}
-
 function formatCountryName(country?: string): string {
 	if (!country) return "N/A";
 	return country
@@ -47,7 +37,6 @@ function formatCountryName(country?: string): string {
 
 export function ProgramCard({
 	program,
-	onSaveToggle,
 	onClick,
 	isSelected,
 	onToggleSelection,
@@ -55,16 +44,10 @@ export function ProgramCard({
 	onAddToDashboard,
 }: ProgramCardProps) {
 	return (
-		<div
-			className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:border-primary/30 cursor-pointer"
+		<button
+			type="button"
+			className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:border-primary/30 cursor-pointer w-full text-left"
 			onClick={() => onClick?.(program)}
-			onKeyDown={(e) => {
-				if (e.key === "Enter" || e.key === " ") {
-					onClick?.(program);
-				}
-			}}
-			role="button"
-			tabIndex={0}
 		>
 			{/* Header */}
 			<div className="p-4">
@@ -181,6 +164,6 @@ export function ProgramCard({
 					<ArrowRight className="w-4 h-4" />
 				</Button>
 			</div>
-		</div>
+		</button>
 	);
 }

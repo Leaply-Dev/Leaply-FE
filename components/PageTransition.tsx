@@ -1,6 +1,6 @@
 "use client";
 
-import { type HTMLMotionProps, motion } from "framer-motion";
+import { type HTMLMotionProps, m } from "framer-motion";
 import type { ReactNode } from "react";
 
 interface PageTransitionProps extends Omit<HTMLMotionProps<"div">, "children"> {
@@ -9,7 +9,7 @@ interface PageTransitionProps extends Omit<HTMLMotionProps<"div">, "children"> {
 
 export function PageTransition({ children, ...props }: PageTransitionProps) {
 	return (
-		<motion.div
+		<m.div
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0, y: -20 }}
@@ -17,20 +17,20 @@ export function PageTransition({ children, ...props }: PageTransitionProps) {
 			{...props}
 		>
 			{children}
-		</motion.div>
+		</m.div>
 	);
 }
 
 export function FadeIn({ children, ...props }: PageTransitionProps) {
 	return (
-		<motion.div
+		<m.div
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			transition={{ duration: 0.4, ease: "easeOut" }}
 			{...props}
 		>
 			{children}
-		</motion.div>
+		</m.div>
 	);
 }
 
@@ -40,20 +40,20 @@ export function SlideUp({
 	...props
 }: PageTransitionProps & { delay?: number }) {
 	return (
-		<motion.div
+		<m.div
 			initial={{ opacity: 0, y: 30 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.4, ease: "easeOut", delay }}
 			{...props}
 		>
 			{children}
-		</motion.div>
+		</m.div>
 	);
 }
 
 export function StaggerContainer({ children, ...props }: PageTransitionProps) {
 	return (
-		<motion.div
+		<m.div
 			initial="hidden"
 			animate="visible"
 			variants={{
@@ -68,13 +68,13 @@ export function StaggerContainer({ children, ...props }: PageTransitionProps) {
 			{...props}
 		>
 			{children}
-		</motion.div>
+		</m.div>
 	);
 }
 
 export function StaggerItem({ children, ...props }: PageTransitionProps) {
 	return (
-		<motion.div
+		<m.div
 			variants={{
 				hidden: { opacity: 0, y: 20 },
 				visible: { opacity: 1, y: 0 },
@@ -82,6 +82,6 @@ export function StaggerItem({ children, ...props }: PageTransitionProps) {
 			{...props}
 		>
 			{children}
-		</motion.div>
+		</m.div>
 	);
 }

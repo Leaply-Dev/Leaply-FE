@@ -67,9 +67,8 @@ export function LoginForm({
 
 			const response = await loginMutation.mutateAsync({ data: formData });
 
-			// The mutator now correctly returns ApiResponseAuthResponse (wrapped)
-			// So we need to access .data to get the actual AuthResponse
-			const authResponse = response.data;
+			// The API returns nested structure: response.data.data contains AuthResponse
+			const authResponse = response.data.data;
 
 			if (!authResponse) {
 				throw new Error("Login failed - no data received");

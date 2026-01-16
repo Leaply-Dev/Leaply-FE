@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import {
 	AlertCircle,
 	ArrowRight,
@@ -245,7 +245,7 @@ function ParallaxVisual() {
 
 	return (
 		<div className="relative w-full h-full bg-card rounded-2xl shadow-2xl p-8 overflow-hidden">
-			<motion.div
+			<m.div
 				className="absolute inset-0 opacity-5"
 				animate={{
 					background: `radial-gradient(circle at 50% 50%, ${currentVisual.color} 0%, transparent 70%)`,
@@ -440,7 +440,7 @@ export default function HomePage() {
 				</div>
 
 				<div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-					<motion.div
+					<m.div
 						className="absolute top-20 left-[10%] w-64 h-64 bg-primary/10 rounded-full blur-3xl"
 						animate={{ y: [0, 20, 0], opacity: [0.3, 0.5, 0.3] }}
 						transition={{
@@ -449,7 +449,7 @@ export default function HomePage() {
 							ease: "easeInOut",
 						}}
 					/>
-					<motion.div
+					<m.div
 						className="absolute bottom-20 right-[10%] w-80 h-80 bg-chart-2/10 rounded-full blur-3xl"
 						animate={{ y: [0, -20, 0], opacity: [0.2, 0.4, 0.2] }}
 						transition={{

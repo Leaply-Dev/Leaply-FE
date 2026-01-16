@@ -8,22 +8,15 @@ import {
 	useUnsaveProgram as useGeneratedUnsaveProgram,
 	useListPrograms,
 } from "@/lib/generated/api/endpoints/explore/explore";
-import type {
-	ApiResponseProgramListResponse,
-	ListProgramsParams,
-} from "@/lib/generated/api/models";
+import type { ListProgramsParams } from "@/lib/generated/api/models";
 
 /**
  * Backward-compatible wrapper for useListPrograms
  * Maps old ProgramListParams to new ListProgramsParams
  */
-export function usePrograms(
-	filters: ListProgramsParams,
-	initialData?: ApiResponseProgramListResponse,
-) {
+export function usePrograms(filters: ListProgramsParams) {
 	return useListPrograms(filters, {
 		query: {
-			initialData,
 			staleTime: 2 * 60 * 1000, // 2 minutes - consider data fresh
 		},
 	});
@@ -51,22 +44,22 @@ export function useSaveProgram() {
 			const previousPrograms = queryClient.getQueryData(["programs"]);
 
 			// Optimistically update all program queries
-			queryClient.setQueriesData<ApiResponseProgramListResponse>(
-				{ queryKey: ["programs"] },
-				(old) => {
-					if (!old?.data?.data) return old;
+			queryClient.setQueriesData({ queryKey: ["programs"] }, (old: any) => {
+				if (!old?.data?.data?.data) return old;
 
-					return {
-						...old,
+				return {
+					...old,
+					data: {
+						...old.data,
 						data: {
-							...old.data,
-							data: old.data.data.map((program) =>
+							...old.data.data,
+							data: old.data.data.data.map((program: any) =>
 								program.id === id ? { ...program, isSaved: !isSaved } : program,
 							),
 						},
-					};
-				},
-			);
+					},
+				};
+			});
 
 			return { previousPrograms };
 		},

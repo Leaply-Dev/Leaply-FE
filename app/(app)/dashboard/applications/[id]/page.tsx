@@ -249,20 +249,17 @@ export default function ApplicationDetailPage() {
 									<CardContent>
 										<div className="space-y-3">
 											{application.gaps.map(
-												(
-													gap: {
-														field?: string;
-														message?: string;
-														severity?: string;
-													},
-													index: number,
-												) => {
+												(gap: {
+													field?: string;
+													message?: string;
+													severity?: string;
+												}) => {
 													const severityConfig =
 														gapSeverityConfig[gap.severity ?? "info"] ||
 														gapSeverityConfig.info;
 													return (
 														<div
-															key={index}
+															key={gap.field}
 															className={cn(
 																"flex items-start gap-3 p-3 rounded-lg border",
 																severityConfig.color,

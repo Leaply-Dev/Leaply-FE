@@ -12,7 +12,8 @@ export function calculateCoverage(
 	edges: PersonaEdgeDto[],
 ): CoverageMetrics {
 	// Count nodes by type
-	const angles = nodes.filter((n) => n.type === "essay_angle");
+	// TODO: angles will be used when backend supports angle coverage
+	const _angles = nodes.filter((n) => n.type === "essay_angle");
 	const stories = nodes.filter((n) => n.type === "key_story");
 	const details = nodes.filter((n) => n.type === "detail");
 

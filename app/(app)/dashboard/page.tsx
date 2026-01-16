@@ -1,4 +1,73 @@
-import { DashboardClient } from "@/components/dashboard/DashboardClient";
+"use client";
+
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Dynamic import for DashboardClient (566 lines - large component)
+const DashboardClient = dynamic(
+	() =>
+		import("@/components/dashboard/DashboardClient").then(
+			(mod) => mod.DashboardClient,
+		),
+	{
+		ssr: false, // Client-side only due to auth requirements
+		loading: () => <DashboardPageSkeleton />,
+	},
+);
+
+// Loading skeleton for dashboard
+function DashboardPageSkeleton() {
+	return (
+		<div className="min-h-screen bg-background">
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+				{/* Header skeleton */}
+				<div className="mb-8">
+					<Skeleton className="h-9 w-64 mb-2" />
+					<Skeleton className="h-6 w-48" />
+				</div>
+
+				{/* Suggested action card skeleton */}
+				<div className="mb-8 p-6 border border-border rounded-xl">
+					<div className="flex items-start gap-4">
+						<Skeleton className="w-14 h-14 rounded-2xl" />
+						<div className="flex-1 space-y-3">
+							<Skeleton className="h-5 w-24" />
+							<Skeleton className="h-6 w-48" />
+							<Skeleton className="h-4 w-64" />
+							<Skeleton className="h-10 w-32" />
+						</div>
+					</div>
+				</div>
+
+				{/* Stats grid skeleton */}
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+					{[1, 2, 3, 4].map((i) => (
+						<div key={i} className="p-5 border border-border rounded-xl">
+							<div className="flex items-center gap-3 mb-3">
+								<Skeleton className="w-10 h-10 rounded-lg" />
+								<Skeleton className="h-4 w-16" />
+							</div>
+							<Skeleton className="h-7 w-12 mb-2" />
+							<Skeleton className="h-2 w-full" />
+						</div>
+					))}
+				</div>
+
+				{/* Content grid skeleton */}
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+					<div className="lg:col-span-2">
+						<Skeleton className="h-[400px] w-full rounded-xl" />
+					</div>
+					<div className="space-y-6">
+						<Skeleton className="h-[200px] w-full rounded-xl" />
+						<Skeleton className="h-[180px] w-full rounded-xl" />
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
 
 /**
  * Dashboard Server Component
@@ -9,5 +78,9 @@ import { DashboardClient } from "@/components/dashboard/DashboardClient";
 export default function DashboardPage() {
 	// No SSR data fetching - client component handles everything with TanStack Query
 	// This avoids 403 errors when server tries to fetch without auth token
-	return <DashboardClient />;
+	return (
+		<Suspense fallback={<DashboardPageSkeleton />}>
+			<DashboardClient />
+		</Suspense>
+	);
 }

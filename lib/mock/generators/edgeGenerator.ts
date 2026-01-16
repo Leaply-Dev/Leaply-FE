@@ -21,11 +21,12 @@ export function generateEdgesForNodes(
 
 	// Rule 1: Connect all essay_angles to profile_summary
 	for (const angle of angles) {
+		if (!profile.id || !angle.id) continue; // Skip if missing IDs
 		edges.push(
 			createEdge(
 				`mock-edge-${edgeId++}`,
-				profile.id!,
-				angle.id!,
+				profile.id,
+				angle.id,
 				"supports",
 				0.9,
 			),
@@ -35,6 +36,7 @@ export function generateEdgesForNodes(
 	// Rule 2a: Connect all key_stories to profile_summary (root node)
 	// This ensures stories are always visible and connected to the center
 	for (const story of stories) {
+		if (!profile.id || !story.id) continue; // Skip if missing IDs
 		const storyTags = story.tags || [];
 		// Strength based on number of tags (more context = stronger connection)
 		const baseStrength = 0.8;
@@ -42,8 +44,8 @@ export function generateEdgesForNodes(
 		edges.push(
 			createEdge(
 				`mock-edge-${edgeId++}`,
-				profile.id!,
-				story.id!,
+				profile.id,
+				story.id,
 				"supports",
 				baseStrength + tagBonus,
 			),
@@ -60,11 +62,12 @@ export function generateEdgesForNodes(
 			const sharedTags = [...storyTags].filter((tag) => angleTags.has(tag));
 
 			if (sharedTags.length >= 2) {
+				if (!angle.id || !story.id) continue; // Skip if missing IDs
 				edges.push(
 					createEdge(
 						`mock-edge-${edgeId++}`,
-						angle.id!,
-						story.id!,
+						angle.id,
+						story.id,
 						"builds_on",
 						0.7 + sharedTags.length * 0.05,
 					),
@@ -76,7 +79,8 @@ export function generateEdgesForNodes(
 	// Rule 3: Connect details to stories (match by keywords in title)
 	for (const detail of details) {
 		for (const story of stories) {
-			const detailTitle = detail.title?.toLowerCase() || "";
+			// TODO: detailTitle will be used for future keyword matching logic
+			const _detailTitle = detail.title?.toLowerCase() || "";
 			const storyTags = story.tags || [];
 
 			// Check if detail tags match story tags
@@ -84,11 +88,12 @@ export function generateEdgesForNodes(
 			const sharedTags = storyTags.filter((tag) => detailTags.has(tag));
 
 			if (sharedTags.length >= 1) {
+				if (!story.id || !detail.id) continue; // Skip if missing IDs
 				edges.push(
 					createEdge(
 						`mock-edge-${edgeId++}`,
-						story.id!,
-						detail.id!,
+						story.id,
+						detail.id,
 						"enables",
 						0.6 + sharedTags.length * 0.05,
 					),
@@ -100,11 +105,12 @@ export function generateEdgesForNodes(
 	// Rule 4: Add tension edges for conflicting themes
 	const tensionPairs = findTensionPairs(nodes);
 	for (const [source, target] of tensionPairs) {
+		if (!source.id || !target.id) continue; // Skip if missing IDs
 		edges.push(
 			createEdge(
 				`mock-edge-${edgeId++}`,
-				source.id!,
-				target.id!,
+				source.id,
+				target.id,
 				"contradicts",
 				0.5,
 				true,

@@ -260,9 +260,10 @@ export function useForceLayout(options: UseForceLayoutOptions = {}) {
 			const forceLinks: ForceLink[] = allEdges
 				.filter((edge) => edge.id && edge.source && edge.target)
 				.map((edge) => ({
-					id: edge.id!,
-					source: edge.source!,
-					target: edge.target!,
+					// We already filtered for these fields above, so they're guaranteed to exist
+					id: edge.id as string,
+					source: edge.source as string,
+					target: edge.target as string,
 					strength: edge.strength ?? 1,
 				}));
 

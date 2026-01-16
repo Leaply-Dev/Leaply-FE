@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import {
 	ArrowRight,
 	Calendar,
@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
 	PageTransition,
 	SlideUp,
@@ -29,21 +29,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import type {
-	ApiResponseHomeResponse,
-	RecentApplicationDto,
-} from "@/lib/generated/api/models";
+import type { RecentApplicationDto } from "@/lib/generated/api/models";
 import { useHomeData } from "@/lib/hooks/useHomeData";
 import { useUserStore } from "@/lib/store/userStore";
 
-interface DashboardClientProps {
-	initialData?: ApiResponseHomeResponse;
-}
-
-export function DashboardClient({ initialData }: DashboardClientProps) {
+export function DashboardClient() {
 	const tHome = useTranslations("home");
 	const { profile, lastActivity } = useUserStore();
-	const { data: homeData, isLoading } = useHomeData(initialData);
+	const { data: homeData, isLoading } = useHomeData();
 
 	// Time-dependent state - computed only on client to prevent hydration mismatch
 	const [greeting, setGreeting] = useState<string>("");
@@ -86,16 +79,48 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 		}
 	}, [lastActivity?.timestamp, tHome]);
 
-	// Derive values from homeData (unwrap from ApiResponse wrapper)
-	const profileCompletion = homeData?.data?.profileCompletion ?? 0;
-	const upcomingDeadlinesCount = homeData?.data?.upcomingDeadlines?.length ?? 0;
-	const applicationsCount = homeData?.data?.applications?.total ?? 0;
-	const submittedApplications =
-		homeData?.data?.applications?.byStatus?.submitted ?? 0;
-	const discoveryTracks = homeData?.data?.discovery?.completedTracks ?? 0;
-	const totalTracks = homeData?.data?.discovery?.totalTracks ?? 4;
-	const suggestedAction = homeData?.data?.suggestedAction;
-	const recentApplications = homeData?.data?.recentApplications ?? [];
+	// Memoize derived values from homeData to prevent unnecessary recalculations
+	const dashboardData = useMemo(() => {
+		if (!homeData?.data?.data) {
+			return {
+				profileCompletion: 0,
+				upcomingDeadlinesCount: 0,
+				applicationsCount: 0,
+				submittedApplications: 0,
+				discoveryTracks: 0,
+				totalTracks: 4,
+				suggestedAction: null,
+				recentApplications: [],
+				firstName: null,
+			};
+		}
+
+		const data = homeData.data.data;
+
+		return {
+			profileCompletion: data.profileCompletion ?? 0,
+			upcomingDeadlinesCount: data.upcomingDeadlines?.length ?? 0,
+			applicationsCount: data.applications?.total ?? 0,
+			submittedApplications: data.applications?.byStatus?.submitted ?? 0,
+			discoveryTracks: data.discovery?.completedTracks ?? 0,
+			totalTracks: data.discovery?.totalTracks ?? 4,
+			suggestedAction: data.suggestedAction,
+			recentApplications: data.recentApplications ?? [],
+			firstName: data.firstName,
+		};
+	}, [homeData]);
+
+	const {
+		profileCompletion,
+		upcomingDeadlinesCount,
+		applicationsCount,
+		submittedApplications,
+		discoveryTracks,
+		totalTracks,
+		suggestedAction,
+		recentApplications,
+		firstName,
+	} = dashboardData;
 
 	return (
 		<PageTransition>
@@ -106,7 +131,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 						<div className="mb-8">
 							<h1 className="text-3xl font-bold text-foreground mb-2">
 								{greeting || <span className="invisible">...</span>},{" "}
-								{homeData?.data?.firstName ||
+								{firstName ||
 									profile?.fullName?.split(" ").pop() ||
 									tHome("you")}
 								!
@@ -119,7 +144,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
 					{/* Suggested Next Action */}
 					<SlideUp delay={0.1}>
-						<motion.div
+						<m.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ delay: 0.2 }}
@@ -236,7 +261,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 									</CardContent>
 								</Card>
 							)}
-						</motion.div>
+						</m.div>
 					</SlideUp>
 
 					{/* Quick Stats */}

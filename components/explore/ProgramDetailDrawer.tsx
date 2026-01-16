@@ -113,7 +113,8 @@ function formatDuration(months?: number): string {
 	return `${years}y ${remainingMonths}m`;
 }
 
-function IntakeCard({
+// TODO: IntakeCard will be used once backend supports intake data
+function _IntakeCard({
 	intake,
 	isExpanded,
 	onToggle,
@@ -193,7 +194,8 @@ export function ProgramDetailDrawer({
 	onCompare,
 	onAddToDashboard,
 }: ProgramDetailDrawerProps) {
-	const [expandedIntake, setExpandedIntake] = useState<string | null>(null);
+	// TODO: Intake expansion will be used once backend supports intake data
+	const [_expandedIntake, _setExpandedIntake] = useState<string | null>(null);
 
 	// Fetch detailed program data
 	const {
@@ -207,7 +209,7 @@ export function ProgramDetailDrawer({
 		},
 	});
 
-	const program = programDetail?.data;
+	const program = programDetail?.data?.data;
 
 	const req = program?.requirements;
 	const userProfileData = userProfile?.profile;
@@ -430,7 +432,7 @@ export function ProgramDetailDrawer({
 													Additional Requirements
 												</p>
 												<ul className="text-xs text-muted-foreground space-y-1">
-													{req.documents.map((doc) => (
+													{req.documents.map((doc: string) => (
 														<li key={doc}>• {doc}</li>
 													))}
 												</ul>

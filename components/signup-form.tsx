@@ -71,17 +71,17 @@ export function SignupForm({
 
 			// Transform to UserProfile
 			const userProfile = {
-				id: response.data?.userId ?? "",
-				email: response.data?.email ?? "",
+				id: response.data?.data?.userId ?? "",
+				email: response.data?.data?.email ?? "",
 				fullName: validatedData.fullName,
 			};
 
 			login(
 				userProfile,
-				response.data?.accessToken ?? "",
-				response.data?.refreshToken ?? "",
-				response.data?.expiresIn ?? 0,
-				response.data?.onboardingCompleted ?? false,
+				response.data?.data?.accessToken ?? "",
+				response.data?.data?.refreshToken ?? "",
+				response.data?.data?.expiresIn ?? 0,
+				response.data?.data?.onboardingCompleted ?? false,
 			);
 
 			// Redirect to verify-email page for email verification prompt
