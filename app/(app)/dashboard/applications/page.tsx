@@ -115,11 +115,13 @@ export default function ApplicationsPage() {
 			</div>
 
 			{/* Error Toast */}
-			{apiError && (
+			{apiError ? (
 				<div className="fixed bottom-4 right-4 bg-destructive text-destructive-foreground px-4 py-2 rounded-lg shadow-lg">
-					{(apiError as Error).message}
+					{apiError instanceof Error
+						? apiError.message
+						: "Failed to load applications"}
 				</div>
-			)}
+			) : null}
 		</PageTransition>
 	);
 }
