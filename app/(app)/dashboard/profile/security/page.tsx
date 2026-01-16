@@ -3,13 +3,13 @@
 import { useTranslations } from "next-intl";
 import { PageTransition, SlideUp } from "@/components/PageTransition";
 import {
-	AcademicInfoTab,
+	AccountSecurityTab,
 	ProfileHeader,
 	SettingsLayout,
 } from "@/components/profile";
 import { useGetMe } from "@/lib/generated/api/endpoints/user/user";
 
-export default function ProfilePage() {
+export default function AccountSecurityPage() {
 	const t = useTranslations("profile");
 
 	const { data: response, isLoading } = useGetMe();
@@ -34,7 +34,7 @@ export default function ProfilePage() {
 
 					{/* Settings Layout with Sidebar */}
 					<SettingsLayout>
-						<AcademicInfoTab />
+						<AccountSecurityTab />
 					</SettingsLayout>
 				</div>
 			</div>
