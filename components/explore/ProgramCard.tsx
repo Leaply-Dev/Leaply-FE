@@ -3,8 +3,14 @@
 import {
 	AlertTriangle,
 	ArrowRight,
+	Award,
 	Building2,
+	Calendar,
 	Check,
+	Clock,
+	DollarSign,
+	GraduationCap,
+	Laptop,
 	MapPin,
 	Plus,
 	Settings2,
@@ -16,6 +22,16 @@ import type {
 	ProgramListItemResponse,
 	UserContextResponse,
 } from "@/lib/generated/api/models";
+import {
+	formatCountryName,
+	formatDate,
+	formatDegreeType,
+	formatDeliveryMode,
+	formatDuration,
+	formatIeltsRequirement,
+	formatTuitionPerYear,
+	isDeadlinePast,
+} from "@/lib/utils/displayFormatters";
 
 interface ProgramCardProps {
 	program: ProgramListItemResponse;
@@ -30,14 +46,6 @@ interface ProgramCardProps {
 	onManage?: (id: string) => void;
 }
 
-function formatCountryName(country?: string): string {
-	if (!country) return "N/A";
-	return country
-		.split("_")
-		.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-		.join(" ");
-}
-
 export function ProgramCard({
 	program,
 	onClick,
@@ -48,6 +56,10 @@ export function ProgramCard({
 	isInDashboard,
 	onManage,
 }: ProgramCardProps) {
+	// Check if deadline exists and is not past
+	const hasValidDeadline =
+		program.nextDeadline && !isDeadlinePast(program.nextDeadline);
+
 	return (
 		// biome-ignore lint/a11y/useSemanticElements: Cannot use <button> because it contains nested buttons
 		<div
@@ -96,10 +108,11 @@ export function ProgramCard({
 					</div>
 				</div>
 
-				{/* Badges */}
+				{/* Badges Row */}
 				<div className="flex flex-wrap gap-1.5 mb-3">
 					{program.rankingQsDisplay && (
-						<Badge className="bg-primary/10 text-primary border-0 text-xs">
+						<Badge className="bg-primary/10 text-primary border-0 text-xs gap-1">
+							<Award className="w-3 h-3" />
 							QS #{program.rankingQsDisplay}
 						</Badge>
 					)}
@@ -108,6 +121,77 @@ export function ProgramCard({
 						<Badge className="bg-primary/10 text-primary border-0 text-xs">
 							{program.fitScore}% Match
 						</Badge>
+					)}
+
+					{program.degreeType && (
+						<Badge
+							variant="outline"
+							className="text-xs gap-1 border-muted-foreground/30"
+						>
+							<GraduationCap className="w-3 h-3" />
+							{formatDegreeType(program.degreeType)}
+						</Badge>
+					)}
+
+					{program.scholarshipAvailable && (
+						<Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-0 text-xs">
+							Scholarship
+						</Badge>
+					)}
+				</div>
+
+				{/* Quick Info Grid */}
+				<div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs mb-3">
+					{/* Tuition */}
+					{program.tuitionAnnualUsd && (
+						<div className="flex items-center gap-1.5 text-muted-foreground">
+							<DollarSign className="w-3.5 h-3.5 shrink-0" />
+							<span className="truncate">
+								{formatTuitionPerYear(program.tuitionAnnualUsd)}
+							</span>
+						</div>
+					)}
+
+					{/* Duration */}
+					{program.durationMonths && (
+						<div className="flex items-center gap-1.5 text-muted-foreground">
+							<Clock className="w-3.5 h-3.5 shrink-0" />
+							<span className="truncate">
+								{formatDuration(program.durationMonths)}
+							</span>
+						</div>
+					)}
+
+					{/* Delivery Mode */}
+					{program.deliveryMode && (
+						<div className="flex items-center gap-1.5 text-muted-foreground">
+							<Laptop className="w-3.5 h-3.5 shrink-0" />
+							<span className="truncate">
+								{formatDeliveryMode(program.deliveryMode)}
+							</span>
+						</div>
+					)}
+
+					{/* IELTS Requirement */}
+					{program.ieltsMinimum && (
+						<div className="flex items-center gap-1.5 text-muted-foreground">
+							<span className="w-3.5 h-3.5 shrink-0 text-[10px] font-bold text-center leading-[14px]">
+								IE
+							</span>
+							<span className="truncate">
+								{formatIeltsRequirement(program.ieltsMinimum)}
+							</span>
+						</div>
+					)}
+
+					{/* Next Deadline */}
+					{hasValidDeadline && (
+						<div className="flex items-center gap-1.5 text-muted-foreground col-span-2">
+							<Calendar className="w-3.5 h-3.5 shrink-0" />
+							<span className="truncate">
+								Deadline: {formatDate(program.nextDeadline, { short: true })}
+							</span>
+						</div>
 					)}
 				</div>
 			</div>

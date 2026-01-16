@@ -11,8 +11,10 @@ import {
 	Circle,
 	Clock,
 	DollarSign,
+	ExternalLink,
 	Globe,
 	GraduationCap,
+	Link2,
 	MapPin,
 	Plus,
 	Scale,
@@ -36,6 +38,10 @@ import type {
 	GpaGap,
 	ProgramIntakeResponse,
 } from "@/lib/generated/api/models";
+import {
+	formatDeliveryMode,
+	formatLanguage,
+} from "@/lib/utils/displayFormatters";
 
 interface ProgramDetailDrawerProps {
 	programId: string | null;
@@ -554,14 +560,14 @@ export function ProgramDetailDrawer({
 										<BookOpen className="w-5 h-5 text-primary mx-auto mb-2" />
 										<p className="text-xs text-muted-foreground">Study Mode</p>
 										<p className="font-semibold text-sm text-foreground mt-0.5">
-											{program.deliveryMode || "N/A"}
+											{formatDeliveryMode(program.deliveryMode)}
 										</p>
 									</div>
 									<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
 										<Globe className="w-5 h-5 text-primary mx-auto mb-2" />
 										<p className="text-xs text-muted-foreground">Language</p>
 										<p className="font-semibold text-sm text-foreground mt-0.5">
-											{program.language || "N/A"}
+											{formatLanguage(program.language)}
 										</p>
 									</div>
 								</section>
@@ -691,6 +697,70 @@ export function ProgramDetailDrawer({
 										</p>
 									)}
 								</section>
+
+								{/* External Links Section */}
+								{(program.programUrl ||
+									program.admissionsUrl ||
+									program.universityWebsiteUrl) && (
+									<section>
+										<div className="flex items-center gap-2 mb-3">
+											<Link2 className="w-5 h-5 text-primary" />
+											<h3 className="font-semibold text-foreground">
+												External Links
+											</h3>
+										</div>
+										<div className="space-y-2">
+											{program.programUrl && (
+												<a
+													href={program.programUrl}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/50 hover:bg-muted transition-colors group"
+												>
+													<div className="flex items-center gap-3">
+														<GraduationCap className="w-5 h-5 text-primary" />
+														<span className="text-sm font-medium text-foreground">
+															Program Page
+														</span>
+													</div>
+													<ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+												</a>
+											)}
+											{program.admissionsUrl && (
+												<a
+													href={program.admissionsUrl}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/50 hover:bg-muted transition-colors group"
+												>
+													<div className="flex items-center gap-3">
+														<CheckCircle2 className="w-5 h-5 text-primary" />
+														<span className="text-sm font-medium text-foreground">
+															Admissions Info
+														</span>
+													</div>
+													<ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+												</a>
+											)}
+											{program.universityWebsiteUrl && (
+												<a
+													href={program.universityWebsiteUrl}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/50 hover:bg-muted transition-colors group"
+												>
+													<div className="flex items-center gap-3">
+														<Globe className="w-5 h-5 text-primary" />
+														<span className="text-sm font-medium text-foreground">
+															University Website
+														</span>
+													</div>
+													<ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+												</a>
+											)}
+										</div>
+									</section>
+								)}
 							</div>
 						</ScrollArea>
 

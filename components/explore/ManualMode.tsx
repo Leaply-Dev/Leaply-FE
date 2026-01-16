@@ -30,7 +30,7 @@ import type {
 	EnglishGapStatus,
 	ProgramListItemResponse,
 } from "@/lib/generated/api/models";
-import { formatCountryName } from "@/lib/utils/gapComputation";
+import { formatCountryName } from "@/lib/utils/displayFormatters";
 
 /**
  * Compact gap indicator for list view

@@ -29,7 +29,11 @@ import {
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ProgramListItemResponse } from "@/lib/generated/api/models";
-import { formatCountryName } from "@/lib/utils/gapComputation";
+import {
+	formatCountryName,
+	formatDeliveryMode,
+	formatDuration,
+} from "@/lib/utils/displayFormatters";
 
 // ============================================================================
 // Types
@@ -272,8 +276,8 @@ function DegreeDeliveryCell({ program }: { program: ProgramListItemResponse }) {
 			<div className="space-y-1">
 				<div className="flex items-center gap-2 text-sm text-muted-foreground">
 					<span>
-						{[program.degreeName, program.deliveryMode]
-							.filter(Boolean)
+						{[program.degreeName, formatDeliveryMode(program.deliveryMode)]
+							.filter((v) => v && v !== "N/A")
 							.join(" • ")}
 					</span>
 				</div>
@@ -289,9 +293,7 @@ function DurationCell({ program }: { program: ProgramListItemResponse }) {
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<span className="text-foreground">
-				{program.durationMonths
-					? `${program.durationMonths} months`
-					: "Varies / Unknown"}
+				{formatDuration(program.durationMonths)}
 			</span>
 		</td>
 	);

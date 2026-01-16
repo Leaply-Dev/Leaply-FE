@@ -1,8 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Sparkles, Table } from "lucide-react";
-import Link from "next/link";
+import { Sparkles, Table } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -318,35 +317,6 @@ export function ExploreClient() {
 										</div>
 									</div>
 								)}
-
-								{/* Incomplete Profile Warning Banner */}
-								{aiMatchData?.data?.data?.criticalMissingFields &&
-									aiMatchData.data.data.criticalMissingFields.length > 0 && (
-										<div className="mb-6 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-											<div className="flex items-start gap-3">
-												<AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
-												<div className="flex-1">
-													<h3 className="text-sm font-semibold text-amber-900 dark:text-amber-200">
-														Hồ sơ chưa đầy đủ
-													</h3>
-													<p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-														Thêm điểm IELTS/TOEFL và ngân sách để nhận gợi ý
-														chính xác hơn.
-													</p>
-													<Button
-														asChild
-														variant="outline"
-														size="sm"
-														className="mt-3 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/30"
-													>
-														<Link href="/profile?focus=preferences">
-															Cập nhật hồ sơ
-														</Link>
-													</Button>
-												</div>
-											</div>
-										</div>
-									)}
 
 								{/* Tab-Based Categories Layout */}
 								<TabBasedCategories
