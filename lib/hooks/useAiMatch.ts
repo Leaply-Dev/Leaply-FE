@@ -13,7 +13,7 @@ import type { GetMatchedProgramsParams } from "@/lib/generated/api/models";
  */
 export function useAiMatch(limitPerCategory?: number) {
 	const params: GetMatchedProgramsParams = limitPerCategory
-		? { limit_per_category: limitPerCategory }
+		? { limitPerCategory }
 		: {};
 
 	return useGetMatchedPrograms(params, {

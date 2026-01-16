@@ -25,8 +25,83 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import type { ProgramListItemResponse } from "@/lib/generated/api/models";
+import type {
+	BudgetGapStatus,
+	EnglishGapStatus,
+	ProgramListItemResponse,
+} from "@/lib/generated/api/models";
 import { formatCountryName } from "@/lib/utils/gapComputation";
+
+/**
+ * Compact gap indicator for list view
+ * Shows status icons for English, GPA, Budget gaps
+ */
+function GapIndicators({ program }: { program: ProgramListItemResponse }) {
+	const indicators: { label: string; status: string; icon: string }[] = [];
+
+	// English gap indicator
+	if (program.englishGap?.status && program.englishGap.status !== "unknown") {
+		const status = program.englishGap.status as EnglishGapStatus;
+		indicators.push({
+			label: "IELTS",
+			status,
+			icon: status === "exceeds" || status === "meets" ? "\u2713" : "!",
+		});
+	}
+
+	// GPA gap indicator
+	if (program.gpaGap?.status && program.gpaGap.status !== "unknown") {
+		const status = program.gpaGap.status;
+		indicators.push({
+			label: "GPA",
+			status,
+			icon: status === "exceeds" || status === "meets" ? "\u2713" : "!",
+		});
+	}
+
+	// Budget gap indicator
+	if (program.budgetGap?.status && program.budgetGap.status !== "unknown") {
+		const status = program.budgetGap.status as BudgetGapStatus;
+		indicators.push({
+			label: "Budget",
+			status,
+			icon: status === "within" ? "\u2713" : status === "stretch" ? "~" : "!",
+		});
+	}
+
+	if (indicators.length === 0) return null;
+
+	const getStatusColor = (status: string) => {
+		switch (status) {
+			case "exceeds":
+			case "meets":
+			case "within":
+				return "text-green-600";
+			case "stretch":
+				return "text-yellow-600";
+			case "gap":
+			case "over":
+				return "text-orange-600";
+			default:
+				return "text-muted-foreground";
+		}
+	};
+
+	return (
+		<div className="flex items-center justify-center gap-2 mt-1.5 text-xs">
+			{indicators.slice(0, 3).map((ind) => (
+				<span
+					key={ind.label}
+					className={`${getStatusColor(ind.status)} font-medium`}
+					title={`${ind.label}: ${ind.status}`}
+				>
+					{ind.label}
+					{ind.icon}
+				</span>
+			))}
+		</div>
+	);
+}
 
 interface ManualModeProps {
 	programs: ProgramListItemResponse[];
@@ -226,8 +301,11 @@ function ProgramTableRow({
 				</span>
 			</td>
 
-			{/* Fit Badge */}
-			<td className="p-4 text-center">{getFitBadge(program.fitCategory)}</td>
+			{/* Fit Badge + Gap Indicators */}
+			<td className="p-4 text-center">
+				{getFitBadge(program.fitCategory)}
+				<GapIndicators program={program} />
+			</td>
 
 			{/* Quick Action */}
 			<td className="p-4 text-center">

@@ -16,6 +16,7 @@ import {
 	MapPin,
 	Plus,
 	Scale,
+	TrendingUp,
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
@@ -30,68 +31,305 @@ import {
 } from "@/components/ui/sheet";
 import { useGetProgramDetail } from "@/lib/generated/api/endpoints/explore/explore";
 import type {
+	BudgetGap,
+	EnglishGap,
+	GpaGap,
 	ProgramIntakeResponse,
-	UserContextResponse,
 } from "@/lib/generated/api/models";
 
 interface ProgramDetailDrawerProps {
 	programId: string | null;
-	userProfile?: UserContextResponse | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	onCompare?: (id: string) => void;
 	onAddToDashboard?: (id: string) => void;
 }
 
-// Requirement check item component
-function RequirementCheckItem({
+/**
+ * Get status styling based on gap status
+ */
+function getGapStatusStyle(status?: string): {
+	border: string;
+	bg: string;
+	icon: "check" | "warning" | "neutral" | "trending";
+} {
+	switch (status) {
+		case "exceeds":
+			return {
+				border: "border-green-200",
+				bg: "bg-green-50",
+				icon: "trending",
+			};
+		case "meets":
+		case "within":
+			return {
+				border: "border-primary/30",
+				bg: "bg-primary/10",
+				icon: "check",
+			};
+		case "stretch":
+			return {
+				border: "border-yellow-200",
+				bg: "bg-yellow-50",
+				icon: "warning",
+			};
+		case "gap":
+		case "over":
+			return {
+				border: "border-orange-200",
+				bg: "bg-orange-50",
+				icon: "warning",
+			};
+		default:
+			return { border: "border-border", bg: "bg-muted/50", icon: "neutral" };
+	}
+}
+
+/**
+ * Format delta value with sign
+ */
+function formatDelta(delta?: number, unit?: string): string {
+	if (delta === undefined || delta === null) return "";
+	const sign = delta >= 0 ? "+" : "";
+	const formatted = Number.isInteger(delta)
+		? delta.toString()
+		: delta.toFixed(1);
+	return `${sign}${formatted}${unit || ""}`;
+}
+
+/**
+ * Gap-based requirement check item using pre-computed gap data from API
+ */
+function GapCheckItem({
 	label,
-	required,
+	status,
 	userValue,
+	requiredValue,
+	delta,
+	userLabel,
+	requiredLabel,
+	note,
 }: {
 	label: string;
-	required?: number;
-	userValue?: number;
+	status?: string;
+	userValue?: number | string;
+	requiredValue?: number | string;
+	delta?: number;
+	userLabel?: string;
+	requiredLabel?: string;
+	note?: string;
 }) {
-	const hasRequired = required !== undefined && required > 0;
-	const hasUserValue = userValue !== undefined && userValue > 0;
-	const isMet = hasRequired && hasUserValue && userValue >= required;
+	const style = getGapStatusStyle(status);
+	const hasData = status && status !== "unknown";
 
-	return (
-		<div
-			className={`flex items-center justify-between p-3 rounded-lg border ${
-				isMet
-					? "border-primary/30 bg-primary/10"
-					: hasRequired && hasUserValue
-						? "border-destructive/30 bg-destructive/10"
-						: "border-border bg-muted/50"
-			}`}
-		>
-			<div className="flex items-center gap-3">
-				{isMet ? (
+	const renderIcon = () => {
+		switch (style.icon) {
+			case "check":
+				return (
 					<div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
 						<Check className="w-3 h-3 text-primary-foreground" />
 					</div>
-				) : hasRequired && hasUserValue ? (
-					<div className="w-5 h-5 rounded-full bg-destructive flex items-center justify-center">
-						<AlertTriangle className="w-3 h-3 text-destructive-foreground" />
+				);
+			case "trending":
+				return (
+					<div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+						<TrendingUp className="w-3 h-3 text-white" />
 					</div>
-				) : (
-					<Circle className="w-5 h-5 text-muted-foreground" />
-				)}
-				<div>
-					<p className="font-medium text-foreground text-sm">{label}</p>
-					{hasUserValue && (
-						<p className="text-xs text-muted-foreground">
-							Your score: {userValue}
-						</p>
+				);
+			case "warning":
+				return (
+					<div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
+						<AlertTriangle className="w-3 h-3 text-white" />
+					</div>
+				);
+			default:
+				return <Circle className="w-5 h-5 text-muted-foreground" />;
+		}
+	};
+
+	return (
+		<div className={`p-3 rounded-lg border ${style.border} ${style.bg}`}>
+			<div className="flex items-center justify-between">
+				<div className="flex items-center gap-3">
+					{renderIcon()}
+					<div>
+						<p className="font-medium text-foreground text-sm">{label}</p>
+						{hasData && userValue !== undefined && (
+							<p className="text-xs text-muted-foreground">
+								{userLabel || "You"}: {userValue}
+								{requiredValue !== undefined && (
+									<>
+										{" "}
+										<span className="text-muted-foreground/60">•</span>{" "}
+										{requiredLabel || "Required"}: {requiredValue}
+									</>
+								)}
+							</p>
+						)}
+						{!hasData && requiredValue !== undefined && (
+							<p className="text-xs text-muted-foreground">
+								Required: {requiredValue}
+							</p>
+						)}
+					</div>
+				</div>
+				<div className="text-right">
+					{hasData && delta !== undefined && delta !== 0 && (
+						<span
+							className={`text-sm font-semibold ${
+								delta >= 0 ? "text-green-600" : "text-orange-600"
+							}`}
+						>
+							{formatDelta(delta)}
+						</span>
+					)}
+					{note && (
+						<p className="text-xs text-muted-foreground mt-0.5">{note}</p>
 					)}
 				</div>
 			</div>
-			<span className="text-sm font-medium text-foreground">
-				{hasRequired ? `${required}+` : "N/A"}
-			</span>
 		</div>
+	);
+}
+
+/**
+ * English gap display component
+ */
+function EnglishGapItem({
+	gap,
+	fallbackRequired,
+}: {
+	gap?: EnglishGap;
+	fallbackRequired?: number;
+}) {
+	if (!gap || gap.status === "unknown") {
+		// Fallback to showing just the requirement if available
+		if (fallbackRequired) {
+			return (
+				<GapCheckItem label="IELTS" requiredValue={`${fallbackRequired}+`} />
+			);
+		}
+		return null;
+	}
+
+	const userDisplay = gap.userValue
+		? `${gap.userValue} (${gap.userType?.toUpperCase() || "IELTS"})`
+		: undefined;
+	const requiredDisplay = gap.requiredValue
+		? `${gap.requiredValue}+ (${gap.requiredType?.toUpperCase() || "IELTS"})`
+		: undefined;
+
+	return (
+		<GapCheckItem
+			label="English"
+			status={gap.status}
+			userValue={userDisplay}
+			requiredValue={requiredDisplay}
+			delta={gap.delta}
+			note={
+				gap.status === "exceeds"
+					? "Exceeds requirement"
+					: gap.status === "gap"
+						? "Below requirement"
+						: undefined
+			}
+		/>
+	);
+}
+
+/**
+ * GPA gap display component
+ */
+function GpaGapItem({
+	gap,
+	fallbackRequired,
+}: {
+	gap?: GpaGap;
+	fallbackRequired?: number;
+}) {
+	if (!gap || gap.status === "unknown") {
+		if (fallbackRequired) {
+			return (
+				<GapCheckItem label="GPA" requiredValue={`${fallbackRequired}+`} />
+			);
+		}
+		return null;
+	}
+
+	const userDisplay =
+		gap.userValue !== undefined
+			? `${gap.userValue.toFixed(2)}${gap.userScale ? ` / ${gap.userScale}` : ""}`
+			: undefined;
+	const requiredDisplay =
+		gap.requiredValue !== undefined
+			? `${gap.requiredValue}+${gap.requiredScale ? ` / ${gap.requiredScale}` : ""}`
+			: undefined;
+
+	return (
+		<GapCheckItem
+			label="GPA"
+			status={gap.status}
+			userValue={userDisplay}
+			requiredValue={requiredDisplay}
+			delta={gap.delta}
+			note={
+				gap.status === "exceeds"
+					? "Exceeds requirement"
+					: gap.status === "gap"
+						? "Below requirement"
+						: undefined
+			}
+		/>
+	);
+}
+
+/**
+ * Budget gap display component
+ */
+function BudgetGapItem({
+	gap,
+	tuitionAnnual,
+}: {
+	gap?: BudgetGap;
+	tuitionAnnual?: number;
+}) {
+	if (!gap || gap.status === "unknown") {
+		return null;
+	}
+
+	const formatBudget = (value?: number) => {
+		if (!value) return undefined;
+		return `$${(value / 1000).toFixed(0)}k`;
+	};
+
+	const getNote = () => {
+		if (gap.status === "within") return "Within budget";
+		if (gap.status === "stretch") {
+			return gap.scholarshipAvailable
+				? "Stretch - Scholarships available"
+				: "Stretch budget";
+		}
+		if (gap.status === "over") {
+			const overAmount = gap.overBudgetUsd
+				? `$${(gap.overBudgetUsd / 1000).toFixed(0)}k over`
+				: "Over budget";
+			return gap.scholarshipAvailable
+				? `${overAmount} - Scholarships available`
+				: overAmount;
+		}
+		return undefined;
+	};
+
+	return (
+		<GapCheckItem
+			label="Budget"
+			status={gap.status}
+			userValue={formatBudget(gap.userBudgetUsd)}
+			userLabel="Your max"
+			requiredValue={formatBudget(gap.tuitionUsd || tuitionAnnual)}
+			requiredLabel="Tuition"
+			note={getNote()}
+		/>
 	);
 }
 
@@ -188,7 +426,6 @@ function _IntakeCard({
 
 export function ProgramDetailDrawer({
 	programId,
-	userProfile,
 	open,
 	onOpenChange,
 	onCompare,
@@ -210,22 +447,7 @@ export function ProgramDetailDrawer({
 	});
 
 	const program = programDetail?.data?.data;
-
 	const req = program?.requirements;
-	const userProfileData = userProfile?.profile;
-	const userGpa = userProfileData?.gpa
-		? Number.parseFloat(userProfileData.gpa)
-		: undefined;
-	const testScores = userProfileData?.testScores || {};
-	// Helper to safely parse scores that might be strings in the map
-	const getScore = (key: string) => {
-		const val = testScores[key];
-		return val ? Number.parseFloat(val) : undefined;
-	};
-	const userIelts = getScore("IELTS");
-	const userToefl = getScore("TOEFL");
-	const userGre = getScore("GRE");
-	const userGmat = getScore("GMAT");
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
@@ -386,7 +608,7 @@ export function ProgramDetailDrawer({
 									)}
 								</section>
 
-								{/* Requirements Section */}
+								{/* Requirements Section - Using pre-computed gap data from API */}
 								<section>
 									<div className="flex items-center gap-2 mb-3">
 										<CheckCircle2 className="w-5 h-5 text-primary" />
@@ -395,36 +617,48 @@ export function ProgramDetailDrawer({
 										</h3>
 									</div>
 									<div className="space-y-2">
-										{/* GPA */}
-										<RequirementCheckItem
-											label="GPA"
-											required={req?.gpaMinimum}
-											userValue={userGpa}
+										{/* GPA - using gap data */}
+										<GpaGapItem
+											gap={program.gpaGap}
+											fallbackRequired={req?.gpaMinimum}
 										/>
-										{/* IELTS */}
-										<RequirementCheckItem
-											label="IELTS"
-											required={req?.ieltsMinimum}
-											userValue={userIelts}
+
+										{/* English - using gap data */}
+										<EnglishGapItem
+											gap={program.englishGap}
+											fallbackRequired={req?.ieltsMinimum}
 										/>
-										{/* TOEFL */}
-										<RequirementCheckItem
-											label="TOEFL"
-											required={req?.toeflMinimum}
-											userValue={userToefl}
+
+										{/* Budget - using gap data */}
+										<BudgetGapItem
+											gap={program.budgetGap}
+											tuitionAnnual={program.tuition?.annualUsd}
 										/>
-										{/* GRE */}
-										<RequirementCheckItem
-											label="GRE"
-											required={req?.greMinimum}
-											userValue={userGre}
-										/>
-										{/* GMAT */}
-										<RequirementCheckItem
-											label="GMAT"
-											required={req?.gmatMinimum}
-											userValue={userGmat}
-										/>
+
+										{/* TOEFL - show if required and no English gap (fallback) */}
+										{req?.toeflMinimum && !program.englishGap && (
+											<GapCheckItem
+												label="TOEFL"
+												requiredValue={`${req.toeflMinimum}+`}
+											/>
+										)}
+
+										{/* GRE - show if required */}
+										{req?.greMinimum && (
+											<GapCheckItem
+												label="GRE"
+												requiredValue={`${req.greMinimum}+`}
+											/>
+										)}
+
+										{/* GMAT - show if required */}
+										{req?.gmatMinimum && (
+											<GapCheckItem
+												label="GMAT"
+												requiredValue={`${req.gmatMinimum}+`}
+											/>
+										)}
+
 										{/* Additional Requirements */}
 										{req?.documents && req.documents.length > 0 && (
 											<div className="p-3 rounded-lg border border-border bg-muted/50">
@@ -438,6 +672,7 @@ export function ProgramDetailDrawer({
 												</ul>
 											</div>
 										)}
+
 										{/* Work Experience */}
 										{req?.workExperienceYears && (
 											<div className="flex items-center justify-between p-3 rounded-lg border border-primary/20 bg-primary/5">
