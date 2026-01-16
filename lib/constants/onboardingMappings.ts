@@ -45,27 +45,32 @@ export const FIELD_LABEL_TO_KEY: Record<string, string> = {
 /**
  * Maps region display labels to backend TargetRegion enum values
  *
- * Backend enum: east_asia, western_europe, northern_europe, north_america, oceania
- * Note: southeast_asia is intentionally excluded from the available options
+ * Backend enum: east_asia, southeast_asia, western_europe, central_europe, northern_europe, north_america, oceania
  */
 export const REGION_LABEL_TO_KEY: Record<string, string> = {
 	// Vietnamese labels
 	"Đông Á": "east_asia",
+	"Đông Nam Á": "southeast_asia",
 	"Tây Âu": "western_europe",
+	"Trung Âu": "central_europe",
 	"Bắc Âu": "northern_europe",
 	"Bắc Mỹ": "north_america",
 	"Châu Đại Dương": "oceania",
 
 	// English labels (for future i18n support)
 	"East Asia": "east_asia",
+	"Southeast Asia": "southeast_asia",
 	"Western Europe": "western_europe",
+	"Central Europe": "central_europe",
 	"Northern Europe": "northern_europe",
 	"North America": "north_america",
 	Oceania: "oceania",
 
 	// Also support direct enum keys (passthrough)
 	east_asia: "east_asia",
+	southeast_asia: "southeast_asia",
 	western_europe: "western_europe",
+	central_europe: "central_europe",
 	northern_europe: "northern_europe",
 	north_america: "north_america",
 	oceania: "oceania",
@@ -163,7 +168,9 @@ export const FIELD_KEY_TO_LABEL: Record<string, string> = {
 
 export const REGION_KEY_TO_LABEL: Record<string, string> = {
 	east_asia: "Đông Á",
+	southeast_asia: "Đông Nam Á",
 	western_europe: "Tây Âu",
+	central_europe: "Trung Âu",
 	northern_europe: "Bắc Âu",
 	north_america: "Bắc Mỹ",
 	oceania: "Châu Đại Dương",

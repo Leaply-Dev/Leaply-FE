@@ -135,10 +135,17 @@ export default function OnboardingPage() {
 			name: t("step2.regions.eastAsia"),
 			countries: t("step2.regions.eastAsiaCountries"),
 		},
-		// Note: Southeast Asia intentionally excluded - not supported by backend
+		{
+			name: t("step2.regions.southeastAsia"),
+			countries: t("step2.regions.southeastAsiaCountries"),
+		},
 		{
 			name: t("step2.regions.westernEurope"),
 			countries: t("step2.regions.westernEuropeCountries"),
+		},
+		{
+			name: t("step2.regions.centralEurope"),
+			countries: t("step2.regions.centralEuropeCountries"),
 		},
 		{
 			name: t("step2.regions.northernEurope"),
