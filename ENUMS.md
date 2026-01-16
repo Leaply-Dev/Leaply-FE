@@ -140,7 +140,57 @@ When adding a new enum value:
 1. **Backend first**: Add to the Java enum file
 2. **Admin**: Update any admin dropdowns that use the enum
 3. **Frontend**: Update `onboardingMappings.ts` (both label→key and key→label)
-4. **i18n**: Add translations to `Leaply-FE/messages/vi.json` and `en.json`
-5. **This doc**: Update this file
+4. **Display formatters**: Update `Leaply-FE/lib/utils/displayFormatters.ts` with the new value
+5. **i18n**: Add translations to `Leaply-FE/messages/vi.json` and `en.json`
+6. **This doc**: Update this file
 
 **Critical rule:** Always store **enum keys** in the database, never display labels.
+
+---
+
+## Frontend Display Formatters
+
+The frontend has a centralized utility for converting enum keys to human-readable display labels.
+
+**File:** `Leaply-FE/lib/utils/displayFormatters.ts`
+
+### Available Formatters
+
+| Function | Input Example | Output Example |
+|----------|--------------|----------------|
+| `formatDeliveryMode(mode)` | `"on_campus"` | `"On Campus"` |
+| `formatDegreeType(type)` | `"masters"` | `"Master's"` |
+| `formatLanguage(lang)` | `"english"` | `"English"` |
+| `formatCountryName(country)` | `"united_states"` | `"United States"` |
+| `formatRegion(region)` | `"north_america"` | `"North America"` |
+| `formatUniversityType(type)` | `"public"` | `"Public"` |
+| `formatFitCategory(category)` | `"safety"` | `"Safety"` |
+| `formatCurrency(value)` | `45000` | `"$45,000"` |
+| `formatTuitionPerYear(value)` | `45000` | `"$45k/yr"` |
+| `formatDuration(months)` | `24` | `"2 years"` |
+| `formatDate(dateStr)` | `"2026-01-15"` | `"Jan 15, 2026"` |
+| `formatIeltsRequirement(score)` | `7.0` | `"IELTS 7.0+"` |
+| `formatSnakeCase(value)` | `"any_value"` | `"Any Value"` |
+
+### Usage
+
+```typescript
+import { formatDeliveryMode, formatDuration } from "@/lib/utils/displayFormatters";
+
+// In JSX
+<p>{formatDeliveryMode(program.deliveryMode)}</p>  // "On Campus"
+<p>{formatDuration(program.durationMonths)}</p>     // "2 years"
+```
+
+### When to Use Formatters
+
+- **Always** use formatters when displaying enum values from the API
+- **Never** display raw enum keys like `on_campus`, `masters`, etc. to users
+- Formatters handle `null`/`undefined` values gracefully (return `"N/A"`)
+
+### Used In
+
+- `ProgramCard.tsx` - Program cards in Explore
+- `ProgramDetailDrawer.tsx` - Program detail view
+- `CompareDrawer.tsx` - Compare programs view
+- `ManualMode.tsx` - Table view in Explore
