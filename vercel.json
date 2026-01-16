@@ -3,6 +3,6 @@
 	"buildCommand": "bun run build",
 	"framework": "nextjs",
 	"cleanUrls": true,
-	"installCommand": "bun i --frozen-lockfile",
+	"installCommand": "bun i",
 	"outputDirectory": ".next"
 }
