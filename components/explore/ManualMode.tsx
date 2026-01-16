@@ -1,6 +1,12 @@
 "use client";
 
-import { ArrowRight, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import {
+	ArrowRight,
+	ChevronLeft,
+	ChevronRight,
+	Search,
+	Settings2,
+} from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -28,6 +34,8 @@ interface ManualModeProps {
 	onToggleSelection: (id: string) => void;
 	isMaxReached: boolean;
 	onAddToDashboard?: (id: string) => void;
+	isProgramInDashboard?: (id: string) => boolean;
+	onManageApplication?: (id: string) => void;
 }
 
 /**
@@ -40,6 +48,8 @@ function ProgramTableRow({
 	onClick,
 	onAddToDashboard,
 	isMaxReached,
+	isInDashboard,
+	onManage,
 }: {
 	program: ProgramListItemResponse;
 	selected: boolean;
@@ -47,6 +57,8 @@ function ProgramTableRow({
 	onClick: () => void;
 	onAddToDashboard: (id: string) => void;
 	isMaxReached: boolean;
+	isInDashboard?: boolean;
+	onManage?: (id: string) => void;
 }) {
 	const getDeadlineUrgency = (deadline?: string) => {
 		if (!deadline) return { color: "text-muted-foreground", label: "N/A" };
@@ -223,12 +235,25 @@ function ProgramTableRow({
 					size="sm"
 					onClick={(e) => {
 						e.stopPropagation();
-						program.id && onAddToDashboard(program.id);
+						if (isInDashboard && onManage) {
+							program.id && onManage(program.id);
+						} else {
+							program.id && onAddToDashboard(program.id);
+						}
 					}}
 					className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
 				>
-					Apply
-					<ArrowRight className="w-4 h-4" />
+					{isInDashboard ? (
+						<>
+							<Settings2 className="w-4 h-4" />
+							Manage
+						</>
+					) : (
+						<>
+							Apply
+							<ArrowRight className="w-4 h-4" />
+						</>
+					)}
 				</Button>
 			</td>
 		</tr>
@@ -244,6 +269,8 @@ export function ManualMode({
 	onToggleSelection,
 	isMaxReached,
 	onAddToDashboard,
+	isProgramInDashboard,
+	onManageApplication,
 }: ManualModeProps) {
 	// Detail drawer state
 	const [selectedProgram, setSelectedProgram] =
@@ -469,6 +496,10 @@ export function ManualMode({
 											program.id && onAddToDashboard?.(program.id);
 										}}
 										isMaxReached={isMaxReached}
+										isInDashboard={
+											program.id ? isProgramInDashboard?.(program.id) : false
+										}
+										onManage={onManageApplication}
 									/>
 								))}
 							</tbody>

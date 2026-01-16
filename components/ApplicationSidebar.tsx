@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertCircle, FileText, Plus, Search } from "lucide-react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +38,6 @@ export function ApplicationSidebar({
 	isLoading,
 }: ApplicationSidebarProps) {
 	const t = useTranslations("applications");
-	const router = useRouter();
 	const [searchQuery, setSearchQuery] = useState("");
 
 	// Filter applications based on search (handle undefined safely)
@@ -97,10 +96,6 @@ export function ApplicationSidebar({
 		return null;
 	};
 
-	const handleNewApplication = () => {
-		router.push("/explore");
-	};
-
 	return (
 		<div className="flex flex-col h-full bg-card border-r border-border">
 			{/* Header */}
@@ -127,9 +122,11 @@ export function ApplicationSidebar({
 				</div>
 
 				{/* New Application Button */}
-				<Button onClick={handleNewApplication} className="w-full" size="sm">
-					<Plus className="w-4 h-4 mr-2" />
-					{t("newApplication")}
+				<Button asChild className="w-full" size="sm">
+					<Link href="/explore">
+						<Plus className="w-4 h-4 mr-2" />
+						{t("newApplication")}
+					</Link>
 				</Button>
 			</div>
 
@@ -150,13 +147,11 @@ export function ApplicationSidebar({
 							{searchQuery ? t("noApplicationsFound") : t("noApplicationsYet")}
 						</p>
 						{!searchQuery && (
-							<Button
-								onClick={handleNewApplication}
-								variant="outline"
-								size="sm"
-							>
-								<Plus className="w-4 h-4 mr-2" />
-								{t("explorePrograms")}
+							<Button asChild variant="outline" size="sm">
+								<Link href="/explore">
+									<Plus className="w-4 h-4 mr-2" />
+									{t("explorePrograms")}
+								</Link>
 							</Button>
 						)}
 					</div>
@@ -166,7 +161,7 @@ export function ApplicationSidebar({
 							<button
 								type="button"
 								key={app.id}
-								onClick={() => onSelectApplication(app.id ?? "")}
+								onClick={() => app.id && onSelectApplication(app.id)}
 								className={cn(
 									"w-full px-4 py-4 text-left hover:bg-muted/50 transition-colors border-b border-border",
 									selectedId === app.id &&

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { FieldGroup } from "@/components/ui/field";
 import type { StepContainerProps } from "../types";
 
@@ -12,7 +12,7 @@ export function StepContainer({
 	variant = "card",
 }: StepContainerProps) {
 	return (
-		<motion.div
+		<m.div
 			key={stepKey}
 			initial={{ opacity: 0, x: 20 }}
 			animate={{ opacity: 1, x: 0 }}
@@ -31,6 +31,6 @@ export function StepContainer({
 			) : (
 				children
 			)}
-		</motion.div>
+		</m.div>
 	);
 }

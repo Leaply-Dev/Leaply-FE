@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { Brain, PartyPopper, Sparkles, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ConversationMessage } from "@/lib/store/personaStore";
@@ -32,7 +32,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
 	// Completion message with celebration styling
 	if (isCompletion) {
 		return (
-			<motion.div
+			<m.div
 				initial={{ opacity: 0, scale: 0.95 }}
 				animate={{ opacity: 1, scale: 1 }}
 				transition={{ duration: 0.3 }}
@@ -51,13 +51,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
 						<MessageContent content={message.content} />
 					</div>
 				</div>
-			</motion.div>
+			</m.div>
 		);
 	}
 
 	// Regular message bubble (text or question)
 	return (
-		<motion.div
+		<m.div
 			initial={{ opacity: 0, y: 10 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.2 }}
@@ -93,7 +93,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
 					</span>
 				)}
 			</div>
-		</motion.div>
+		</m.div>
 	);
 }
 
@@ -170,7 +170,7 @@ export function TypingIndicator({ startTime }: TypingIndicatorProps) {
 	}, [startTime]);
 
 	return (
-		<motion.div
+		<m.div
 			initial={{ opacity: 0, y: 10 }}
 			animate={{ opacity: 1, y: 0 }}
 			className="flex gap-2"
@@ -179,7 +179,7 @@ export function TypingIndicator({ startTime }: TypingIndicatorProps) {
 			<div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center relative">
 				<Brain className="w-3 h-3" />
 				{/* Pulsing ring effect */}
-				<motion.div
+				<m.div
 					className="absolute inset-0 rounded-full border-2 border-primary"
 					initial={{ scale: 1, opacity: 0.5 }}
 					animate={{ scale: 1.5, opacity: 0 }}
@@ -195,7 +195,7 @@ export function TypingIndicator({ startTime }: TypingIndicatorProps) {
 			<div className="bg-muted/50 border border-border px-3 py-2 rounded-xl rounded-tl-none flex flex-col gap-1 min-w-36">
 				<div className="flex items-center gap-2">
 					{/* Animated sparkle */}
-					<motion.div
+					<m.div
 						animate={{ rotate: 360 }}
 						transition={{
 							duration: 2,
@@ -204,11 +204,11 @@ export function TypingIndicator({ startTime }: TypingIndicatorProps) {
 						}}
 					>
 						<Sparkles className="w-3 h-3 text-primary/60" />
-					</motion.div>
+					</m.div>
 
 					{/* Action text with fade transition */}
 					<AnimatePresence mode="wait">
-						<motion.span
+						<m.span
 							key={actionIndex}
 							initial={{ opacity: 0, y: 5 }}
 							animate={{ opacity: 1, y: 0 }}
@@ -217,7 +217,7 @@ export function TypingIndicator({ startTime }: TypingIndicatorProps) {
 							className="text-xs text-muted-foreground"
 						>
 							{AGENTIC_ACTIONS[actionIndex]}
-						</motion.span>
+						</m.span>
 					</AnimatePresence>
 				</div>
 
@@ -228,6 +228,6 @@ export function TypingIndicator({ startTime }: TypingIndicatorProps) {
 					</span>
 				)}
 			</div>
-		</motion.div>
+		</m.div>
 	);
 }

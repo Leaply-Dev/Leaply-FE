@@ -7,6 +7,7 @@ import {
 	Check,
 	MapPin,
 	Plus,
+	Settings2,
 } from "lucide-react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,8 @@ interface ProgramCardProps {
 	onToggleSelection?: (id: string) => void;
 	isMaxReached?: boolean;
 	onAddToDashboard?: (id: string) => void;
+	isInDashboard?: boolean;
+	onManage?: (id: string) => void;
 }
 
 function formatCountryName(country?: string): string {
@@ -42,11 +45,21 @@ export function ProgramCard({
 	onToggleSelection,
 	isMaxReached,
 	onAddToDashboard,
+	isInDashboard,
+	onManage,
 }: ProgramCardProps) {
 	return (
-		<button
-			type="button"
-			className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:border-primary/30 cursor-pointer w-full text-left"
+		// biome-ignore lint/a11y/useSemanticElements: Cannot use <button> because it contains nested buttons
+		<div
+			role="button"
+			tabIndex={0}
+			onKeyDown={(e) => {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					onClick?.(program);
+				}
+			}}
+			className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:border-primary/30 cursor-pointer w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 			onClick={() => onClick?.(program)}
 		>
 			{/* Header */}
@@ -157,13 +170,26 @@ export function ProgramCard({
 					className="flex-1 font-medium gap-2 bg-primary hover:bg-primary/90 text-sm"
 					onClick={(e) => {
 						e.stopPropagation();
-						program.id && onAddToDashboard?.(program.id);
+						if (isInDashboard && onManage) {
+							program.id && onManage(program.id);
+						} else {
+							program.id && onAddToDashboard?.(program.id);
+						}
 					}}
 				>
-					Apply
-					<ArrowRight className="w-4 h-4" />
+					{isInDashboard ? (
+						<>
+							<Settings2 className="w-4 h-4" />
+							Manage
+						</>
+					) : (
+						<>
+							Apply
+							<ArrowRight className="w-4 h-4" />
+						</>
+					)}
 				</Button>
 			</div>
-		</button>
+		</div>
 	);
 }

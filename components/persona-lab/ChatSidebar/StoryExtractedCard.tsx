@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { BookOpen, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { PersonaNodeDto } from "@/lib/generated/api/models";
@@ -27,7 +27,7 @@ export function StoryExtractedCard({
 	}
 
 	return (
-		<motion.div
+		<m.div
 			initial={{ opacity: 0, scale: 0.95 }}
 			animate={{ opacity: 1, scale: 1 }}
 			transition={{ duration: 0.3 }}
@@ -68,6 +68,6 @@ export function StoryExtractedCard({
 			{starGaps.length > 0 && (
 				<StarGapsIndicator gaps={starGaps} variant="compact" />
 			)}
-		</motion.div>
+		</m.div>
 	);
 }

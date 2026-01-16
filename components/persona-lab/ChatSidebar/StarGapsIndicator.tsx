@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { CheckCircle2, Circle, Lightbulb } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { StarStructureKey } from "@/lib/store/personaStore";
@@ -46,7 +46,7 @@ export function StarGapsIndicator({
 	// No gaps = story is complete
 	if (gaps.length === 0) {
 		return (
-			<motion.div
+			<m.div
 				initial={{ opacity: 0, y: 5 }}
 				animate={{ opacity: 1, y: 0 }}
 				className={cn(
@@ -56,7 +56,7 @@ export function StarGapsIndicator({
 			>
 				<CheckCircle2 className="w-3.5 h-3.5" />
 				<span>{t("complete")}</span>
-			</motion.div>
+			</m.div>
 		);
 	}
 
@@ -69,7 +69,7 @@ export function StarGapsIndicator({
 		const hasMore = gaps.length > 2;
 
 		return (
-			<motion.div
+			<m.div
 				initial={{ opacity: 0, y: 5 }}
 				animate={{ opacity: 1, y: 0 }}
 				className={cn(
@@ -83,13 +83,13 @@ export function StarGapsIndicator({
 						elements: hasMore ? `${missingLabels}...` : missingLabels,
 					})}
 				</span>
-			</motion.div>
+			</m.div>
 		);
 	}
 
 	// Detailed variant - show all STAR elements with their status
 	return (
-		<motion.div
+		<m.div
 			initial={{ opacity: 0, y: 5 }}
 			animate={{ opacity: 1, y: 0 }}
 			className={cn(
@@ -167,6 +167,6 @@ export function StarGapsIndicator({
 					</p>
 				</div>
 			)}
-		</motion.div>
+		</m.div>
 	);
 }

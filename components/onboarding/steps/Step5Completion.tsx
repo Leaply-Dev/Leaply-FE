@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ArrowRight, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { JourneyType } from "@/lib/store/userStore";
@@ -18,7 +18,7 @@ export function Step5Completion({
 	onComplete,
 }: Step5CompletionProps) {
 	return (
-		<motion.div
+		<m.div
 			key="step4"
 			initial={{ opacity: 0, scale: 0.95 }}
 			animate={{ opacity: 1, scale: 1 }}
@@ -50,6 +50,6 @@ export function Step5Completion({
 					<ArrowRight className="ml-2 w-5 h-5" />
 				</Button>
 			</div>
-		</motion.div>
+		</m.div>
 	);
 }

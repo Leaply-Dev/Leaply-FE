@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Sparkles, Table } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,8 +14,14 @@ import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCreateApplication } from "@/lib/generated/api/endpoints/applications/applications";
+import {
+	getGetApplicationsQueryKey,
+	useCreateApplication,
+	useGetApplications,
+} from "@/lib/generated/api/endpoints/applications/applications";
+import { getGetHomeDataQueryKey } from "@/lib/generated/api/endpoints/home/home";
 import type { ProgramListItemResponse } from "@/lib/generated/api/models";
+import { useApplicationStore } from "@/lib/store/applicationStore";
 
 /**
  * Loading skeleton component for program cards
@@ -67,7 +74,16 @@ export function ExploreClient() {
 
 	const saveMutation = useSaveProgram();
 	const router = useRouter();
+	const queryClient = useQueryClient();
 	const { mutate: createApplication } = useCreateApplication();
+	const { data: applicationsResponse } = useGetApplications();
+	const { setSelectedApplicationId } = useApplicationStore();
+
+	// Get applications to check if program is already in dashboard
+	const applications = applicationsResponse?.data?.data?.applications ?? [];
+	const applicationsByProgramId = new Map(
+		applications.map((app) => [app.program?.id, app.id]),
+	);
 
 	// Extract data from responses (unwrap ApiResponse)
 	const programs = programsResponse?.data?.data?.data ?? [];
@@ -88,7 +104,17 @@ export function ExploreClient() {
 				},
 			},
 			{
-				onSuccess: () => {
+				onSuccess: async () => {
+					// Invalidate queries to ensure dashboard and applications list are fresh
+					await Promise.all([
+						queryClient.invalidateQueries({
+							queryKey: getGetHomeDataQueryKey(),
+						}),
+						queryClient.invalidateQueries({
+							queryKey: getGetApplicationsQueryKey(),
+						}),
+					]);
+
 					toast.success("Application created", {
 						description: "The program has been added to your dashboard.",
 					});
@@ -101,6 +127,18 @@ export function ExploreClient() {
 				},
 			},
 		);
+	};
+
+	const handleManageApplication = (programId: string) => {
+		const applicationId = applicationsByProgramId.get(programId);
+		if (applicationId) {
+			setSelectedApplicationId(applicationId);
+			router.push("/dashboard/applications");
+		}
+	};
+
+	const isProgramInDashboard = (programId: string) => {
+		return applicationsByProgramId.has(programId);
 	};
 
 	// Compare state
@@ -323,6 +361,8 @@ export function ExploreClient() {
 									onToggleSelection={toggleProgramSelection}
 									isMaxReached={isMaxReached}
 									onAddToDashboard={handleAddToDashboard}
+									isProgramInDashboard={isProgramInDashboard}
+									onManageApplication={handleManageApplication}
 								/>
 							</>
 						)}
@@ -337,6 +377,8 @@ export function ExploreClient() {
 						onToggleSelection={toggleProgramSelection}
 						isMaxReached={isMaxReached}
 						onAddToDashboard={handleAddToDashboard}
+						isProgramInDashboard={isProgramInDashboard}
+						onManageApplication={handleManageApplication}
 					/>
 				)}
 			</div>

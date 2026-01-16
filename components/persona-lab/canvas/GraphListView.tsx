@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import {
 	BookOpen,
 	ChevronDown,
@@ -226,7 +226,7 @@ export function GraphListView({ className }: GraphListViewProps) {
 							{/* Layer nodes */}
 							<AnimatePresence>
 								{isExpanded && (
-									<motion.div
+									<m.div
 										initial={{ height: 0, opacity: 0 }}
 										animate={{ height: "auto", opacity: 1 }}
 										exit={{ height: 0, opacity: 0 }}
@@ -258,7 +258,7 @@ export function GraphListView({ className }: GraphListViewProps) {
 												))}
 											</div>
 										)}
-									</motion.div>
+									</m.div>
 								)}
 							</AnimatePresence>
 						</div>
@@ -284,7 +284,7 @@ function NodeListItem({
 	onClick,
 }: NodeListItemProps) {
 	return (
-		<motion.button
+		<m.button
 			className={cn(
 				"w-full text-left p-3 rounded-lg border transition-all",
 				"hover:shadow-sm",
@@ -362,6 +362,6 @@ function NodeListItem({
 					{node.wordCountPotential}
 				</div>
 			)}
-		</motion.button>
+		</m.button>
 	);
 }

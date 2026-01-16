@@ -23,6 +23,8 @@ export function CategoryContainer({
 	onToggleSelection,
 	isMaxReached,
 	onAddToDashboard,
+	isProgramInDashboard,
+	onManageApplication,
 }: {
 	title: string;
 	description: string;
@@ -36,6 +38,8 @@ export function CategoryContainer({
 	onToggleSelection?: (id: string) => void;
 	isMaxReached?: boolean;
 	onAddToDashboard?: (id: string) => void;
+	isProgramInDashboard?: (id: string) => boolean;
+	onManageApplication?: (id: string) => void;
 }) {
 	const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 	const [showAll, setShowAll] = useState(false);
@@ -159,6 +163,10 @@ export function CategoryContainer({
 										onToggleSelection={onToggleSelection}
 										isMaxReached={isMaxReached}
 										onAddToDashboard={onAddToDashboard}
+										isInDashboard={
+											program.id ? isProgramInDashboard?.(program.id) : false
+										}
+										onManage={onManageApplication}
 									/>
 								))}
 							</div>
@@ -292,6 +300,8 @@ export function TabBasedCategories({
 	onToggleSelection,
 	isMaxReached,
 	onAddToDashboard,
+	isProgramInDashboard,
+	onManageApplication,
 }: {
 	programs: ProgramListItemResponse[];
 	userProfile?: UserContextResponse | null;
@@ -301,6 +311,8 @@ export function TabBasedCategories({
 	onToggleSelection?: (id: string) => void;
 	isMaxReached?: boolean;
 	onAddToDashboard?: (id: string) => void;
+	isProgramInDashboard?: (id: string) => boolean;
+	onManageApplication?: (id: string) => void;
 }) {
 	const reach = programs.filter((p) => p.fitCategory === "reach");
 	const target = programs.filter((p) => p.fitCategory === "target");
@@ -412,6 +424,10 @@ export function TabBasedCategories({
 										onToggleSelection={onToggleSelection}
 										isMaxReached={isMaxReached}
 										onAddToDashboard={onAddToDashboard}
+										isInDashboard={
+											program.id ? isProgramInDashboard?.(program.id) : false
+										}
+										onManage={onManageApplication}
 									/>
 								))}
 							</div>

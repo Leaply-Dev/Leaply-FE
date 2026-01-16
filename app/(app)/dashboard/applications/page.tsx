@@ -1,44 +1,82 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { toast } from "sonner";
 import { ApplicationDashboard } from "@/components/ApplicationDashboard";
 import { ApplicationSidebar } from "@/components/ApplicationSidebar";
 import { PageTransition } from "@/components/PageTransition";
-import { useApplicationsStore } from "@/lib/store/applicationsStore";
+import {
+	getGetApplicationsQueryKey,
+	useDeleteApplication,
+	useGetApplications,
+	useUpdateApplication,
+} from "@/lib/generated/api/endpoints/applications/applications";
+import { useApplicationStore } from "@/lib/store/applicationStore";
 
 export default function ApplicationsPage() {
-	const t = useTranslations("applications");
+	const queryClient = useQueryClient();
+	const { selectedApplicationId, setSelectedApplicationId } =
+		useApplicationStore();
+
 	const {
-		applications,
+		data: applicationsResponse,
 		isLoading,
-		error,
-		selectedApplicationId,
-		fetchApplications,
-		setSelectedApplication,
-		updateApplicationStatus,
-		removeApplication,
-		getSelectedApplication,
-	} = useApplicationsStore();
+		error: apiError,
+	} = useGetApplications();
 
+	const { mutateAsync: updateStatus } = useUpdateApplication();
+	const { mutateAsync: deleteApp } = useDeleteApplication();
+
+	const applications = applicationsResponse?.data?.data?.applications ?? [];
+
+	// Auto-select first application if none selected
 	useEffect(() => {
-		fetchApplications();
-	}, [fetchApplications]);
+		if (
+			applications.length > 0 &&
+			(!selectedApplicationId ||
+				!applications.find((app) => app.id === selectedApplicationId))
+		) {
+			setSelectedApplicationId(applications[0].id ?? null);
+		}
+	}, [applications, selectedApplicationId, setSelectedApplicationId]);
 
-	const selectedApplication = getSelectedApplication();
+	const selectedApplication =
+		applications.find((app) => app.id === selectedApplicationId) ?? null;
 
 	const handleUpdateStatus = async (status: string) => {
-		if (selectedApplicationId) {
-			return await updateApplicationStatus(selectedApplicationId, {
-				status: status as "planning" | "writing" | "submitted",
-			});
+		if (selectedApplication) {
+			try {
+				await updateStatus({
+					id: selectedApplication.id!,
+					data: {
+						status: status as "planning" | "writing" | "submitted",
+					},
+				});
+				await queryClient.invalidateQueries({
+					queryKey: getGetApplicationsQueryKey(),
+				});
+				return true;
+			} catch (error) {
+				toast.error("Failed to update status");
+				return false;
+			}
 		}
 		return false;
 	};
 
 	const handleDelete = async () => {
-		if (selectedApplicationId) {
-			return await removeApplication(selectedApplicationId);
+		if (selectedApplication) {
+			try {
+				await deleteApp({ id: selectedApplication.id! });
+				await queryClient.invalidateQueries({
+					queryKey: getGetApplicationsQueryKey(),
+				});
+				return true;
+			} catch (error) {
+				toast.error("Failed to delete application");
+				return false;
+			}
 		}
 		return false;
 	};
@@ -51,54 +89,19 @@ export default function ApplicationsPage() {
 					<ApplicationSidebar
 						applications={applications}
 						selectedId={selectedApplicationId}
-						onSelectApplication={setSelectedApplication}
+						onSelectApplication={setSelectedApplicationId}
 						isLoading={isLoading}
 					/>
 				</div>
 
 				{/* Mobile Sidebar - Toggle view */}
 				<div className="lg:hidden w-full min-h-screen">
-					{!selectedApplicationId ? (
-						<ApplicationSidebar
-							applications={applications}
-							selectedId={selectedApplicationId}
-							onSelectApplication={setSelectedApplication}
-							isLoading={isLoading}
-						/>
-					) : (
-						<div className="flex flex-col">
-							{/* Mobile back button */}
-							<div className="p-4 border-b border-border bg-card lg:hidden sticky top-0 z-10">
-								<button
-									type="button"
-									onClick={() => setSelectedApplication(null)}
-									className="flex items-center gap-2 text-sm text-primary hover:text-foreground transition-colors"
-								>
-									<svg
-										className="w-4 h-4"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-										role="img"
-										aria-label="Back to Applications"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2}
-											d="M15 19l-7-7 7-7"
-										/>
-									</svg>
-									{t("backToApplications")}
-								</button>
-							</div>
-							<ApplicationDashboard
-								application={selectedApplication}
-								onUpdateStatus={handleUpdateStatus}
-								onDelete={handleDelete}
-							/>
-						</div>
-					)}
+					<ApplicationSidebar
+						applications={applications}
+						selectedId={selectedApplicationId}
+						onSelectApplication={setSelectedApplicationId}
+						isLoading={isLoading}
+					/>
 				</div>
 
 				{/* Main Dashboard - Desktop only */}
@@ -112,9 +115,9 @@ export default function ApplicationsPage() {
 			</div>
 
 			{/* Error Toast */}
-			{error && (
+			{apiError && (
 				<div className="fixed bottom-4 right-4 bg-destructive text-destructive-foreground px-4 py-2 rounded-lg shadow-lg">
-					{error}
+					{(apiError as Error).message}
 				</div>
 			)}
 		</PageTransition>

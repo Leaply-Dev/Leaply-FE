@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ChevronLeft, LayoutGrid, List, MessageSquare } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
@@ -96,7 +96,7 @@ export default function PersonaLabPage() {
 			<PersonaStateSync />
 			<div className="flex flex-1 min-h-0 h-full w-full bg-background overflow-hidden relative">
 				{/* Left Sidebar - Chat Interface */}
-				<motion.aside
+				<m.aside
 					initial={false}
 					animate={{
 						width: isSidebarCollapsed ? 0 : 320,
@@ -111,10 +111,10 @@ export default function PersonaLabPage() {
 					<div className="w-[320px] h-full flex flex-col">
 						<ChatSidebar />
 					</div>
-				</motion.aside>
+				</m.aside>
 
 				{/* Sidebar Toggle Button */}
-				<motion.div
+				<m.div
 					initial={false}
 					animate={{
 						left: isSidebarCollapsed ? 16 : 304,
@@ -141,7 +141,7 @@ export default function PersonaLabPage() {
 							<ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
 						)}
 					</Button>
-				</motion.div>
+				</m.div>
 
 				{/* Main Content Area */}
 				<main className="flex-1 min-w-0 flex flex-col min-h-0">

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Check, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
@@ -62,7 +62,7 @@ function CoverageRing({ value, color, label, size = 40 }: CoverageRingProps) {
 						className="text-muted"
 					/>
 					{/* Progress circle */}
-					<motion.circle
+					<m.circle
 						cx={size / 2}
 						cy={size / 2}
 						r={radius}
@@ -82,7 +82,7 @@ function CoverageRing({ value, color, label, size = 40 }: CoverageRingProps) {
 				{/* Center content: percentage or checkmark */}
 				<div className="absolute inset-0 flex items-center justify-center">
 					{isComplete ? (
-						<motion.div
+						<m.div
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ duration: 0.3, delay: 0.3 }}
@@ -90,7 +90,7 @@ function CoverageRing({ value, color, label, size = 40 }: CoverageRingProps) {
 							style={{ backgroundColor: color }}
 						>
 							<Check className="w-3 h-3 text-white" />
-						</motion.div>
+						</m.div>
 					) : (
 						<span className="text-[9px] font-semibold" style={{ color }}>
 							{value}%
