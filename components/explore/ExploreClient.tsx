@@ -1,7 +1,10 @@
 "use client";
 
-import { Sparkles, Table } from "lucide-react";
+import { AlertTriangle, Sparkles, Table } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { TabBasedCategories } from "@/components/explore/AIMatchMode";
 import { CompareDialog } from "@/components/explore/CompareDrawer";
 import { CompareTray } from "@/components/explore/CompareTray";
@@ -9,6 +12,7 @@ import { ManualMode } from "@/components/explore/ManualMode";
 import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
+import { useCreateApplication } from "@/lib/generated/api/endpoints/applications/applications";
 import type {
 	ApiResponseAiMatchResponse,
 	ApiResponseProgramListResponse,
@@ -19,9 +23,6 @@ import { useAiMatch } from "@/lib/hooks/useAiMatch";
 import { usePrograms, useSaveProgram } from "@/lib/hooks/usePrograms";
 import { useUserMe } from "@/lib/hooks/useUserMe";
 import { cn } from "@/lib/utils";
-import { useCreateApplication } from "@/lib/generated/api/endpoints/applications/applications";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 
 interface ExploreClientProps {
 	initialPrograms?: ApiResponseProgramListResponse;
@@ -155,14 +156,13 @@ export function ExploreClient({
 			);
 			if (inPrograms) return inPrograms;
 
-			// If not found, search in AI Match data
+			// If not found, search in AI Match data (no unknown category)
 			if (aiMatchData?.data) {
-				const { reach, target, safety, unknown } = aiMatchData.data;
+				const { reach, target, safety } = aiMatchData.data;
 				const inAi = [
 					...(reach || []),
 					...(target || []),
 					...(safety || []),
-					...(unknown || []),
 				].find((p) => p.id === id);
 				if (inAi) return inAi;
 			}
@@ -170,13 +170,12 @@ export function ExploreClient({
 		})
 		.filter((p): p is ProgramListItemResponse => !!p);
 
-	// Compute swimlane programs from AI Match or programs
+	// Compute swimlane programs from AI Match or programs (no unknown category)
 	const swimLanePrograms: ProgramListItemResponse[] = aiMatchData?.data
 		? [
 				...(aiMatchData.data.reach || []),
 				...(aiMatchData.data.target || []),
 				...(aiMatchData.data.safety || []),
-				...(aiMatchData.data.unknown || []),
 			]
 		: programs;
 
@@ -304,6 +303,35 @@ export function ExploreClient({
 										</div>
 									</div>
 								)}
+
+								{/* Incomplete Profile Warning Banner */}
+								{aiMatchData?.data?.criticalMissingFields &&
+									aiMatchData.data.criticalMissingFields.length > 0 && (
+										<div className="mb-6 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+											<div className="flex items-start gap-3">
+												<AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
+												<div className="flex-1">
+													<h3 className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+														Hồ sơ chưa đầy đủ
+													</h3>
+													<p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+														Thêm điểm IELTS/TOEFL và ngân sách để nhận gợi ý
+														chính xác hơn.
+													</p>
+													<Button
+														asChild
+														variant="outline"
+														size="sm"
+														className="mt-3 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/30"
+													>
+														<Link href="/profile?focus=preferences">
+															Cập nhật hồ sơ
+														</Link>
+													</Button>
+												</div>
+											</div>
+										</div>
+									)}
 
 								{/* Tab-Based Categories Layout */}
 								<TabBasedCategories

@@ -1,14 +1,6 @@
-import {
-	ChevronDown,
-	HelpCircle,
-	ShieldCheck,
-	Sparkles,
-	Target,
-} from "lucide-react";
-import Link from "next/link";
+import { ChevronDown, ShieldCheck, Sparkles, Target } from "lucide-react";
 import { useState } from "react";
 import { ProgramCard } from "@/components/explore/ProgramCard";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
 	ProgramListItemResponse,
@@ -35,7 +27,7 @@ export function CategoryContainer({
 	title: string;
 	description: string;
 	programs: ProgramListItemResponse[];
-	variant: "reach" | "target" | "safety" | "unknown";
+	variant: "reach" | "target" | "safety";
 	userProfile?: UserContextResponse | null;
 	onSaveToggle?: (id: string) => void;
 	onProgramClick?: (program: ProgramListItemResponse) => void;
@@ -78,16 +70,6 @@ export function CategoryContainer({
 			badgeText: "text-white",
 			icon: <ShieldCheck className="w-5 h-5" />,
 			badge: "Safe",
-		},
-		unknown: {
-			border: "border-l-4 border-l-amber-500",
-			bg: "bg-amber-50 dark:bg-amber-950/20",
-			headerBg: "bg-amber-100 dark:bg-amber-950/40",
-			text: "text-amber-700 dark:text-amber-300",
-			badgeBg: "bg-amber-500",
-			badgeText: "text-white",
-			icon: <HelpCircle className="w-5 h-5" />,
-			badge: "Thiếu dữ liệu",
 		},
 	};
 
@@ -299,6 +281,7 @@ export function SwimLanes({
 
 /**
  * Tab-based Layout - AI Match Mode with Easy Navigation
+ * Only 3 categories: Target, Reach, Safety (no Unknown)
  */
 export function TabBasedCategories({
 	programs,
@@ -322,12 +305,6 @@ export function TabBasedCategories({
 	const reach = programs.filter((p) => p.fitCategory === "reach");
 	const target = programs.filter((p) => p.fitCategory === "target");
 	const safety = programs.filter((p) => p.fitCategory === "safety");
-	const unknown = programs.filter(
-		(p) => p.fitCategory === "unknown" || !p.fitCategory,
-	);
-
-	// Only include unknown tab if there are programs in it
-	const hasUnknown = unknown.length > 0;
 
 	const categories = [
 		{
@@ -371,25 +348,6 @@ export function TabBasedCategories({
 				"data-[state=active]:bg-gray-500 data-[state=active]:text-white",
 			tabHoverColor: "hover:bg-gray-50 dark:hover:bg-gray-900/30",
 		},
-		// Only add unknown category if there are programs
-		...(hasUnknown
-			? [
-					{
-						id: "unknown",
-						title: "Chưa đủ dữ liệu",
-						description:
-							"Thêm điểm IELTS/TOEFL vào hồ sơ để xem đánh giá chi tiết cho các chương trình này.",
-						programs: unknown,
-						icon: <HelpCircle className="w-4 h-4" />,
-						badge: "Cần cập nhật",
-						color: "text-amber-700 dark:text-amber-300",
-						bgColor: "bg-amber-50 dark:bg-amber-950/20",
-						tabActiveColor:
-							"data-[state=active]:bg-amber-500 data-[state=active]:text-white",
-						tabHoverColor: "hover:bg-amber-50 dark:hover:bg-amber-950/30",
-					},
-				]
-			: []),
 	];
 
 	const defaultTab =
@@ -397,12 +355,8 @@ export function TabBasedCategories({
 
 	return (
 		<Tabs defaultValue={defaultTab} className="w-full">
-			{/* Tab Navigation */}
-			<TabsList
-				className={`grid w-full h-auto p-1 bg-muted rounded-lg mb-4 ${
-					hasUnknown ? "grid-cols-4" : "grid-cols-3"
-				}`}
-			>
+			{/* Tab Navigation - Always 3 columns */}
+			<TabsList className="grid w-full h-auto p-1 bg-muted rounded-lg mb-4 grid-cols-3">
 				{categories.map((category) => (
 					<TabsTrigger
 						key={category.id}
@@ -442,17 +396,6 @@ export function TabBasedCategories({
 							<p className="text-sm text-muted-foreground">
 								{category.description}
 							</p>
-							{/* CTA for unknown category */}
-							{category.id === "unknown" && (
-								<div className="mt-3">
-									<Button asChild size="sm" variant="outline" className="gap-2">
-										<Link href="/profile?focus=english">
-											<Sparkles className="w-4 h-4" />
-											Cập nhật điểm IELTS/TOEFL
-										</Link>
-									</Button>
-								</div>
-							)}
 						</div>
 
 						{/* Programs Grid */}

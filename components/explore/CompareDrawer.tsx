@@ -2,8 +2,10 @@
 
 import {
 	AlertTriangle,
+	BookOpen,
 	Calendar,
 	CheckCircle2,
+	Clock,
 	DollarSign,
 	GraduationCap,
 	HelpCircle,
@@ -14,8 +16,6 @@ import {
 	ThumbsUp,
 	TrendingUp,
 	Trophy,
-	BookOpen,
-	Clock,
 } from "lucide-react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
