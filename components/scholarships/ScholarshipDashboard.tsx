@@ -1,14 +1,19 @@
 "use client";
 
-import { Award, FileText, Loader2 } from "lucide-react";
+import { Award, ExternalLink, FileText, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { ScholarshipDetailDrawer } from "@/components/explore/scholarship/ScholarshipDetailDrawer";
 import { DocumentsTab } from "@/components/scholarships/tabs/DocumentsTab";
 import { EssayTab } from "@/components/scholarships/tabs/EssayTab";
 import { OverviewTab } from "@/components/scholarships/tabs/OverviewTab";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	useGetApplication,
 	useGetDocuments,
+	useUpdateApplication,
 } from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
 import type { ScholarshipApplicationResponse } from "@/lib/generated/api/models";
 import { useScholarshipApplicationStore } from "@/lib/store/scholarshipApplicationStore";
@@ -21,14 +26,18 @@ export function ScholarshipDashboard({
 	applicationId,
 }: ScholarshipDashboardProps) {
 	const { activeTab, setActiveTab } = useScholarshipApplicationStore();
+	const [isScholarshipDrawerOpen, setIsScholarshipDrawerOpen] = useState(false);
 
 	// Fetch application details
-	const { data: applicationResponse, isLoading: isLoadingApplication } =
-		useGetApplication(applicationId ?? "", {
-			query: {
-				enabled: !!applicationId,
-			},
-		});
+	const {
+		data: applicationResponse,
+		isLoading: isLoadingApplication,
+		refetch: refetchApplication,
+	} = useGetApplication(applicationId ?? "", {
+		query: {
+			enabled: !!applicationId,
+		},
+	});
 
 	// Fetch documents
 	const { data: documentsResponse, isLoading: isLoadingDocuments } =
@@ -38,6 +47,9 @@ export function ScholarshipDashboard({
 			},
 		});
 
+	// Update mutation
+	const { mutateAsync: updateApplication } = useUpdateApplication();
+
 	const application =
 		unwrapResponse<ScholarshipApplicationResponse>(applicationResponse);
 	const documents = unwrapResponse<{ documents?: unknown[] }>(
@@ -46,6 +58,22 @@ export function ScholarshipDashboard({
 	const documentsList = Array.isArray(documents)
 		? documents
 		: (documents?.documents ?? []);
+
+	// Handle status update
+	const handleUpdateStatus = async (status: string): Promise<boolean> => {
+		if (!applicationId) return false;
+		try {
+			await updateApplication({
+				applicationId,
+				data: { status: status as "planning" | "writing" | "submitted" },
+			});
+			await refetchApplication();
+			return true;
+		} catch {
+			toast.error("Cập nhật trạng thái thất bại");
+			return false;
+		}
+	};
 
 	// Empty state
 	if (!applicationId) {
@@ -91,17 +119,29 @@ export function ScholarshipDashboard({
 	}
 
 	return (
-		<div className="flex-1 overflow-y-auto bg-muted/30">
-			<div className="max-w-4xl mx-auto p-6">
-				{/* Header */}
-				<div className="mb-6">
-					<h1 className="text-2xl font-bold text-foreground mb-1">
-						{application.scholarship?.name}
-					</h1>
-					<p className="text-muted-foreground">
-						{application.scholarship?.sourceName}
-					</p>
-				</div>
+		<>
+			<div className="flex-1 overflow-y-auto bg-muted/30">
+				<div className="max-w-4xl mx-auto p-6">
+					{/* Header */}
+					<div className="flex items-start justify-between mb-6">
+						<div className="min-w-0 flex-1">
+							<h1 className="text-2xl font-bold text-foreground mb-1 truncate">
+								{application.scholarship?.name}
+							</h1>
+							<p className="text-muted-foreground truncate">
+								{application.scholarship?.sourceName}
+							</p>
+						</div>
+						<Button
+							variant="outline"
+							size="sm"
+							className="shrink-0 ml-4"
+							onClick={() => setIsScholarshipDrawerOpen(true)}
+						>
+							<ExternalLink className="w-4 h-4 mr-2" aria-hidden="true" />
+							Xem chi tiết
+						</Button>
+					</div>
 
 				{/* Tabs */}
 				<Tabs
@@ -131,7 +171,10 @@ export function ScholarshipDashboard({
 					</TabsList>
 
 					<TabsContent value="overview" className="mt-0">
-						<OverviewTab application={application} />
+						<OverviewTab
+							application={application}
+							onUpdateStatus={handleUpdateStatus}
+						/>
 					</TabsContent>
 
 					<TabsContent value="documents" className="mt-0">
@@ -162,5 +205,13 @@ export function ScholarshipDashboard({
 				</Tabs>
 			</div>
 		</div>
+
+		{/* Scholarship Detail Drawer */}
+		<ScholarshipDetailDrawer
+			scholarshipId={application.scholarship?.id ?? null}
+			open={isScholarshipDrawerOpen}
+			onOpenChange={setIsScholarshipDrawerOpen}
+		/>
+	</>
 	);
 }

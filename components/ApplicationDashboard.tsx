@@ -1,13 +1,13 @@
 "use client";
 
-import { Award, FileText, Info, Trash2 } from "lucide-react";
+import { Award, ExternalLink, FileText, Info, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { InfoTab } from "@/components/applications/tabs/InfoTab";
 import { ProgramDocumentsTab } from "@/components/applications/tabs/ProgramDocumentsTab";
 import { SopTab } from "@/components/applications/tabs/SopTab";
-import { Badge } from "@/components/ui/badge";
+import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -27,35 +27,6 @@ interface ApplicationDashboardProps {
 	onDelete?: () => Promise<boolean>;
 }
 
-const statusConfig: Record<
-	string,
-	{
-		label: string;
-		variant: "default" | "secondary" | "outline" | "destructive";
-	}
-> = {
-	planning: {
-		label: "Planning",
-		variant: "secondary",
-	},
-	writing: {
-		label: "Writing",
-		variant: "outline",
-	},
-	submitted: {
-		label: "Submitted",
-		variant: "default",
-	},
-	accepted: {
-		label: "Accepted",
-		variant: "default",
-	},
-	rejected: {
-		label: "Rejected",
-		variant: "destructive",
-	},
-};
-
 export function ApplicationDashboard({
 	application,
 	onUpdateStatus,
@@ -64,6 +35,7 @@ export function ApplicationDashboard({
 	const t = useTranslations("applications");
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [isProgramDrawerOpen, setIsProgramDrawerOpen] = useState(false);
 	const [activeTab, setActiveTab] = useState<"info" | "documents" | "sop">(
 		"info",
 	);
@@ -88,9 +60,6 @@ export function ApplicationDashboard({
 		);
 	}
 
-	const config =
-		statusConfig[application.status ?? "planning"] || statusConfig.planning;
-
 	const handleDelete = async () => {
 		if (onDelete) {
 			setIsDeleting(true);
@@ -103,29 +72,34 @@ export function ApplicationDashboard({
 	};
 
 	return (
-		<div className="flex-1 overflow-y-auto bg-muted/30">
-			<div className="max-w-4xl mx-auto p-6">
-				{/* Header */}
-				<div className="flex items-start justify-between mb-6">
-					<div>
-						<h1 className="text-2xl font-bold text-foreground mb-1">
-							{application.program?.universityName}
-						</h1>
-						<p className="text-lg text-muted-foreground">
-							{application.program?.programName}
-						</p>
-						{application.program?.degreeName && (
-							<p className="text-sm text-muted-foreground">
-								{application.program.degreeName}
+		<>
+			<div className="flex-1 overflow-y-auto bg-muted/30">
+				<div className="max-w-4xl mx-auto p-6">
+					{/* Header */}
+					<div className="flex items-start justify-between mb-6">
+						<div className="min-w-0 flex-1">
+							<h1 className="text-2xl font-bold text-foreground mb-1 truncate">
+								{application.program?.universityName}
+							</h1>
+							<p className="text-lg text-muted-foreground truncate">
+								{application.program?.programName}
 							</p>
-						)}
+							{application.program?.degreeName && (
+								<p className="text-sm text-muted-foreground">
+									{application.program.degreeName}
+								</p>
+							)}
+						</div>
+						<Button
+							variant="outline"
+							size="sm"
+							className="shrink-0 ml-4"
+							onClick={() => setIsProgramDrawerOpen(true)}
+						>
+							<ExternalLink className="w-4 h-4 mr-2" aria-hidden="true" />
+							Xem chi tiết
+						</Button>
 					</div>
-					<div className="flex items-center gap-2">
-						<Badge variant={config.variant} className="text-sm">
-							{t(`status.${application.status}`)}
-						</Badge>
-					</div>
-				</div>
 
 				{/* Tabs */}
 				<Tabs
@@ -231,5 +205,13 @@ export function ApplicationDashboard({
 				</div>
 			</div>
 		</div>
+
+		{/* Program Detail Drawer */}
+		<ProgramDetailDrawer
+			programId={application.program?.id ?? null}
+			open={isProgramDrawerOpen}
+			onOpenChange={setIsProgramDrawerOpen}
+		/>
+	</>
 	);
 }

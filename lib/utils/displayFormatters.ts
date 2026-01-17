@@ -8,6 +8,12 @@
  */
 
 // =============================================================================
+// Types
+// =============================================================================
+
+export type Locale = "en" | "vi";
+
+// =============================================================================
 // Generic Formatters
 // =============================================================================
 
@@ -437,4 +443,195 @@ export function formatCoverageAmount(
 	if (max) return `Up to ${formatFn(max)}`;
 	if (min) return `From ${formatFn(min)}`;
 	return "N/A";
+}
+
+// =============================================================================
+// Application Status (with locale support)
+// =============================================================================
+
+const APPLICATION_STATUS_LABELS: Record<Locale, Record<string, string>> = {
+	en: {
+		planning: "Planning",
+		writing: "Writing",
+		submitted: "Submitted",
+		accepted: "Accepted",
+		rejected: "Rejected",
+	},
+	vi: {
+		planning: "Đang chuẩn bị",
+		writing: "Đang viết",
+		submitted: "Đã nộp",
+		accepted: "Trúng tuyển",
+		rejected: "Không đạt",
+	},
+};
+
+/**
+ * Format application status enum to display label
+ * @example formatApplicationStatus("planning", "vi") → "Đang chuẩn bị"
+ * @example formatApplicationStatus("submitted", "en") → "Submitted"
+ */
+export function formatApplicationStatus(
+	status?: string | null,
+	locale: Locale = "vi",
+): string {
+	if (!status) return "N/A";
+	const labels = APPLICATION_STATUS_LABELS[locale];
+	return labels[status.toLowerCase()] || formatSnakeCase(status);
+}
+
+// =============================================================================
+// SOP Status (with locale support)
+// =============================================================================
+
+const SOP_STATUS_LABELS: Record<Locale, Record<string, string>> = {
+	en: {
+		not_started: "Not Started",
+		drafting: "Drafting",
+		reviewing: "Reviewing",
+		completed: "Completed",
+	},
+	vi: {
+		not_started: "Chưa bắt đầu",
+		drafting: "Đang viết",
+		reviewing: "Đang xem xét",
+		completed: "Hoàn thành",
+	},
+};
+
+/**
+ * Format SOP status enum to display label
+ * @example formatSopStatus("drafting", "vi") → "Đang viết"
+ * @example formatSopStatus("completed", "en") → "Completed"
+ */
+export function formatSopStatus(
+	status?: string | null,
+	locale: Locale = "vi",
+): string {
+	if (!status) return locale === "vi" ? "Chưa bắt đầu" : "Not Started";
+	const labels = SOP_STATUS_LABELS[locale];
+	return labels[status.toLowerCase()] || formatSnakeCase(status);
+}
+
+// =============================================================================
+// Coverage Type (with locale support)
+// =============================================================================
+
+const COVERAGE_TYPE_LABELS_I18N: Record<Locale, Record<string, string>> = {
+	en: {
+		full_funded: "Full Funded",
+		partial_funded: "Partial Funded",
+	},
+	vi: {
+		full_funded: "Toàn phần",
+		partial_funded: "Bán phần",
+	},
+};
+
+/**
+ * Format scholarship coverage type enum to display label with locale support
+ * @example formatCoverageTypeI18n("full_funded", "vi") → "Toàn phần"
+ * @example formatCoverageTypeI18n("partial_funded", "en") → "Partial Funded"
+ */
+export function formatCoverageTypeI18n(
+	type?: string | null,
+	locale: Locale = "vi",
+): string {
+	if (!type) return "N/A";
+	const labels = COVERAGE_TYPE_LABELS_I18N[locale];
+	return labels[type.toLowerCase()] || formatSnakeCase(type);
+}
+
+// =============================================================================
+// Coverage Duration (with locale support)
+// =============================================================================
+
+const COVERAGE_DURATION_LABELS_I18N: Record<Locale, Record<string, string>> = {
+	en: {
+		first_year: "First Year Only",
+		annual_renewable: "Annual (Renewable)",
+		full_program: "Full Program",
+		one_time: "One-time",
+		not_specified: "Not Specified",
+		other: "Other",
+	},
+	vi: {
+		first_year: "Năm đầu tiên",
+		annual_renewable: "Hàng năm (Gia hạn)",
+		full_program: "Toàn chương trình",
+		one_time: "Một lần",
+		not_specified: "Chưa xác định",
+		other: "Khác",
+	},
+};
+
+/**
+ * Format scholarship coverage duration enum to display label with locale support
+ * @example formatCoverageDurationI18n("full_program", "vi") → "Toàn chương trình"
+ */
+export function formatCoverageDurationI18n(
+	duration?: string | null,
+	locale: Locale = "vi",
+): string {
+	if (!duration) return "N/A";
+	const labels = COVERAGE_DURATION_LABELS_I18N[locale];
+	return labels[duration.toLowerCase()] || formatSnakeCase(duration);
+}
+
+// =============================================================================
+// Eligibility Type (with locale support)
+// =============================================================================
+
+const ELIGIBILITY_TYPE_LABELS_I18N: Record<Locale, Record<string, string>> = {
+	en: {
+		merit: "Merit-based",
+		need_based: "Need-based",
+	},
+	vi: {
+		merit: "Theo thành tích",
+		need_based: "Theo nhu cầu",
+	},
+};
+
+/**
+ * Format scholarship eligibility type enum to display label with locale support
+ * @example formatEligibilityTypeI18n("merit", "vi") → "Theo thành tích"
+ */
+export function formatEligibilityTypeI18n(
+	type?: string | null,
+	locale: Locale = "vi",
+): string {
+	if (!type) return "N/A";
+	const labels = ELIGIBILITY_TYPE_LABELS_I18N[locale];
+	return labels[type.toLowerCase()] || formatSnakeCase(type);
+}
+
+// =============================================================================
+// Source Type (with locale support)
+// =============================================================================
+
+const SOURCE_TYPE_LABELS_I18N: Record<Locale, Record<string, string>> = {
+	en: {
+		university: "University",
+		government: "Government",
+		foundation: "Foundation",
+	},
+	vi: {
+		university: "Trường đại học",
+		government: "Chính phủ",
+		foundation: "Tổ chức/Quỹ",
+	},
+};
+
+/**
+ * Format scholarship source type enum to display label with locale support
+ * @example formatSourceTypeI18n("government", "vi") → "Chính phủ"
+ */
+export function formatSourceTypeI18n(
+	type?: string | null,
+	locale: Locale = "vi",
+): string {
+	if (!type) return "N/A";
+	const labels = SOURCE_TYPE_LABELS_I18N[locale];
+	return labels[type.toLowerCase()] || formatSnakeCase(type);
 }

@@ -15,7 +15,6 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 import { ApplicationDashboard } from "@/components/ApplicationDashboard";
 import { ApplicationSidebar } from "@/components/ApplicationSidebar";
-import { PageTransition } from "@/components/PageTransition";
 import { ScholarshipApplicationList } from "@/components/scholarships/ScholarshipApplicationList";
 import { ScholarshipDashboard } from "@/components/scholarships/ScholarshipDashboard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,10 +44,11 @@ export function ApplicationsClient() {
 	const mainTab = (searchParams.get("tab") as MainTab) || "programs";
 
 	// Handle tab change by updating URL
+	// Use replace instead of push to avoid history stack issues and re-render flashes
 	const handleTabChange = (value: string) => {
 		const params = new URLSearchParams(searchParams.toString());
 		params.set("tab", value);
-		router.push(`/dashboard/applications?${params.toString()}`, {
+		router.replace(`/dashboard/applications?${params.toString()}`, {
 			scroll: false,
 		});
 	};
@@ -161,7 +161,7 @@ export function ApplicationsClient() {
 	const apiError = programsError || scholarshipsError;
 
 	return (
-		<PageTransition>
+		<>
 			<div className="p-4 lg:p-0">
 				{/* Main Tabs */}
 				<Tabs
@@ -264,6 +264,6 @@ export function ApplicationsClient() {
 						: "Không thể tải dữ liệu"}
 				</div>
 			) : null}
-		</PageTransition>
+		</>
 	);
 }
