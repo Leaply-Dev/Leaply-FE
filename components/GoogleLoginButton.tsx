@@ -3,7 +3,9 @@
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { getUserFriendlyError, logError } from "@/lib/utils/errorUtils";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
@@ -40,7 +42,24 @@ export function GoogleLoginButton({
 				throw new Error(data.message || "Failed to get OAuth URL");
 			}
 		} catch (error) {
-			console.error("Google OAuth error:", error);
+			logError(error, "GoogleLoginButton");
+			const { message, canRetry, errorId } = getUserFriendlyError(error);
+
+			toast.error("Google Sign In Failed", {
+				description: message,
+				action: canRetry
+					? {
+							label: "Try Again",
+							onClick: handleGoogleLogin,
+						}
+					: undefined,
+			});
+
+			// Log error ID for support
+			if (!canRetry) {
+				console.error(`Google OAuth Error ID: ${errorId}`);
+			}
+
 			setIsLoading(false);
 		}
 	};

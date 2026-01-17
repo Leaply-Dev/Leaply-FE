@@ -1,6 +1,7 @@
 "use client";
 
 import { QueryProvider } from "@/app/providers/query-provider";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider, useSessionWarning } from "./AuthProvider";
 import { MotionProvider } from "./MotionProvider";
@@ -33,14 +34,16 @@ function SessionWarningRenderer() {
  */
 export function Providers({ children }: ProvidersProps) {
 	return (
-		<QueryProvider>
-			<AuthProvider>
-				<MotionProvider>
-					{children}
-					<SessionWarningRenderer />
-					<Toaster position="top-center" richColors closeButton />
-				</MotionProvider>
-			</AuthProvider>
-		</QueryProvider>
+		<ErrorBoundary>
+			<QueryProvider>
+				<AuthProvider>
+					<MotionProvider>
+						{children}
+						<SessionWarningRenderer />
+						<Toaster position="top-center" richColors closeButton />
+					</MotionProvider>
+				</AuthProvider>
+			</QueryProvider>
+		</ErrorBoundary>
 	);
 }
