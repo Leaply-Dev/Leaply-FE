@@ -143,75 +143,75 @@ export function ScholarshipDashboard({
 						</Button>
 					</div>
 
-				{/* Tabs */}
-				<Tabs
-					value={activeTab}
-					onValueChange={(value) =>
-						setActiveTab(value as "overview" | "documents" | "essay")
-					}
-				>
-					<TabsList className="mb-6">
-						<TabsTrigger value="overview" className="gap-2">
-							<Award className="w-4 h-4" />
-							Tổng quan
-						</TabsTrigger>
-						<TabsTrigger value="documents" className="gap-2">
-							<FileText className="w-4 h-4" />
-							Tài liệu
-							{documentsList.length > 0 && (
-								<span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">
-									{documentsList.length}
-								</span>
+					{/* Tabs */}
+					<Tabs
+						value={activeTab}
+						onValueChange={(value) =>
+							setActiveTab(value as "overview" | "documents" | "essay")
+						}
+					>
+						<TabsList className="mb-6">
+							<TabsTrigger value="overview" className="gap-2">
+								<Award className="w-4 h-4" />
+								Tổng quan
+							</TabsTrigger>
+							<TabsTrigger value="documents" className="gap-2">
+								<FileText className="w-4 h-4" />
+								Tài liệu
+								{documentsList.length > 0 && (
+									<span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">
+										{documentsList.length}
+									</span>
+								)}
+							</TabsTrigger>
+							<TabsTrigger value="essay" className="gap-2">
+								<FileText className="w-4 h-4" />
+								Bài luận
+							</TabsTrigger>
+						</TabsList>
+
+						<TabsContent value="overview" className="mt-0">
+							<OverviewTab
+								application={application}
+								onUpdateStatus={handleUpdateStatus}
+							/>
+						</TabsContent>
+
+						<TabsContent value="documents" className="mt-0">
+							{isLoadingDocuments ? (
+								<div className="flex items-center justify-center h-64">
+									<Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+								</div>
+							) : (
+								<DocumentsTab
+									applicationId={applicationId}
+									documents={
+										documentsList as Parameters<
+											typeof DocumentsTab
+										>[0]["documents"]
+									}
+								/>
 							)}
-						</TabsTrigger>
-						<TabsTrigger value="essay" className="gap-2">
-							<FileText className="w-4 h-4" />
-							Bài luận
-						</TabsTrigger>
-					</TabsList>
+						</TabsContent>
 
-					<TabsContent value="overview" className="mt-0">
-						<OverviewTab
-							application={application}
-							onUpdateStatus={handleUpdateStatus}
-						/>
-					</TabsContent>
-
-					<TabsContent value="documents" className="mt-0">
-						{isLoadingDocuments ? (
-							<div className="flex items-center justify-center h-64">
-								<Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-							</div>
-						) : (
-							<DocumentsTab
+						<TabsContent value="essay" className="mt-0">
+							<EssayTab
 								applicationId={applicationId}
 								documents={
-									documentsList as Parameters<
-										typeof DocumentsTab
-									>[0]["documents"]
+									documentsList as Parameters<typeof EssayTab>[0]["documents"]
 								}
 							/>
-						)}
-					</TabsContent>
-
-					<TabsContent value="essay" className="mt-0">
-						<EssayTab
-							applicationId={applicationId}
-							documents={
-								documentsList as Parameters<typeof EssayTab>[0]["documents"]
-							}
-						/>
-					</TabsContent>
-				</Tabs>
+						</TabsContent>
+					</Tabs>
+				</div>
 			</div>
-		</div>
 
-		{/* Scholarship Detail Drawer */}
-		<ScholarshipDetailDrawer
-			scholarshipId={application.scholarship?.id ?? null}
-			open={isScholarshipDrawerOpen}
-			onOpenChange={setIsScholarshipDrawerOpen}
-		/>
-	</>
+			{/* Scholarship Detail Drawer */}
+			<ScholarshipDetailDrawer
+				scholarshipId={application.scholarship?.id ?? null}
+				open={isScholarshipDrawerOpen}
+				onOpenChange={setIsScholarshipDrawerOpen}
+			/>
+		</>
 	);
 }

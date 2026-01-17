@@ -69,7 +69,10 @@ export function InfoTab({ application, onUpdateStatus }: InfoTabProps) {
 				<Card>
 					<CardContent className="p-4">
 						<div className="flex items-center gap-2 mb-1">
-							<CheckCircle2 className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+							<CheckCircle2
+								className="w-4 h-4 text-muted-foreground"
+								aria-hidden="true"
+							/>
 							<span className="text-xs font-medium text-muted-foreground">
 								Trạng thái
 							</span>
@@ -94,7 +97,10 @@ export function InfoTab({ application, onUpdateStatus }: InfoTabProps) {
 				<Card>
 					<CardContent className="p-4">
 						<div className="flex items-center gap-2 mb-1">
-							<FileText className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+							<FileText
+								className="w-4 h-4 text-muted-foreground"
+								aria-hidden="true"
+							/>
 							<span className="text-xs font-medium text-muted-foreground">
 								Trạng thái SOP
 							</span>
@@ -115,7 +121,10 @@ export function InfoTab({ application, onUpdateStatus }: InfoTabProps) {
 				>
 					<CardContent className="p-4">
 						<div className="flex items-center gap-2 mb-1">
-							<Calendar className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+							<Calendar
+								className="w-4 h-4 text-muted-foreground"
+								aria-hidden="true"
+							/>
 							<span className="text-xs font-medium text-muted-foreground">
 								Hạn chót tiếp theo
 							</span>
@@ -154,7 +163,10 @@ export function InfoTab({ application, onUpdateStatus }: InfoTabProps) {
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2 text-lg">
-							<AlertCircle className="w-5 h-5 text-amber-500" aria-hidden="true" />
+							<AlertCircle
+								className="w-5 h-5 text-amber-500"
+								aria-hidden="true"
+							/>
 							Điểm cần cải thiện
 						</CardTitle>
 						<CardDescription>
@@ -175,14 +187,15 @@ export function InfoTab({ application, onUpdateStatus }: InfoTabProps) {
 											severityConfig.color,
 										)}
 									>
-										<severityConfig.icon className="w-5 h-5 mt-0.5 shrink-0" aria-hidden="true" />
+										<severityConfig.icon
+											className="w-5 h-5 mt-0.5 shrink-0"
+											aria-hidden="true"
+										/>
 										<div>
 											<p className="font-medium text-sm capitalize">
 												{gap.field?.replace("_", " ") ?? ""}
 											</p>
-											<p className="text-sm opacity-80">
-												{gap.message ?? ""}
-											</p>
+											<p className="text-sm opacity-80">{gap.message ?? ""}</p>
 										</div>
 									</div>
 								);

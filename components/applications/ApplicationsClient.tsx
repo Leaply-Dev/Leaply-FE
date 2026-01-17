@@ -17,7 +17,7 @@ import { ApplicationDashboard } from "@/components/ApplicationDashboard";
 import { ApplicationSidebar } from "@/components/ApplicationSidebar";
 import { ScholarshipApplicationList } from "@/components/scholarships/ScholarshipApplicationList";
 import { ScholarshipDashboard } from "@/components/scholarships/ScholarshipDashboard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	getGetApplications1QueryKey,
@@ -162,99 +162,115 @@ export function ApplicationsClient() {
 
 	return (
 		<>
-			<div className="p-4 lg:p-0 relative">
-				{/* Main Tabs */}
-				<Tabs
-					value={mainTab}
-					onValueChange={handleTabChange}
-					className="w-full"
-				>
-					<TabsList className="mb-4 lg:mb-0 lg:absolute lg:top-4 lg:left-4 z-10">
-						<TabsTrigger value="programs" className="gap-2">
-							<GraduationCap className="w-4 h-4" />
-							Chương trình
-							{applications.length > 0 && (
-								<span className="ml-1 text-xs bg-primary/10 px-1.5 py-0.5 rounded-full">
-									{applications.length}
-								</span>
-							)}
-						</TabsTrigger>
-						<TabsTrigger value="scholarships" className="gap-2">
-							<Award className="w-4 h-4" />
-							Học bổng
-							{scholarshipApplications.length > 0 && (
-								<span className="ml-1 text-xs bg-primary/10 px-1.5 py-0.5 rounded-full">
-									{scholarshipApplications.length}
-								</span>
-							)}
-						</TabsTrigger>
-					</TabsList>
+			<Tabs value={mainTab} onValueChange={handleTabChange}>
+				<div className="p-4 lg:p-0">
+					<div className="flex min-h-[calc(100vh-16rem)]">
+						{/* Desktop Sidebar - Unified sticky container */}
+						<div className="w-full lg:w-80 xl:w-96 shrink-0 hidden lg:block h-[calc(100vh-5rem)] sticky top-0">
+							<div className="flex flex-col h-full bg-card border-r border-border">
+								{/* Tabs Header */}
+								<div className="p-4 border-b border-border">
+									<TabsList className="w-full grid grid-cols-2">
+										<TabsTrigger value="programs" className="gap-2">
+											<GraduationCap className="w-4 h-4" />
+											Chương trình
+											{applications.length > 0 && (
+												<span className="ml-1 text-xs bg-primary/10 px-1.5 py-0.5 rounded-full">
+													{applications.length}
+												</span>
+											)}
+										</TabsTrigger>
+										<TabsTrigger value="scholarships" className="gap-2">
+											<Award className="w-4 h-4" />
+											Học bổng
+											{scholarshipApplications.length > 0 && (
+												<span className="ml-1 text-xs bg-primary/10 px-1.5 py-0.5 rounded-full">
+													{scholarshipApplications.length}
+												</span>
+											)}
+										</TabsTrigger>
+									</TabsList>
+								</div>
 
-					{/* Programs Tab Content */}
-					<TabsContent value="programs" className="mt-0">
-						<div className="flex min-h-[calc(100vh-16rem)]">
-							{/* Sidebar - Fixed width on desktop, full width on mobile */}
-							<div className="w-full lg:w-80 xl:w-96 shrink-0 hidden lg:block h-[calc(100vh-5rem)] sticky top-0">
+								{/* Sidebar Content - Conditional */}
+								<div className="flex-1 min-h-0 flex flex-col">
+									{mainTab === "programs" ? (
+										<ApplicationSidebar
+											withWrapper={false}
+											applications={applications}
+											selectedId={selectedApplicationId}
+											onSelectApplication={setSelectedApplicationId}
+											isLoading={isLoadingPrograms}
+										/>
+									) : (
+										<ScholarshipApplicationList
+											withWrapper={false}
+											applications={scholarshipApplications}
+											selectedId={selectedScholarshipId}
+											onSelectApplication={setSelectedScholarshipId}
+											isLoading={isLoadingScholarships}
+										/>
+									)}
+								</div>
+							</div>
+						</div>
+
+						{/* Mobile - Full width with tabs */}
+						<div className="lg:hidden w-full">
+							<div className="p-4 border-b border-border bg-card">
+								<TabsList className="w-full grid grid-cols-2">
+									<TabsTrigger value="programs" className="gap-2">
+										<GraduationCap className="w-4 h-4" />
+										Chương trình
+										{applications.length > 0 && (
+											<span className="ml-1 text-xs bg-primary/10 px-1.5 py-0.5 rounded-full">
+												{applications.length}
+											</span>
+										)}
+									</TabsTrigger>
+									<TabsTrigger value="scholarships" className="gap-2">
+										<Award className="w-4 h-4" />
+										Học bổng
+										{scholarshipApplications.length > 0 && (
+											<span className="ml-1 text-xs bg-primary/10 px-1.5 py-0.5 rounded-full">
+												{scholarshipApplications.length}
+											</span>
+										)}
+									</TabsTrigger>
+								</TabsList>
+							</div>
+							{mainTab === "programs" ? (
 								<ApplicationSidebar
 									applications={applications}
 									selectedId={selectedApplicationId}
 									onSelectApplication={setSelectedApplicationId}
 									isLoading={isLoadingPrograms}
 								/>
-							</div>
-
-							{/* Mobile Sidebar - Toggle view */}
-							<div className="lg:hidden w-full min-h-screen">
-								<ApplicationSidebar
-									applications={applications}
-									selectedId={selectedApplicationId}
-									onSelectApplication={setSelectedApplicationId}
-									isLoading={isLoadingPrograms}
+							) : (
+								<ScholarshipApplicationList
+									applications={scholarshipApplications}
+									selectedId={selectedScholarshipId}
+									onSelectApplication={setSelectedScholarshipId}
+									isLoading={isLoadingScholarships}
 								/>
-							</div>
+							)}
+						</div>
 
-							{/* Main Dashboard - Desktop only */}
-							<div className="hidden lg:block flex-1">
+						{/* Dashboard - Desktop only */}
+						<div className="hidden lg:block flex-1">
+							{mainTab === "programs" ? (
 								<ApplicationDashboard
 									application={selectedApplication}
 									onUpdateStatus={handleUpdateStatus}
 									onDelete={handleDelete}
 								/>
-							</div>
-						</div>
-					</TabsContent>
-
-					{/* Scholarships Tab Content */}
-					<TabsContent value="scholarships" className="mt-0">
-						<div className="flex min-h-[calc(100vh-16rem)]">
-							{/* Sidebar - Fixed width on desktop, full width on mobile */}
-							<div className="w-full lg:w-80 xl:w-96 shrink-0 hidden lg:block h-[calc(100vh-5rem)] sticky top-0">
-								<ScholarshipApplicationList
-									applications={scholarshipApplications}
-									selectedId={selectedScholarshipId}
-									onSelectApplication={setSelectedScholarshipId}
-									isLoading={isLoadingScholarships}
-								/>
-							</div>
-
-							{/* Mobile Sidebar - Toggle view */}
-							<div className="lg:hidden w-full min-h-screen">
-								<ScholarshipApplicationList
-									applications={scholarshipApplications}
-									selectedId={selectedScholarshipId}
-									onSelectApplication={setSelectedScholarshipId}
-									isLoading={isLoadingScholarships}
-								/>
-							</div>
-
-							{/* Main Dashboard - Desktop only */}
-							<div className="hidden lg:block flex-1">
+							) : (
 								<ScholarshipDashboard applicationId={selectedScholarshipId} />
-							</div>
+							)}
 						</div>
-					</TabsContent>
-				</Tabs>
-			</div>
+					</div>
+				</div>
+			</Tabs>
 
 			{/* Error Toast */}
 			{apiError ? (

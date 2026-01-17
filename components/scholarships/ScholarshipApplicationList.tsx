@@ -14,6 +14,7 @@ interface ScholarshipApplicationListProps {
 	selectedId: string | null;
 	onSelectApplication: (id: string) => void;
 	isLoading?: boolean;
+	withWrapper?: boolean;
 }
 
 const statusConfig: Record<
@@ -42,6 +43,7 @@ export function ScholarshipApplicationList({
 	selectedId,
 	onSelectApplication,
 	isLoading,
+	withWrapper = true,
 }: ScholarshipApplicationListProps) {
 	const [searchQuery, setSearchQuery] = useState("");
 
@@ -58,8 +60,8 @@ export function ScholarshipApplicationList({
 		);
 	}, [applications, searchQuery]);
 
-	return (
-		<div className="flex flex-col h-full bg-card border-r border-border">
+	const content = (
+		<>
 			{/* Header */}
 			<div className="p-4 border-b border-border space-y-4">
 				<div className="flex items-center justify-between">
@@ -187,6 +189,14 @@ export function ScholarshipApplicationList({
 					</div>
 				)}
 			</div>
+		</>
+	);
+
+	if (!withWrapper) return content;
+
+	return (
+		<div className="flex flex-col h-full bg-card border-r border-border">
+			{content}
 		</div>
 	);
 }

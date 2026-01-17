@@ -101,117 +101,120 @@ export function ApplicationDashboard({
 						</Button>
 					</div>
 
-				{/* Tabs */}
-				<Tabs
-					value={activeTab}
-					onValueChange={(value) =>
-						setActiveTab(value as "info" | "documents" | "sop")
-					}
-					className="space-y-6"
-				>
-					<div className="flex items-center justify-between">
-						<TabsList>
-							<TabsTrigger value="info" className="gap-2">
-								<Info className="w-4 h-4" />
-								Thông tin
-							</TabsTrigger>
-							<TabsTrigger value="documents" className="gap-2">
-								<FileText className="w-4 h-4" />
-								Tài liệu
-							</TabsTrigger>
-							<TabsTrigger value="sop" className="gap-2">
-								<Award className="w-4 h-4" />
-								SOP
-							</TabsTrigger>
-						</TabsList>
+					{/* Tabs */}
+					<Tabs
+						value={activeTab}
+						onValueChange={(value) =>
+							setActiveTab(value as "info" | "documents" | "sop")
+						}
+						className="space-y-6"
+					>
+						<div className="flex items-center justify-between">
+							<TabsList>
+								<TabsTrigger value="info" className="gap-2">
+									<Info className="w-4 h-4" />
+									Thông tin
+								</TabsTrigger>
+								<TabsTrigger value="documents" className="gap-2">
+									<FileText className="w-4 h-4" />
+									Tài liệu
+								</TabsTrigger>
+								<TabsTrigger value="sop" className="gap-2">
+									<Award className="w-4 h-4" />
+									SOP
+								</TabsTrigger>
+							</TabsList>
 
-						{/* Delete Button */}
-						<Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-							<DialogTrigger asChild>
-								<Button
-									variant="ghost"
-									size="sm"
-									className="text-destructive hover:text-destructive"
-								>
-									<Trash2 className="w-4 h-4 mr-2" />
-									Xóa
-								</Button>
-							</DialogTrigger>
-							<DialogContent>
-								<DialogHeader>
-									<DialogTitle>{t("confirmRemove")}</DialogTitle>
-									<DialogDescription>
-										{t("confirmRemoveDescription", {
-											program: application.program?.programName ?? "",
-											university: application.program?.universityName ?? "",
-										})}
-									</DialogDescription>
-								</DialogHeader>
-								<DialogFooter>
+							{/* Delete Button */}
+							<Dialog
+								open={deleteDialogOpen}
+								onOpenChange={setDeleteDialogOpen}
+							>
+								<DialogTrigger asChild>
 									<Button
-										variant="outline"
-										onClick={() => setDeleteDialogOpen(false)}
+										variant="ghost"
+										size="sm"
+										className="text-destructive hover:text-destructive"
 									>
-										{t("cancel")}
+										<Trash2 className="w-4 h-4 mr-2" />
+										Xóa
 									</Button>
-									<Button
-										variant="destructive"
-										onClick={handleDelete}
-										disabled={isDeleting}
-									>
-										{isDeleting ? t("removing") : t("remove")}
-									</Button>
-								</DialogFooter>
-							</DialogContent>
-						</Dialog>
+								</DialogTrigger>
+								<DialogContent>
+									<DialogHeader>
+										<DialogTitle>{t("confirmRemove")}</DialogTitle>
+										<DialogDescription>
+											{t("confirmRemoveDescription", {
+												program: application.program?.programName ?? "",
+												university: application.program?.universityName ?? "",
+											})}
+										</DialogDescription>
+									</DialogHeader>
+									<DialogFooter>
+										<Button
+											variant="outline"
+											onClick={() => setDeleteDialogOpen(false)}
+										>
+											{t("cancel")}
+										</Button>
+										<Button
+											variant="destructive"
+											onClick={handleDelete}
+											disabled={isDeleting}
+										>
+											{isDeleting ? t("removing") : t("remove")}
+										</Button>
+									</DialogFooter>
+								</DialogContent>
+							</Dialog>
+						</div>
+
+						{/* Info Tab */}
+						<TabsContent value="info" className="mt-0">
+							<InfoTab
+								application={application}
+								onUpdateStatus={onUpdateStatus}
+							/>
+						</TabsContent>
+
+						{/* Documents Tab */}
+						<TabsContent value="documents" className="mt-0">
+							<ProgramDocumentsTab applicationId={application.id ?? ""} />
+						</TabsContent>
+
+						{/* SOP Tab */}
+						<TabsContent value="sop" className="mt-0">
+							<SopTab
+								applicationId={application.id ?? ""}
+								programName={application.program?.programName}
+								universityName={application.program?.universityName}
+							/>
+						</TabsContent>
+					</Tabs>
+
+					{/* Timestamps */}
+					<div className="text-xs text-muted-foreground text-center mt-8">
+						{t("addedOn")}{" "}
+						{new Date(application.createdAt ?? "").toLocaleDateString("vi-VN")}
+						{application.updatedAt !== application.createdAt && (
+							<>
+								{" "}
+								• {t("lastUpdated")}{" "}
+								{new Date(application.updatedAt ?? "").toLocaleDateString(
+									"vi-VN",
+								)}
+							</>
+						)}
 					</div>
-
-					{/* Info Tab */}
-					<TabsContent value="info" className="mt-0">
-						<InfoTab
-							application={application}
-							onUpdateStatus={onUpdateStatus}
-						/>
-					</TabsContent>
-
-					{/* Documents Tab */}
-					<TabsContent value="documents" className="mt-0">
-						<ProgramDocumentsTab applicationId={application.id ?? ""} />
-					</TabsContent>
-
-					{/* SOP Tab */}
-					<TabsContent value="sop" className="mt-0">
-						<SopTab
-							applicationId={application.id ?? ""}
-							programName={application.program?.programName}
-							universityName={application.program?.universityName}
-						/>
-					</TabsContent>
-				</Tabs>
-
-				{/* Timestamps */}
-				<div className="text-xs text-muted-foreground text-center mt-8">
-					{t("addedOn")}{" "}
-					{new Date(application.createdAt ?? "").toLocaleDateString("vi-VN")}
-					{application.updatedAt !== application.createdAt && (
-						<>
-							{" "}
-							• {t("lastUpdated")}{" "}
-							{new Date(application.updatedAt ?? "").toLocaleDateString(
-								"vi-VN",
-							)}
-						</>
-					)}
 				</div>
 			</div>
-		</div>
 
-		{/* Program Detail Drawer */}
-		<ProgramDetailDrawer
-			programId={application.program?.id ?? null}
-			open={isProgramDrawerOpen}
-			onOpenChange={setIsProgramDrawerOpen}
-		/>
-	</>
+			{/* Program Detail Drawer */}
+			<ProgramDetailDrawer
+				programId={application.program?.id ?? null}
+				open={isProgramDrawerOpen}
+				onOpenChange={setIsProgramDrawerOpen}
+			/>
+		</>
 	);
 }

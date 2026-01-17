@@ -8,12 +8,7 @@ import {
 	FileText,
 } from "lucide-react";
 import { ImprovementTipsCard } from "@/components/applications/ImprovementTipsCard";
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Select,
 	SelectContent,
@@ -56,7 +51,10 @@ export function OverviewTab({ application, onUpdateStatus }: OverviewTabProps) {
 				<Card>
 					<CardContent className="p-4">
 						<div className="flex items-center gap-2 mb-1">
-							<CheckCircle2 className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+							<CheckCircle2
+								className="w-4 h-4 text-muted-foreground"
+								aria-hidden="true"
+							/>
 							<span className="text-xs font-medium text-muted-foreground">
 								Trạng thái
 							</span>
@@ -81,7 +79,10 @@ export function OverviewTab({ application, onUpdateStatus }: OverviewTabProps) {
 				<Card>
 					<CardContent className="p-4">
 						<div className="flex items-center gap-2 mb-1">
-							<DollarSign className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+							<DollarSign
+								className="w-4 h-4 text-muted-foreground"
+								aria-hidden="true"
+							/>
 							<span className="text-xs font-medium text-muted-foreground">
 								Mức hỗ trợ
 							</span>
@@ -102,7 +103,10 @@ export function OverviewTab({ application, onUpdateStatus }: OverviewTabProps) {
 				>
 					<CardContent className="p-4">
 						<div className="flex items-center gap-2 mb-1">
-							<Calendar className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+							<Calendar
+								className="w-4 h-4 text-muted-foreground"
+								aria-hidden="true"
+							/>
 							<span className="text-xs font-medium text-muted-foreground">
 								Hạn nộp
 							</span>
@@ -153,7 +157,10 @@ export function OverviewTab({ application, onUpdateStatus }: OverviewTabProps) {
 				<Card>
 					<CardContent className="p-4">
 						<div className="flex items-center gap-2 mb-1">
-							<FileText className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+							<FileText
+								className="w-4 h-4 text-muted-foreground"
+								aria-hidden="true"
+							/>
 							<span className="text-xs font-medium text-muted-foreground">
 								Tài liệu đã nộp
 							</span>
@@ -168,7 +175,10 @@ export function OverviewTab({ application, onUpdateStatus }: OverviewTabProps) {
 				<Card>
 					<CardContent className="p-4">
 						<div className="flex items-center gap-2 mb-1">
-							<Calendar className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+							<Calendar
+								className="w-4 h-4 text-muted-foreground"
+								aria-hidden="true"
+							/>
 							<span className="text-xs font-medium text-muted-foreground">
 								Cập nhật lần cuối
 							</span>
@@ -185,7 +195,10 @@ export function OverviewTab({ application, onUpdateStatus }: OverviewTabProps) {
 				<Card>
 					<CardContent className="p-4">
 						<div className="flex items-center gap-2 mb-1">
-							<Award className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+							<Award
+								className="w-4 h-4 text-muted-foreground"
+								aria-hidden="true"
+							/>
 							<span className="text-xs font-medium text-muted-foreground">
 								Ngày thêm
 							</span>
