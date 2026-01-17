@@ -25,8 +25,10 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	type CoverageMetrics,
+	type GraphMessageResponse,
 	type PersonaNodeDto,
 	PersonaNodeDtoType,
 } from "@/lib/generated/api/models";
@@ -108,6 +110,15 @@ export function ChatSidebar() {
 	// Fetch opening message when no messages exist (for new users or after reset)
 	// Only enabled when messages array is empty to avoid re-fetching on refresh
 	const shouldFetchOpening = isHydrated && messages.length === 0;
+
+	// DEBUG: Track welcome message flow
+	console.log("🐛 [ChatSidebar] Debug:", {
+		isHydrated,
+		messagesLength: messages.length,
+		shouldFetchOpening,
+		messages: messages.map((m) => ({ id: m.id, role: m.role })),
+	});
+
 	const { data: conversationStart, isLoading: isLoadingOpening } =
 		useStartConversation({
 			query: { enabled: shouldFetchOpening },
@@ -116,9 +127,16 @@ export function ChatSidebar() {
 	// Add opening message to store when received
 	// biome-ignore lint/correctness/useExhaustiveDependencies: We only want to run this when conversationStart changes and messages is empty
 	useEffect(() => {
-		// Response is ApiResponseGraphMessageResponse (mutator returns wrapped response)
-		// biome-ignore lint/suspicious/noExplicitAny: API response wrapper typing workaround
-		const graphData = (conversationStart as any)?.data ?? conversationStart;
+		const graphData = unwrapResponse<GraphMessageResponse>(conversationStart);
+
+		// DEBUG: Log conversation start response
+		console.log("🐛 [ChatSidebar] conversationStart effect:", {
+			hasConversationStart: !!conversationStart,
+			graphData,
+			hasMessage: !!graphData?.message,
+			messagesLength: messages.length,
+		});
+
 		if (graphData?.message && messages.length === 0) {
 			const openingMessage: ConversationMessage = {
 				id: graphData.message.id || `assistant-${Date.now()}`,
@@ -127,6 +145,7 @@ export function ChatSidebar() {
 				content: graphData.message.content || "",
 				timestamp: graphData.message.timestamp || new Date().toISOString(),
 			};
+			console.log("🐛 [ChatSidebar] Adding opening message:", openingMessage);
 			addGraphMessage(openingMessage);
 		}
 	}, [conversationStart]);
@@ -179,10 +198,8 @@ export function ChatSidebar() {
 						// Mark user message as sent (prevents duplication in syncWithServer)
 						updateMessageStatus(userMessage.id, "sent");
 
-						// Response is ApiResponseGraphMessageResponse (mutator returns wrapped response)
-						console.log("🐛 [ChatSidebar] Raw API Response:", response);
-						// biome-ignore lint/suspicious/noExplicitAny: API response wrapper typing workaround
-						const graphData = (response as any)?.data ?? response;
+						// Unwrap double-wrapped response
+						const graphData = unwrapResponse<GraphMessageResponse>(response);
 						console.log("🐛 [ChatSidebar] Parsed GraphData:", graphData);
 
 						if (!graphData?.message) {
@@ -318,9 +335,7 @@ export function ChatSidebar() {
 			onSuccess: (response) => {
 				// Clear messages and add new opening message
 				clearGraphMessages();
-				// Response is ApiResponseGraphMessageResponse (mutator returns wrapped response)
-				// biome-ignore lint/suspicious/noExplicitAny: API response wrapper typing workaround
-				const graphData = (response as any)?.data ?? response;
+				const graphData = unwrapResponse<GraphMessageResponse>(response);
 				if (graphData?.message) {
 					const assistantMessage: ConversationMessage = {
 						id: graphData.message.id || `assistant-${Date.now()}`,
@@ -345,10 +360,8 @@ export function ChatSidebar() {
 		queryClient,
 	]);
 
-	// Derived state - use CoverageMetrics directly from API
-	// Response is ApiResponseCoverageMetrics (mutator returns wrapped response)
-	// biome-ignore lint/suspicious/noExplicitAny: API response wrapper typing workaround
-	const coverageInner = (coverageData as any)?.data ?? coverageData;
+	// Derive CoverageMetrics from API response
+	const coverageInner = unwrapResponse<CoverageMetrics>(coverageData);
 	const coverage: CoverageMetrics = {
 		goals: coverageInner?.goals ?? 0,
 		evidence: coverageInner?.evidence ?? 0,

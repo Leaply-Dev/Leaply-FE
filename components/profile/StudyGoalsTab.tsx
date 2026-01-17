@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	BUDGET_OPTIONS,
 	FIELD_OPTIONS,
@@ -51,6 +52,7 @@ import {
 	useGetMe,
 	useUpdatePreferences,
 } from "@/lib/generated/api/endpoints/user/user";
+import type { UserMeResponse } from "@/lib/generated/api/models";
 import {
 	type PreferencesFormData,
 	preferencesSchema,
@@ -96,7 +98,7 @@ export function StudyGoalsTab({ initialEditMode = false }: StudyGoalsTabProps) {
 
 	// React Query
 	const { data: response, isLoading } = useGetMe();
-	const userData = response?.data?.data;
+	const userData = unwrapResponse<UserMeResponse>(response);
 
 	const updatePreferencesMutation = useUpdatePreferences({
 		mutation: {

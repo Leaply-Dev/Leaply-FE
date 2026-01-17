@@ -13,13 +13,20 @@ import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	getGetApplicationsQueryKey,
 	useCreateApplication,
 	useGetApplications,
 } from "@/lib/generated/api/endpoints/applications/applications";
 import { getGetHomeDataQueryKey } from "@/lib/generated/api/endpoints/home/home";
-import type { ProgramListItemResponse } from "@/lib/generated/api/models";
+import type {
+	AiMatchResponse,
+	ApplicationListResponse,
+	ProgramListItemResponse,
+	ProgramListResponse,
+	UserContextResponse,
+} from "@/lib/generated/api/models";
 import { useApplicationStore } from "@/lib/store/applicationStore";
 
 /**
@@ -79,13 +86,18 @@ export function ExploreClient() {
 	const { setSelectedApplicationId } = useApplicationStore();
 
 	// Get applications to check if program is already in dashboard
-	const applications = applicationsResponse?.data?.data?.applications ?? [];
+	const appsData =
+		unwrapResponse<ApplicationListResponse>(applicationsResponse);
+	const applications = appsData?.applications ?? [];
 	const applicationsByProgramId = new Map(
 		applications.map((app) => [app.program?.id, app.id]),
 	);
 
 	// Extract data from responses (unwrap ApiResponse)
-	const programs = programsResponse?.data?.data?.data ?? [];
+	const programsData = unwrapResponse<ProgramListResponse>(programsResponse);
+	const programs = programsData?.data ?? [];
+
+	const aiMatchResult = unwrapResponse<AiMatchResponse>(aiMatchData);
 
 	const handleSaveToggle = (id: string) => {
 		const program = programs.find((p: ProgramListItemResponse) => p.id === id);
@@ -171,8 +183,9 @@ export function ExploreClient() {
 			if (inPrograms) return inPrograms;
 
 			// If not found, search in AI Match data (no unknown category)
-			if (aiMatchData?.data?.data) {
-				const { reach, target, safety } = aiMatchData.data.data;
+			const aiData = unwrapResponse<AiMatchResponse>(aiMatchData);
+			if (aiData) {
+				const { reach, target, safety } = aiData;
 				const inAi = [
 					...(reach || []),
 					...(target || []),
@@ -185,11 +198,12 @@ export function ExploreClient() {
 		.filter((p): p is ProgramListItemResponse => !!p);
 
 	// Compute swimlane programs from AI Match or programs (no unknown category)
-	const swimLanePrograms: ProgramListItemResponse[] = aiMatchData?.data?.data
+	const aiData = unwrapResponse<AiMatchResponse>(aiMatchData);
+	const swimLanePrograms: ProgramListItemResponse[] = aiData
 		? [
-				...(aiMatchData.data.data.reach || []),
-				...(aiMatchData.data.data.target || []),
-				...(aiMatchData.data.data.safety || []),
+				...(aiData.reach || []),
+				...(aiData.target || []),
+				...(aiData.safety || []),
 			]
 		: programs;
 
@@ -204,8 +218,8 @@ export function ExploreClient() {
 								Explore Programs
 							</h1>
 							<p className="text-xs text-muted-foreground mt-0.5">
-								{aiMatchData?.data?.data?.totalMatched || programs.length}{" "}
-								programs matched to your profile
+								{aiData?.totalMatched || programs.length} programs matched to
+								your profile
 							</p>
 						</div>
 
@@ -298,7 +312,7 @@ export function ExploreClient() {
 						) : (
 							<>
 								{/* Live Analyzer Section */}
-								{aiMatchData?.data?.data?.recommendation && (
+								{aiMatchResult?.recommendation && (
 									<div className="mb-6 bg-primary/5 dark:bg-primary/10 rounded-xl p-6 border border-primary/20">
 										<div className="flex items-start gap-4">
 											<div className="shrink-0">
@@ -311,7 +325,7 @@ export function ExploreClient() {
 													Live Analyzer
 												</h3>
 												<p className="text-sm text-muted-foreground leading-relaxed">
-													{aiMatchData.data.data.recommendation}
+													{aiData?.recommendation}
 												</p>
 											</div>
 										</div>
@@ -321,7 +335,7 @@ export function ExploreClient() {
 								{/* Tab-Based Categories Layout */}
 								<TabBasedCategories
 									programs={swimLanePrograms}
-									userProfile={userProfile?.data?.data}
+									userProfile={unwrapResponse<UserContextResponse>(userProfile)}
 									onSaveToggle={handleSaveToggle}
 									onProgramClick={(program) => {
 										setSelectedProgram(program);

@@ -29,7 +29,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { RecentApplicationDto } from "@/lib/generated/api/models";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import type {
+	HomeResponse,
+	RecentApplicationDto,
+} from "@/lib/generated/api/models";
 import { useHomeData } from "@/lib/hooks/useHomeData";
 import { useUserStore } from "@/lib/store/userStore";
 
@@ -81,7 +85,8 @@ export function DashboardClient() {
 
 	// Memoize derived values from homeData to prevent unnecessary recalculations
 	const dashboardData = useMemo(() => {
-		if (!homeData?.data?.data) {
+		const data = unwrapResponse<HomeResponse>(homeData);
+		if (!data) {
 			return {
 				profileCompletion: 0,
 				upcomingDeadlinesCount: 0,
@@ -94,8 +99,6 @@ export function DashboardClient() {
 				firstName: null,
 			};
 		}
-
-		const data = homeData.data.data;
 
 		return {
 			profileCompletion: data.profileCompletion ?? 0,

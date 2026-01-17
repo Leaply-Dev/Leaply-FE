@@ -31,11 +31,13 @@ import {
 	SheetFooter,
 	SheetTitle,
 } from "@/components/ui/sheet";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import { useGetProgramDetail } from "@/lib/generated/api/endpoints/explore/explore";
 import type {
 	BudgetGap,
 	EnglishGap,
 	GpaGap,
+	ProgramDetailResponse,
 	ProgramIntakeResponse,
 } from "@/lib/generated/api/models";
 import {
@@ -452,7 +454,7 @@ export function ProgramDetailDrawer({
 		},
 	});
 
-	const program = programDetail?.data?.data;
+	const program = unwrapResponse<ProgramDetailResponse>(programDetail);
 	const req = program?.requirements;
 
 	return (

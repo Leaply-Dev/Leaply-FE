@@ -6,12 +6,14 @@ import { toast } from "sonner";
 import { ApplicationDashboard } from "@/components/ApplicationDashboard";
 import { ApplicationSidebar } from "@/components/ApplicationSidebar";
 import { PageTransition } from "@/components/PageTransition";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	getGetApplicationsQueryKey,
 	useDeleteApplication,
 	useGetApplications,
 	useUpdateApplication,
 } from "@/lib/generated/api/endpoints/applications/applications";
+import type { ApplicationListResponse } from "@/lib/generated/api/models";
 import { useApplicationStore } from "@/lib/store/applicationStore";
 
 export default function ApplicationsPage() {
@@ -28,7 +30,9 @@ export default function ApplicationsPage() {
 	const { mutateAsync: updateStatus } = useUpdateApplication();
 	const { mutateAsync: deleteApp } = useDeleteApplication();
 
-	const applications = applicationsResponse?.data?.data?.applications ?? [];
+	const appsData =
+		unwrapResponse<ApplicationListResponse>(applicationsResponse);
+	const applications = appsData?.applications ?? [];
 
 	// Auto-select first application if none selected
 	useEffect(() => {

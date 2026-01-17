@@ -10,7 +10,11 @@ import { ScholarshipDetailDrawer } from "@/components/explore/scholarship/Schola
 import { ScholarshipManualMode } from "@/components/explore/scholarship/ScholarshipManualMode";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ScholarshipListItemResponse } from "@/lib/generated/api/models";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import type {
+	ScholarshipAiMatchResponse,
+	ScholarshipListItemResponse,
+} from "@/lib/generated/api/models";
 import { useScholarshipAiMatch } from "@/lib/hooks/useScholarshipAiMatch";
 import { useSaveScholarship } from "@/lib/hooks/useScholarships";
 import { cn } from "@/lib/utils";
@@ -58,7 +62,7 @@ export function ScholarshipExploreClient() {
 	const saveMutation = useSaveScholarship();
 
 	// Extract scholarships from AI match response
-	const aiMatchResult = aiMatchData?.data?.data;
+	const aiMatchResult = unwrapResponse<ScholarshipAiMatchResponse>(aiMatchData);
 	const allScholarships: ScholarshipListItemResponse[] = aiMatchResult
 		? [
 				...(aiMatchResult.reach || []),

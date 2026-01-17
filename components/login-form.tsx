@@ -23,6 +23,8 @@ import {
 	FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import type { AuthResponse } from "@/lib/generated/api/models";
 import { useLogin } from "@/lib/hooks/useLogin";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
@@ -67,8 +69,8 @@ export function LoginForm({
 
 			const response = await loginMutation.mutateAsync({ data: formData });
 
-			// The API returns nested structure: response.data.data contains AuthResponse
-			const authResponse = response.data.data;
+			// The API returns nested structure: unwrap it
+			const authResponse = unwrapResponse<AuthResponse>(response);
 
 			if (!authResponse) {
 				throw new Error("Login failed - no data received");

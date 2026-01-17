@@ -33,11 +33,13 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	getGetMeQueryKey,
 	useGetMe,
 	useUpdateProfile,
 } from "@/lib/generated/api/endpoints/user/user";
+import type { UserMeResponse } from "@/lib/generated/api/models";
 import { useUserStore } from "@/lib/store/userStore";
 import { type ProfileFormData, profileSchema } from "@/lib/validations/profile";
 
@@ -70,7 +72,7 @@ export function AcademicInfoTab({
 
 	// React Query
 	const { data: response, isLoading } = useGetMe();
-	const userData = response?.data?.data;
+	const userData = unwrapResponse<UserMeResponse>(response);
 
 	const updateProfileMutation = useUpdateProfile({
 		mutation: {

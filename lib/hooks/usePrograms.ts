@@ -3,12 +3,16 @@
  * This maintains backward compatibility while using generated hooks
  */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	useSaveProgram as useGeneratedSaveProgram,
 	useUnsaveProgram as useGeneratedUnsaveProgram,
 	useListPrograms,
 } from "@/lib/generated/api/endpoints/explore/explore";
-import type { ListProgramsParams } from "@/lib/generated/api/models";
+import type {
+	ListProgramsParams,
+	ProgramListResponse,
+} from "@/lib/generated/api/models";
 
 /**
  * Backward-compatible wrapper for useListPrograms
@@ -45,15 +49,16 @@ export function useSaveProgram() {
 
 			// Optimistically update all program queries
 			queryClient.setQueriesData({ queryKey: ["programs"] }, (old: any) => {
-				if (!old?.data?.data?.data) return old;
+				const programsResult = unwrapResponse<ProgramListResponse>(old);
+				if (!programsResult?.data) return old;
 
 				return {
 					...old,
 					data: {
 						...old.data,
 						data: {
-							...old.data.data,
-							data: old.data.data.data.map((program: any) =>
+							...programsResult,
+							data: programsResult.data.map((program: any) =>
 								program.id === id ? { ...program, isSaved: !isSaved } : program,
 							),
 						},

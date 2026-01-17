@@ -32,8 +32,13 @@ import {
 	SheetFooter,
 	SheetTitle,
 } from "@/components/ui/sheet";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import { useGetScholarshipDetail } from "@/lib/generated/api/endpoints/scholarship-explore/scholarship-explore";
-import type { EnglishGap, GpaGap } from "@/lib/generated/api/models";
+import type {
+	EnglishGap,
+	GpaGap,
+	ScholarshipDetailResponse,
+} from "@/lib/generated/api/models";
 import {
 	formatCoverageAmount,
 	formatCoverageDuration,
@@ -328,7 +333,8 @@ export function ScholarshipDetailDrawer({
 		},
 	});
 
-	const scholarship = scholarshipDetail?.data?.data;
+	const scholarship =
+		unwrapResponse<ScholarshipDetailResponse>(scholarshipDetail);
 
 	// Format coverage display
 	const coverageDisplay = scholarship ? getCoverageDisplay(scholarship) : null;

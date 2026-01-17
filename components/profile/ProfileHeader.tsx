@@ -79,6 +79,7 @@ export function ProfileHeader({ userData, isLoading }: ProfileHeaderProps) {
 	const handleSaveAvatar = () => {
 		if (selectedAvatar) {
 			updateProfileMutation.mutate({
+				// @ts-expect-error: avatarNum is not yet in the generated UpdateProfileRequest model
 				data: { avatarNum: selectedAvatar },
 			});
 		}

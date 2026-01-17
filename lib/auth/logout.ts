@@ -1,5 +1,5 @@
-import { clearAllStores, clearAllStorageKeys } from "./clearStores";
 import { useUserStore } from "@/lib/store/userStore";
+import { clearAllStorageKeys, clearAllStores } from "./clearStores";
 
 /**
  * Performs a clean logout that clears all auth state

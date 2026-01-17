@@ -7,13 +7,15 @@ import {
 	ProfileHeader,
 	SettingsLayout,
 } from "@/components/profile";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import { useGetMe } from "@/lib/generated/api/endpoints/user/user";
+import type { UserMeResponse } from "@/lib/generated/api/models";
 
 export default function ProfilePage() {
 	const t = useTranslations("profile");
 
 	const { data: response, isLoading } = useGetMe();
-	const userData = response?.data?.data;
+	const userData = unwrapResponse<UserMeResponse>(response);
 
 	return (
 		<PageTransition>

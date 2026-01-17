@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import type {
+	CoverageMetrics,
+	PersonaGraphResponse,
+	PersonaStateResponse,
+} from "@/lib/generated/api/models";
 import {
 	useGetCoverage,
 	useGetGraph,
@@ -53,23 +59,20 @@ export function PersonaStateSync() {
 				new Date().toISOString(),
 			);
 
-			// 1. Sync History (ignore nodes from this response as they are simplified)
-			// biome-ignore lint/suspicious/noExplicitAny: API response wrapper typing workaround
-			const stateData = (personaState as any)?.data ?? personaState;
+			// 1. Sync History
+			const stateData = unwrapResponse<PersonaStateResponse>(personaState);
 			if (stateData) {
 				syncWithServer(stateData);
 			}
 
 			// 2. Sync Graph (Nodes + Edges)
-			// biome-ignore lint/suspicious/noExplicitAny: API response wrapper typing workaround
-			const graphData = (graphState as any)?.data ?? graphState;
+			const graphData = unwrapResponse<PersonaGraphResponse>(graphState);
 			if (graphData) {
 				syncGraph(graphData.nodes ?? [], graphData.edges ?? []);
 			}
 
 			// 3. Sync Coverage
-			// biome-ignore lint/suspicious/noExplicitAny: API response wrapper typing workaround
-			const covData = (coverageData as any)?.data ?? coverageData;
+			const covData = unwrapResponse<CoverageMetrics>(coverageData);
 			if (covData) {
 				setCoverage(covData);
 			}

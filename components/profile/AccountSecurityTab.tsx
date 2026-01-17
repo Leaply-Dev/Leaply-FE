@@ -39,7 +39,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import { useGetMe } from "@/lib/generated/api/endpoints/user/user";
+import type { UserMeResponse } from "@/lib/generated/api/models";
 import { authService } from "@/lib/services/auth";
 
 export function AccountSecurityTab() {
@@ -47,7 +49,7 @@ export function AccountSecurityTab() {
 
 	// React Query
 	const { data: response, isLoading } = useGetMe();
-	const userData = response?.data?.data;
+	const userData = unwrapResponse<UserMeResponse>(response);
 
 	const [isResettingPassword, setIsResettingPassword] = useState(false);
 	const [isSendingVerification, setIsSendingVerification] = useState(false);

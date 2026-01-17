@@ -257,8 +257,13 @@ export const usePersonaStore = create<PersonaStoreState>()(
 
 			// === Utility ===
 
-			// Reset all persona data
-			resetPersona: () => set(initialState),
+			// Reset all persona data (preserves hydration state)
+			resetPersona: () =>
+				set((state) => ({
+					...initialState,
+					// Preserve hydration state - component already rendered, just clearing data
+					_hasHydrated: state._hasHydrated,
+				})),
 
 			// Sync state from server response (GET /v1/persona)
 			// Note: Only sync if server has MORE messages than local, to prevent

@@ -23,6 +23,8 @@ import {
 	FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import type { AuthResponse } from "@/lib/generated/api/models";
 import { useRegister } from "@/lib/hooks/useRegister";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
@@ -69,19 +71,24 @@ export function SignupForm({
 				},
 			});
 
+			const authResponse = unwrapResponse<AuthResponse>(response);
+			if (!authResponse) {
+				throw new Error("Registration failed - no data received");
+			}
+
 			// Transform to UserProfile
 			const userProfile = {
-				id: response.data?.data?.userId ?? "",
-				email: response.data?.data?.email ?? "",
+				id: authResponse.userId ?? "",
+				email: authResponse.email ?? "",
 				fullName: validatedData.fullName,
 			};
 
 			login(
 				userProfile,
-				response.data?.data?.accessToken ?? "",
-				response.data?.data?.refreshToken ?? "",
-				response.data?.data?.expiresIn ?? 0,
-				response.data?.data?.onboardingCompleted ?? false,
+				authResponse.accessToken ?? "",
+				authResponse.refreshToken ?? "",
+				authResponse.expiresIn ?? 0,
+				authResponse.onboardingCompleted ?? false,
 			);
 
 			// Redirect to verify-email page for email verification prompt
