@@ -36,7 +36,6 @@ export function useGraphInteraction({
 	// Node click handler with highlighting
 	const handleNodeClick = useCallback(
 		(node: NodeObject) => {
-			console.log("[GraphInteraction] Node clicked:", node);
 			const graphNode = node as unknown as ForceGraphNode;
 
 			// Toggle selection
@@ -157,12 +156,6 @@ export function useGraphInteraction({
 
 	// Node hover handlers
 	const handleNodeHover = useCallback((node: NodeObject | null) => {
-		if (node) {
-			console.log(
-				"[GraphInteraction] Node hover:",
-				(node as ForceGraphNode).label,
-			);
-		}
 		setHoveredNode(node as unknown as ForceGraphNode | null);
 	}, []);
 

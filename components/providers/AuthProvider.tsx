@@ -203,12 +203,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				proactiveRefreshInProgress.current = true;
 
 				try {
-					console.log("Proactively refreshing token before expiry...");
 					const result = await refreshAccessToken();
-					if (result) {
-						console.log("Proactive token refresh successful");
-					} else {
-						console.warn("Proactive token refresh failed");
+					if (!result) {
 						// Don't logout here - let the warning modal handle it
 					}
 				} catch (error) {
@@ -238,13 +234,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		// Wait for Zustand store to hydrate from localStorage before validation
 		// This prevents false "corruption" detection when store hasn't loaded yet
 		if (!_hasHydrated) {
-			console.log("Auth validation waiting for store hydration...");
 			return;
 		}
 
 		// Skip if already validated this session (survives HMR)
 		if (wasValidatedThisSession()) {
-			console.log("Auth already validated this session, skipping");
 			return;
 		}
 		// Prevent concurrent validations
@@ -266,9 +260,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			// Helper: redirect to login if on protected route
 			const redirectIfProtected = () => {
 				if (isProtectedRoute(pathname)) {
-					console.log(
-						"On protected route with invalid auth, redirecting to login",
-					);
 					window.location.href = "/login?expired=true";
 				}
 			};
@@ -277,7 +268,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			// This happens when logout() was called but cookie subscription didn't run
 			// Or after deployment when localStorage was cleared but stale cookie remains
 			if (cookieAuth && !isAuthenticated) {
-				console.warn("Auth state corruption detected: clearing stale cookie");
 				Cookies.remove("leaply-auth-state", { path: "/" });
 				validationInProgress.current = false;
 				redirectIfProtected();
@@ -287,7 +277,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			// Corruption Case 2: Zustand says auth, but no valid token
 			// This happens when localStorage was cleared but cookie remains
 			if (isAuthenticated && !accessToken) {
-				console.warn("Auth state corruption detected: auth but no token");
 				performLogout({ redirect: "/login?expired=true" });
 				validationInProgress.current = false;
 				return;
@@ -310,9 +299,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				if (isTokenExpired(accessToken)) {
 					// Don't logout immediately - the API client will attempt refresh
 					// Just log for debugging
-					console.debug(
-						"Access token expired, will attempt refresh on next API call",
-					);
 				}
 			}
 
@@ -344,25 +330,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 				// Mark as validated so we don't re-validate on HMR
 				markValidated();
-				console.log("Auth validated successfully");
-			} catch (error) {
+			} catch (_error) {
 				// For cookie-based auth, don't logout on validation error
 				// The session might still be valid - let individual API calls handle it
 				if (isCookieAuth) {
-					console.warn(
-						"Cookie auth validation failed, session may be expired:",
-						error,
-					);
 					// Still mark as validated to prevent infinite loops
 					markValidated();
 				} else {
 					// For token-based auth, be lenient - don't logout immediately
 					// The token might be fresh from login and just needs a moment to propagate
 					// Individual API calls will handle refresh/logout if truly expired
-					console.warn(
-						"Auth validation error (token-based), but continuing:",
-						error,
-					);
 					// Mark as validated to prevent re-validation loop
 					markValidated();
 				}

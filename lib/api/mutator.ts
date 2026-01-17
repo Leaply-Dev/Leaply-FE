@@ -2,7 +2,6 @@ import { performLogout } from "../auth/logout";
 import { useUserStore } from "../store/userStore";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
-const isDev = process.env.NODE_ENV === "development";
 
 // Special marker for cookie-based authentication (OAuth)
 const COOKIE_AUTH_TOKEN = "COOKIE_AUTH";
@@ -59,13 +58,10 @@ async function refreshAccessToken(): Promise<string | null> {
 
 	// For cookie-based auth, return special marker
 	if (isCookieAuth()) {
-		if (isDev)
-			console.log("Cookie-based auth: backend handles session refresh");
 		return COOKIE_AUTH_TOKEN;
 	}
 
 	if (!refreshToken) {
-		if (isDev) console.warn("No refresh token available");
 		return null;
 	}
 
@@ -79,8 +75,6 @@ async function refreshAccessToken(): Promise<string | null> {
 		});
 
 		if (!response.ok) {
-			if (isDev)
-				console.warn("Token refresh failed with status:", response.status);
 			return null;
 		}
 
@@ -95,14 +89,12 @@ async function refreshAccessToken(): Promise<string | null> {
 
 			if (accessToken && newRefreshToken && expiresIn) {
 				setTokens(accessToken, newRefreshToken, expiresIn);
-				if (isDev) console.log("Token refreshed successfully");
 				return accessToken;
 			}
 		}
 
 		return null;
-	} catch (error) {
-		if (isDev) console.error("Token refresh error:", error);
+	} catch (_error) {
 		return null;
 	}
 }
@@ -119,7 +111,6 @@ async function handleUnauthorized(): Promise<string | null> {
 
 	// For cookie-based auth, don't try to refresh
 	if (isCookieAuth()) {
-		if (isDev) console.log("Cookie-based auth 401: session may be expired");
 		return null;
 	}
 
@@ -128,10 +119,6 @@ async function handleUnauthorized(): Promise<string | null> {
 	if (tokenExpiresAt) {
 		const tokenAge = Date.now() - (tokenExpiresAt - 900000); // 15 minute token lifetime
 		if (tokenAge < 10000) {
-			if (isDev)
-				console.log(
-					"Token was just issued, skipping refresh to avoid race condition",
-				);
 			return null; // Don't logout, let the caller retry or handle error
 		}
 	}
@@ -216,27 +203,12 @@ export const customInstance = async <T>(
 			if (persistedState) {
 				const parsed = JSON.parse(persistedState);
 				accessToken = parsed.state?.accessToken;
-				if (isDev && accessToken) {
-					console.log("Retrieved token from localStorage fallback (mutator)");
-				}
 			}
-		} catch (e) {
-			if (isDev) console.warn("Failed to read from localStorage (mutator)", e);
-		}
+		} catch (_e) {}
 	}
 
 	if (accessToken && accessToken !== COOKIE_AUTH_TOKEN) {
 		requestHeaders.Authorization = `Bearer ${accessToken}`;
-	} else if (isDev && !accessToken) {
-		console.warn(
-			"No access token available for authenticated request (mutator)",
-		);
-	}
-
-	if (isDev) {
-		const authStatus = requestHeaders.Authorization ? "🔒" : "🔓";
-		// Compact log style: 🚀 [METHOD] /url 🔒
-		console.log(`🚀 [${method}] ${url} ${authStatus}`);
 	}
 
 	const fetchConfig: RequestInit = {
@@ -250,76 +222,49 @@ export const customInstance = async <T>(
 		fetchConfig.body = typeof body === "string" ? body : JSON.stringify(body);
 	}
 
-	try {
-		const response = await fetch(fullUrl, fetchConfig);
+	const response = await fetch(fullUrl, fetchConfig);
 
-		if (isDev) {
-			console.log(
-				`${
-					response.ok ? "✅" : response.status === 401 ? "⚠️" : "❌"
-				} [${response.status}] ${url}`,
-			);
-		}
+	// Handle 401 with token refresh
+	if (response.status === 401) {
+		const newToken = await handleUnauthorized();
 
-		// Handle 401 with token refresh
-		if (response.status === 401) {
-			if (isDev) console.log("401 received, attempting token refresh...");
-			const newToken = await handleUnauthorized();
+		if (newToken && newToken !== COOKIE_AUTH_TOKEN) {
+			// Retry with new token
+			const retryHeaders = {
+				...requestHeaders,
+				Authorization: `Bearer ${newToken}`,
+			};
+			const retryResponse = await fetch(fullUrl, {
+				...fetchConfig,
+				headers: retryHeaders,
+			});
 
-			if (newToken && newToken !== COOKIE_AUTH_TOKEN) {
-				// Retry with new token
-				const retryHeaders = {
-					...requestHeaders,
-					Authorization: `Bearer ${newToken}`,
-				};
-				const retryResponse = await fetch(fullUrl, {
-					...fetchConfig,
-					headers: retryHeaders,
-				});
-
-				if (!retryResponse.ok) {
-					const errorData = await retryResponse.json();
-					throw new Error(errorData.message || "Request failed");
-				}
-
-				const retryData = await retryResponse.json();
-				return {
-					data: retryData,
-					status: retryResponse.status,
-					headers: retryResponse.headers,
-				} as T;
+			if (!retryResponse.ok) {
+				const errorData = await retryResponse.json();
+				throw new Error(errorData.message || "Request failed");
 			}
+
+			const retryData = await retryResponse.json();
+			return {
+				data: retryData,
+				status: retryResponse.status,
+				headers: retryResponse.headers,
+			} as T;
 		}
-
-		// Handle 403
-		if (response.status === 403) {
-			if (isDev) console.warn("Access denied (403 Forbidden)");
-		}
-
-		if (!response.ok) {
-			const errorData = await response.json();
-
-			throw new Error(errorData.message || "Request failed");
-		}
-
-		const jsonData = await response.json();
-		return {
-			data: jsonData,
-			status: response.status,
-			headers: response.headers,
-		} as T;
-	} catch (error) {
-		const isNetworkError =
-			error instanceof TypeError && error.message.includes("fetch");
-
-		if (isDev) {
-			// Compact error logging to avoid clutter
-			const status = isNetworkError ? "Network Error" : "Error";
-			console.log(`💥 ${status} [${method}] ${url}:`, error);
-		}
-
-		throw error;
 	}
+
+	if (!response.ok) {
+		const errorData = await response.json();
+
+		throw new Error(errorData.message || "Request failed");
+	}
+
+	const jsonData = await response.json();
+	return {
+		data: jsonData,
+		status: response.status,
+		headers: response.headers,
+	} as T;
 };
 
 export default customInstance;

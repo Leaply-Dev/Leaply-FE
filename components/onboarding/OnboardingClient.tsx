@@ -81,10 +81,6 @@ export function OnboardingClient({
 				const status = await onboardingService
 					.getOnboardingStatus()
 					.catch((error) => {
-						console.warn(
-							"OnboardingClient: Status fetch failed, defaulting to 0",
-							error,
-						);
 						// If user has no onboarding data yet (404), start from step 0
 						if (error?.status === 404 || error?.message?.includes("404")) {
 							return { completedSteps: 0, isComplete: false };
@@ -92,13 +88,8 @@ export function OnboardingClient({
 						return { completedSteps: 0, isComplete: false };
 					});
 
-				console.log("OnboardingClient: Status received:", status);
-
 				// If onboarding is complete, redirect to dashboard
 				if (status?.isComplete) {
-					console.log(
-						"OnboardingClient: Onboarding complete, redirecting to dashboard",
-					);
 					completeOnboarding();
 					router.push("/dashboard");
 					return;
@@ -110,26 +101,20 @@ export function OnboardingClient({
 					Math.max(status?.completedSteps || 0, 0),
 					4,
 				);
-				console.log(
-					`OnboardingClient: Setting initial step to ${startingStep}`,
-				);
 				setCurrentStep(startingStep);
 
 				// Load user profile and preferences
 				const [profileData, preferencesData] = await Promise.all([
-					userService.getProfile().catch((e) => {
-						console.warn("OnboardingClient: Failed to fetch profile", e);
+					userService.getProfile().catch((_e) => {
 						return null;
 					}),
-					userService.getPreferences().catch((e) => {
-						console.warn("OnboardingClient: Failed to fetch preferences", e);
+					userService.getPreferences().catch((_e) => {
 						return null;
 					}),
 				]);
 
 				// Populate form with existing data
 				if (profileData) {
-					console.log("OnboardingClient: Populating basic info");
 					setBasicInfo({
 						educationLevel: profileData.currentEducationLevel || "",
 						targetDegree: profileData.targetDegree || "",
@@ -137,7 +122,6 @@ export function OnboardingClient({
 				}
 
 				if (preferencesData) {
-					console.log("OnboardingClient: Populating preferences");
 					// Parse timeline if it exists
 					const timeline = preferencesData.intendedStartTerm || "";
 					const parts = timeline.split(" ");
@@ -159,7 +143,6 @@ export function OnboardingClient({
 									),
 					});
 				}
-				console.log("OnboardingClient: Initial data load successful");
 			} catch (error) {
 				console.error(
 					"OnboardingClient: Critical failure loading data:",

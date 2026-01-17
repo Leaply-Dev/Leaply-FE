@@ -111,14 +111,6 @@ export function ChatSidebar() {
 	// Only enabled when messages array is empty to avoid re-fetching on refresh
 	const shouldFetchOpening = isHydrated && messages.length === 0;
 
-	// DEBUG: Track welcome message flow
-	console.log("🐛 [ChatSidebar] Debug:", {
-		isHydrated,
-		messagesLength: messages.length,
-		shouldFetchOpening,
-		messages: messages.map((m) => ({ id: m.id, role: m.role })),
-	});
-
 	const { data: conversationStart, isLoading: isLoadingOpening } =
 		useStartConversation({
 			query: { enabled: shouldFetchOpening },
@@ -129,14 +121,6 @@ export function ChatSidebar() {
 	useEffect(() => {
 		const graphData = unwrapResponse<GraphMessageResponse>(conversationStart);
 
-		// DEBUG: Log conversation start response
-		console.log("🐛 [ChatSidebar] conversationStart effect:", {
-			hasConversationStart: !!conversationStart,
-			graphData,
-			hasMessage: !!graphData?.message,
-			messagesLength: messages.length,
-		});
-
 		if (graphData?.message && messages.length === 0) {
 			const openingMessage: ConversationMessage = {
 				id: graphData.message.id || `assistant-${Date.now()}`,
@@ -145,7 +129,6 @@ export function ChatSidebar() {
 				content: graphData.message.content || "",
 				timestamp: graphData.message.timestamp || new Date().toISOString(),
 			};
-			console.log("🐛 [ChatSidebar] Adding opening message:", openingMessage);
 			addGraphMessage(openingMessage);
 		}
 	}, [conversationStart]);
@@ -200,12 +183,8 @@ export function ChatSidebar() {
 
 						// Unwrap double-wrapped response
 						const graphData = unwrapResponse<GraphMessageResponse>(response);
-						console.log("🐛 [ChatSidebar] Parsed GraphData:", graphData);
 
 						if (!graphData?.message) {
-							console.warn(
-								"🐛 [ChatSidebar] No message found in response data",
-							);
 						}
 
 						// Add assistant response to store (persisted)
@@ -298,9 +277,6 @@ export function ChatSidebar() {
 						);
 
 						if (currentStoryCount >= 10 && !hasProfile) {
-							console.log(
-								"🤖 [ChatSidebar] Auto-triggering profile synthesis...",
-							);
 							synthesizeProfileMutation.mutate(undefined, {
 								onSuccess: (node) => {
 									toast.success(t("profileUnlocked"), {
