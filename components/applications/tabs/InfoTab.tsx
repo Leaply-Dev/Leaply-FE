@@ -155,7 +155,7 @@ export function InfoTab({ application, onUpdateStatus }: InfoTabProps) {
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2 text-lg">
 							<AlertCircle className="w-5 h-5 text-amber-500" aria-hidden="true" />
-							Khoảng cách cần cải thiện
+							Điểm cần cải thiện
 						</CardTitle>
 						<CardDescription>
 							Các yếu tố bạn cần cải thiện để tăng cơ hội trúng tuyển

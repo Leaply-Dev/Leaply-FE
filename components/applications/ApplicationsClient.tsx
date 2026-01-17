@@ -162,7 +162,7 @@ export function ApplicationsClient() {
 
 	return (
 		<>
-			<div className="p-4 lg:p-0">
+			<div className="p-4 lg:p-0 relative">
 				{/* Main Tabs */}
 				<Tabs
 					value={mainTab}
