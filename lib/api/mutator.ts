@@ -176,10 +176,17 @@ export const customInstance = async <T>(
 	// Build full URL
 	const fullUrl = `${API_URL}${url}`;
 
+	// Check if body is FormData (for file uploads)
+	const isFormData = body instanceof FormData;
+
 	// Build headers
-	const requestHeaders: Record<string, string> = {
-		"Content-Type": "application/json",
-	};
+	const requestHeaders: Record<string, string> = {};
+
+	// Only set Content-Type for non-FormData requests
+	// For FormData, the browser will automatically set the correct Content-Type with boundary
+	if (!isFormData) {
+		requestHeaders["Content-Type"] = "application/json";
+	}
 
 	// Merge custom headers
 	if (headers) {
@@ -189,7 +196,15 @@ export const customInstance = async <T>(
 				: Array.isArray(headers)
 					? Object.fromEntries(headers)
 					: headers;
-		Object.assign(requestHeaders, headersObj);
+
+		// For FormData, don't override Content-Type even if passed in headers
+		if (isFormData) {
+			const { "Content-Type": _contentType, ...restHeaders } =
+				headersObj as Record<string, string>;
+			Object.assign(requestHeaders, restHeaders);
+		} else {
+			Object.assign(requestHeaders, headersObj);
+		}
 	}
 
 	// Add authentication token
@@ -219,7 +234,12 @@ export const customInstance = async <T>(
 	};
 
 	if (body) {
-		fetchConfig.body = typeof body === "string" ? body : JSON.stringify(body);
+		// Don't stringify FormData - pass it as-is
+		if (body instanceof FormData) {
+			fetchConfig.body = body;
+		} else {
+			fetchConfig.body = typeof body === "string" ? body : JSON.stringify(body);
+		}
 	}
 
 	const response = await fetch(fullUrl, fetchConfig);
