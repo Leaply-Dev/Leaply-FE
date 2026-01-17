@@ -389,39 +389,17 @@ async function apiFetch<T>(
 		// Token explicitly provided and is a real JWT
 		requestHeaders.Authorization = `Bearer ${token}`;
 	} else if (!token) {
-		// Attempt to get access token from userStore
-		try {
-			let storeToken = useUserStore.getState().accessToken;
+		// Get access token from userStore
+		// Note: The store must be hydrated before making authenticated requests.
+		// Components should wait for store hydration using _hasHydrated flag.
+		const storeToken = useUserStore.getState().accessToken;
 
-			// Fallback: If store token is not available, try reading from localStorage directly
-			// This handles the case where Zustand hasn't hydrated yet after page navigation
-			if (!storeToken) {
-				try {
-					const persistedState = localStorage.getItem("leaply-user-store");
-					if (persistedState) {
-						const parsed = JSON.parse(persistedState);
-						storeToken = parsed.state?.accessToken;
-						if (isDev && storeToken) {
-							console.log("Retrieved token from localStorage fallback");
-						}
-					}
-				} catch (e) {
-					if (isDev) console.warn("Failed to read from localStorage", e);
-				}
-			}
-
-			// Only set Bearer header if token is a real JWT (not the cookie-auth marker)
-			if (storeToken && storeToken !== COOKIE_AUTH_TOKEN) {
-				requestHeaders.Authorization = `Bearer ${storeToken}`;
-			} else if (isDev && !storeToken) {
-				console.warn("No access token available for authenticated request");
-			}
-			// If storeToken is COOKIE_AUTH, don't set Authorization header
-			// The backend will read the token from httpOnly cookie instead
-		} catch (e) {
-			// Fallback or ignore if store access fails
-			if (isDev) console.warn("Failed to retrieve token from store", e);
+		// Only set Bearer header if token is a real JWT (not the cookie-auth marker)
+		if (storeToken && storeToken !== COOKIE_AUTH_TOKEN) {
+			requestHeaders.Authorization = `Bearer ${storeToken}`;
 		}
+		// If storeToken is COOKIE_AUTH or undefined, don't set Authorization header
+		// The backend will read the token from httpOnly cookie instead
 	}
 	// If token === COOKIE_AUTH_TOKEN, don't set Authorization header - rely on cookies
 

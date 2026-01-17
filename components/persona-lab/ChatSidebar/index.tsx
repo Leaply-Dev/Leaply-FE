@@ -40,6 +40,7 @@ import {
 	useStartConversation,
 	useSynthesizeProfile,
 } from "@/lib/hooks/persona";
+import { useIsHydrated } from "@/lib/hooks/useStoresHydrated";
 import type { StarStructureKey } from "@/lib/store/personaStore";
 import {
 	type ConversationMessage,
@@ -101,12 +102,12 @@ export function ChatSidebar() {
 	// TanStack Query hooks for API interactions
 	const { data: coverageData } = useCoverage();
 
-	// Hydration check to prevent premature fetching
-	const hydrated = usePersonaStore((state) => state._hasHydrated);
+	// Consolidated hydration check - waits for ALL stores
+	const isHydrated = useIsHydrated();
 
 	// Fetch opening message when no messages exist (for new users or after reset)
 	// Only enabled when messages array is empty to avoid re-fetching on refresh
-	const shouldFetchOpening = hydrated && messages.length === 0;
+	const shouldFetchOpening = isHydrated && messages.length === 0;
 	const { data: conversationStart, isLoading: isLoadingOpening } =
 		useStartConversation({
 			query: { enabled: shouldFetchOpening },
@@ -364,7 +365,7 @@ export function ChatSidebar() {
 
 	// Show loading skeleton while fetching opening message or sending first message
 	if (
-		!hydrated ||
+		!isHydrated ||
 		isLoadingOpening ||
 		(sendMessageMutation.isPending && messages.length === 0)
 	) {

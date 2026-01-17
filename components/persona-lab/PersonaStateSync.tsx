@@ -6,9 +6,8 @@ import {
 	useGetGraph,
 	useGetPersonaState,
 } from "@/lib/hooks/persona";
-// useGetPersonaState returns PersonaStateResponse
+import { useStoresHydrated } from "@/lib/hooks/useStoresHydrated";
 import { usePersonaStore } from "@/lib/store/personaStore";
-import { useUserStore } from "@/lib/store/userStore";
 
 /**
  * Component to synchronize persona state from server on mount
@@ -19,13 +18,14 @@ export function PersonaStateSync() {
 	const syncWithServer = usePersonaStore((state) => state.syncWithServer);
 	const syncGraph = usePersonaStore((state) => state.syncGraph);
 	const setCoverage = usePersonaStore((state) => state.setCoverage);
-	const isAuthenticated = useUserStore((state) => state.isAuthenticated);
-	const hydrated = usePersonaStore((state) => state._hasHydrated);
+
+	// Use consolidated hydration check - waits for ALL stores
+	const { isReady, isHydrated } = useStoresHydrated();
 
 	// Fetch full state on mount (history)
 	const { data: personaState } = useGetPersonaState({
 		query: {
-			enabled: isAuthenticated && hydrated,
+			enabled: isReady,
 			staleTime: 0,
 		},
 	});
@@ -33,7 +33,7 @@ export function PersonaStateSync() {
 	// Fetch graph data (nodes, edges)
 	const { data: graphState } = useGetGraph({
 		query: {
-			enabled: isAuthenticated && hydrated,
+			enabled: isReady,
 			staleTime: 0,
 		},
 	});
@@ -41,13 +41,13 @@ export function PersonaStateSync() {
 	// Fetch coverage data
 	const { data: coverageData } = useGetCoverage({
 		query: {
-			enabled: isAuthenticated && hydrated,
+			enabled: isReady,
 			staleTime: 0,
 		},
 	});
 
 	useEffect(() => {
-		if (hydrated && personaState && graphState && coverageData) {
+		if (isHydrated && personaState && graphState && coverageData) {
 			console.log(
 				"🔄 [PersonaSync] Restoring full state from server",
 				new Date().toISOString(),
@@ -75,7 +75,7 @@ export function PersonaStateSync() {
 			}
 		}
 	}, [
-		hydrated,
+		isHydrated,
 		personaState,
 		graphState,
 		coverageData,

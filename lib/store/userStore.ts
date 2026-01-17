@@ -54,6 +54,7 @@ export interface UserProfile {
 	}[];
 	intendedStartYear?: number;
 	profilePicture?: string;
+	avatarNum?: number;
 }
 
 export interface UserPreferences {
