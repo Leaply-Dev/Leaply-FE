@@ -1,46 +1,94 @@
 /**
- * @fileoverview Applications page with sidebar and dashboard views.
- * Manages application list state, selection, and mutations (update/delete).
+ * @fileoverview Applications page with outer tabs for Programs and Scholarships.
+ * Each tab has its own sidebar and dashboard views.
  * Layout: Desktop (sidebar + dashboard), Mobile (sidebar only).
  */
 
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { Award, GraduationCap } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { ApplicationDashboard } from "@/components/ApplicationDashboard";
 import { ApplicationSidebar } from "@/components/ApplicationSidebar";
 import { PageTransition } from "@/components/PageTransition";
+import { ScholarshipApplicationList } from "@/components/scholarships/ScholarshipApplicationList";
+import { ScholarshipDashboard } from "@/components/scholarships/ScholarshipDashboard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
-	getGetApplicationsQueryKey,
-	useDeleteApplication,
-	useGetApplications,
-	useUpdateApplication,
+	getGetApplications1QueryKey,
+	useDeleteApplication1,
+	useGetApplications1,
+	useUpdateApplication1,
 } from "@/lib/generated/api/endpoints/applications/applications";
-import type { ApplicationListResponse } from "@/lib/generated/api/models";
+import { useGetApplications as useGetScholarshipApplications } from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
+import type {
+	ApplicationListResponse,
+	ScholarshipApplicationListResponse,
+} from "@/lib/generated/api/models";
 import { useApplicationStore } from "@/lib/store/applicationStore";
+import { useScholarshipApplicationStore } from "@/lib/store/scholarshipApplicationStore";
+
+type MainTab = "programs" | "scholarships";
 
 export default function ApplicationsPage() {
 	const queryClient = useQueryClient();
+	const router = useRouter();
+	const searchParams = useSearchParams();
+
+	// Get tab from URL, default to "programs"
+	const mainTab = (searchParams.get("tab") as MainTab) || "programs";
+
+	// Handle tab change by updating URL
+	const handleTabChange = (value: string) => {
+		const params = new URLSearchParams(searchParams.toString());
+		params.set("tab", value);
+		router.push(`/dashboard/applications?${params.toString()}`, {
+			scroll: false,
+		});
+	};
+
+	// Program applications state
 	const { selectedApplicationId, setSelectedApplicationId } =
 		useApplicationStore();
 
+	// Scholarship applications state
+	const {
+		selectedApplicationId: selectedScholarshipId,
+		setSelectedApplicationId: setSelectedScholarshipId,
+	} = useScholarshipApplicationStore();
+
+	// Fetch program applications
 	const {
 		data: applicationsResponse,
-		isLoading,
-		error: apiError,
-	} = useGetApplications();
+		isLoading: isLoadingPrograms,
+		error: programsError,
+	} = useGetApplications1();
 
-	const { mutateAsync: updateStatus } = useUpdateApplication();
-	const { mutateAsync: deleteApp } = useDeleteApplication();
+	// Fetch scholarship applications
+	const {
+		data: scholarshipAppsResponse,
+		isLoading: isLoadingScholarships,
+		error: scholarshipsError,
+	} = useGetScholarshipApplications();
 
+	const { mutateAsync: updateStatus } = useUpdateApplication1();
+	const { mutateAsync: deleteApp } = useDeleteApplication1();
+
+	// Parse program applications
 	const appsData =
 		unwrapResponse<ApplicationListResponse>(applicationsResponse);
 	const applications = appsData?.applications ?? [];
 
-	// Auto-select first application if none selected
+	// Parse scholarship applications
+	const scholarshipAppsData =
+		unwrapResponse<ScholarshipApplicationListResponse>(scholarshipAppsResponse);
+	const scholarshipApplications = scholarshipAppsData?.applications ?? [];
+
+	// Auto-select first program application if none selected
 	useEffect(() => {
 		if (
 			applications.length > 0 &&
@@ -50,6 +98,23 @@ export default function ApplicationsPage() {
 			setSelectedApplicationId(applications[0].id ?? null);
 		}
 	}, [applications, selectedApplicationId, setSelectedApplicationId]);
+
+	// Auto-select first scholarship application if none selected
+	useEffect(() => {
+		if (
+			scholarshipApplications.length > 0 &&
+			(!selectedScholarshipId ||
+				!scholarshipApplications.find(
+					(app) => app.id === selectedScholarshipId,
+				))
+		) {
+			setSelectedScholarshipId(scholarshipApplications[0].id ?? null);
+		}
+	}, [
+		scholarshipApplications,
+		selectedScholarshipId,
+		setSelectedScholarshipId,
+	]);
 
 	const selectedApplication =
 		applications.find((app) => app.id === selectedApplicationId) ?? null;
@@ -64,11 +129,11 @@ export default function ApplicationsPage() {
 					},
 				});
 				await queryClient.invalidateQueries({
-					queryKey: getGetApplicationsQueryKey(),
+					queryKey: getGetApplications1QueryKey(),
 				});
 				return true;
-			} catch (error) {
-				toast.error("Failed to update status");
+			} catch {
+				toast.error("Cập nhật trạng thái thất bại");
 				return false;
 			}
 		}
@@ -80,48 +145,113 @@ export default function ApplicationsPage() {
 			try {
 				await deleteApp({ id: selectedApplication.id! });
 				await queryClient.invalidateQueries({
-					queryKey: getGetApplicationsQueryKey(),
+					queryKey: getGetApplications1QueryKey(),
 				});
 				return true;
-			} catch (error) {
-				toast.error("Failed to delete application");
+			} catch {
+				toast.error("Xóa đơn thất bại");
 				return false;
 			}
 		}
 		return false;
 	};
 
+	const apiError = programsError || scholarshipsError;
+
 	return (
 		<PageTransition>
-			<div className="flex min-h-[calc(100vh-16rem)]">
-				{/* Sidebar - Fixed width on desktop, full width on mobile */}
-				<div className="w-full lg:w-80 xl:w-96 shrink-0 hidden lg:block h-[calc(100vh-5rem)] sticky top-0">
-					<ApplicationSidebar
-						applications={applications}
-						selectedId={selectedApplicationId}
-						onSelectApplication={setSelectedApplicationId}
-						isLoading={isLoading}
-					/>
-				</div>
+			<div className="p-4 lg:p-0">
+				{/* Main Tabs */}
+				<Tabs
+					value={mainTab}
+					onValueChange={handleTabChange}
+					className="w-full"
+				>
+					<TabsList className="mb-4 lg:mb-0 lg:absolute lg:top-4 lg:left-4 z-10">
+						<TabsTrigger value="programs" className="gap-2">
+							<GraduationCap className="w-4 h-4" />
+							Chương trình
+							{applications.length > 0 && (
+								<span className="ml-1 text-xs bg-primary/10 px-1.5 py-0.5 rounded-full">
+									{applications.length}
+								</span>
+							)}
+						</TabsTrigger>
+						<TabsTrigger value="scholarships" className="gap-2">
+							<Award className="w-4 h-4" />
+							Học bổng
+							{scholarshipApplications.length > 0 && (
+								<span className="ml-1 text-xs bg-primary/10 px-1.5 py-0.5 rounded-full">
+									{scholarshipApplications.length}
+								</span>
+							)}
+						</TabsTrigger>
+					</TabsList>
 
-				{/* Mobile Sidebar - Toggle view */}
-				<div className="lg:hidden w-full min-h-screen">
-					<ApplicationSidebar
-						applications={applications}
-						selectedId={selectedApplicationId}
-						onSelectApplication={setSelectedApplicationId}
-						isLoading={isLoading}
-					/>
-				</div>
+					{/* Programs Tab Content */}
+					<TabsContent value="programs" className="mt-0">
+						<div className="flex min-h-[calc(100vh-16rem)]">
+							{/* Sidebar - Fixed width on desktop, full width on mobile */}
+							<div className="w-full lg:w-80 xl:w-96 shrink-0 hidden lg:block h-[calc(100vh-5rem)] sticky top-0">
+								<ApplicationSidebar
+									applications={applications}
+									selectedId={selectedApplicationId}
+									onSelectApplication={setSelectedApplicationId}
+									isLoading={isLoadingPrograms}
+								/>
+							</div>
 
-				{/* Main Dashboard - Desktop only */}
-				<div className="hidden lg:block flex-1">
-					<ApplicationDashboard
-						application={selectedApplication}
-						onUpdateStatus={handleUpdateStatus}
-						onDelete={handleDelete}
-					/>
-				</div>
+							{/* Mobile Sidebar - Toggle view */}
+							<div className="lg:hidden w-full min-h-screen">
+								<ApplicationSidebar
+									applications={applications}
+									selectedId={selectedApplicationId}
+									onSelectApplication={setSelectedApplicationId}
+									isLoading={isLoadingPrograms}
+								/>
+							</div>
+
+							{/* Main Dashboard - Desktop only */}
+							<div className="hidden lg:block flex-1">
+								<ApplicationDashboard
+									application={selectedApplication}
+									onUpdateStatus={handleUpdateStatus}
+									onDelete={handleDelete}
+								/>
+							</div>
+						</div>
+					</TabsContent>
+
+					{/* Scholarships Tab Content */}
+					<TabsContent value="scholarships" className="mt-0">
+						<div className="flex min-h-[calc(100vh-16rem)]">
+							{/* Sidebar - Fixed width on desktop, full width on mobile */}
+							<div className="w-full lg:w-80 xl:w-96 shrink-0 hidden lg:block h-[calc(100vh-5rem)] sticky top-0">
+								<ScholarshipApplicationList
+									applications={scholarshipApplications}
+									selectedId={selectedScholarshipId}
+									onSelectApplication={setSelectedScholarshipId}
+									isLoading={isLoadingScholarships}
+								/>
+							</div>
+
+							{/* Mobile Sidebar - Toggle view */}
+							<div className="lg:hidden w-full min-h-screen">
+								<ScholarshipApplicationList
+									applications={scholarshipApplications}
+									selectedId={selectedScholarshipId}
+									onSelectApplication={setSelectedScholarshipId}
+									isLoading={isLoadingScholarships}
+								/>
+							</div>
+
+							{/* Main Dashboard - Desktop only */}
+							<div className="hidden lg:block flex-1">
+								<ScholarshipDashboard applicationId={selectedScholarshipId} />
+							</div>
+						</div>
+					</TabsContent>
+				</Tabs>
 			</div>
 
 			{/* Error Toast */}
@@ -129,7 +259,7 @@ export default function ApplicationsPage() {
 				<div className="fixed bottom-4 right-4 bg-destructive text-destructive-foreground px-4 py-2 rounded-lg shadow-lg">
 					{apiError instanceof Error
 						? apiError.message
-						: "Failed to load applications"}
+						: "Không thể tải dữ liệu"}
 				</div>
 			) : null}
 		</PageTransition>

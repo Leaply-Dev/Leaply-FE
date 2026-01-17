@@ -467,11 +467,6 @@ export function DashboardClient() {
 																		>
 																			{app.status}
 																		</Badge>
-																		{app.fitScore && (
-																			<span className="text-xs font-medium text-foreground">
-																				{app.fitScore}% {tHome("fit")}
-																			</span>
-																		)}
 																	</div>
 																</div>
 															</CardContent>

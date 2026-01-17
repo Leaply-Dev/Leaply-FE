@@ -15,9 +15,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
-	getGetApplicationsQueryKey,
-	useCreateApplication,
-	useGetApplications,
+	getGetApplications1QueryKey,
+	useCreateApplication1,
+	useGetApplications1,
 } from "@/lib/generated/api/endpoints/applications/applications";
 import { getGetHomeDataQueryKey } from "@/lib/generated/api/endpoints/home/home";
 import type {
@@ -81,8 +81,8 @@ export function ExploreClient() {
 	const saveMutation = useSaveProgram();
 	const router = useRouter();
 	const queryClient = useQueryClient();
-	const { mutate: createApplication } = useCreateApplication();
-	const { data: applicationsResponse } = useGetApplications();
+	const { mutate: createApplication } = useCreateApplication1();
+	const { data: applicationsResponse } = useGetApplications1();
 	const { setSelectedApplicationId } = useApplicationStore();
 
 	// Get applications to check if program is already in dashboard
@@ -122,7 +122,7 @@ export function ExploreClient() {
 							queryKey: getGetHomeDataQueryKey(),
 						}),
 						queryClient.invalidateQueries({
-							queryKey: getGetApplicationsQueryKey(),
+							queryKey: getGetApplications1QueryKey(),
 						}),
 					]);
 

@@ -7,13 +7,13 @@ import {
 	ChevronRight,
 	ExternalLink,
 	FileText,
-	Target,
 	Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { ImprovementTipsCard } from "@/components/applications/ImprovementTipsCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -188,35 +188,7 @@ export function ApplicationDashboard({
 				</div>
 
 				{/* Quick Stats Row */}
-				<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-					{/* Fit Score */}
-					<Card className="bg-linear-to-br from-primary/5 to-primary/10">
-						<CardContent className="p-4">
-							<div className="flex items-center gap-2 mb-1">
-								<Target className="w-4 h-4 text-primary" />
-								<span className="text-xs font-medium text-muted-foreground">
-									{t("fitScore")}
-								</span>
-							</div>
-							<p className="text-2xl font-bold text-primary">
-								{application.fitScore || "—"}%
-							</p>
-							{application.fitCategory && (
-								<Badge
-									variant="outline"
-									className={cn(
-										"mt-1 text-xs capitalize",
-										application.fitCategory === "safety" && "border-green-500",
-										application.fitCategory === "target" && "border-blue-500",
-										application.fitCategory === "reach" && "border-amber-500",
-									)}
-								>
-									{application.fitCategory}
-								</Badge>
-							)}
-						</CardContent>
-					</Card>
-
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 					{/* Status */}
 					<Card>
 						<CardContent className="p-4">
@@ -347,6 +319,9 @@ export function ApplicationDashboard({
 						</CardContent>
 					</Card>
 				)}
+
+				{/* Improvement Tips */}
+				<ImprovementTipsCard tips={application.improvementTips} />
 
 				{/* Next Intake */}
 				{application.program?.nextIntake && (
