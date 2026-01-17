@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Explore page with Programs and Scholarships tabs.
+ * Dynamically loads search clients based on user selection and manages tab navigation via URL params.
+ */
+
 "use client";
 
 import { Award, GraduationCap } from "lucide-react";

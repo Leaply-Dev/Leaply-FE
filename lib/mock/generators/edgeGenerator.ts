@@ -79,7 +79,7 @@ export function generateEdgesForNodes(
 	// Rule 3: Connect details to stories (match by keywords in title)
 	for (const detail of details) {
 		for (const story of stories) {
-			// TODO: detailTitle will be used for future keyword matching logic
+			// TODO: Implement keyword matching using detail title for smarter story connections
 			const _detailTitle = detail.title?.toLowerCase() || "";
 			const storyTags = story.tags || [];
 

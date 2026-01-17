@@ -37,9 +37,6 @@ import {
 	formatEligibilityType,
 } from "@/lib/utils/displayFormatters";
 
-/**
- * Compact gap indicator for list view
- */
 function ScholarshipGapIndicators({
 	scholarship,
 }: {
@@ -114,9 +111,6 @@ interface ScholarshipFilterBarProps {
 	onFiltersChange: (filters: ScholarshipFilterState) => void;
 }
 
-/**
- * Horizontal Filter Bar for Scholarships
- */
 function ScholarshipFilterBar({
 	filters,
 	onFiltersChange,
@@ -270,9 +264,6 @@ interface ScholarshipManualModeProps {
 	pageSize?: number;
 }
 
-/**
- * Scholarship table row component
- */
 function ScholarshipTableRow({
 	scholarship,
 	selected,
@@ -484,9 +475,6 @@ function ScholarshipTableRow({
 	);
 }
 
-/**
- * Manual Mode - Table view with filtering for scholarships
- */
 export function ScholarshipManualMode({
 	scholarships,
 	selectedScholarships,

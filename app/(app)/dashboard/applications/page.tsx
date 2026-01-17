@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Applications page with sidebar and dashboard views.
+ * Manages application list state, selection, and mutations (update/delete).
+ * Layout: Desktop (sidebar + dashboard), Mobile (sidebar only).
+ */
+
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";

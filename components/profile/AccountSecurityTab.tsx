@@ -401,7 +401,7 @@ export function AccountSecurityTab() {
 										variant="destructive"
 										disabled={deleteConfirmation !== "DELETE"}
 										onClick={() => {
-											// TODO: Implement account deletion when API is available
+											// TODO: Implement account deletion endpoint - currently not available in API
 											toast.error(
 												"Account deletion is not yet available. Please contact support.",
 											);

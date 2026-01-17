@@ -1,12 +1,12 @@
+/**
+ * @fileoverview Global error boundary for the application.
+ * This file is required for Next.js error handling at the root level.
+ * Displays fallback UI and allows users to retry after uncaught errors.
+ */
+
 "use client";
 
 import { useEffect } from "react";
-
-/**
- * Global error boundary for the application.
- * This file is required for Next.js 16 + Vercel deployment.
- * It handles uncaught errors at the root level.
- */
 export default function GlobalError({
 	error,
 	reset,

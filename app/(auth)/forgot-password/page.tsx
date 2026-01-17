@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Forgot password page.
+ * Sends password reset link to user email and displays success state.
+ * Shows success regardless of email existence to prevent email enumeration.
+ */
+
 "use client";
 
 import { ArrowLeft, CheckCircle2, Loader2, Mail } from "lucide-react";

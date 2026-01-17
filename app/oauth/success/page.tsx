@@ -1,3 +1,8 @@
+/**
+ * @fileoverview OAuth success callback page.
+ * Verifies the session via backend, syncs user state to Zustand store, and redirects to dashboard or onboarding.
+ */
+
 "use client";
 
 import { Loader2 } from "lucide-react";
@@ -18,7 +23,11 @@ export default function OAuthSuccessPage() {
 	useEffect(() => {
 		const verifyAuth = async () => {
 			try {
-				// Call /auth/me with credentials to verify the cookie-based auth
+				/*
+				 * Verify session via backend and sync user state to Zustand store.
+				 * Backend provides httpOnly cookies; we use a marker token locally.
+				 * We track TOKEN_LIFETIME_SECONDS for session timeout warning and proactive refresh.
+				 */
 				const response = await fetch(`${API_URL}/v1/auth/me`, {
 					credentials: "include",
 				});
@@ -32,17 +41,12 @@ export default function OAuthSuccessPage() {
 				if (data.success && data.data) {
 					const userContext = data.data;
 
-					// Transform to UserProfile format
 					const userProfile = {
 						id: userContext.user.id,
 						email: userContext.user.email,
 						fullName: userContext.profile?.fullName || "",
 					};
 
-					// Login to store with COOKIE_AUTH marker
-					// Backend sets httpOnly cookies (access_token, refresh_token)
-					// Frontend cannot access these cookies, so we use a marker token
-					// We track expiry using TOKEN_LIFETIME_SECONDS for session timeout warning
 					login(
 						userProfile,
 						"COOKIE_AUTH", // Special marker for cookie-based authentication
@@ -51,7 +55,6 @@ export default function OAuthSuccessPage() {
 						userContext.user.isOnboardingComplete,
 					);
 
-					// Update preferences if available
 					if (userContext.preferences) {
 						updatePreferences({
 							fieldOfInterest: userContext.preferences.fieldOfInterest,
@@ -66,7 +69,6 @@ export default function OAuthSuccessPage() {
 						});
 					}
 
-					// Check if onboarding is needed
 					const needsOnboarding = searchParams.get("onboarding") === "true";
 
 					if (needsOnboarding || !userContext.user.isOnboardingComplete) {
@@ -111,7 +113,6 @@ export default function OAuthSuccessPage() {
 	);
 }
 
-// Type import for preferences
 interface UserPreferences {
 	campusSetting?: "urban" | "suburban" | "rural";
 }

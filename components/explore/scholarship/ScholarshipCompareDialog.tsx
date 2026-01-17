@@ -60,9 +60,6 @@ interface DeadlineInfo {
 // Helper Functions
 // ============================================================================
 
-/**
- * Get match badge based on fit category
- */
 function getMatchBadge(fitCategory?: string, fitScore?: number) {
 	const score = fitScore ?? 0;
 	switch (fitCategory) {
@@ -99,9 +96,6 @@ function getMatchBadge(fitCategory?: string, fitScore?: number) {
 	}
 }
 
-/**
- * Get deadline info with urgency calculation
- */
 function getDeadlineInfo(deadline?: string): DeadlineInfo {
 	if (!deadline) return { text: "N/A", isUrgent: false, daysLeft: null };
 	const daysUntil = Math.floor(
@@ -143,9 +137,6 @@ function getDeadlineInfo(deadline?: string): DeadlineInfo {
 	};
 }
 
-/**
- * Get coverage display
- */
 function getCoverageDisplay(scholarship: ScholarshipListItemResponse): string {
 	if (scholarship.coveragePercentage) {
 		return `${scholarship.coveragePercentage}% tuition`;
@@ -163,9 +154,6 @@ function getCoverageDisplay(scholarship: ScholarshipListItemResponse): string {
 // Sub-Components
 // ============================================================================
 
-/**
- * Scholarship header cell in comparison table
- */
 function ScholarshipHeaderCell({
 	scholarship,
 }: {
@@ -174,7 +162,6 @@ function ScholarshipHeaderCell({
 	return (
 		<th className="p-4 text-left border-l border-border min-w-64">
 			<div className="space-y-3">
-				{/* Logo + Match Badge */}
 				<div className="flex items-start justify-between gap-2">
 					<div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
 						{scholarship.universityLogoUrl ? (
@@ -192,7 +179,6 @@ function ScholarshipHeaderCell({
 					{getMatchBadge(scholarship.fitCategory, scholarship.fitScore)}
 				</div>
 
-				{/* Scholarship Name */}
 				<div>
 					<h3 className="font-semibold text-foreground line-clamp-2">
 						{scholarship.name}
@@ -202,7 +188,6 @@ function ScholarshipHeaderCell({
 					</p>
 				</div>
 
-				{/* Location */}
 				{scholarship.universityCountry && (
 					<div className="flex items-center gap-1 text-sm text-muted-foreground">
 						<MapPin className="w-3.5 h-3.5" />
@@ -216,9 +201,6 @@ function ScholarshipHeaderCell({
 	);
 }
 
-/**
- * Coverage row cell
- */
 function CoverageCell({
 	scholarship,
 }: {
@@ -243,9 +225,6 @@ function CoverageCell({
 	);
 }
 
-/**
- * Eligibility row cell
- */
 function EligibilityCell({
 	scholarship,
 }: {
@@ -268,9 +247,6 @@ function EligibilityCell({
 	);
 }
 
-/**
- * Degree levels row cell
- */
 function DegreeLevelsCell({
 	scholarship,
 }: {
@@ -293,9 +269,6 @@ function DegreeLevelsCell({
 	);
 }
 
-/**
- * Fields row cell
- */
 function FieldsCell({
 	scholarship,
 }: {
@@ -324,9 +297,6 @@ function FieldsCell({
 	);
 }
 
-/**
- * Deadline row cell
- */
 function DeadlineCell({
 	scholarship,
 }: {
@@ -370,9 +340,6 @@ function GpaCell({
 	);
 }
 
-/**
- * English requirements row cell
- */
 function EnglishCell({
 	scholarship,
 }: {
@@ -399,9 +366,6 @@ function EnglishCell({
 	);
 }
 
-/**
- * Detailed analysis row cell
- */
 function AnalysisCell({
 	scholarship,
 }: {
@@ -430,9 +394,6 @@ function AnalysisCell({
 	);
 }
 
-/**
- * Action buttons row cell
- */
 function ActionsCell({
 	scholarship,
 	onAddToDashboard,
@@ -466,9 +427,6 @@ function ActionsCell({
 	);
 }
 
-/**
- * Comparison table row label cell
- */
 function RowLabel({
 	icon: Icon,
 	label,
@@ -490,9 +448,6 @@ function RowLabel({
 // Main Component
 // ============================================================================
 
-/**
- * Scholarship Compare Dialog - Side-by-side comparison view for selected scholarships
- */
 export function ScholarshipCompareDialog({
 	open,
 	onOpenChange,

@@ -59,9 +59,6 @@ interface ScholarshipDetailDrawerProps {
 	onAddToDashboard?: (id: string) => void;
 }
 
-/**
- * Get status styling based on gap status
- */
 function getGapStatusStyle(status?: string): {
 	border: string;
 	bg: string;
@@ -99,9 +96,6 @@ function getGapStatusStyle(status?: string): {
 	}
 }
 
-/**
- * Format delta value with sign
- */
 function formatDelta(delta?: number): string {
 	if (delta === undefined || delta === null) return "";
 	const sign = delta >= 0 ? "+" : "";
@@ -111,9 +105,6 @@ function formatDelta(delta?: number): string {
 	return `${sign}${formatted}`;
 }
 
-/**
- * Gap-based requirement check item
- */
 function GapCheckItem({
 	label,
 	status,
@@ -210,9 +201,6 @@ function GapCheckItem({
 	);
 }
 
-/**
- * English gap display component
- */
 function EnglishGapItem({
 	gap,
 	fallbackIelts,
@@ -262,9 +250,6 @@ function EnglishGapItem({
 	);
 }
 
-/**
- * GPA gap display component
- */
 function GpaGapItem({
 	gap,
 	fallbackRequired,

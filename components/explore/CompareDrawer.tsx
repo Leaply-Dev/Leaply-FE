@@ -63,9 +63,6 @@ interface EnglishRequirement {
 // Helper Functions
 // ============================================================================
 
-/**
- * Get match badge based on fit category
- */
 function getMatchBadge(fitCategory?: string, fitScore?: number) {
 	const score = fitScore ?? 0;
 	switch (fitCategory) {
@@ -102,9 +99,6 @@ function getMatchBadge(fitCategory?: string, fitScore?: number) {
 	}
 }
 
-/**
- * Get deadline info with urgency calculation
- */
 function getDeadlineInfo(deadline?: string): DeadlineInfo {
 	if (!deadline) return { text: "N/A", isUrgent: false, daysLeft: null };
 	const daysUntil = Math.floor(
@@ -140,9 +134,6 @@ function getDeadlineInfo(deadline?: string): DeadlineInfo {
 	};
 }
 
-/**
- * Get English requirement from program data
- */
 function getEnglishRequirement(
 	program: ProgramListItemResponse,
 ): EnglishRequirement {
@@ -160,14 +151,10 @@ function getEnglishRequirement(
 // Sub-Components
 // ============================================================================
 
-/**
- * Program header cell in comparison table
- */
 function ProgramHeaderCell({ program }: { program: ProgramListItemResponse }) {
 	return (
 		<th className="p-4 text-left border-l border-border min-w-64">
 			<div className="space-y-3">
-				{/* University Logo + Match Badge */}
 				<div className="flex items-start justify-between gap-2">
 					<div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
 						{program.universityLogoUrl ? (
@@ -187,7 +174,6 @@ function ProgramHeaderCell({ program }: { program: ProgramListItemResponse }) {
 					{getMatchBadge(program.fitCategory, program.fitScore)}
 				</div>
 
-				{/* Program Name */}
 				<div>
 					<h3 className="font-semibold text-foreground">
 						{program.programName}
@@ -197,7 +183,6 @@ function ProgramHeaderCell({ program }: { program: ProgramListItemResponse }) {
 					</p>
 				</div>
 
-				{/* Location */}
 				<div className="flex items-center gap-1 text-sm text-muted-foreground">
 					<MapPin className="w-3.5 h-3.5" />
 					{formatCountryName(program.universityCountry)}
@@ -207,9 +192,6 @@ function ProgramHeaderCell({ program }: { program: ProgramListItemResponse }) {
 	);
 }
 
-/**
- * Tuition row cell
- */
 function TuitionCell({ program }: { program: ProgramListItemResponse }) {
 	return (
 		<td className="p-4 border-l border-border align-top">
@@ -232,9 +214,6 @@ function TuitionCell({ program }: { program: ProgramListItemResponse }) {
 	);
 }
 
-/**
- * Ranking row cell
- */
 function RankingCell({ program }: { program: ProgramListItemResponse }) {
 	return (
 		<td className="p-4 border-l border-border align-top">
@@ -267,9 +246,6 @@ function RankingCell({ program }: { program: ProgramListItemResponse }) {
 		</td>
 	);
 }
-/**
- * Degree and Delivery row cell
- */
 function DegreeDeliveryCell({ program }: { program: ProgramListItemResponse }) {
 	return (
 		<td className="p-4 border-l border-border align-top">
@@ -286,9 +262,6 @@ function DegreeDeliveryCell({ program }: { program: ProgramListItemResponse }) {
 	);
 }
 
-/**
- * Duration row cell
- */
 function DurationCell({ program }: { program: ProgramListItemResponse }) {
 	return (
 		<td className="p-4 border-l border-border align-top">
@@ -298,9 +271,6 @@ function DurationCell({ program }: { program: ProgramListItemResponse }) {
 		</td>
 	);
 }
-/**
- * Deadline row cell
- */
 function DeadlineCell({ program }: { program: ProgramListItemResponse }) {
 	const deadline = getDeadlineInfo(program.nextDeadline);
 	return (
@@ -318,13 +288,6 @@ function DeadlineCell({ program }: { program: ProgramListItemResponse }) {
 	);
 }
 
-/**
- * GPA requirements row cell
- * Note: GPA requirements data is sparse in our database, so we show N/A when not available
- */
-/**
- * GPA requirements row cell
- */
 function GpaCell({ program }: { program: ProgramListItemResponse }) {
 	if (program.gpaGap?.requiredValue) {
 		return (
@@ -345,9 +308,6 @@ function GpaCell({ program }: { program: ProgramListItemResponse }) {
 	);
 }
 
-/**
- * English requirements row cell
- */
 function EnglishCell({ program }: { program: ProgramListItemResponse }) {
 	const req = getEnglishRequirement(program);
 
@@ -368,10 +328,7 @@ function EnglishCell({ program }: { program: ProgramListItemResponse }) {
 	);
 }
 
-/**
- * Detailed analysis row cell
- * Note: In the future, this will show AI-generated analysis from the backend
- */
+// AI-generated analysis from backend (future feature)
 function AnalysisCell({ program }: { program: ProgramListItemResponse }) {
 	// Fit category-based simple insight
 	const getFitInsight = () => {
@@ -397,9 +354,6 @@ function AnalysisCell({ program }: { program: ProgramListItemResponse }) {
 	);
 }
 
-/**
- * Action buttons row cell
- */
 function ActionsCell({
 	program,
 	onAddToDashboard,
@@ -433,9 +387,6 @@ function ActionsCell({
 	);
 }
 
-/**
- * Comparison table row label cell
- */
 function RowLabel({
 	icon: Icon,
 	label,
@@ -457,9 +408,6 @@ function RowLabel({
 // Main Component
 // ============================================================================
 
-/**
- * Compare Dialog - Side-by-side comparison view for selected programs
- */
 export function CompareDialog({
 	open,
 	onOpenChange,
@@ -479,25 +427,21 @@ export function CompareDialog({
 
 				<ScrollArea className="max-h-[90vh] overflow-y-auto">
 					<div className="p-6">
-						{/* Comparison Table */}
 						<div className="border border-border rounded-lg overflow-hidden">
 							<table className="w-full">
 								<thead>
 									<tr className="border-b border-border bg-muted/30">
-										{/* Label Column */}
 										<th className="p-4 text-left font-medium text-sm text-muted-foreground w-40 align-top">
 											<span className="uppercase tracking-wide text-xs">
 												Tiêu chí so sánh
 											</span>
 										</th>
-										{/* Program Columns */}
 										{selectedProgramsList.map((program) => (
 											<ProgramHeaderCell key={program.id} program={program} />
 										))}
 									</tr>
 								</thead>
 								<tbody>
-									{/* Tuition Row */}
 									<tr className="border-b border-border">
 										<RowLabel icon={DollarSign} label="Học phí / năm" />
 										{selectedProgramsList.map((program) => (
@@ -505,7 +449,6 @@ export function CompareDialog({
 										))}
 									</tr>
 
-									{/* QS Ranking Row */}
 									<tr className="border-b border-border">
 										<RowLabel icon={Trophy} label="Xếp hạng QS" />
 										{selectedProgramsList.map((program) => (
@@ -513,7 +456,6 @@ export function CompareDialog({
 										))}
 									</tr>
 
-									{/* Degree & Delivery Row */}
 									<tr className="border-b border-border">
 										<RowLabel icon={BookOpen} label="Bằng cấp & Hình thức" />
 										{selectedProgramsList.map((program) => (
@@ -521,7 +463,6 @@ export function CompareDialog({
 										))}
 									</tr>
 
-									{/* Duration Row */}
 									<tr className="border-b border-border">
 										<RowLabel icon={Clock} label="Thời gian học" />
 										{selectedProgramsList.map((program) => (
@@ -529,7 +470,6 @@ export function CompareDialog({
 										))}
 									</tr>
 
-									{/* Deadline Row */}
 									<tr className="border-b border-border">
 										<RowLabel icon={Calendar} label="Hạn nộp hồ sơ" />
 										{selectedProgramsList.map((program) => (
@@ -537,7 +477,6 @@ export function CompareDialog({
 										))}
 									</tr>
 
-									{/* GPA Requirements Row */}
 									<tr className="border-b border-border">
 										<RowLabel icon={GraduationCap} label="Yêu cầu GPA" />
 										{selectedProgramsList.map((program) => (
@@ -545,7 +484,6 @@ export function CompareDialog({
 										))}
 									</tr>
 
-									{/* English Requirements Row */}
 									<tr className="border-b border-border">
 										<RowLabel icon={Languages} label="Tiếng Anh" />
 										{selectedProgramsList.map((program) => (
@@ -553,7 +491,6 @@ export function CompareDialog({
 										))}
 									</tr>
 
-									{/* Detailed Analysis Row */}
 									<tr className="border-b border-border bg-blue-50/50">
 										<td className="p-4 align-top">
 											<div className="flex items-start gap-2 text-sm font-medium text-primary">
@@ -571,7 +508,6 @@ export function CompareDialog({
 										))}
 									</tr>
 
-									{/* Actions Row */}
 									<tr>
 										<td className="p-4 align-top" />
 										{selectedProgramsList.map((program) => (
@@ -587,7 +523,6 @@ export function CompareDialog({
 							</table>
 						</div>
 
-						{/* Add More Programs CTA */}
 						{selectedProgramsList.length < 4 && (
 							<div className="mt-6 flex justify-center">
 								<Button

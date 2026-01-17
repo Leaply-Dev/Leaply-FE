@@ -359,7 +359,7 @@ function formatDuration(months?: number): string {
 	return `${years}y ${remainingMonths}m`;
 }
 
-// TODO: IntakeCard will be used once backend supports intake data
+// TODO: Enable IntakeCard when backend supports detailed intake data (seasons, deadlines, etc.)
 function _IntakeCard({
 	intake,
 	isExpanded,
@@ -439,7 +439,7 @@ export function ProgramDetailDrawer({
 	onCompare,
 	onAddToDashboard,
 }: ProgramDetailDrawerProps) {
-	// TODO: Intake expansion will be used once backend supports intake data
+	// TODO: Implement intake expansion UI when backend provides multiple intake periods
 	const [_expandedIntake, _setExpandedIntake] = useState<string | null>(null);
 
 	// Fetch detailed program data

@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Persona Lab page with concentric graph visualization and chat sidebar.
+ * Supports dual views (canvas/list), responsive mobile detection, and collapsible sidebar.
+ * The main canvas dynamically loads based on viewport and user preference.
+ */
+
 "use client";
 
 import { m } from "framer-motion";
@@ -50,7 +56,6 @@ const GraphListView = dynamic(
 	},
 );
 
-// Hook for responsive mobile detection
 function useIsMobile(breakpoint = 768) {
 	const [isMobile, setIsMobile] = useState(false);
 
@@ -59,10 +64,7 @@ function useIsMobile(breakpoint = 768) {
 			setIsMobile(window.innerWidth < breakpoint);
 		};
 
-		// Initial check
 		checkMobile();
-
-		// Add listener
 		window.addEventListener("resize", checkMobile);
 		return () => window.removeEventListener("resize", checkMobile);
 	}, [breakpoint]);
@@ -76,14 +78,11 @@ export default function PersonaLabPage() {
 	const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 	const isMobile = useIsMobile(768);
 
-	// Render the appropriate canvas/list component based on viewport and view mode
 	const renderContent = () => {
-		// Mobile: always show list view
 		if (isMobile) {
 			return <GraphListView className="w-full h-full" />;
 		}
 
-		// Desktop: respect view mode toggle
 		if (viewMode === "list") {
 			return <GraphListView className="w-full h-full" />;
 		}

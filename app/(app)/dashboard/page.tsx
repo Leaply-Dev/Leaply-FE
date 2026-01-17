@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Dashboard page with application tracking and analytics.
+ * Dynamically loads the dashboard client component with suspense-based loading skeleton.
+ */
+
 "use client";
 
 import dynamic from "next/dynamic";

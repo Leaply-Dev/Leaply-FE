@@ -116,34 +116,22 @@ export const BUDGET_LABEL_TO_KEY: Record<string, string> = {
 	need_full_scholarship: "need_full_scholarship",
 };
 
-/**
- * Transform an array of field labels to enum keys
- */
 export function mapFieldsToKeys(labels: string[]): string[] {
 	return labels
 		.map((label) => FIELD_LABEL_TO_KEY[label])
 		.filter((key): key is string => key !== undefined);
 }
 
-/**
- * Transform an array of region labels to enum keys
- */
 export function mapRegionsToKeys(labels: string[]): string[] {
 	return labels
 		.map((label) => REGION_LABEL_TO_KEY[label])
 		.filter((key): key is string => key !== undefined);
 }
 
-/**
- * Transform budget slider index to enum key
- */
 export function mapBudgetIndexToKey(index: number): string {
 	return BUDGET_INDEX_TO_KEY[index] ?? "500m_1b";
 }
 
-/**
- * Transform budget label to enum key
- */
 export function mapBudgetLabelToKey(label: string): string {
 	return BUDGET_LABEL_TO_KEY[label] ?? "500m_1b";
 }
@@ -183,44 +171,26 @@ export const BUDGET_KEY_TO_LABEL: Record<string, string> = {
 	need_full_scholarship: "Cần học bổng full",
 };
 
-/**
- * Transform an enum key to display label (field)
- */
 export function mapFieldKeyToLabel(key: string): string {
 	return FIELD_KEY_TO_LABEL[key] ?? key;
 }
 
-/**
- * Transform an enum key to display label (region)
- */
 export function mapRegionKeyToLabel(key: string): string {
 	return REGION_KEY_TO_LABEL[key] ?? key;
 }
 
-/**
- * Transform an enum key to display label (budget)
- */
 export function mapBudgetKeyToLabel(key: string): string {
 	return BUDGET_KEY_TO_LABEL[key] ?? key;
 }
 
-/**
- * Get all field options as { value, label } pairs for Select components
- */
 export const FIELD_OPTIONS = Object.entries(FIELD_KEY_TO_LABEL).map(
 	([value, label]) => ({ value, label }),
 );
 
-/**
- * Get all region options as { value, label } pairs for Select components
- */
 export const REGION_OPTIONS = Object.entries(REGION_KEY_TO_LABEL).map(
 	([value, label]) => ({ value, label }),
 );
 
-/**
- * Get all budget options as { value, label } pairs for Select components
- */
 export const BUDGET_OPTIONS = Object.entries(BUDGET_KEY_TO_LABEL).map(
 	([value, label]) => ({ value, label }),
 );

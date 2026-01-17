@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Email verification page.
+ * Handles token-based verification from link and allows resending verification emails with cooldown timer.
+ */
+
 "use client";
 
 import { CheckCircle2, Loader2, Mail, XCircle } from "lucide-react";

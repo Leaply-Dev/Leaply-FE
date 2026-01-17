@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Root layout for the entire application.
+ * Sets up Next-Intl for i18n, configures global providers, and forces dynamic rendering for client state consistency.
+ */
+
 import type { Metadata } from "next";
 import { Raleway } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
@@ -5,7 +10,6 @@ import { getLocale } from "next-intl/server";
 import { Providers } from "@/components/providers/Providers";
 import "./globals.css";
 
-// Force dynamic rendering for all pages to avoid prerender issues
 export const dynamic = "force-dynamic";
 
 const raleway = Raleway({ subsets: ["latin"], variable: "--font-sans" });

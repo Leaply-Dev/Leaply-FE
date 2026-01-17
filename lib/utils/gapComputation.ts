@@ -175,10 +175,8 @@ export function computeGapGrid(
 	};
 
 	// Work Experience Comparison - not available in new UserContextResponse
-	// Keep as unknown/default since field doesn't exist
+	// TODO: Add workExperienceYears to program requirements when backend provides this field
 	const userWorkExp = undefined;
-	// TODO: Get from program.requirements.workExperienceYears when available
-	// Default to undefined (no requirement known) for most programs
 	const requiredWorkExp = undefined;
 	const workExpStatus = computeGapStatus(userWorkExp, requiredWorkExp, true);
 

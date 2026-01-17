@@ -31,9 +31,6 @@ const REFRESH_TIMEOUT_MS = 10000;
 const MAX_REFRESH_RETRIES = 3;
 const RETRY_BASE_DELAY_MS = 1000; // 1s, 2s, 4s exponential backoff
 
-/**
- * Sleep utility for retry delays
- */
 function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -58,16 +55,10 @@ function isRetryableError(error: unknown, status?: number): boolean {
 	return false;
 }
 
-/**
- * Subscribe to token refresh completion
- */
 function subscribeTokenRefresh(callback: (token: string | null) => void) {
 	refreshSubscribers.push(callback);
 }
 
-/**
- * Notify all subscribers when token refresh completes (success or failure)
- */
 function onTokenRefreshed(newToken: string | null) {
 	for (const callback of refreshSubscribers) {
 		callback(newToken);
@@ -75,9 +66,6 @@ function onTokenRefreshed(newToken: string | null) {
 	refreshSubscribers = [];
 }
 
-/**
- * Clear all subscribers (used on failure to prevent memory leaks)
- */
 function clearRefreshSubscribers() {
 	for (const callback of refreshSubscribers) {
 		callback(null);
@@ -85,9 +73,6 @@ function clearRefreshSubscribers() {
 	refreshSubscribers = [];
 }
 
-/**
- * Check if using cookie-based authentication (OAuth)
- */
 export function isCookieAuth(): boolean {
 	const { accessToken, refreshToken } = useUserStore.getState();
 	return (
@@ -290,9 +275,6 @@ async function handleUnauthorized(): Promise<string | null> {
 	}
 }
 
-/**
- * Handle 403 Forbidden - show access denied, do NOT trigger refresh or logout
- */
 function handleForbidden() {
 	if (isDev) console.warn("Access denied (403 Forbidden)");
 	// Don't logout on 403 - user is authenticated but lacks permission

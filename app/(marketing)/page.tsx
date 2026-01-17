@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Landing page with hero, features, how-it-works, and CTA sections.
+ * Includes session expiration alert, parallax visuals, university carousel, and multi-step journey explainer.
+ */
+
 "use client";
 
 import { m } from "framer-motion";
@@ -321,14 +326,12 @@ export default function HomePage() {
 		...featuredUniversities,
 	];
 
-	// Stats with translations
 	const _stats = [
 		{ value: "2,000+", labelKey: "statsStudents", icon: Users },
 		{ value: "1,500+", labelKey: "statsUniversities", icon: School },
 		{ value: "50+", labelKey: "statsCountries", icon: MapPin },
 	];
 
-	// Features with translations
 	const features = [
 		{
 			icon: Globe,
@@ -356,7 +359,6 @@ export default function HomePage() {
 		},
 	];
 
-	// How it works steps with translations
 	const howItWorksSteps = [
 		{
 			step: 1,
@@ -752,7 +754,7 @@ export default function HomePage() {
 								className="bg-transparent border-secondary-foreground text-secondary-foreground/90 hover:bg-primary-foreground hover:text-primary text-lg px-8 py-6"
 								asChild
 							>
-								{/* TODO: add tNav login */}
+								{/* TODO: Add tNav.login translation key when i18n namespace is extended */}
 								<Link href="/login">{tNav("login")}</Link>
 							</Button>
 						</div>

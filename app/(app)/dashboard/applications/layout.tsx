@@ -1,4 +1,8 @@
-// Force dynamic rendering to avoid prerender issues with client state and translations
+/**
+ * @fileoverview Applications layout wrapper.
+ * Forces dynamic rendering to avoid prerender issues with client state and translations.
+ */
+
 export const dynamic = "force-dynamic";
 
 export default function ApplicationsLayout({

@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Reset password page.
+ * Validates password against requirements (length, uppercase, lowercase, number).
+ * Confirms password match before submitting reset request with token from query param.
+ */
+
 "use client";
 
 import { Check, CheckCircle2, Loader2, Lock, X, XCircle } from "lucide-react";

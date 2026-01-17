@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Onboarding page with multi-step setup wizard.
+ * Collects education level, program type, fields of study, regions, budget, timeline, and journey preferences.
+ * Dynamically loads the onboarding client with form state management.
+ */
+
 "use client";
 
 import dynamic from "next/dynamic";
