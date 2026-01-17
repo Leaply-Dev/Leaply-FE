@@ -77,6 +77,12 @@ export function Navbar() {
 			.slice(0, 2);
 	};
 
+	// Get avatar source
+	const getAvatarSrc = (avatarNum: number | null | undefined) => {
+		if (!avatarNum || avatarNum < 1 || avatarNum > 9) return null;
+		return `/avatar/${avatarNum}.png`;
+	};
+
 	// Handle logout - call backend to clear httpOnly cookies, then use performLogout
 	const handleLogout = async () => {
 		try {
@@ -146,7 +152,10 @@ export function Navbar() {
 								>
 									<Avatar className="w-8 h-8 border-2 border-primary/20">
 										<AvatarImage
-											src={profile?.profilePicture}
+											src={
+												getAvatarSrc(profile?.avatarNum) ||
+												profile?.profilePicture
+											}
 											alt={profile?.fullName}
 										/>
 										<AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
@@ -254,7 +263,10 @@ export function Navbar() {
 										<div className="flex items-center gap-3 px-1 py-2">
 											<Avatar className="w-8 h-8 border-2 border-primary/20">
 												<AvatarImage
-													src={profile?.profilePicture}
+													src={
+														getAvatarSrc(profile?.avatarNum) ||
+														profile?.profilePicture
+													}
 													alt={profile?.fullName}
 												/>
 												<AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">

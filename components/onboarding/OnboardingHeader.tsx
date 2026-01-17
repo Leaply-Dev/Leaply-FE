@@ -56,6 +56,12 @@ export function OnboardingHeader() {
 		return name.slice(0, 2).toUpperCase();
 	};
 
+	// Get avatar source
+	const getAvatarSrc = (avatarNum: number | null | undefined) => {
+		if (!avatarNum || avatarNum < 1 || avatarNum > 9) return null;
+		return `/avatar/${avatarNum}.png`;
+	};
+
 	return (
 		<div className="w-full border-b border-border">
 			<div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
@@ -81,7 +87,10 @@ export function OnboardingHeader() {
 							>
 								<Avatar className="h-9 w-9 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all">
 									<AvatarImage
-										src={profile?.profilePicture}
+										src={
+											getAvatarSrc(profile?.avatarNum) ||
+											profile?.profilePicture
+										}
 										alt={profile?.fullName || "User"}
 									/>
 									<AvatarFallback className="bg-primary/10 text-primary font-medium">
