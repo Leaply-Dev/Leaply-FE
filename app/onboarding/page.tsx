@@ -115,8 +115,8 @@ export default function OnboardingPage() {
 			disabled: true,
 		},
 		{ value: "masters", label: t("step1.programs.masters") },
-		{ value: "mba", label: t("step1.programs.mba") },
-		{ value: "phd", label: t("step1.programs.phd") },
+		{ value: "mba", label: t("step1.programs.mba"), disabled: true },
+		{ value: "phd", label: t("step1.programs.phd"), disabled: true },
 	];
 
 	const fieldsOfStudy = [

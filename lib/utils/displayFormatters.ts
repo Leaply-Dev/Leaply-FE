@@ -382,3 +382,203 @@ export function displayValue<T>(
 	if (formatter) return formatter(value);
 	return String(value);
 }
+
+// =============================================================================
+// Scholarship Formatters
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Scholarship Source Type
+// -----------------------------------------------------------------------------
+
+const SOURCE_TYPE_LABELS: Record<string, string> = {
+	university: "University",
+	government: "Government",
+	foundation: "Foundation",
+};
+
+/**
+ * Format scholarship source type enum to display label
+ * @example "university" → "University"
+ * @example "foundation" → "Foundation"
+ */
+export function formatSourceType(type?: string | null): string {
+	if (!type) return "N/A";
+	return SOURCE_TYPE_LABELS[type.toLowerCase()] || formatSnakeCase(type);
+}
+
+// -----------------------------------------------------------------------------
+// Scholarship Coverage Type
+// -----------------------------------------------------------------------------
+
+const COVERAGE_TYPE_LABELS: Record<string, string> = {
+	full_funded: "Full Funded",
+	partial_funded: "Partial Funded",
+};
+
+/**
+ * Format scholarship coverage type enum to display label
+ * @example "full_funded" → "Full Funded"
+ * @example "partial_funded" → "Partial Funded"
+ */
+export function formatCoverageType(type?: string | null): string {
+	if (!type) return "N/A";
+	return COVERAGE_TYPE_LABELS[type.toLowerCase()] || formatSnakeCase(type);
+}
+
+// -----------------------------------------------------------------------------
+// Scholarship Coverage Duration
+// -----------------------------------------------------------------------------
+
+const COVERAGE_DURATION_LABELS: Record<string, string> = {
+	first_year: "First Year Only",
+	annual_renewable: "Annual (Renewable)",
+	full_program: "Full Program",
+	one_time: "One-time",
+	not_specified: "Not Specified",
+	other: "Other",
+};
+
+/**
+ * Format scholarship coverage duration enum to display label
+ * @example "annual_renewable" → "Annual (Renewable)"
+ * @example "full_program" → "Full Program"
+ */
+export function formatCoverageDuration(duration?: string | null): string {
+	if (!duration) return "N/A";
+	return (
+		COVERAGE_DURATION_LABELS[duration.toLowerCase()] ||
+		formatSnakeCase(duration)
+	);
+}
+
+// -----------------------------------------------------------------------------
+// Scholarship Eligibility Type
+// -----------------------------------------------------------------------------
+
+const ELIGIBILITY_TYPE_LABELS: Record<string, string> = {
+	merit: "Merit-based",
+	need_based: "Need-based",
+};
+
+/**
+ * Format scholarship eligibility type enum to display label
+ * @example "merit" → "Merit-based"
+ * @example "need_based" → "Need-based"
+ */
+export function formatEligibilityType(type?: string | null): string {
+	if (!type) return "N/A";
+	return ELIGIBILITY_TYPE_LABELS[type.toLowerCase()] || formatSnakeCase(type);
+}
+
+// -----------------------------------------------------------------------------
+// Scholarship Eligibility Focus
+// -----------------------------------------------------------------------------
+
+const ELIGIBILITY_FOCUS_LABELS: Record<string, string> = {
+	academic: "Academic",
+	holistic: "Holistic",
+	leadership: "Leadership",
+	research: "Research",
+	community_service: "Community Service",
+};
+
+/**
+ * Format scholarship eligibility focus enum to display label
+ * @example "community_service" → "Community Service"
+ * @example "leadership" → "Leadership"
+ */
+export function formatEligibilityFocus(focus?: string | null): string {
+	if (!focus) return "N/A";
+	return (
+		ELIGIBILITY_FOCUS_LABELS[focus.toLowerCase()] || formatSnakeCase(focus)
+	);
+}
+
+// -----------------------------------------------------------------------------
+// Scholarship Degree Level
+// -----------------------------------------------------------------------------
+
+const SCHOLARSHIP_DEGREE_LEVEL_LABELS: Record<string, string> = {
+	bachelor: "Bachelor's",
+	master: "Master's",
+	phd: "PhD",
+};
+
+/**
+ * Format scholarship degree level enum to display label
+ * Note: This is different from program DegreeType which uses "masters" (plural)
+ * @example "master" → "Master's"
+ * @example "phd" → "PhD"
+ */
+export function formatScholarshipDegreeLevel(level?: string | null): string {
+	if (!level) return "N/A";
+	return (
+		SCHOLARSHIP_DEGREE_LEVEL_LABELS[level.toLowerCase()] ||
+		formatSnakeCase(level)
+	);
+}
+
+// -----------------------------------------------------------------------------
+// Required Document
+// -----------------------------------------------------------------------------
+
+const REQUIRED_DOCUMENT_LABELS: Record<string, string> = {
+	transcript: "Transcript",
+	cv: "CV/Resume",
+	motivation_letter: "Motivation Letter",
+	recommendation_letters: "Recommendation Letters",
+	portfolio: "Portfolio",
+	research_proposal: "Research Proposal",
+	financial_documents: "Financial Documents",
+	language_certificate: "Language Certificate",
+};
+
+/**
+ * Format required document enum to display label
+ * @example "recommendation_letters" → "Recommendation Letters"
+ * @example "cv" → "CV/Resume"
+ */
+export function formatRequiredDocument(doc?: string | null): string {
+	if (!doc) return "N/A";
+	return REQUIRED_DOCUMENT_LABELS[doc.toLowerCase()] || formatSnakeCase(doc);
+}
+
+// -----------------------------------------------------------------------------
+// Scholarship Amount Formatting
+// -----------------------------------------------------------------------------
+
+/**
+ * Format scholarship coverage amount range
+ * @example (5000, 10000) → "$5,000 - $10,000"
+ * @example (null, 50000) → "Up to $50,000"
+ * @example (10000, null) → "From $10,000"
+ */
+export function formatCoverageAmount(
+	min?: number | null,
+	max?: number | null,
+	options?: { compact?: boolean },
+): string {
+	if (min === null && max === null) return "N/A";
+	if (min === undefined && max === undefined) return "N/A";
+
+	const formatFn = (val: number) => formatCurrency(val, options);
+
+	if (min && max) {
+		if (min === max) return formatFn(min);
+		return `${formatFn(min)} - ${formatFn(max)}`;
+	}
+	if (max) return `Up to ${formatFn(max)}`;
+	if (min) return `From ${formatFn(min)}`;
+	return "N/A";
+}
+
+/**
+ * Format coverage percentage
+ * @example 100 → "100% coverage"
+ * @example 50 → "50% coverage"
+ */
+export function formatCoveragePercentage(percent?: number | null): string {
+	if (percent === null || percent === undefined) return "N/A";
+	return `${percent}% coverage`;
+}
