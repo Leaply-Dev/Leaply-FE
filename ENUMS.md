@@ -194,3 +194,144 @@ import { formatDeliveryMode, formatDuration } from "@/lib/utils/displayFormatter
 - `ProgramDetailDrawer.tsx` - Program detail view
 - `CompareDrawer.tsx` - Compare programs view
 - `ManualMode.tsx` - Table view in Explore
+
+---
+
+## Scholarship Enums
+
+The following enums are used for the Scholarship module.
+
+### Scholarship Source Type
+
+Who provides the scholarship.
+
+| Enum Key | Display Label | Description |
+|----------|--------------|-------------|
+| `university` | University | Offered directly by a university |
+| `government` | Government | Government-funded scholarship |
+| `foundation` | Foundation | Private foundation or organization |
+
+**Source file:** `Leaply-BE/src/main/java/ai/leaply/scholarship/enums/ScholarshipSourceType.java`
+
+---
+
+### Scholarship Coverage Type
+
+How much the scholarship covers.
+
+| Enum Key | Display Label | Description |
+|----------|--------------|-------------|
+| `full_funded` | Full Funded | Covers all tuition and possibly living expenses |
+| `partial_funded` | Partial Funded | Covers a portion of costs |
+
+**Source file:** `Leaply-BE/src/main/java/ai/leaply/scholarship/enums/ScholarshipCoverageType.java`
+
+---
+
+### Scholarship Coverage Duration
+
+How long the scholarship coverage lasts.
+
+| Enum Key | Display Label | Description |
+|----------|--------------|-------------|
+| `first_year` | First Year Only | Only covers the first year |
+| `annual_renewable` | Annual (Renewable) | Renewed each year based on criteria |
+| `full_program` | Full Program | Covers entire program duration |
+| `one_time` | One-time | Single payment/award |
+| `not_specified` | Not Specified | Duration not provided |
+| `other` | Other | Other duration arrangement |
+
+**Source file:** `Leaply-BE/src/main/java/ai/leaply/scholarship/enums/ScholarshipCoverageDuration.java`
+
+---
+
+### Scholarship Eligibility Type
+
+The basis for scholarship eligibility.
+
+| Enum Key | Display Label | Description |
+|----------|--------------|-------------|
+| `merit` | Merit-based | Based on academic or achievement merit |
+| `need_based` | Need-based | Based on financial need |
+
+**Source file:** `Leaply-BE/src/main/java/ai/leaply/scholarship/enums/ScholarshipEligibilityType.java`
+
+---
+
+### Scholarship Eligibility Focus
+
+The primary focus area for scholarship selection.
+
+| Enum Key | Display Label | Description |
+|----------|--------------|-------------|
+| `academic` | Academic | Focus on academic excellence |
+| `holistic` | Holistic | Considers overall profile |
+| `leadership` | Leadership | Focus on leadership experience |
+| `research` | Research | Focus on research potential |
+| `community_service` | Community Service | Focus on community involvement |
+
+**Source file:** `Leaply-BE/src/main/java/ai/leaply/scholarship/enums/ScholarshipEligibilityFocus.java`
+
+---
+
+### Scholarship Degree Level
+
+Which degree levels the scholarship supports.
+
+| Enum Key | Display Label |
+|----------|--------------|
+| `bachelor` | Bachelor's |
+| `master` | Master's |
+| `phd` | PhD |
+
+**Note:** This uses `master` (singular) while Program's DegreeType uses `masters` (plural). The formatter handles both.
+
+**Source file:** `Leaply-BE/src/main/java/ai/leaply/scholarship/enums/ScholarshipDegreeLevel.java`
+
+---
+
+### Required Documents
+
+Documents required for scholarship application.
+
+| Enum Key | Display Label |
+|----------|--------------|
+| `transcript` | Transcript |
+| `cv` | CV/Resume |
+| `motivation_letter` | Motivation Letter |
+| `recommendation_letters` | Recommendation Letters |
+| `portfolio` | Portfolio |
+| `research_proposal` | Research Proposal |
+| `financial_documents` | Financial Documents |
+| `language_certificate` | Language Certificate |
+
+**Source file:** `Leaply-BE/src/main/java/ai/leaply/scholarship/enums/RequiredDocument.java`
+
+---
+
+## Scholarship Display Formatters
+
+The frontend has formatters for scholarship enums in `Leaply-FE/lib/utils/displayFormatters.ts`:
+
+| Function | Input Example | Output Example |
+|----------|--------------|----------------|
+| `formatSourceType(type)` | `"university"` | `"University"` |
+| `formatCoverageType(type)` | `"full_funded"` | `"Full Funded"` |
+| `formatCoverageDuration(dur)` | `"annual_renewable"` | `"Annual (Renewable)"` |
+| `formatEligibilityType(type)` | `"merit"` | `"Merit-based"` |
+| `formatEligibilityFocus(focus)` | `"community_service"` | `"Community Service"` |
+| `formatScholarshipDegreeLevel(level)` | `"master"` | `"Master's"` |
+| `formatRequiredDocument(doc)` | `"recommendation_letters"` | `"Recommendation Letters"` |
+
+### Usage
+
+```typescript
+import { 
+  formatCoverageType, 
+  formatEligibilityType 
+} from "@/lib/utils/displayFormatters";
+
+// In JSX
+<p>{formatCoverageType(scholarship.coverageType)}</p>  // "Full Funded"
+<p>{formatEligibilityType(scholarship.eligibilityType)}</p>  // "Merit-based"
+```
