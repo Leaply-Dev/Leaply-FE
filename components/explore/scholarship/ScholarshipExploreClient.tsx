@@ -1,7 +1,9 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { Sparkles, Table } from "lucide-react";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ScholarshipTabBasedCategories } from "@/components/explore/scholarship/ScholarshipAIMatchMode";
 import { ScholarshipCompareDialog } from "@/components/explore/scholarship/ScholarshipCompareDialog";
@@ -11,12 +13,17 @@ import { ScholarshipManualMode } from "@/components/explore/scholarship/Scholars
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import {
+	getGetApplicationsQueryKey,
+	useCreateApplication,
+	useGetApplications,
+} from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
 import type {
 	ScholarshipAiMatchResponse,
+	ScholarshipApplicationListResponse,
 	ScholarshipListItemResponse,
 } from "@/lib/generated/api/models";
 import { useScholarshipAiMatch } from "@/lib/hooks/useScholarshipAiMatch";
-import { useSaveScholarship } from "@/lib/hooks/useScholarships";
 import { cn } from "@/lib/utils";
 
 /**
@@ -45,6 +52,8 @@ function ScholarshipCardSkeleton() {
 }
 
 export function ScholarshipExploreClient() {
+	const queryClient = useQueryClient();
+	const router = useRouter();
 	const [activeMode, setActiveMode] = useState<"ai" | "manual">("ai");
 
 	// Detail drawer state for AI mode
@@ -59,7 +68,25 @@ export function ScholarshipExploreClient() {
 		error: aiMatchError,
 	} = useScholarshipAiMatch();
 
-	const saveMutation = useSaveScholarship();
+	// Fetch existing scholarship applications to check if already applied
+	const { data: scholarshipAppsResponse } = useGetApplications();
+	const scholarshipAppsData =
+		unwrapResponse<ScholarshipApplicationListResponse>(scholarshipAppsResponse);
+	const scholarshipApplications = scholarshipAppsData?.applications ?? [];
+
+	// Create a map of scholarshipId -> applicationId for quick lookup
+	const applicationsByScholarshipId = useMemo(() => {
+		const map = new Map<string, string>();
+		for (const app of scholarshipApplications) {
+			if (app.scholarship?.id && app.id) {
+				map.set(app.scholarship.id, app.id);
+			}
+		}
+		return map;
+	}, [scholarshipApplications]);
+
+	// Mutation for creating scholarship applications
+	const createApplicationMutation = useCreateApplication();
 
 	// Extract scholarships from AI match response
 	const aiMatchResult = unwrapResponse<ScholarshipAiMatchResponse>(aiMatchData);
@@ -71,52 +98,51 @@ export function ScholarshipExploreClient() {
 			]
 		: [];
 
-	const handleSaveToggle = (id: string) => {
-		const scholarship = allScholarships.find((s) => s.id === id);
-		if (!scholarship) return;
+	const handleAddToDashboard = (scholarshipId: string) => {
+		// Check if already in dashboard
+		if (applicationsByScholarshipId.has(scholarshipId)) {
+			toast.info("Học bổng đã có trong danh sách", {
+				description: "Bạn đã thêm học bổng này vào dashboard.",
+			});
+			return;
+		}
 
-		// Trigger mutation (includes optimistic update)
-		saveMutation.mutate(
-			{ id, isSaved: scholarship.isSaved ?? false },
+		// Create scholarship application
+		createApplicationMutation.mutate(
+			{ data: { scholarshipId } },
 			{
-				onSuccess: () => {
-					toast.success(
-						scholarship.isSaved
-							? "Scholarship removed from saved"
-							: "Scholarship saved",
-					);
+				onSuccess: async () => {
+					// Invalidate queries to refresh data
+					await queryClient.invalidateQueries({
+						queryKey: getGetApplicationsQueryKey(),
+					});
+					toast.success("Đã thêm vào danh sách ứng tuyển", {
+						description: "Học bổng đã được thêm vào dashboard của bạn.",
+					});
+					router.push("/dashboard/applications?tab=scholarships");
 				},
 				onError: () => {
-					toast.error("Failed to update scholarship");
+					toast.error("Không thể thêm học bổng", {
+						description: "Vui lòng thử lại sau.",
+					});
 				},
 			},
 		);
 	};
 
-	const handleAddToDashboard = (scholarshipId: string) => {
-		// For now, show info toast - scholarships don't have direct application flow like programs
-		// In the future, this could link to associated program or external application
-		const scholarship = allScholarships.find((s) => s.id === scholarshipId);
-		if (scholarship?.url) {
-			window.open(scholarship.url, "_blank", "noopener,noreferrer");
+	const handleManageApplication = (scholarshipId: string) => {
+		const applicationId = applicationsByScholarshipId.get(scholarshipId);
+		if (applicationId) {
+			router.push(
+				`/dashboard/applications?tab=scholarships&id=${applicationId}`,
+			);
 		} else {
-			toast.info("Scholarship application", {
-				description:
-					"Please check the scholarship details for application instructions.",
-			});
+			router.push("/dashboard/applications?tab=scholarships");
 		}
 	};
 
-	const handleManageApplication = (_scholarshipId: string) => {
-		// Placeholder - scholarships may not have application management in MVP
-		toast.info("Feature coming soon", {
-			description: "Scholarship application management will be available soon.",
-		});
-	};
-
-	const isScholarshipInDashboard = (_scholarshipId: string) => {
-		// Placeholder - for now, scholarships aren't tracked in dashboard like programs
-		return false;
+	const isScholarshipInDashboard = (scholarshipId: string) => {
+		return applicationsByScholarshipId.has(scholarshipId);
 	};
 
 	// Compare state
