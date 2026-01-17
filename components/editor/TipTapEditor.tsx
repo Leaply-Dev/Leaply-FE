@@ -41,6 +41,7 @@ export function TipTapEditor({
 	const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
 	const editor = useEditor({
+		immediatelyRender: false,
 		extensions: [
 			StarterKit.configure({
 				heading: {
