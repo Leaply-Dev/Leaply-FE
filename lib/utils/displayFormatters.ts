@@ -122,56 +122,8 @@ export function formatLanguage(lang?: string | null): string {
 }
 
 // =============================================================================
-// University Type
-// =============================================================================
-
-const UNIVERSITY_TYPE_LABELS: Record<string, string> = {
-	public: "Public",
-	private: "Private",
-	"private-nonprofit": "Private Non-profit",
-	"private-forprofit": "Private For-profit",
-};
-
-/**
- * Format university type enum to display label
- * @example "public" → "Public"
- */
-export function formatUniversityType(type?: string | null): string {
-	if (!type) return "N/A";
-	return UNIVERSITY_TYPE_LABELS[type.toLowerCase()] || formatSnakeCase(type);
-}
-
-// =============================================================================
 // Currency & Numbers
 // =============================================================================
-
-/**
- * Format currency value to USD display
- * @example 45000 → "$45,000"
- */
-export function formatCurrency(
-	value?: number | null,
-	options?: { compact?: boolean },
-): string {
-	if (value === null || value === undefined) return "N/A";
-
-	if (options?.compact) {
-		// Compact format: $45k, $1.2M
-		if (value >= 1_000_000) {
-			return `$${(value / 1_000_000).toFixed(1)}M`;
-		}
-		if (value >= 1_000) {
-			return `$${Math.round(value / 1_000)}k`;
-		}
-		return `$${value}`;
-	}
-
-	return new Intl.NumberFormat("en-US", {
-		style: "currency",
-		currency: "USD",
-		maximumFractionDigits: 0,
-	}).format(value);
-}
 
 /**
  * Format tuition with /year suffix
@@ -179,7 +131,13 @@ export function formatCurrency(
  */
 export function formatTuitionPerYear(value?: number | null): string {
 	if (value === null || value === undefined) return "N/A";
-	return `${formatCurrency(value, { compact: true })}/yr`;
+	// Format as USD currency
+	const formatted = new Intl.NumberFormat("en-US", {
+		style: "currency",
+		currency: "USD",
+		maximumFractionDigits: 0,
+	}).format(value);
+	return `${formatted}/yr`;
 }
 
 // =============================================================================
@@ -212,21 +170,6 @@ export function formatDuration(months?: number | null): string {
 	}
 
 	return `${years}y ${remainingMonths}m`;
-}
-
-/**
- * Format duration range (min-max months)
- * @example (18, 24) → "18-24 months"
- */
-export function formatDurationRange(
-	minMonths?: number | null,
-	maxMonths?: number | null,
-): string {
-	if (!minMonths && !maxMonths) return "N/A";
-	if (!maxMonths || minMonths === maxMonths) return formatDuration(minMonths);
-	if (!minMonths) return formatDuration(maxMonths);
-
-	return `${minMonths}-${maxMonths} months`;
 }
 
 // =============================================================================
@@ -288,99 +231,6 @@ export function isDeadlinePast(dateStr?: string | null): boolean {
 export function formatIeltsRequirement(score?: number | null): string {
 	if (score === null || score === undefined) return "";
 	return `IELTS ${score}+`;
-}
-
-/**
- * Format TOEFL requirement
- * @example 100 → "TOEFL 100+"
- */
-export function formatToeflRequirement(score?: number | null): string {
-	if (score === null || score === undefined) return "";
-	return `TOEFL ${score}+`;
-}
-
-/**
- * Format GPA requirement
- * @example 3.5 → "GPA 3.5+"
- */
-export function formatGpaRequirement(gpa?: number | null): string {
-	if (gpa === null || gpa === undefined) return "";
-	return `GPA ${gpa}+`;
-}
-
-// =============================================================================
-// Fit Category
-// =============================================================================
-
-const FIT_CATEGORY_LABELS: Record<string, string> = {
-	safety: "Safety",
-	target: "Target",
-	reach: "Reach",
-};
-
-const FIT_CATEGORY_LABELS_VI: Record<string, string> = {
-	safety: "An toàn",
-	target: "Phù hợp",
-	reach: "Thử thách",
-};
-
-/**
- * Format fit category enum to display label
- * @example "safety" → "Safety"
- */
-export function formatFitCategory(
-	category?: string | null,
-	locale: "en" | "vi" = "en",
-): string {
-	if (!category) return "N/A";
-	const labels = locale === "vi" ? FIT_CATEGORY_LABELS_VI : FIT_CATEGORY_LABELS;
-	return labels[category.toLowerCase()] || formatSnakeCase(category);
-}
-
-// =============================================================================
-// Region (reuse from onboardingMappings but export here for consistency)
-// =============================================================================
-
-const REGION_LABELS: Record<string, string> = {
-	east_asia: "East Asia",
-	southeast_asia: "Southeast Asia",
-	western_europe: "Western Europe",
-	central_europe: "Central Europe",
-	northern_europe: "Northern Europe",
-	north_america: "North America",
-	oceania: "Oceania",
-};
-
-/**
- * Format region enum to display label
- * @example "north_america" → "North America"
- */
-export function formatRegion(region?: string | null): string {
-	if (!region) return "N/A";
-	return REGION_LABELS[region.toLowerCase()] || formatSnakeCase(region);
-}
-
-// =============================================================================
-// Null/Empty Value Handling
-// =============================================================================
-
-/** Vietnamese "no data" placeholder */
-export const NO_DATA_VI = "Chưa có dữ liệu";
-
-/** English "no data" placeholder */
-export const NO_DATA_EN = "N/A";
-
-/**
- * Return value or fallback for display
- */
-export function displayValue<T>(
-	value: T | null | undefined,
-	formatter?: (v: T) => string,
-	fallback: string = NO_DATA_EN,
-): string {
-	if (value === null || value === undefined) return fallback;
-	if (formatter) return formatter(value);
-	return String(value);
 }
 
 // =============================================================================
@@ -562,7 +412,23 @@ export function formatCoverageAmount(
 	if (min === null && max === null) return "N/A";
 	if (min === undefined && max === undefined) return "N/A";
 
-	const formatFn = (val: number) => formatCurrency(val, options);
+	const formatFn = (val: number) => {
+		if (options?.compact) {
+			// Compact format: $45k, $1.2M
+			if (val >= 1_000_000) {
+				return `$${(val / 1_000_000).toFixed(1)}M`;
+			}
+			if (val >= 1_000) {
+				return `$${Math.round(val / 1_000)}k`;
+			}
+			return `$${val}`;
+		}
+		return new Intl.NumberFormat("en-US", {
+			style: "currency",
+			currency: "USD",
+			maximumFractionDigits: 0,
+		}).format(val);
+	};
 
 	if (min && max) {
 		if (min === max) return formatFn(min);
@@ -571,14 +437,4 @@ export function formatCoverageAmount(
 	if (max) return `Up to ${formatFn(max)}`;
 	if (min) return `From ${formatFn(min)}`;
 	return "N/A";
-}
-
-/**
- * Format coverage percentage
- * @example 100 → "100% coverage"
- * @example 50 → "50% coverage"
- */
-export function formatCoveragePercentage(percent?: number | null): string {
-	if (percent === null || percent === undefined) return "N/A";
-	return `${percent}% coverage`;
 }

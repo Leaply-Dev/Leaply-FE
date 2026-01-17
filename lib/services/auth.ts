@@ -7,23 +7,6 @@ import type {
 	UserContextResponse,
 } from "@/lib/generated/api/models";
 
-export interface VerifyEmailRequest {
-	token: string;
-}
-
-export interface ResendVerificationRequest {
-	email: string;
-}
-
-export interface ForgotPasswordRequest {
-	email: string;
-}
-
-export interface ResetPasswordRequest {
-	token: string;
-	newPassword: string;
-}
-
 export const authService = {
 	login: async (credentials: LoginRequest): Promise<AuthResponse> => {
 		return apiClient.post<AuthResponse>("/v1/auth/login", credentials);

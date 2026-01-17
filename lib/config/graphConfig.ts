@@ -269,10 +269,3 @@ export function getNodeConfig(nodeType: string) {
 		}
 	);
 }
-
-// Type exports
-export type LegacyNodeType = keyof typeof NODE_CONFIG;
-export type GraphNodeType = keyof typeof GRAPH_NODE_CONFIG;
-export type AllNodeType = keyof typeof ALL_NODE_CONFIG;
-export type GraphEdgeLabel = keyof typeof GRAPH_EDGE_CONFIG;
-export type CoverageCategory = keyof typeof COVERAGE_COLORS;

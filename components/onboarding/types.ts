@@ -77,27 +77,10 @@ export interface Preferences {
 	budgetIndex: number;
 }
 
-export interface StepProps {
-	translations: OnboardingTranslations;
-	constants: OnboardingConstants;
-	onNext: () => void;
-	onBack: () => void;
-}
-
 export interface StepContainerProps {
 	stepKey: string;
 	title: string;
 	subtitle: string;
 	children: React.ReactNode;
 	variant?: "card" | "plain";
-}
-
-export interface StepNavigationProps {
-	backLabel: string;
-	continueLabel: string;
-	onBack: () => void;
-	onNext: () => void;
-	isBackDisabled?: boolean;
-	isNextDisabled?: boolean;
-	showContinue?: boolean;
 }

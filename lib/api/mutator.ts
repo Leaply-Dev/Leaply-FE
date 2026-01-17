@@ -268,13 +268,3 @@ export const customInstance = async <T>(
 };
 
 export default customInstance;
-
-/**
- * Error type for Orval-generated hooks
- */
-export type ErrorType<Error> = Error;
-
-/**
- * Body type for Orval-generated hooks
- */
-export type BodyType<BodyData> = BodyData;

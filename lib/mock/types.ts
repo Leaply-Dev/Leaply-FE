@@ -32,14 +32,6 @@ export interface DetailFixture {
 	relatedStories: string[];
 }
 
-export interface ConversationTurnFixture {
-	userMessage: string;
-	assistantMessage: string;
-	triggeredNodes: string[];
-	coverageIncrease: number;
-	starGapsDetected: string[];
-}
-
 export type ConversationScenario =
 	| "fresh-start"
 	| "building-momentum"
