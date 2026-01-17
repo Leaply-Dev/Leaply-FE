@@ -1,8 +1,12 @@
 "use client";
 
+import { Award, GraduationCap } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Dynamic import for ExploreClient (405 lines - large component with complex state)
 const ExploreClient = dynamic(
@@ -12,6 +16,18 @@ const ExploreClient = dynamic(
 		),
 	{
 		ssr: false, // Client-side only due to auth and complex state management
+		loading: () => <ExplorePageSkeleton />,
+	},
+);
+
+// Dynamic import for ScholarshipExploreClient
+const ScholarshipExploreClient = dynamic(
+	() =>
+		import("@/components/explore/scholarship/ScholarshipExploreClient").then(
+			(mod) => mod.ScholarshipExploreClient,
+		),
+	{
+		ssr: false,
 		loading: () => <ExplorePageSkeleton />,
 	},
 );
@@ -96,12 +112,62 @@ function ExplorePageSkeleton() {
 	);
 }
 
+function ExplorePageContent() {
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const activeTab = searchParams.get("tab") || "programs";
+
+	const handleTabChange = (value: string) => {
+		const params = new URLSearchParams(searchParams.toString());
+		params.set("tab", value);
+		router.push(`/explore?${params.toString()}`, { scroll: false });
+	};
+
+	return (
+		<PageTransition className="flex flex-col min-h-screen">
+			{/* Top-Level Tabs: Programs | Scholarships */}
+			<div className="border-b border-border bg-background sticky top-0 z-40">
+				<div className="container mx-auto px-6">
+					<Tabs
+						value={activeTab}
+						onValueChange={handleTabChange}
+						className="w-full"
+					>
+						<TabsList className="h-14 w-full justify-start gap-1 bg-transparent p-0 rounded-none border-b-0">
+							<TabsTrigger
+								value="programs"
+								className="relative h-14 rounded-none border-b-2 border-transparent px-6 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none gap-2 font-semibold"
+							>
+								<GraduationCap className="w-5 h-5" />
+								<span>Programs</span>
+							</TabsTrigger>
+							<TabsTrigger
+								value="scholarships"
+								className="relative h-14 rounded-none border-b-2 border-transparent px-6 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none gap-2 font-semibold"
+							>
+								<Award className="w-5 h-5" />
+								<span>Scholarships</span>
+							</TabsTrigger>
+						</TabsList>
+
+						<TabsContent value="programs" className="mt-0 border-0 p-0">
+							<ExploreClient />
+						</TabsContent>
+
+						<TabsContent value="scholarships" className="mt-0 border-0 p-0">
+							<ScholarshipExploreClient />
+						</TabsContent>
+					</Tabs>
+				</div>
+			</div>
+		</PageTransition>
+	);
+}
+
 export default function ExplorePage() {
-	// Client-side data fetching via TanStack Query hooks in ExploreClient
-	// No initial data from server - hooks will fetch data on mount
 	return (
 		<Suspense fallback={<ExplorePageSkeleton />}>
-			<ExploreClient />
+			<ExplorePageContent />
 		</Suspense>
 	);
 }
