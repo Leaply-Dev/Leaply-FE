@@ -87,7 +87,7 @@ export function Navbar() {
 	const handleLogout = async () => {
 		try {
 			// Clear httpOnly cookies via backend (for OAuth)
-			await fetch(`${API_URL}/v1/oauth/logout`, {
+			await fetch(`${API_URL}/oauth/logout`, {
 				method: "POST",
 				credentials: "include",
 			});

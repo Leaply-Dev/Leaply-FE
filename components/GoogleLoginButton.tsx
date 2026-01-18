@@ -25,7 +25,7 @@ export function GoogleLoginButton({
 		setIsLoading(true);
 
 		try {
-			const response = await fetch(`${API_URL}/v1/oauth/google/url`, {
+			const response = await fetch(`${API_URL}/oauth/google/url`, {
 				credentials: "include",
 			});
 
