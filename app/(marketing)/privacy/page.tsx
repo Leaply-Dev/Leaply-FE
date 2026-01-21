@@ -130,7 +130,7 @@ export default function Page() {
 					</thead>
 					<tbody>
 						<tr>
-							<td>Anthropic (Claude API)</td>
+							<td>OpenAI (OpenAI API)</td>
 							<td>Xử lý AI</td>
 							<td>Nội dung conversation, essay</td>
 						</tr>
