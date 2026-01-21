@@ -25,7 +25,11 @@ import {
 	useGetApplications1,
 	useUpdateApplication1,
 } from "@/lib/generated/api/endpoints/applications/applications";
-import { useGetApplications as useGetScholarshipApplications } from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
+import {
+	getGetApplicationsQueryKey as getScholarshipApplicationsQueryKey,
+	useDeleteApplication as useDeleteScholarshipApplication,
+	useGetApplications as useGetScholarshipApplications,
+} from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
 import type {
 	ApplicationListResponse,
 	ScholarshipApplicationListResponse,
@@ -79,6 +83,8 @@ export function ApplicationsClient() {
 
 	const { mutateAsync: updateStatus } = useUpdateApplication1();
 	const { mutateAsync: deleteApp } = useDeleteApplication1();
+	const { mutateAsync: deleteScholarshipApp } =
+		useDeleteScholarshipApplication();
 
 	// Parse program applications
 	const appsData =
@@ -152,6 +158,23 @@ export function ApplicationsClient() {
 				return true;
 			} catch {
 				toast.error("Xóa đơn thất bại");
+				return false;
+			}
+		}
+		return false;
+	};
+
+	const handleDeleteScholarship = async () => {
+		if (selectedScholarshipId) {
+			try {
+				await deleteScholarshipApp({ applicationId: selectedScholarshipId });
+				setSelectedScholarshipId(null);
+				await queryClient.invalidateQueries({
+					queryKey: getScholarshipApplicationsQueryKey(),
+				});
+				return true;
+			} catch {
+				toast.error("Xóa đơn học bổng thất bại");
 				return false;
 			}
 		}
@@ -265,7 +288,10 @@ export function ApplicationsClient() {
 									onDelete={handleDelete}
 								/>
 							) : (
-								<ScholarshipDashboard applicationId={selectedScholarshipId} />
+								<ScholarshipDashboard
+									applicationId={selectedScholarshipId}
+									onDelete={handleDeleteScholarship}
+								/>
 							)}
 						</div>
 					</div>

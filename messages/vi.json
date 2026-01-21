@@ -407,7 +407,13 @@
 		"discoverScholarships": "Khám phá học bổng có sẵn",
 		"askAIAssistant": "Hỏi trợ lý AI",
 		"getPersonalizedAdvice": "Nhận tư vấn cá nhân hóa",
-		"chatWithAI": "Trò chuyện với AI về hồ sơ này"
+		"chatWithAI": "Trò chuyện với AI về hồ sơ này",
+		"viewDetails": "Xem chi tiết",
+		"tabs": {
+			"overview": "Tổng quan",
+			"documents": "Tài liệu",
+			"sop": "SOP"
+		}
 	},
 	"tasks": {
 		"title": "Công việc",
@@ -844,6 +850,46 @@
 		"low": "thấp",
 		"medium": "trung bình",
 		"high": "cao"
+	},
+	"scholarships": {
+		"title": "Học bổng",
+		"noScholarshipSelected": "Chưa chọn học bổng",
+		"selectScholarship": "Chọn một đơn học bổng từ danh sách để xem chi tiết",
+		"exploreScholarships": "Khám phá học bổng",
+		"scholarshipNotFound": "Không tìm thấy đơn học bổng",
+		"scholarshipMayBeDeleted": "Đơn học bổng này có thể đã bị xóa",
+		"viewDetails": "Xem chi tiết",
+		"confirmRemove": "Xóa đơn học bổng?",
+		"confirmRemoveDescription": "Bạn có chắc muốn xóa {scholarship} khỏi danh sách đơn học bổng?",
+		"cancel": "Hủy",
+		"remove": "Xóa",
+		"removing": "Đang xóa...",
+		"addedOn": "Thêm vào",
+		"lastUpdated": "Cập nhật lần cuối",
+		"searchScholarships": "Tìm học bổng...",
+		"addNewScholarship": "Thêm học bổng mới",
+		"noScholarshipsYet": "Bạn chưa có đơn học bổng nào",
+		"noScholarshipsFound": "Không tìm thấy học bổng phù hợp",
+		"documents": "tài liệu",
+		"deadline": "Hạn",
+		"tabs": {
+			"overview": "Tổng quan",
+			"documents": "Tài liệu",
+			"essay": "Bài luận"
+		},
+		"status": {
+			"planning": "Đang chuẩn bị",
+			"writing": "Đang viết",
+			"submitted": "Đã nộp",
+			"accepted": "Trúng tuyển",
+			"rejected": "Không đạt"
+		},
+		"coverage": {
+			"full": "Toàn phần",
+			"partial": "Bán phần",
+			"tuition_only": "Học phí",
+			"living_expenses": "Sinh hoạt phí"
+		}
 	},
 	"footer": {
 		"description": "Người bạn đồng hành AI của bạn trong hành trình du học. Khám phá trường đại học, quản lý hồ sơ và nhận hướng dẫn cá nhân hóa.",

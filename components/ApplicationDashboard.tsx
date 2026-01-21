@@ -97,7 +97,7 @@ export function ApplicationDashboard({
 							onClick={() => setIsProgramDrawerOpen(true)}
 						>
 							<ExternalLink className="w-4 h-4 mr-2" aria-hidden="true" />
-							Xem chi tiết
+							{t("viewDetails")}
 						</Button>
 					</div>
 
@@ -113,15 +113,15 @@ export function ApplicationDashboard({
 							<TabsList>
 								<TabsTrigger value="info" className="gap-2">
 									<Info className="w-4 h-4" />
-									Thông tin
+									{t("tabs.overview")}
 								</TabsTrigger>
 								<TabsTrigger value="documents" className="gap-2">
 									<FileText className="w-4 h-4" />
-									Tài liệu
+									{t("tabs.documents")}
 								</TabsTrigger>
 								<TabsTrigger value="sop" className="gap-2">
 									<Award className="w-4 h-4" />
-									SOP
+									{t("tabs.sop")}
 								</TabsTrigger>
 							</TabsList>
 
@@ -137,7 +137,7 @@ export function ApplicationDashboard({
 										className="text-destructive hover:text-destructive"
 									>
 										<Trash2 className="w-4 h-4 mr-2" />
-										Xóa
+										{t("remove")}
 									</Button>
 								</DialogTrigger>
 								<DialogContent>

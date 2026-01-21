@@ -407,7 +407,13 @@
 		"discoverScholarships": "Discover available scholarships",
 		"askAIAssistant": "Ask AI Assistant",
 		"getPersonalizedAdvice": "Get personalized advice",
-		"chatWithAI": "Chat with AI about this application"
+		"chatWithAI": "Chat with AI about this application",
+		"viewDetails": "View Details",
+		"tabs": {
+			"overview": "Overview",
+			"documents": "Documents",
+			"sop": "SOP"
+		}
 	},
 	"tasks": {
 		"title": "Tasks",
@@ -844,6 +850,46 @@
 		"low": "low",
 		"medium": "medium",
 		"high": "high"
+	},
+	"scholarships": {
+		"title": "Scholarships",
+		"noScholarshipSelected": "No scholarship selected",
+		"selectScholarship": "Select a scholarship application from the list to view details",
+		"exploreScholarships": "Explore Scholarships",
+		"scholarshipNotFound": "Scholarship application not found",
+		"scholarshipMayBeDeleted": "This scholarship application may have been deleted",
+		"viewDetails": "View Details",
+		"confirmRemove": "Remove Scholarship Application?",
+		"confirmRemoveDescription": "Are you sure you want to remove {scholarship} from your applications?",
+		"cancel": "Cancel",
+		"remove": "Remove",
+		"removing": "Removing...",
+		"addedOn": "Added on",
+		"lastUpdated": "Last updated",
+		"searchScholarships": "Search scholarships...",
+		"addNewScholarship": "Add new scholarship",
+		"noScholarshipsYet": "You have no scholarship applications yet",
+		"noScholarshipsFound": "No scholarships found",
+		"documents": "documents",
+		"deadline": "Deadline",
+		"tabs": {
+			"overview": "Overview",
+			"documents": "Documents",
+			"essay": "Essay"
+		},
+		"status": {
+			"planning": "Preparing",
+			"writing": "Writing",
+			"submitted": "Submitted",
+			"accepted": "Accepted",
+			"rejected": "Rejected"
+		},
+		"coverage": {
+			"full": "Full Coverage",
+			"partial": "Partial",
+			"tuition_only": "Tuition Only",
+			"living_expenses": "Living Expenses"
+		}
 	},
 	"footer": {
 		"description": "Your AI-powered companion for studying abroad. Discover universities, manage applications, and get personalized guidance.",

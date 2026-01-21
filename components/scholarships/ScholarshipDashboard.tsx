@@ -1,6 +1,16 @@
 "use client";
 
-import { Award, ExternalLink, FileText, Loader2 } from "lucide-react";
+import {
+	Award,
+	ExternalLink,
+	FileText,
+	Info,
+	Loader2,
+	PenLine,
+	Trash2,
+} from "lucide-react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ScholarshipDetailDrawer } from "@/components/explore/scholarship/ScholarshipDetailDrawer";
@@ -8,6 +18,15 @@ import { DocumentsTab } from "@/components/scholarships/tabs/DocumentsTab";
 import { EssayTab } from "@/components/scholarships/tabs/EssayTab";
 import { OverviewTab } from "@/components/scholarships/tabs/OverviewTab";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
@@ -20,13 +39,18 @@ import { useScholarshipApplicationStore } from "@/lib/store/scholarshipApplicati
 
 interface ScholarshipDashboardProps {
 	applicationId: string | null;
+	onDelete?: () => Promise<boolean>;
 }
 
 export function ScholarshipDashboard({
 	applicationId,
+	onDelete,
 }: ScholarshipDashboardProps) {
+	const t = useTranslations("scholarships");
 	const { activeTab, setActiveTab } = useScholarshipApplicationStore();
 	const [isScholarshipDrawerOpen, setIsScholarshipDrawerOpen] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
 	// Fetch application details
 	const {
@@ -70,8 +94,20 @@ export function ScholarshipDashboard({
 			await refetchApplication();
 			return true;
 		} catch {
-			toast.error("Cập nhật trạng thái thất bại");
+			toast.error("Failed to update status");
 			return false;
+		}
+	};
+
+	// Handle delete
+	const handleDelete = async () => {
+		if (onDelete) {
+			setIsDeleting(true);
+			const success = await onDelete();
+			setIsDeleting(false);
+			if (success) {
+				setDeleteDialogOpen(false);
+			}
 		}
 	};
 
@@ -82,11 +118,15 @@ export function ScholarshipDashboard({
 				<div className="text-center">
 					<Award className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
 					<h3 className="text-xl font-semibold text-foreground mb-2">
-						Chưa chọn học bổng
+						{t("noScholarshipSelected")}
 					</h3>
-					<p className="text-muted-foreground">
-						Chọn một đơn học bổng từ danh sách bên trái để xem chi tiết
-					</p>
+					<p className="text-muted-foreground mb-4">{t("selectScholarship")}</p>
+					<Button asChild>
+						<Link href="/explore?tab=scholarships">
+							{t("exploreScholarships")}
+							<Award className="w-4 h-4 ml-2" />
+						</Link>
+					</Button>
 				</div>
 			</div>
 		);
@@ -108,10 +148,10 @@ export function ScholarshipDashboard({
 				<div className="text-center">
 					<Award className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
 					<h3 className="text-xl font-semibold text-foreground mb-2">
-						Không tìm thấy đơn học bổng
+						{t("scholarshipNotFound")}
 					</h3>
 					<p className="text-muted-foreground">
-						Đơn học bổng này có thể đã bị xóa
+						{t("scholarshipMayBeDeleted")}
 					</p>
 				</div>
 			</div>
@@ -139,7 +179,7 @@ export function ScholarshipDashboard({
 							onClick={() => setIsScholarshipDrawerOpen(true)}
 						>
 							<ExternalLink className="w-4 h-4 mr-2" aria-hidden="true" />
-							Xem chi tiết
+							{t("viewDetails")}
 						</Button>
 					</div>
 
@@ -149,26 +189,71 @@ export function ScholarshipDashboard({
 						onValueChange={(value) =>
 							setActiveTab(value as "overview" | "documents" | "essay")
 						}
+						className="space-y-6"
 					>
-						<TabsList className="mb-6">
-							<TabsTrigger value="overview" className="gap-2">
-								<Award className="w-4 h-4" />
-								Tổng quan
-							</TabsTrigger>
-							<TabsTrigger value="documents" className="gap-2">
-								<FileText className="w-4 h-4" />
-								Tài liệu
-								{documentsList.length > 0 && (
-									<span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">
-										{documentsList.length}
-									</span>
-								)}
-							</TabsTrigger>
-							<TabsTrigger value="essay" className="gap-2">
-								<FileText className="w-4 h-4" />
-								Bài luận
-							</TabsTrigger>
-						</TabsList>
+						<div className="flex items-center justify-between">
+							<TabsList>
+								<TabsTrigger value="overview" className="gap-2">
+									<Info className="w-4 h-4" />
+									{t("tabs.overview")}
+								</TabsTrigger>
+								<TabsTrigger value="documents" className="gap-2">
+									<FileText className="w-4 h-4" />
+									{t("tabs.documents")}
+									{documentsList.length > 0 && (
+										<span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">
+											{documentsList.length}
+										</span>
+									)}
+								</TabsTrigger>
+								<TabsTrigger value="essay" className="gap-2">
+									<PenLine className="w-4 h-4" />
+									{t("tabs.essay")}
+								</TabsTrigger>
+							</TabsList>
+
+							{/* Delete Button */}
+							<Dialog
+								open={deleteDialogOpen}
+								onOpenChange={setDeleteDialogOpen}
+							>
+								<DialogTrigger asChild>
+									<Button
+										variant="ghost"
+										size="sm"
+										className="text-destructive hover:text-destructive"
+									>
+										<Trash2 className="w-4 h-4 mr-2" />
+										{t("remove")}
+									</Button>
+								</DialogTrigger>
+								<DialogContent>
+									<DialogHeader>
+										<DialogTitle>{t("confirmRemove")}</DialogTitle>
+										<DialogDescription>
+											{t("confirmRemoveDescription", {
+												scholarship: application.scholarship?.name ?? "",
+											})}
+										</DialogDescription>
+									</DialogHeader>
+									<DialogFooter>
+										<Button
+											variant="outline"
+											onClick={() => setDeleteDialogOpen(false)}
+										>
+											{t("cancel")}
+										</Button>
+										<Button
+											variant="destructive"
+											onClick={handleDelete}
+											disabled={isDeleting}
+										>
+											{isDeleting ? t("removing") : t("remove")}
+										</Button>
+									</DialogFooter>
+								</DialogContent>
+							</Dialog>
+						</div>
 
 						<TabsContent value="overview" className="mt-0">
 							<OverviewTab
@@ -203,6 +288,21 @@ export function ScholarshipDashboard({
 							/>
 						</TabsContent>
 					</Tabs>
+
+					{/* Timestamps */}
+					<div className="text-xs text-muted-foreground text-center mt-8">
+						{t("addedOn")}{" "}
+						{new Date(application.createdAt ?? "").toLocaleDateString("vi-VN")}
+						{application.updatedAt !== application.createdAt && (
+							<>
+								{" "}
+								• {t("lastUpdated")}{" "}
+								{new Date(application.updatedAt ?? "").toLocaleDateString(
+									"vi-VN",
+								)}
+							</>
+						)}
+					</div>
 				</div>
 			</div>
 
