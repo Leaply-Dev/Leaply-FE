@@ -1,6 +1,10 @@
 /**
  * @fileoverview Root layout for the entire application.
- * Sets up Next-Intl for i18n, configures global providers, and forces dynamic rendering for client state consistency.
+ * Sets up Next-Intl for i18n and configures global providers.
+ * Auth protection handled by middleware (proxy.ts).
+ *
+ * NOTE: force-dynamic is currently required due to useSearchParams usage in multiple pages.
+ * TODO: Refactor pages with useSearchParams to use proper Suspense boundaries for SSG optimization.
  */
 
 import type { Metadata } from "next";

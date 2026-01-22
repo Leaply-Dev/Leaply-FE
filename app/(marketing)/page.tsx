@@ -34,115 +34,11 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-
-const featuredUniversities = [
-	{
-		name: "Harvard University",
-		location: "USA",
-		logo: "/universities/havard.png",
-	},
-	{
-		name: "Massachusetts Institute of Technology",
-		location: "USA",
-		logo: "/universities/mit.png",
-	},
-	{
-		name: "Stanford University",
-		location: "USA",
-		logo: "/universities/stanford.png",
-	},
-	{ name: "Yale University", location: "USA", logo: "/universities/yale.png" },
-	{
-		name: "Princeton University",
-		location: "USA",
-		logo: "/universities/princeton.png",
-	},
-	{
-		name: "University of Oxford",
-		location: "UK",
-		logo: "/universities/oxford.png",
-	},
-	{
-		name: "University of Cambridge",
-		location: "UK",
-		logo: "/universities/cambridge.png",
-	},
-	{
-		name: "Imperial College London",
-		location: "UK",
-		logo: "/universities/imperial_college_london.png",
-	},
-	{
-		name: "University College London",
-		location: "UK",
-		logo: "/universities/ucl.png",
-	},
-	{
-		name: "King's College London",
-		location: "UK",
-		logo: "/universities/london.png",
-	},
-	{
-		name: "ETH Zurich",
-		location: "Switzerland",
-		logo: "/universities/eth_zurich.png",
-	},
-	{
-		name: "Technical University of Munich",
-		location: "Germany",
-		logo: "/universities/tu_muenchen.png",
-	},
-	{
-		name: "National University of Singapore",
-		location: "Singapore",
-		logo: "/universities/nus.png",
-	},
-	{
-		name: "Peking University",
-		location: "China",
-		logo: "/universities/peking.png",
-	},
-	{
-		name: "Tsinghua University",
-		location: "China",
-		logo: "/universities/tshinghua.png",
-	},
-	{
-		name: "University of Tokyo",
-		location: "Japan",
-		logo: "/universities/tokyo.png",
-	},
-	{
-		name: "Seoul National University",
-		location: "South Korea",
-		logo: "/universities/snu.png",
-	},
-	{
-		name: "University of Toronto",
-		location: "Canada",
-		logo: "/universities/toronto.png",
-	},
-	{
-		name: "University of British Columbia",
-		location: "Canada",
-		logo: "/universities/ubc.png",
-	},
-	{
-		name: "McGill University",
-		location: "Canada",
-		logo: "/universities/mcgill.png",
-	},
-	{
-		name: "University of Melbourne",
-		location: "Australia",
-		logo: "/universities/melbourne.png",
-	},
-	{
-		name: "University of Sydney",
-		location: "Australia",
-		logo: "/universities/usyd.png",
-	},
-];
+import {
+	FEATURED_UNIVERSITIES,
+	FEATURES,
+	HOW_IT_WORKS_STEPS,
+} from "@/lib/data/marketing-config";
 
 interface StepVisual {
 	step: number;
@@ -322,72 +218,8 @@ export default function HomePage() {
 	}, [searchParams]);
 
 	const marqueeUniversities = [
-		...featuredUniversities,
-		...featuredUniversities,
-	];
-
-	const _stats = [
-		{ value: "2,000+", labelKey: "statsStudents", icon: Users },
-		{ value: "1,500+", labelKey: "statsUniversities", icon: School },
-		{ value: "50+", labelKey: "statsCountries", icon: MapPin },
-	];
-
-	const features = [
-		{
-			icon: Globe,
-			titleKey: "feature1Title",
-			descKey: "feature1Desc",
-			href: "/features",
-		},
-		{
-			icon: Brain,
-			titleKey: "feature2Title",
-			descKey: "feature2Desc",
-			href: "/features",
-		},
-		{
-			icon: Target,
-			titleKey: "feature3Title",
-			descKey: "feature3Desc",
-			href: "/features",
-		},
-		{
-			icon: Sparkles,
-			titleKey: "feature4Title",
-			descKey: "feature4Desc",
-			href: "/features",
-		},
-	];
-
-	const howItWorksSteps = [
-		{
-			step: 1,
-			icon: Users,
-			titleKey: "step1Title",
-			quoteKey: "step1Quote",
-			descKey: "step1Desc",
-		},
-		{
-			step: 2,
-			icon: Brain,
-			titleKey: "step2Title",
-			quoteKey: "step2Quote",
-			descKey: "step2Desc",
-		},
-		{
-			step: 3,
-			icon: FileCheck,
-			titleKey: "step3Title",
-			quoteKey: "step3Quote",
-			descKey: "step3Desc",
-		},
-		{
-			step: 4,
-			icon: Sparkles,
-			titleKey: "step4Title",
-			quoteKey: "step4Quote",
-			descKey: "step4Desc",
-		},
+		...FEATURED_UNIVERSITIES,
+		...FEATURED_UNIVERSITIES,
 	];
 
 	return (
@@ -580,7 +412,7 @@ export default function HomePage() {
 
 					<StaggerContainer>
 						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-							{features.map((feature) => {
+							{FEATURES.map((feature) => {
 								const Icon = feature.icon;
 								return (
 									<StaggerItem key={feature.titleKey}>
@@ -633,7 +465,7 @@ export default function HomePage() {
 					{/* Desktop */}
 					<div className="lg:grid lg:grid-cols-2 lg:gap-12 lg:items-start hidden">
 						<div className="space-y-32 py-12">
-							{howItWorksSteps.map((item) => (
+							{HOW_IT_WORKS_STEPS.map((item) => (
 								<ScrollHighlightStep key={item.step}>
 									<div className="relative" data-step={item.step}>
 										<div className="flex items-start gap-6 mb-6">
@@ -679,7 +511,7 @@ export default function HomePage() {
 
 					{/* Mobile */}
 					<div className="lg:hidden space-y-24">
-						{howItWorksSteps.map((item) => (
+						{HOW_IT_WORKS_STEPS.map((item) => (
 							<ScrollHighlightStep key={item.step}>
 								<div className="relative">
 									<div className="flex items-start gap-6 mb-6">
