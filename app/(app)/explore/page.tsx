@@ -6,7 +6,7 @@
 "use client";
 
 import { Award, GraduationCap } from "lucide-react";
-import dynamicImport from "next/dynamic";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { PageTransition } from "@/components/PageTransition";
@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Dynamic import for ExploreClient (405 lines - large component with complex state)
-const ExploreClient = dynamicImport(
+const ExploreClient = dynamic(
 	() =>
 		import("@/components/explore/ExploreClient").then(
 			(mod) => mod.ExploreClient,
@@ -26,7 +26,7 @@ const ExploreClient = dynamicImport(
 );
 
 // Dynamic import for ScholarshipExploreClient
-const ScholarshipExploreClient = dynamicImport(
+const ScholarshipExploreClient = dynamic(
 	() =>
 		import("@/components/explore/scholarship/ScholarshipExploreClient").then(
 			(mod) => mod.ScholarshipExploreClient,

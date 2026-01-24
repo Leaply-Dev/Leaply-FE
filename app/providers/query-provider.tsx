@@ -1,29 +1,16 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import dynamic from "next/dynamic";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ApiError } from "@/lib/api/client";
 import {
 	copyErrorToClipboard,
 	createErrorReport,
-	generateErrorId,
 	getUserFriendlyError,
 	logError,
 } from "@/lib/utils/errorUtils";
-
-// Only load devtools in development to reduce production bundle size
-const ReactQueryDevtools =
-	process.env.NODE_ENV === "development"
-		? dynamic(
-				() =>
-					import("@tanstack/react-query-devtools").then((m) => ({
-						default: m.ReactQueryDevtools,
-					})),
-				{ ssr: false },
-			)
-		: () => null;
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
 	const [queryClient] = useState(
