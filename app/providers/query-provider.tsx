@@ -8,7 +8,6 @@ import { ApiError } from "@/lib/api/client";
 import {
 	copyErrorToClipboard,
 	createErrorReport,
-	generateErrorId,
 	getUserFriendlyError,
 	logError,
 } from "@/lib/utils/errorUtils";
