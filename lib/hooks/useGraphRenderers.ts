@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import type { LinkObject, NodeObject } from "react-force-graph-2d";
-import { EDGE_CONFIG, getNodeConfig } from "@/lib/config/graphConfig";
+import { GRAPH_EDGE_CONFIG, getNodeConfig } from "@/lib/config/graphConfig";
 import type {
 	ApiForceGraphNode,
 	ForceGraphLink,
@@ -177,7 +177,8 @@ export function useGraphRenderers({
 	const paintLink = useCallback(
 		(link: LinkObject, ctx: CanvasRenderingContext2D, globalScale: number) => {
 			const graphLink = link as unknown as ForceGraphLink;
-			const config = EDGE_CONFIG[graphLink.type as keyof typeof EDGE_CONFIG];
+			const config =
+				GRAPH_EDGE_CONFIG[graphLink.type as keyof typeof GRAPH_EDGE_CONFIG];
 
 			if (!link.source || !link.target) return;
 
@@ -259,23 +260,37 @@ export function useGraphRenderers({
 				? 3.5 // Root connections are very prominent
 				: 1 + (3 - avgLayer) * 0.4; // Other connections vary
 
-			ctx.strokeStyle = graphLink.color.replace(/[\d.]+\)$/, `${opacity})`);
 			const baseWidth = (config?.width || 1) * hierarchyMultiplier;
-			ctx.lineWidth = isHighlighted
-				? (baseWidth * 1.5) / globalScale
-				: baseWidth / globalScale;
 
-			// Dashed line for conflicts
-			if (config && "dashed" in config) {
+			// Tension edges: animated pulse effect with dashed line
+			if (config?.animated && config.pulseColor) {
+				// Pulse glow effect behind the main line
+				const time = Date.now() / 1000;
+				const pulseOpacity = 0.3 + 0.2 * Math.sin(time * 3); // Oscillates 0.1-0.5
+				ctx.beginPath();
+				ctx.moveTo(start.x || 0, start.y || 0);
+				ctx.lineTo(end.x || 0, end.y || 0);
+				ctx.strokeStyle = config.pulseColor.replace(
+					/[\d.]+\)$/,
+					`${pulseOpacity})`,
+				);
+				ctx.lineWidth = (baseWidth * 3) / globalScale;
+				ctx.stroke();
+
+				// Main tension line (dashed)
 				ctx.setLineDash([5 / globalScale, 3 / globalScale]);
 			}
 
 			ctx.beginPath();
 			ctx.moveTo(start.x || 0, start.y || 0);
 			ctx.lineTo(end.x || 0, end.y || 0);
+			ctx.strokeStyle = graphLink.color.replace(/[\d.]+\)$/, `${opacity})`);
+			ctx.lineWidth = isHighlighted
+				? (baseWidth * 1.5) / globalScale
+				: baseWidth / globalScale;
 			ctx.stroke();
 
-			ctx.setLineDash([]); // Reset
+			ctx.setLineDash([]); // Reset dash
 			ctx.globalAlpha = 1.0; // Reset alpha
 		},
 		[selectedNode, highlightLinks, hiddenNodeTypes],
