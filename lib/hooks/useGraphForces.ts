@@ -2,6 +2,7 @@ import * as d3Force from "d3-force";
 import { useEffect, useRef, useState } from "react";
 import type { ForceGraphMethods } from "react-force-graph-2d";
 import type { PersonaNodeDto } from "@/lib/generated/api/models";
+import { useGetGraph } from "@/lib/hooks/persona";
 import { usePersonaStore } from "@/lib/store/personaStore";
 import {
 	type ApiForceGraphNode,
@@ -21,9 +22,22 @@ export function useGraphForces() {
 		links: ForceGraphLink[];
 	}>({ nodes: [], links: [] });
 
+	// Fetch graph data from server to ensure sync on mount
+	const { data: graphResponse } = useGetGraph();
+
 	// Subscribe to API graph data from store
 	const apiGraphNodes = usePersonaStore((state) => state.apiGraphNodes);
 	const apiGraphEdges = usePersonaStore((state) => state.apiGraphEdges);
+
+	// Sync graph data from server on mount/refetch
+	// This ensures localStorage data is reconciled with server state
+	useEffect(() => {
+		if (graphResponse?.data?.nodes && graphResponse?.data?.edges) {
+			usePersonaStore
+				.getState()
+				.syncGraph(graphResponse.data.nodes, graphResponse.data.edges);
+		}
+	}, [graphResponse]);
 
 	// Transform API data to ForceGraph format when available
 	useEffect(() => {

@@ -344,13 +344,16 @@ export const usePersonaStore = create<PersonaStoreState>()(
 			},
 
 			// Sync graph data (GET /v1/persona-graph)
-			// Note: Only sync if server has MORE nodes than local, to prevent
-			// overwriting nodes that were just added by mutations but not yet
-			// reflected in the server response.
+			// Uses ID-based comparison to detect mismatches between server and local state.
+			// This ensures nodes that exist on server but not in localStorage are synced.
 			syncGraph: (nodes: PersonaNodeDto[], edges: PersonaEdgeDto[]) => {
 				set((state) => {
 					const localNodes = state.apiGraphNodes;
 					let shouldSync = false;
+
+					// Build ID sets for comparison
+					const serverIds = new Set(nodes.map((n) => n.id));
+					const localIds = new Set(localNodes.map((n) => n.id));
 
 					// 1. Server has MORE nodes (new content)
 					if (nodes.length > localNodes.length) {
@@ -360,17 +363,25 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					else if (nodes.length === 0 && localNodes.length > 0) {
 						shouldSync = true;
 					}
-					// 3. Different Graph context
+					// 3. ID-based mismatch detection (server has nodes not in local)
 					else if (nodes.length > 0 && localNodes.length > 0) {
-						// Check if the server's first node exists in local graph
-						// If not, it means the server graph is completely different
-						const serverFirstId = nodes[0].id;
-						const localHasFirstServerNode = localNodes.some(
-							(n) => n.id === serverFirstId,
-						);
+						// Check if ANY server node is missing from local
+						// This catches cases where localStorage is stale after refresh
+						const hasMismatch =
+							nodes.length !== localNodes.length ||
+							[...serverIds].some((id) => !localIds.has(id));
 
-						if (!localHasFirstServerNode) {
+						if (hasMismatch) {
 							shouldSync = true;
+							console.log(
+								"🔄 [PersonaStore] Graph mismatch detected - syncing with server",
+								{
+									serverCount: nodes.length,
+									localCount: localNodes.length,
+									serverIds: [...serverIds],
+									localIds: [...localIds],
+								},
+							);
 						}
 					}
 
