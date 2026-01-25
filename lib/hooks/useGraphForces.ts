@@ -31,11 +31,13 @@ export function useGraphForces() {
 
 	// Sync graph data from server on mount/refetch
 	// This ensures localStorage data is reconciled with server state
+	// Note: On success (status 200), data is PersonaGraphResponse with nodes/edges directly
 	useEffect(() => {
-		if (graphResponse?.data?.nodes && graphResponse?.data?.edges) {
-			usePersonaStore
-				.getState()
-				.syncGraph(graphResponse.data.nodes, graphResponse.data.edges);
+		if (graphResponse?.status === 200) {
+			const graphData = graphResponse.data;
+			if (graphData?.nodes && graphData?.edges) {
+				usePersonaStore.getState().syncGraph(graphData.nodes, graphData.edges);
+			}
 		}
 	}, [graphResponse]);
 
