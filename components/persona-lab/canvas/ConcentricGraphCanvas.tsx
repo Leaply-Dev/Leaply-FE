@@ -153,6 +153,7 @@ export function ConcentricGraphCanvas({
 				graphData={graphData}
 				width={dimensions.width}
 				height={dimensions.height}
+				nodeId="id"
 				nodeRelSize={1}
 				nodeVal={(node) => (node as unknown as ForceGraphNode).size}
 				nodeCanvasObject={paintNode}

@@ -50,6 +50,18 @@ export function useGraphForces() {
 				apiGraphEdges,
 			);
 
+			// Debug: Log transformed nodes
+			console.log("[useGraphForces] Transformed nodes:", {
+				count: nodes.length,
+				ids: nodes.map((n) => n.id),
+				positions: nodes.map((n) => ({
+					id: n.id.substring(0, 8),
+					x: n.x !== undefined ? n.x.toFixed(0) : "undef",
+					y: n.y !== undefined ? n.y.toFixed(0) : "undef",
+					size: n.size,
+				})),
+			});
+
 			// Check if profile_summary exists, if not add skeleton profile
 			const hasProfileSummary = nodes.some((n) => n.type === "profile_summary");
 			if (!hasProfileSummary) {
@@ -70,6 +82,8 @@ export function useGraphForces() {
 					color: "#f59e0b",
 					data: skeletonNodeData,
 					nodeData: skeletonNodeData,
+					x: 0,
+					y: 0,
 				});
 
 				// CRITICAL FIX: Connect all story nodes to the skeleton root
@@ -91,12 +105,39 @@ export function useGraphForces() {
 				}
 			}
 
+			// Debug: Log final graph data
+			console.log("[useGraphForces] Final graphData:", {
+				nodeCount: nodes.length,
+				linkCount: links.length,
+			});
+
 			setGraphData({ nodes, links });
 		} else {
 			// No API data - show empty graph
 			setGraphData({ nodes: [], links: [] });
 		}
 	}, [apiGraphNodes, apiGraphEdges]);
+
+	// Debug: Log node positions after simulation settles
+	useEffect(() => {
+		if (graphData.nodes.length === 0) return;
+
+		// Log positions after a short delay to let simulation run
+		const timer = setTimeout(() => {
+			console.log(
+				"[useGraphForces] Node positions after simulation:",
+				graphData.nodes.map((n) => ({
+					id: n.id.substring(0, 8),
+					type: n.type,
+					x: n.x?.toFixed(0) ?? "undef",
+					y: n.y?.toFixed(0) ?? "undef",
+					size: n.size,
+				})),
+			);
+		}, 2000);
+
+		return () => clearTimeout(timer);
+	}, [graphData]);
 
 	// Configure forces when data changes or ref becomes available
 	// biome-ignore lint/correctness/useExhaustiveDependencies: graphData triggers simulation reheat

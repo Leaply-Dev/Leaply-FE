@@ -310,12 +310,24 @@ export function useGraphRenderers({
 			const effectiveScale = scale || 1;
 			// Minimum 25px in screen space for better clickability
 			const minScreenRadius = 25;
+			// Ensure size is valid, default to 12 if not
+			const nodeSize =
+				typeof graphNode.size === "number" && !Number.isNaN(graphNode.size)
+					? graphNode.size
+					: 12;
 			const clickRadius = Math.max(
-				graphNode.size * 2,
+				nodeSize * 2,
 				minScreenRadius / effectiveScale,
 			);
+
+			// Ensure x and y are valid numbers
+			const x =
+				typeof node.x === "number" && !Number.isNaN(node.x) ? node.x : 0;
+			const y =
+				typeof node.y === "number" && !Number.isNaN(node.y) ? node.y : 0;
+
 			ctx.beginPath();
-			ctx.arc(node.x || 0, node.y || 0, clickRadius, 0, 2 * Math.PI);
+			ctx.arc(x, y, clickRadius, 0, 2 * Math.PI);
 			ctx.fillStyle = color;
 			ctx.fill();
 		},

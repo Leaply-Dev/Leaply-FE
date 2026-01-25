@@ -47,6 +47,13 @@ export interface ForceGraphLink {
 export interface ApiForceGraphNode extends ForceGraphNode {
 	layer: number;
 	nodeData: PersonaNodeDto;
+	// D3 simulation adds/updates these properties
+	x?: number;
+	y?: number;
+	vx?: number;
+	vy?: number;
+	fx?: number;
+	fy?: number;
 }
 
 export interface ApiForceGraphLink extends ForceGraphLink {
@@ -83,6 +90,15 @@ export function transformApiGraphData(
 	nodes: ApiForceGraphNode[];
 	links: ApiForceGraphLink[];
 } {
+	// Filter out nodes without valid IDs (safety check)
+	const validNodes = nodes.filter((n) => n.id && typeof n.id === "string");
+	if (validNodes.length !== nodes.length) {
+		console.warn(
+			"[transformApiGraphData] Filtered out nodes without valid IDs:",
+			nodes.length - validNodes.length,
+		);
+	}
+
 	// Build parent-child relationship map for angular distribution
 	const childrenByParent = new Map<string, string[]>();
 	for (const edge of edges) {
@@ -101,7 +117,7 @@ export function transformApiGraphData(
 		3: 450, // Outer ring
 	};
 
-	const forceNodes: ApiForceGraphNode[] = nodes.map((node, index) => {
+	const forceNodes: ApiForceGraphNode[] = validNodes.map((node, index) => {
 		const nodeType = (node.type || "detail") as GraphNodeType;
 		const config = GRAPH_NODE_CONFIG[nodeType];
 		const layer = node.layer ?? 3;
@@ -113,10 +129,12 @@ export function transformApiGraphData(
 		let initialY = 0;
 
 		// Find parent node (source of incoming edge)
-		const parentEdge = edges.find((e) => e.target === node.id);
+		// Use node.id directly since we already filtered for valid IDs
+		const nodeId = node.id as string;
+		const parentEdge = edges.find((e) => e.target === nodeId);
 		if (parentEdge?.source) {
 			const siblings = childrenByParent.get(parentEdge.source) || [];
-			const siblingIndex = siblings.indexOf(node.id || "");
+			const siblingIndex = siblings.indexOf(nodeId);
 			const siblingCount = siblings.length;
 
 			if (siblingIndex >= 0 && siblingCount > 0) {
@@ -134,17 +152,19 @@ export function transformApiGraphData(
 			initialX = 0;
 			initialY = 0;
 		} else {
-			// No parent, distribute randomly around the ring
-			angle = (index / nodes.length) * 2 * Math.PI;
+			// No parent, distribute around the ring based on index
+			// Use golden angle for better distribution
+			const goldenAngle = Math.PI * (3 - Math.sqrt(5)); // ~137.5 degrees
+			angle = index * goldenAngle;
 			initialX = radius * Math.cos(angle);
 			initialY = radius * Math.sin(angle);
 		}
 
 		return {
-			id: node.id || "",
+			id: nodeId,
 			type: nodeType,
 			label: node.title || "Untitled",
-			size: config?.size || 40,
+			size: config?.size || 12,
 			color: config?.color || "#94a3b8",
 			data: node,
 			// Extended properties

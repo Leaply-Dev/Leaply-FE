@@ -344,51 +344,45 @@ export const usePersonaStore = create<PersonaStoreState>()(
 			},
 
 			// Sync graph data (GET /v1/persona-graph)
-			// Uses ID-based comparison to detect mismatches between server and local state.
-			// This ensures nodes that exist on server but not in localStorage are synced.
+			// ALWAYS use server data to ensure consistency
+			// This prevents issues with corrupted localStorage data
 			syncGraph: (nodes: PersonaNodeDto[], edges: PersonaEdgeDto[]) => {
 				set((state) => {
 					const localNodes = state.apiGraphNodes;
-					let shouldSync = false;
 
-					// Build ID sets for comparison
-					const serverIds = new Set(nodes.map((n) => n.id));
-					const localIds = new Set(localNodes.map((n) => n.id));
+					// Debug: Log sync decision
+					console.log("🔄 [PersonaStore] syncGraph called:", {
+						serverNodeCount: nodes.length,
+						localNodeCount: localNodes.length,
+						serverIds: nodes.map((n) => n.id?.substring(0, 8)),
+						localIds: localNodes.map((n) => n.id?.substring(0, 8)),
+					});
 
-					// 1. Server has MORE nodes (new content)
-					if (nodes.length > localNodes.length) {
-						shouldSync = true;
-					}
-					// 2. Server is empty but local is not (Reset on another device)
-					else if (nodes.length === 0 && localNodes.length > 0) {
-						shouldSync = true;
-					}
-					// 3. ID-based mismatch detection (server has nodes not in local)
-					else if (nodes.length > 0 && localNodes.length > 0) {
-						// Check if ANY server node is missing from local
-						// This catches cases where localStorage is stale after refresh
-						const hasMismatch =
-							nodes.length !== localNodes.length ||
-							[...serverIds].some((id) => !localIds.has(id));
-
-						if (hasMismatch) {
-							shouldSync = true;
-							console.log(
-								"🔄 [PersonaStore] Graph mismatch detected - syncing with server",
-								{
-									serverCount: nodes.length,
-									localCount: localNodes.length,
-									serverIds: [...serverIds],
-									localIds: [...localIds],
-								},
-							);
-						}
+					// ALWAYS sync with server data when server has nodes
+					// This ensures we never use stale/corrupted localStorage data
+					if (nodes.length > 0) {
+						console.log(
+							"✅ [PersonaStore] Using server data (nodes:",
+							nodes.length,
+							")",
+						);
+						return {
+							apiGraphNodes: nodes,
+							apiGraphEdges: edges,
+						};
 					}
 
-					return {
-						apiGraphNodes: shouldSync ? nodes : state.apiGraphNodes,
-						apiGraphEdges: shouldSync ? edges : state.apiGraphEdges,
-					};
+					// Server is empty - check if we should clear local data
+					if (nodes.length === 0 && localNodes.length > 0) {
+						console.log("⚠️ [PersonaStore] Server empty, clearing local data");
+						return {
+							apiGraphNodes: [],
+							apiGraphEdges: [],
+						};
+					}
+
+					// Both empty - no change needed
+					return state;
 				});
 			},
 

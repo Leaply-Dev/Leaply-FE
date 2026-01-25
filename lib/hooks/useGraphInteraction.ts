@@ -38,6 +38,16 @@ export function useGraphInteraction({
 		(node: NodeObject) => {
 			const graphNode = node as unknown as ForceGraphNode;
 
+			// Debug: Log clicked node info
+			console.log("[useGraphInteraction] Node clicked:", {
+				id: graphNode.id,
+				label: graphNode.label,
+				type: graphNode.type,
+				x: node.x,
+				y: node.y,
+				size: graphNode.size,
+			});
+
 			// Toggle selection
 			if (selectedNode?.id === graphNode.id) {
 				setSelectedNode(null);
