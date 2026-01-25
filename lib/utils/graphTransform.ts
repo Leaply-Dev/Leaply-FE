@@ -141,7 +141,16 @@ export function transformApiGraphData(
 				// Distribute evenly around the circle
 				// Add offset to avoid perfect vertical/horizontal alignment
 				const angleOffset = Math.PI / 6; // 30 degree offset
-				angle = (siblingIndex / siblingCount) * 2 * Math.PI + angleOffset;
+				// Add small jitter based on node ID hash to prevent identical positions
+				// when multiple nodes have same siblingIndex/siblingCount ratio
+				const idHash = nodeId
+					.split("")
+					.reduce((a, c) => a + c.charCodeAt(0), 0);
+				const angleJitter = ((idHash % 100) / 100) * 0.3; // 0 to 0.3 radians (~0-17°)
+				angle =
+					(siblingIndex / siblingCount) * 2 * Math.PI +
+					angleOffset +
+					angleJitter;
 
 				// Calculate initial position on the circle
 				initialX = radius * Math.cos(angle);
