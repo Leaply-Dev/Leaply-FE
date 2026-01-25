@@ -141,16 +141,14 @@ export function transformApiGraphData(
 				// Distribute evenly around the circle
 				// Add offset to avoid perfect vertical/horizontal alignment
 				const angleOffset = Math.PI / 6; // 30 degree offset
-				// Add small jitter based on node ID hash to prevent identical positions
-				// when multiple nodes have same siblingIndex/siblingCount ratio
-				const idHash = nodeId
-					.split("")
-					.reduce((a, c) => a + c.charCodeAt(0), 0);
-				const angleJitter = ((idHash % 100) / 100) * 0.3; // 0 to 0.3 radians (~0-17°)
+				// Use global index to guarantee unique angles for each node
+				// This prevents hit detection overlap when multiple nodes have same sibling ratio
+				const totalNodes = validNodes.length;
+				const globalAngleOffset = (index / totalNodes) * Math.PI; // 0 to π radians
 				angle =
 					(siblingIndex / siblingCount) * 2 * Math.PI +
 					angleOffset +
-					angleJitter;
+					globalAngleOffset;
 
 				// Calculate initial position on the circle
 				initialX = radius * Math.cos(angle);
