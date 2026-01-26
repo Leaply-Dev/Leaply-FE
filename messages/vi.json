@@ -697,7 +697,23 @@
 			"expandStory": "Kể thêm về {element}",
 			"complete": "Tuyệt vời! Câu chuyện có đủ các yếu tố STAR",
 			"storyExtracted": "Đã lưu câu chuyện! Chúng tôi tìm thấy:"
-		}
+		},
+		"partsProgress": "Tiến độ các phần",
+		"partsComplete": "{count}/4 Phần hoàn thành",
+		"part1Name": "Đặc điểm",
+		"part2Name": "Quá khứ",
+		"part3Name": "Hiện tại",
+		"part4Name": "Tương lai",
+		"archetypeUnlocked": "Archetype của bạn đã được khám phá!",
+		"essayStrengths": "Điểm mạnh cho Essay",
+		"archetype_innovator": "Người Tiên Phong",
+		"archetype_community_builder": "Người Xây Dựng Cộng Đồng",
+		"archetype_scholar": "Học Giả",
+		"archetype_creative": "Người Sáng Tạo",
+		"archetype_leader": "Người Lãnh Đạo",
+		"archetype_problem_solver": "Người Giải Quyết Vấn Đề",
+		"profileUnlocked": "Hồ sơ đã được mở khóa!",
+		"profileUnlockedDesc": "Hồ sơ persona của bạn đã được tổng hợp từ các câu chuyện."
 	},
 	"home": {
 		"greeting": {

@@ -697,7 +697,23 @@
 			"expandStory": "Tell me more about {element}",
 			"complete": "Great! Your story has all STAR elements",
 			"storyExtracted": "Story captured! We found:"
-		}
+		},
+		"partsProgress": "Parts Progress",
+		"partsComplete": "{count}/4 Parts Complete",
+		"part1Name": "Characteristics",
+		"part2Name": "Past",
+		"part3Name": "Present",
+		"part4Name": "Future",
+		"archetypeUnlocked": "Your Archetype Revealed!",
+		"essayStrengths": "Essay Strengths",
+		"archetype_innovator": "The Innovator",
+		"archetype_community_builder": "The Community Builder",
+		"archetype_scholar": "The Scholar",
+		"archetype_creative": "The Creative",
+		"archetype_leader": "The Leader",
+		"archetype_problem_solver": "The Problem Solver",
+		"profileUnlocked": "Profile Unlocked!",
+		"profileUnlockedDesc": "Your persona profile has been synthesized from your stories."
 	},
 	"home": {
 		"greeting": {

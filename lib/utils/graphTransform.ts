@@ -117,7 +117,7 @@ export function transformApiGraphData(
 		3: 450, // Outer ring
 	};
 
-	const forceNodes: ApiForceGraphNode[] = validNodes.map((node, index) => {
+	const forceNodes: ApiForceGraphNode[] = validNodes.map((node) => {
 		const nodeType = (node.type || "detail") as GraphNodeType;
 		const config = GRAPH_NODE_CONFIG[nodeType];
 		const layer = node.layer ?? 3;
@@ -141,14 +141,16 @@ export function transformApiGraphData(
 				// Distribute evenly around the circle
 				// Add offset to avoid perfect vertical/horizontal alignment
 				const angleOffset = Math.PI / 6; // 30 degree offset
-				// Use global index to guarantee unique angles for each node
-				// This prevents hit detection overlap when multiple nodes have same sibling ratio
-				const totalNodes = validNodes.length;
-				const globalAngleOffset = (index / totalNodes) * Math.PI; // 0 to π radians
+				// Use UUID-based hash to guarantee unique angles for each node
+				// This prevents hit detection overlap by giving each node a unique offset
+				const idHash = nodeId
+					.split("")
+					.reduce((a, c) => a + c.charCodeAt(0), 0);
+				const angleJitter = ((idHash % 100) / 100) * 0.3; // 0 to 0.3 radians (~17°)
 				angle =
 					(siblingIndex / siblingCount) * 2 * Math.PI +
 					angleOffset +
-					globalAngleOffset;
+					angleJitter;
 
 				// Calculate initial position on the circle
 				initialX = radius * Math.cos(angle);
@@ -159,10 +161,10 @@ export function transformApiGraphData(
 			initialX = 0;
 			initialY = 0;
 		} else {
-			// No parent, distribute around the ring based on index
-			// Use golden angle for better distribution
-			const goldenAngle = Math.PI * (3 - Math.sqrt(5)); // ~137.5 degrees
-			angle = index * goldenAngle;
+			// No parent - use UUID-based angle for unique positioning
+			// This ensures each node gets a deterministic unique position based on its ID
+			const idHash = nodeId.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+			angle = (idHash / 10000) * 2 * Math.PI; // Full circle based on ID hash
 			initialX = radius * Math.cos(angle);
 			initialY = radius * Math.sin(angle);
 		}

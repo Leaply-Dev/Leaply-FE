@@ -7,10 +7,14 @@
  * - Persisted chat messages (graphMessages)
  * - Real-time graph data from mutations (apiGraphNodes/Edges)
  * - STAR gaps tracking
+ * - Parts progress (guided flow)
+ * - Archetype reveal state
  */
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import type { PartKey, PartsProgress } from "@/lib/config/partsConfig";
 import type {
+	ArchetypeDtoType,
 	CoverageMetrics,
 	GraphMessageResponse,
 	PersonaEdgeDto,
@@ -50,6 +54,14 @@ export type ConversationScenario =
 	| "tension-discovery"
 	| "completion-ready";
 
+// Guided conversation state (from backend)
+export interface GuidedConversationState {
+	phase: "questioning" | "completed";
+	currentPart: PartKey | null;
+	currentQuestionId: string | null;
+	followUpCount: number;
+}
+
 // Store State
 interface PersonaStoreState {
 	// === UI State ===
@@ -66,6 +78,15 @@ interface PersonaStoreState {
 	completionReady: boolean;
 	totalNodeCount: number;
 	starGapsMap: Record<string, StarStructureKey[]>; // nodeId -> missing STAR elements
+
+	// === Parts Progress (Guided Flow) ===
+	partsProgress: PartsProgress;
+	conversationState: GuidedConversationState | null;
+
+	// === Archetype State ===
+	archetypeType: ArchetypeDtoType | null;
+	archetypeRevealed: boolean;
+	showArchetypeModal: boolean;
 
 	// === Persisted Chat Messages ===
 	graphMessages: ConversationMessage[];
@@ -87,6 +108,15 @@ interface PersonaStoreState {
 	clearApiGraph: () => void;
 	getStarGapsForNode: (nodeId: string) => StarStructureKey[];
 
+	// Parts progress actions (guided flow)
+	setPartsProgress: (progress: PartsProgress) => void;
+	setConversationState: (state: GuidedConversationState | null) => void;
+	updatePartStatus: (part: PartKey, status: PartsProgress[PartKey]) => void;
+
+	// Archetype actions
+	setArchetype: (type: ArchetypeDtoType) => void;
+	setShowArchetypeModal: (show: boolean) => void;
+
 	// Chat message actions
 	addGraphMessage: (message: ConversationMessage) => void;
 	updateMessageStatus: (id: string, status: "sent" | "error") => void;
@@ -101,6 +131,14 @@ interface PersonaStoreState {
 	_hasHydrated: boolean;
 	setHasHydrated: (state: boolean) => void;
 }
+
+// Default parts progress
+const defaultPartsProgress: PartsProgress = {
+	part1: "not_started",
+	part2: "not_started",
+	part3: "not_started",
+	part4: "not_started",
+};
 
 // Initial state
 const initialState = {
@@ -126,6 +164,15 @@ const initialState = {
 	completionReady: false,
 	totalNodeCount: 0,
 	starGapsMap: {} as Record<string, StarStructureKey[]>,
+
+	// Parts progress (guided flow)
+	partsProgress: defaultPartsProgress,
+	conversationState: null as GuidedConversationState | null,
+
+	// Archetype state
+	archetypeType: null as ArchetypeDtoType | null,
+	archetypeRevealed: false,
+	showArchetypeModal: false,
 
 	// Persisted chat messages
 	graphMessages: [] as ConversationMessage[],
@@ -227,12 +274,46 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					completionReady: false,
 					totalNodeCount: 0,
 					starGapsMap: {},
+					partsProgress: defaultPartsProgress,
+					conversationState: null,
+					archetypeType: null,
+					archetypeRevealed: false,
+					showArchetypeModal: false,
 				}),
 
 			// Get STAR gaps for a specific node
 			getStarGapsForNode: (nodeId: string): StarStructureKey[] => {
 				return get().starGapsMap[nodeId] || [];
 			},
+
+			// === Parts Progress Actions (Guided Flow) ===
+
+			setPartsProgress: (progress: PartsProgress) =>
+				set({ partsProgress: progress }),
+
+			setConversationState: (state: GuidedConversationState | null) =>
+				set({ conversationState: state }),
+
+			updatePartStatus: (part: PartKey, status: PartsProgress[PartKey]) => {
+				set((state) => ({
+					partsProgress: {
+						...state.partsProgress,
+						[part]: status,
+					},
+				}));
+			},
+
+			// === Archetype Actions ===
+
+			setArchetype: (type: ArchetypeDtoType) =>
+				set({
+					archetypeType: type,
+					archetypeRevealed: true,
+					showArchetypeModal: true, // Show celebration modal
+				}),
+
+			setShowArchetypeModal: (show: boolean) =>
+				set({ showArchetypeModal: show }),
 
 			// === Chat Message Actions ===
 
@@ -275,9 +356,15 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					const serverMessages: ConversationMessage[] =
 						data.conversationHistory?.map((msg) => {
 							// Map API message type to store message type
+							// API type is "text" only now, but we keep flexibility for future types
 							let mappedType: ConversationMessage["type"] = "text";
-							if (msg.type === "track_complete") mappedType = "completion";
-							// track_selection and text map to "text" for now, or could vary
+							const msgTypeStr = msg.type as string | undefined;
+							if (
+								msgTypeStr === "completion" ||
+								msgTypeStr === "track_complete"
+							)
+								mappedType = "completion";
+							if (msgTypeStr === "question") mappedType = "question";
 
 							return {
 								id: msg.id || `msg-${Date.now()}-${Math.random()}`,
@@ -324,6 +411,14 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						serverLastId !== localLastSentId ||
 						serverMessages.length !== localSentMessages.length;
 
+					// Sync archetype from server if available
+					const archetypeUpdates: Partial<PersonaStoreState> = {};
+					if (data.archetype?.type && !state.archetypeRevealed) {
+						archetypeUpdates.archetypeType = data.archetype
+							.type as ArchetypeDtoType;
+						archetypeUpdates.archetypeRevealed = true;
+					}
+
 					if (isServerDifferent) {
 						console.log(
 							"🔄 [PersonaStore] Syncing conversation with server (Server state preferred)",
@@ -336,10 +431,14 @@ export const usePersonaStore = create<PersonaStoreState>()(
 
 						return {
 							graphMessages: [...serverMessages, ...pendingMessages],
+							...archetypeUpdates,
 						};
 					}
 
-					return { graphMessages: state.graphMessages };
+					return {
+						graphMessages: state.graphMessages,
+						...archetypeUpdates,
+					};
 				});
 			},
 
@@ -390,7 +489,7 @@ export const usePersonaStore = create<PersonaStoreState>()(
 			setHasHydrated: (state) => set({ _hasHydrated: state }),
 		}),
 		{
-			name: "leaply-persona-store-v4", // Bump version to clear old data
+			name: "leaply-persona-store-v5", // Bump version for new parts-based flow
 			storage: createJSONStorage(() => localStorage),
 			partialize: (state) => ({
 				// Only persist essential data
@@ -402,6 +501,10 @@ export const usePersonaStore = create<PersonaStoreState>()(
 				totalNodeCount: state.totalNodeCount,
 				starGapsMap: state.starGapsMap,
 				graphMessages: state.graphMessages,
+				// New fields for guided flow
+				partsProgress: state.partsProgress,
+				archetypeType: state.archetypeType,
+				archetypeRevealed: state.archetypeRevealed,
 			}),
 			onRehydrateStorage: () => (state, error) => {
 				if (error) {
@@ -439,6 +542,20 @@ export const selectStarGapsMap = (state: PersonaStoreState) =>
 export const selectGraphMessages = (state: PersonaStoreState) =>
 	state.graphMessages;
 
+// New selectors for guided flow
+export const selectPartsProgress = (state: PersonaStoreState) =>
+	state.partsProgress;
+export const selectConversationState = (state: PersonaStoreState) =>
+	state.conversationState;
+export const selectArchetypeType = (state: PersonaStoreState) =>
+	state.archetypeType;
+export const selectArchetypeRevealed = (state: PersonaStoreState) =>
+	state.archetypeRevealed;
+export const selectShowArchetypeModal = (state: PersonaStoreState) =>
+	state.showArchetypeModal;
+
+// Re-export Parts types
+export type { PartKey, PartsProgress } from "@/lib/config/partsConfig";
 // Re-export generated types for convenience
 export type {
 	CoverageMetrics,

@@ -14,12 +14,21 @@
  */
 
 // === Conversation (Chat Interface) ===
+// Legacy graph-based conversation
+// New guided conversation (4-Parts flow)
 export {
+	getGetPartsProgressQueryKey,
 	getStartConversationQueryKey,
+	getStartGuidedConversationQueryKey,
 	useExpandNode,
+	useGenerateArchetype,
+	useGetPartsProgress,
 	useResetConversation,
+	useResetGuidedConversation,
 	useSendGraphMessage,
+	useSendGuidedMessage,
 	useStartConversation,
+	useStartGuidedConversation,
 } from "./conversation";
 // === Daily Questions ===
 export {

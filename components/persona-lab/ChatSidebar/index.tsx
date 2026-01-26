@@ -26,9 +26,16 @@ import {
 } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import type { PartKey, PartsProgress } from "@/lib/config/partsConfig";
 import {
-	type CoverageMetrics,
-	type GraphMessageResponse,
+	areAllPartsComplete,
+	DEFAULT_PARTS_PROGRESS,
+} from "@/lib/config/partsConfig";
+import {
+	type GuidedConversationState as ApiGuidedConversationState,
+	type CanvasActionDto,
+	type GuidedMessageResponse,
+	type PartsStatus,
 	type PersonaNodeDto,
 	PersonaNodeDtoType,
 } from "@/lib/generated/api/models";
@@ -36,31 +43,56 @@ import {
 	getGetCoverageQueryKey,
 	getGetGraphQueryKey,
 	getGetPersonaStateQueryKey,
-	useCoverage,
-	useResetConversation,
-	useSendMessage,
-	useStartConversation,
-	useSynthesizeProfile,
+	useGenerateArchetype,
+	useResetGuidedConversation,
+	useSendGuidedMessage,
+	useStartGuidedConversation,
 } from "@/lib/hooks/persona";
 import { useIsHydrated } from "@/lib/hooks/useStoresHydrated";
-import type { StarStructureKey } from "@/lib/store/personaStore";
+import type {
+	StarStructureKey,
+	GuidedConversationState as StoreGuidedConversationState,
+} from "@/lib/store/personaStore";
 import {
 	type ConversationMessage,
 	selectApiGraphNodes,
+	selectPartsProgress,
 	usePersonaStore,
 } from "@/lib/store/personaStore";
+import { ArchetypeCelebrationModal } from "../ArchetypeCelebrationModal";
 import { ChatHeader } from "./ChatHeader";
 import { ChatMessage, TypingIndicator } from "./ChatMessage";
 import { MessageInput } from "./MessageInput";
 
-// Default coverage for loading state
-const DEFAULT_COVERAGE: CoverageMetrics = {
-	goals: 0,
-	evidence: 0,
-	skills: 0,
-	values: 0,
-	tensions: 0,
-	overallProgress: 0,
+/**
+ * Convert API PartsStatus to frontend PartsProgress
+ */
+const convertPartsStatus = (status: PartsStatus): PartsProgress => ({
+	part1: (status.part1 as PartsProgress["part1"]) || "not_started",
+	part2: (status.part2 as PartsProgress["part2"]) || "not_started",
+	part3: (status.part3 as PartsProgress["part3"]) || "not_started",
+	part4: (status.part4 as PartsProgress["part4"]) || "not_started",
+});
+
+/**
+ * Convert API GuidedConversationState to store GuidedConversationState
+ */
+const convertConversationState = (
+	state: ApiGuidedConversationState,
+): StoreGuidedConversationState => {
+	// Map currentPart number to PartKey
+	const partKeys: PartKey[] = ["part1", "part2", "part3", "part4"];
+	const currentPart =
+		typeof state.currentPart === "number" && state.currentPart >= 1
+			? partKeys[state.currentPart - 1] || null
+			: null;
+
+	return {
+		phase: state.phase === "completed" ? "completed" : ("questioning" as const),
+		currentPart,
+		currentQuestionId: state.currentQuestionId || null,
+		followUpCount: state.followUpCount || 0,
+	};
 };
 
 export function ChatSidebar() {
@@ -95,14 +127,18 @@ export function ChatSidebar() {
 	);
 	const clearApiGraph = usePersonaStore((state) => state.clearApiGraph);
 
+	// Parts progress from store
+	const partsProgress = usePersonaStore(selectPartsProgress);
+
+	// Archetype state
+	const archetypeRevealed = usePersonaStore((state) => state.archetypeRevealed);
+	const completionReady = usePersonaStore((state) => state.completionReady);
+
 	// Mock mode state (development only)
 	const mockMode = usePersonaStore((state) => state.mockMode);
 	const mockScenario = usePersonaStore((state) => state.mockScenario);
 	const setMockMode = usePersonaStore((state) => state.setMockMode);
 	const setMockScenario = usePersonaStore((state) => state.setMockScenario);
-
-	// TanStack Query hooks for API interactions
-	const { data: coverageData } = useCoverage();
 
 	// Consolidated hydration check - waits for ALL stores
 	const isHydrated = useIsHydrated();
@@ -111,37 +147,58 @@ export function ChatSidebar() {
 	// Only enabled when messages array is empty to avoid re-fetching on refresh
 	const shouldFetchOpening = isHydrated && messages.length === 0;
 
+	// Store actions for parts progress
+	const setPartsProgress = usePersonaStore((state) => state.setPartsProgress);
+	const setConversationState = usePersonaStore(
+		(state) => state.setConversationState,
+	);
+	const setArchetype = usePersonaStore((state) => state.setArchetype);
+
 	const { data: conversationStart, isLoading: isLoadingOpening } =
-		useStartConversation({
+		useStartGuidedConversation({
 			query: { enabled: shouldFetchOpening },
 		});
 
 	// Add opening message to store when received
 	// biome-ignore lint/correctness/useExhaustiveDependencies: We only want to run this when conversationStart changes and messages is empty
 	useEffect(() => {
-		const graphData = unwrapResponse<GraphMessageResponse>(conversationStart);
+		const guidedData = unwrapResponse<GuidedMessageResponse>(conversationStart);
 
-		if (graphData?.message && messages.length === 0) {
+		if (guidedData?.message && messages.length === 0) {
 			const openingMessage: ConversationMessage = {
-				id: graphData.message.id || `assistant-${Date.now()}`,
+				id: guidedData.message.id || `assistant-${Date.now()}`,
 				role: "assistant",
 				type: "text",
-				content: graphData.message.content || "",
-				timestamp: graphData.message.timestamp || new Date().toISOString(),
+				content: guidedData.message.content || "",
+				timestamp: guidedData.message.timestamp || new Date().toISOString(),
 			};
 			addGraphMessage(openingMessage);
+
+			// Sync parts progress from server
+			if (guidedData.partsProgress) {
+				setPartsProgress(convertPartsStatus(guidedData.partsProgress));
+			}
+			// Sync conversation state
+			if (guidedData.conversationState) {
+				setConversationState(
+					convertConversationState(guidedData.conversationState),
+				);
+			}
 		}
 	}, [conversationStart]);
 
-	const sendMessageMutation = useSendMessage();
-	const resetMutation = useResetConversation();
-	const synthesizeProfileMutation = useSynthesizeProfile();
+	const sendMessageMutation = useSendGuidedMessage();
+	const resetMutation = useResetGuidedConversation();
+	const generateArchetypeMutation = useGenerateArchetype();
 
 	// Computed state from store
 	const apiGraphNodes = usePersonaStore(selectApiGraphNodes);
 	const storyNodeCount = apiGraphNodes.filter(
 		(n) => n.type === PersonaNodeDtoType.key_story,
 	).length;
+
+	// Check if all parts are complete
+	const allPartsComplete = areAllPartsComplete(partsProgress);
 
 	// Scroll to bottom on new messages
 	const messageCount = messages.length;
@@ -169,7 +226,7 @@ export function ChatSidebar() {
 			};
 			addGraphMessage(userMessage);
 
-			// Send to API
+			// Send to API (guided flow)
 			sendMessageMutation.mutate(
 				{ data: { content } },
 				{
@@ -181,71 +238,86 @@ export function ChatSidebar() {
 						// Mark user message as sent (prevents duplication in syncWithServer)
 						updateMessageStatus(userMessage.id, "sent");
 
-						// Unwrap double-wrapped response
-						const graphData = unwrapResponse<GraphMessageResponse>(response);
-
-						if (!graphData?.message) {
-						}
+						// Unwrap response - now GuidedMessageResponse
+						const guidedData = unwrapResponse<GuidedMessageResponse>(response);
 
 						// Add assistant response to store (persisted)
-						if (graphData?.message) {
+						if (guidedData?.message) {
 							const assistantMessage: ConversationMessage = {
-								id: graphData.message.id || `assistant-${Date.now()}`,
+								id: guidedData.message.id || `assistant-${Date.now()}`,
 								role:
-									(graphData.message.role as "user" | "assistant") ||
+									(guidedData.message.role as "user" | "assistant") ||
 									"assistant",
 								type:
-									(graphData.message.type as ConversationMessage["type"]) ||
+									(guidedData.message.type as ConversationMessage["type"]) ||
 									"text",
-								content: graphData.message.content || "",
+								content: guidedData.message.content || "",
 								timestamp:
-									graphData.message.timestamp || new Date().toISOString(),
+									guidedData.message.timestamp || new Date().toISOString(),
 								thinkingDuration,
 								status: "sent",
 							};
 							addGraphMessage(assistantMessage);
 						}
 
-						// Update store with graph data (canvas subscribes to this)
-						if (graphData) {
-							processGraphUpdate(graphData);
+						// Update parts progress from response
+						if (guidedData?.partsProgress) {
+							setPartsProgress(convertPartsStatus(guidedData.partsProgress));
+						}
+
+						// Update conversation state
+						if (guidedData?.conversationState) {
+							setConversationState(
+								convertConversationState(guidedData.conversationState),
+							);
+						}
+
+						// Process nodes created (for graph visualization)
+						if (
+							guidedData?.nodesCreated &&
+							guidedData.nodesCreated.length > 0
+						) {
+							// Update store with graph data (canvas subscribes to this)
+							processGraphUpdate({
+								nodesCreated: guidedData.nodesCreated,
+								totalNodeCount: guidedData.totalNodeCount,
+								completionReady: guidedData.completionReady,
+								// biome-ignore lint/suspicious/noExplicitAny: Partial graph update
+							} as any);
 
 							// Check if a key_story was extracted - show it in chat
-							const nodesCreated = graphData.nodesCreated ?? [];
+							const nodesCreated = guidedData.nodesCreated;
 							const storyNode = nodesCreated.find(
 								(n: PersonaNodeDto) => n.type === "key_story",
 							);
 							if (storyNode) {
-								const gaps = (graphData.starGapsForLastStory ??
-									[]) as StarStructureKey[];
-								setLatestStory({ node: storyNode, gaps });
+								setLatestStory({ node: storyNode, gaps: [] });
 							} else {
 								setLatestStory(null);
 							}
 
 							// Show toast notification for created nodes
-							if (nodesCreated.length > 0) {
-								const storyCount = nodesCreated.filter(
-									(n: PersonaNodeDto) => n.type === "key_story",
-								).length;
-								const detailCount = nodesCreated.filter(
-									(n: PersonaNodeDto) => n.type === "detail",
-								).length;
+							const storyCount = nodesCreated.filter(
+								(n: PersonaNodeDto) => n.type === "key_story",
+							).length;
+							const detailCount = nodesCreated.filter(
+								(n: PersonaNodeDto) => n.type === "detail",
+							).length;
 
-								if (storyCount > 0) {
-									toast.success("Story captured!", {
-										description: `Added ${storyCount} story${storyCount > 1 ? "s" : ""} to your profile`,
-									});
-								} else if (detailCount > 0) {
-									toast.info("Details added", {
-										description: `${detailCount} insight${detailCount > 1 ? "s" : ""} added to your graph`,
-									});
-								}
+							if (storyCount > 0) {
+								toast.success("Story captured!", {
+									description: `Added ${storyCount} story${storyCount > 1 ? "s" : ""} to your profile`,
+								});
+							} else if (detailCount > 0) {
+								toast.info("Details added", {
+									description: `${detailCount} insight${detailCount > 1 ? "s" : ""} added to your graph`,
+								});
 							}
 						}
 
-						// If completion is ready, add completion message
-						if (graphData?.completionReady) {
+						// If completion is ready, trigger archetype generation
+						if (guidedData?.completionReady) {
+							// Add completion message
 							const completionMessage: ConversationMessage = {
 								id: `completion-${Date.now()}`,
 								role: "assistant",
@@ -254,6 +326,24 @@ export function ChatSidebar() {
 								timestamp: new Date().toISOString(),
 							};
 							addGraphMessage(completionMessage);
+
+							// Generate archetype
+							generateArchetypeMutation.mutate(undefined, {
+								onSuccess: (archetypeResponse) => {
+									const archetypeData =
+										unwrapResponse<CanvasActionDto>(archetypeResponse);
+									if (archetypeData?.archetype?.type) {
+										setArchetype(
+											archetypeData.archetype.type as Parameters<
+												typeof setArchetype
+											>[0],
+										);
+										toast.success(t("archetypeRevealed"), {
+											description: t("archetypeRevealedDesc"),
+										});
+									}
+								},
+							});
 						}
 
 						// Invalidate queries to refresh data from server
@@ -266,30 +356,6 @@ export function ChatSidebar() {
 						queryClient.invalidateQueries({
 							queryKey: getGetGraphQueryKey(),
 						});
-
-						// Check for auto-synthesis (10+ story nodes)
-						const currentNodes = usePersonaStore.getState().apiGraphNodes;
-						const currentStoryCount = currentNodes.filter(
-							(n) => n.type === PersonaNodeDtoType.key_story,
-						).length;
-						const hasProfile = currentNodes.some(
-							(n) => n.type === PersonaNodeDtoType.profile_summary,
-						);
-
-						if (currentStoryCount >= 10 && !hasProfile) {
-							synthesizeProfileMutation.mutate(undefined, {
-								onSuccess: (node) => {
-									toast.success(t("profileUnlocked"), {
-										description: t("profileUnlockedDesc"),
-									});
-									// Add the new node to the graph
-									processGraphUpdate({
-										nodesCreated: [node],
-										// biome-ignore lint/suspicious/noExplicitAny: Type cast for partial graph update
-									} as any);
-								},
-							});
-						}
 					},
 				},
 			);
@@ -301,7 +367,10 @@ export function ChatSidebar() {
 			addGraphMessage,
 			updateMessageStatus,
 			queryClient,
-			synthesizeProfileMutation,
+			generateArchetypeMutation,
+			setPartsProgress,
+			setConversationState,
+			setArchetype,
 		],
 	);
 
@@ -311,18 +380,22 @@ export function ChatSidebar() {
 			onSuccess: (response) => {
 				// Clear messages and add new opening message
 				clearGraphMessages();
-				const graphData = unwrapResponse<GraphMessageResponse>(response);
-				if (graphData?.message) {
+				const guidedData = unwrapResponse<GuidedMessageResponse>(response);
+				if (guidedData?.message) {
 					const assistantMessage: ConversationMessage = {
-						id: graphData.message.id || `assistant-${Date.now()}`,
+						id: guidedData.message.id || `assistant-${Date.now()}`,
 						role: "assistant",
 						type: "text",
-						content: graphData.message.content || "",
-						timestamp: graphData.message.timestamp || new Date().toISOString(),
+						content: guidedData.message.content || "",
+						timestamp: guidedData.message.timestamp || new Date().toISOString(),
 					};
 					addGraphMessage(assistantMessage);
 				}
-				// Clear graph data in store
+				// Reset parts progress from response or to defaults
+				if (guidedData?.partsProgress) {
+					setPartsProgress(convertPartsStatus(guidedData.partsProgress));
+				}
+				// Clear graph data in store (also resets parts progress)
 				clearApiGraph();
 				// Invalidate coverage query to refresh progress bar
 				queryClient.invalidateQueries({ queryKey: getGetCoverageQueryKey() });
@@ -334,21 +407,9 @@ export function ChatSidebar() {
 		clearGraphMessages,
 		addGraphMessage,
 		queryClient,
+		setPartsProgress,
 	]);
 
-	// Derive CoverageMetrics from API response
-	const coverageInner = unwrapResponse<CoverageMetrics>(coverageData);
-	const coverage: CoverageMetrics = {
-		goals: coverageInner?.goals ?? 0,
-		evidence: coverageInner?.evidence ?? 0,
-		skills: coverageInner?.skills ?? 0,
-		values: coverageInner?.values ?? 0,
-		tensions: coverageInner?.tensions ?? 0,
-		lowestCategory: coverageInner?.lowestCategory,
-		overallProgress: coverageInner?.overallProgress ?? 0,
-	};
-	const totalNodeCount = 0; // Not available in CoverageMetrics, use 0 as default
-	const completionReady = (coverage.overallProgress ?? 0) >= 100;
 	const isSending = sendMessageMutation.isPending || resetMutation.isPending;
 	const error = sendMessageMutation.error?.message;
 
@@ -361,8 +422,7 @@ export function ChatSidebar() {
 		return (
 			<div className="flex flex-col h-full">
 				<ChatHeader
-					coverage={DEFAULT_COVERAGE}
-					totalNodeCount={0}
+					partsProgress={DEFAULT_PARTS_PROGRESS}
 					completionReady={false}
 				/>
 				<div className="flex-1 min-h-0 p-4 space-y-4">
@@ -376,12 +436,14 @@ export function ChatSidebar() {
 
 	return (
 		<div className="flex flex-col h-full min-h-0 overflow-hidden">
-			{/* Header with coverage progress */}
+			{/* Archetype celebration modal */}
+			<ArchetypeCelebrationModal />
+
+			{/* Header with parts progress */}
 			<ChatHeader
-				coverage={coverage}
-				totalNodeCount={totalNodeCount}
+				partsProgress={partsProgress}
 				storyNodeCount={storyNodeCount}
-				completionReady={completionReady}
+				completionReady={completionReady || allPartsComplete}
 			/>
 
 			{/* Mock Mode Controls (Development Only) */}
@@ -480,7 +542,7 @@ export function ChatSidebar() {
 
 			{/* Input or CTA when complete */}
 			<div className="shrink-0">
-				{completionReady ? (
+				{(completionReady || allPartsComplete) && archetypeRevealed ? (
 					<div className="p-3 border-t border-border">
 						<Button
 							className="w-full"
