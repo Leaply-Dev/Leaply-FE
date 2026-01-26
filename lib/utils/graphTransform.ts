@@ -214,6 +214,16 @@ export function transformApiGraphData(
 		};
 	});
 
+	// Sort nodes: larger first (drawn at bottom), smaller last (drawn on top)
+	// This ensures smaller nodes' click areas override larger nodes in hit detection
+	// (Canvas draws sequentially - last drawn element "wins" pointer area detection)
+	forceNodes.sort((a, b) => {
+		// Primary: size descending (big draws first, so small nodes draw on top)
+		if (b.size !== a.size) return b.size - a.size;
+		// Secondary: ID for deterministic order
+		return a.id > b.id ? 1 : -1;
+	});
+
 	return { nodes: forceNodes, links: forceLinks };
 }
 

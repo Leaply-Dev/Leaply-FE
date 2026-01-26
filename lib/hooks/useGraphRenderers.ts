@@ -298,6 +298,8 @@ export function useGraphRenderers({
 
 	// Paint node pointer area - larger clickable area with minimum size
 	// Scale parameter ensures minimum clickable area in SCREEN space, not canvas space
+	// IMPORTANT: Click radius is CAPPED to prevent "ghost masking" where zoomed-out
+	// nodes create giant invisible click areas that overlap and steal clicks from neighbors
 	const paintNodePointerArea = useCallback(
 		(
 			node: NodeObject,
@@ -315,9 +317,18 @@ export function useGraphRenderers({
 				typeof graphNode.size === "number" && !Number.isNaN(graphNode.size)
 					? graphNode.size
 					: 12;
-			const clickRadius = Math.max(
-				nodeSize * 2,
-				minScreenRadius / effectiveScale,
+
+			// Calculate dynamic size based on zoom level
+			const dynamicSize = minScreenRadius / effectiveScale;
+
+			// HARD CAP: Never exceed 4x node size to prevent masking neighbors
+			// (collision buffer is size*3+50, so 4x stays within safe bounds)
+			const maxClickRadius = nodeSize * 4;
+
+			// Apply bounds: at least 1.5x node size, up to dynamic size, capped at max
+			const clickRadius = Math.min(
+				maxClickRadius,
+				Math.max(nodeSize * 1.5, dynamicSize),
 			);
 
 			// Ensure x and y are valid numbers
