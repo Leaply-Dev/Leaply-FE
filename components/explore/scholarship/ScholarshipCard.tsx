@@ -9,6 +9,7 @@ import {
 	Check,
 	DollarSign,
 	GraduationCap,
+	Loader2,
 	MapPin,
 	Plus,
 	Settings2,
@@ -38,6 +39,7 @@ interface ScholarshipCardProps {
 	onAddToDashboard?: (id: string) => void;
 	isInDashboard?: boolean;
 	onManage?: (id: string) => void;
+	isAdding?: boolean;
 }
 
 export function ScholarshipCard({
@@ -49,6 +51,7 @@ export function ScholarshipCard({
 	onAddToDashboard,
 	isInDashboard,
 	onManage,
+	isAdding,
 }: ScholarshipCardProps) {
 	// Check if deadline exists and is not past
 	const hasValidDeadline =
@@ -264,6 +267,7 @@ export function ScholarshipCard({
 				<Button
 					size="sm"
 					className="flex-1 font-medium gap-2 bg-primary hover:bg-primary/90 text-sm"
+					disabled={isAdding}
 					onClick={(e) => {
 						e.stopPropagation();
 						if (isInDashboard && onManage) {
@@ -277,6 +281,11 @@ export function ScholarshipCard({
 						<>
 							<Settings2 className="w-4 h-4" />
 							Manage
+						</>
+					) : isAdding ? (
+						<>
+							<Loader2 className="w-4 h-4 animate-spin" />
+							Adding...
 						</>
 					) : (
 						<>

@@ -55,6 +55,9 @@ export function ScholarshipExploreClient() {
 	const queryClient = useQueryClient();
 	const router = useRouter();
 	const [activeMode, setActiveMode] = useState<"ai" | "manual">("ai");
+	const [addingScholarshipId, setAddingScholarshipId] = useState<string | null>(
+		null,
+	);
 
 	// Detail drawer state for AI mode
 	const [selectedScholarship, setSelectedScholarship] =
@@ -107,6 +110,8 @@ export function ScholarshipExploreClient() {
 			return;
 		}
 
+		setAddingScholarshipId(scholarshipId);
+
 		// Create scholarship application
 		createApplicationMutation.mutate(
 			{ data: { scholarshipId } },
@@ -125,6 +130,9 @@ export function ScholarshipExploreClient() {
 					toast.error("Không thể thêm học bổng", {
 						description: "Vui lòng thử lại sau.",
 					});
+				},
+				onSettled: () => {
+					setAddingScholarshipId(null);
 				},
 			},
 		);
@@ -309,6 +317,7 @@ export function ScholarshipExploreClient() {
 									onAddToDashboard={handleAddToDashboard}
 									isScholarshipInDashboard={isScholarshipInDashboard}
 									onManageApplication={handleManageApplication}
+									addingScholarshipId={addingScholarshipId}
 								/>
 							</>
 						)}
@@ -325,6 +334,7 @@ export function ScholarshipExploreClient() {
 						onAddToDashboard={handleAddToDashboard}
 						isScholarshipInDashboard={isScholarshipInDashboard}
 						onManageApplication={handleManageApplication}
+						addingScholarshipId={addingScholarshipId}
 					/>
 				)}
 			</div>

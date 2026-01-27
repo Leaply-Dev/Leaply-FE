@@ -11,7 +11,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Award, ChevronLeft, ChevronRight, GraduationCap } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { ApplicationDashboard } from "@/components/ApplicationDashboard";
 import { ApplicationSidebar } from "@/components/ApplicationSidebar";
@@ -91,11 +91,6 @@ export function ApplicationsClient() {
 		error: scholarshipsError,
 	} = useGetScholarshipApplications();
 
-	const { mutateAsync: updateStatus } = useUpdateApplication1();
-	const { mutateAsync: deleteApp } = useDeleteApplication1();
-	const { mutateAsync: deleteScholarshipApp } =
-		useDeleteScholarshipApplication();
-
 	// Parse program applications
 	const appsData =
 		unwrapResponse<ApplicationListResponse>(applicationsResponse);
@@ -105,6 +100,39 @@ export function ApplicationsClient() {
 	const scholarshipAppsData =
 		unwrapResponse<ScholarshipApplicationListResponse>(scholarshipAppsResponse);
 	const scholarshipApplications = scholarshipAppsData?.applications ?? [];
+
+	// Helper to check if any application needs tips polling (created <60s ago, no tips)
+	const hasPendingTips = useMemo(() => {
+		const now = Date.now();
+		const allApps = [...applications, ...scholarshipApplications];
+		return allApps.some(
+			(app) =>
+				!app.improvementTips?.tips?.length &&
+				app.createdAt &&
+				now - new Date(app.createdAt).getTime() < 60000,
+		);
+	}, [applications, scholarshipApplications]);
+
+	// Poll for tips updates when there are pending applications
+	useEffect(() => {
+		if (!hasPendingTips) return;
+
+		const interval = setInterval(() => {
+			queryClient.invalidateQueries({
+				queryKey: getGetApplications1QueryKey(),
+			});
+			queryClient.invalidateQueries({
+				queryKey: getScholarshipApplicationsQueryKey(),
+			});
+		}, 5000);
+
+		return () => clearInterval(interval);
+	}, [hasPendingTips, queryClient]);
+
+	const { mutateAsync: updateStatus } = useUpdateApplication1();
+	const { mutateAsync: deleteApp } = useDeleteApplication1();
+	const { mutateAsync: deleteScholarshipApp } =
+		useDeleteScholarshipApplication();
 
 	// Auto-select first program application if none selected
 	useEffect(() => {

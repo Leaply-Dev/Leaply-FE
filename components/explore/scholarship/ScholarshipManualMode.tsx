@@ -8,6 +8,7 @@ import {
 	ChevronRight,
 	DollarSign,
 	Filter,
+	Loader2,
 	Search,
 	Settings2,
 	Sparkles,
@@ -262,6 +263,7 @@ interface ScholarshipManualModeProps {
 	currentPage?: number;
 	onPageChange?: (page: number) => void;
 	pageSize?: number;
+	addingScholarshipId?: string | null;
 }
 
 function ScholarshipTableRow({
@@ -273,6 +275,7 @@ function ScholarshipTableRow({
 	isMaxReached,
 	isInDashboard,
 	onManage,
+	isAdding,
 }: {
 	scholarship: ScholarshipListItemResponse;
 	selected: boolean;
@@ -282,6 +285,7 @@ function ScholarshipTableRow({
 	isMaxReached: boolean;
 	isInDashboard?: boolean;
 	onManage?: (id: string) => void;
+	isAdding?: boolean;
 }) {
 	const getDeadlineUrgency = (deadline?: string) => {
 		if (!deadline) return { color: "text-muted-foreground", label: "N/A" };
@@ -448,6 +452,7 @@ function ScholarshipTableRow({
 			<td className="p-4 text-center">
 				<Button
 					size="sm"
+					disabled={isAdding}
 					onClick={(e) => {
 						e.stopPropagation();
 						if (isInDashboard && onManage) {
@@ -462,6 +467,11 @@ function ScholarshipTableRow({
 						<>
 							<Settings2 className="w-4 h-4" />
 							Manage
+						</>
+					) : isAdding ? (
+						<>
+							<Loader2 className="w-4 h-4 animate-spin" />
+							Adding...
 						</>
 					) : (
 						<>
@@ -487,6 +497,7 @@ export function ScholarshipManualMode({
 	currentPage = 1,
 	onPageChange,
 	pageSize = 10,
+	addingScholarshipId,
 }: ScholarshipManualModeProps) {
 	// Detail drawer state
 	const [selectedScholarship, setSelectedScholarship] =
@@ -711,6 +722,7 @@ export function ScholarshipManualMode({
 												: false
 										}
 										onManage={onManageApplication}
+										isAdding={addingScholarshipId === scholarship.id}
 									/>
 								))}
 							</tbody>

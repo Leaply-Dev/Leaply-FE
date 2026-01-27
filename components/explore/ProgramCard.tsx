@@ -11,6 +11,7 @@ import {
 	DollarSign,
 	GraduationCap,
 	Laptop,
+	Loader2,
 	MapPin,
 	Plus,
 	Settings2,
@@ -43,6 +44,7 @@ interface ProgramCardProps {
 	isMaxReached?: boolean;
 	onAddToDashboard?: (id: string) => void;
 	isInDashboard?: boolean;
+	isAdding?: boolean;
 	onManage?: (id: string) => void;
 }
 
@@ -54,6 +56,7 @@ export function ProgramCard({
 	isMaxReached,
 	onAddToDashboard,
 	isInDashboard,
+	isAdding,
 	onManage,
 }: ProgramCardProps) {
 	// Check if deadline exists and is not past
@@ -252,16 +255,22 @@ export function ProgramCard({
 				<Button
 					size="sm"
 					className="flex-1 font-medium gap-2 bg-primary hover:bg-primary/90 text-sm"
+					disabled={isAdding}
 					onClick={(e) => {
 						e.stopPropagation();
 						if (isInDashboard && onManage) {
 							program.id && onManage(program.id);
-						} else {
+						} else if (!isAdding) {
 							program.id && onAddToDashboard?.(program.id);
 						}
 					}}
 				>
-					{isInDashboard ? (
+					{isAdding ? (
+						<>
+							<Loader2 className="w-4 h-4 animate-spin" />
+							Adding...
+						</>
+					) : isInDashboard ? (
 						<>
 							<Settings2 className="w-4 h-4" />
 							Manage

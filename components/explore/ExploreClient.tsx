@@ -61,6 +61,7 @@ import { cn } from "@/lib/utils";
 
 export function ExploreClient() {
 	const [activeMode, setActiveMode] = useState<"ai" | "manual">("ai");
+	const [addingProgramId, setAddingProgramId] = useState<string | null>(null);
 
 	// Detail drawer state for AI mode
 	const [selectedProgram, setSelectedProgram] =
@@ -108,6 +109,7 @@ export function ExploreClient() {
 	};
 
 	const handleAddToDashboard = (programId: string) => {
+		setAddingProgramId(programId);
 		createApplication(
 			{
 				data: {
@@ -135,6 +137,9 @@ export function ExploreClient() {
 					toast.error("Failed to create application", {
 						description: "Please try again later.",
 					});
+				},
+				onSettled: () => {
+					setAddingProgramId(null);
 				},
 			},
 		);
@@ -347,6 +352,7 @@ export function ExploreClient() {
 									onAddToDashboard={handleAddToDashboard}
 									isProgramInDashboard={isProgramInDashboard}
 									onManageApplication={handleManageApplication}
+									addingProgramId={addingProgramId}
 								/>
 							</>
 						)}
@@ -363,6 +369,7 @@ export function ExploreClient() {
 						onAddToDashboard={handleAddToDashboard}
 						isProgramInDashboard={isProgramInDashboard}
 						onManageApplication={handleManageApplication}
+						addingProgramId={addingProgramId}
 					/>
 				)}
 			</div>

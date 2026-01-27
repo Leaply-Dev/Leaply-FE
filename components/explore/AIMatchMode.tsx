@@ -25,6 +25,7 @@ export function CategoryContainer({
 	onAddToDashboard,
 	isProgramInDashboard,
 	onManageApplication,
+	addingProgramId,
 }: {
 	title: string;
 	description: string;
@@ -40,6 +41,7 @@ export function CategoryContainer({
 	onAddToDashboard?: (id: string) => void;
 	isProgramInDashboard?: (id: string) => boolean;
 	onManageApplication?: (id: string) => void;
+	addingProgramId?: string | null;
 }) {
 	const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 	const [showAll, setShowAll] = useState(false);
@@ -166,6 +168,7 @@ export function CategoryContainer({
 										isInDashboard={
 											program.id ? isProgramInDashboard?.(program.id) : false
 										}
+										isAdding={addingProgramId === program.id}
 										onManage={onManageApplication}
 									/>
 								))}
@@ -302,6 +305,7 @@ export function TabBasedCategories({
 	onAddToDashboard,
 	isProgramInDashboard,
 	onManageApplication,
+	addingProgramId,
 }: {
 	programs: ProgramListItemResponse[];
 	userProfile?: UserContextResponse | null;
@@ -313,6 +317,7 @@ export function TabBasedCategories({
 	onAddToDashboard?: (id: string) => void;
 	isProgramInDashboard?: (id: string) => boolean;
 	onManageApplication?: (id: string) => void;
+	addingProgramId?: string | null;
 }) {
 	const reach = programs.filter((p) => p.fitCategory === "reach");
 	const target = programs.filter((p) => p.fitCategory === "target");
@@ -427,6 +432,7 @@ export function TabBasedCategories({
 										isInDashboard={
 											program.id ? isProgramInDashboard?.(program.id) : false
 										}
+										isAdding={addingProgramId === program.id}
 										onManage={onManageApplication}
 									/>
 								))}

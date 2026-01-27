@@ -20,6 +20,7 @@ export function ScholarshipCategoryContainer({
 	onAddToDashboard,
 	isScholarshipInDashboard,
 	onManageApplication,
+	addingScholarshipId,
 }: {
 	title: string;
 	description: string;
@@ -33,6 +34,7 @@ export function ScholarshipCategoryContainer({
 	onAddToDashboard?: (id: string) => void;
 	isScholarshipInDashboard?: (id: string) => boolean;
 	onManageApplication?: (id: string) => void;
+	addingScholarshipId?: string | null;
 }) {
 	const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 	const [showAll, setShowAll] = useState(false);
@@ -152,6 +154,7 @@ export function ScholarshipCategoryContainer({
 												: false
 										}
 										onManage={onManageApplication}
+										isAdding={addingScholarshipId === scholarship.id}
 									/>
 								))}
 							</div>
@@ -211,6 +214,7 @@ export function ScholarshipTabBasedCategories({
 	onAddToDashboard,
 	isScholarshipInDashboard,
 	onManageApplication,
+	addingScholarshipId,
 }: {
 	scholarships: ScholarshipListItemResponse[];
 	onScholarshipClick?: (scholarship: ScholarshipListItemResponse) => void;
@@ -220,6 +224,7 @@ export function ScholarshipTabBasedCategories({
 	onAddToDashboard?: (id: string) => void;
 	isScholarshipInDashboard?: (id: string) => boolean;
 	onManageApplication?: (id: string) => void;
+	addingScholarshipId?: string | null;
 }) {
 	const reach = scholarships.filter((s) => s.fitCategory === "reach");
 	const target = scholarships.filter((s) => s.fitCategory === "target");
@@ -332,6 +337,7 @@ export function ScholarshipTabBasedCategories({
 												: false
 										}
 										onManage={onManageApplication}
+										isAdding={addingScholarshipId === scholarship.id}
 									/>
 								))}
 							</div>

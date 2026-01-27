@@ -4,6 +4,7 @@ import {
 	ArrowRight,
 	ChevronLeft,
 	ChevronRight,
+	Loader2,
 	Search,
 	Settings2,
 } from "lucide-react";
@@ -111,6 +112,7 @@ interface ManualModeProps {
 	onAddToDashboard?: (id: string) => void;
 	isProgramInDashboard?: (id: string) => boolean;
 	onManageApplication?: (id: string) => void;
+	addingProgramId?: string | null;
 }
 
 /**
@@ -124,6 +126,7 @@ function ProgramTableRow({
 	onAddToDashboard,
 	isMaxReached,
 	isInDashboard,
+	isAdding,
 	onManage,
 }: {
 	program: ProgramListItemResponse;
@@ -133,6 +136,7 @@ function ProgramTableRow({
 	onAddToDashboard: (id: string) => void;
 	isMaxReached: boolean;
 	isInDashboard?: boolean;
+	isAdding?: boolean;
 	onManage?: (id: string) => void;
 }) {
 	const getDeadlineUrgency = (deadline?: string) => {
@@ -311,17 +315,23 @@ function ProgramTableRow({
 			<td className="p-4 text-center">
 				<Button
 					size="sm"
+					disabled={isAdding}
 					onClick={(e) => {
 						e.stopPropagation();
 						if (isInDashboard && onManage) {
 							program.id && onManage(program.id);
-						} else {
+						} else if (!isAdding) {
 							program.id && onAddToDashboard(program.id);
 						}
 					}}
 					className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
 				>
-					{isInDashboard ? (
+					{isAdding ? (
+						<>
+							<Loader2 className="w-4 h-4 animate-spin" />
+							Adding...
+						</>
+					) : isInDashboard ? (
 						<>
 							<Settings2 className="w-4 h-4" />
 							Manage
@@ -349,6 +359,7 @@ export function ManualMode({
 	onAddToDashboard,
 	isProgramInDashboard,
 	onManageApplication,
+	addingProgramId,
 }: ManualModeProps) {
 	// Detail drawer state
 	const [selectedProgram, setSelectedProgram] =
@@ -577,6 +588,7 @@ export function ManualMode({
 										isInDashboard={
 											program.id ? isProgramInDashboard?.(program.id) : false
 										}
+										isAdding={addingProgramId === program.id}
 										onManage={onManageApplication}
 									/>
 								))}

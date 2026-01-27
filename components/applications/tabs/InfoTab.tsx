@@ -206,7 +206,14 @@ export function InfoTab({ application, onUpdateStatus }: InfoTabProps) {
 			)}
 
 			{/* Improvement Tips */}
-			<ImprovementTipsCard tips={application.improvementTips} />
+			<ImprovementTipsCard
+				tips={application.improvementTips}
+				isLoading={
+					!application.improvementTips?.tips?.length &&
+					!!application.createdAt &&
+					Date.now() - new Date(application.createdAt).getTime() < 60000
+				}
+			/>
 
 			{/* Next Intake Info */}
 			{application.program?.nextIntake && (
