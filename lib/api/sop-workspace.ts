@@ -197,10 +197,10 @@ export function useWorkspaceStatus(applicationId: string) {
 	return useQuery({
 		queryKey: sopWorkspaceKeys.status(applicationId),
 		queryFn: async () => {
-			const response = await customFetch<{ data: SopWorkspaceStatusResponse }>(
-				`/v1/applications/${applicationId}/sop/workspace/status`,
-			);
-			return response.data;
+			const response = await customFetch<{
+				data: { data: SopWorkspaceStatusResponse };
+			}>(`/v1/applications/${applicationId}/sop/workspace/status`);
+			return response.data.data;
 		},
 		staleTime: 30000,
 	});
@@ -242,10 +242,10 @@ export function useIdeation(applicationId: string) {
 	return useQuery({
 		queryKey: sopWorkspaceKeys.ideation(applicationId),
 		queryFn: async () => {
-			const response = await customFetch<{ data: IdeationResponse }>(
-				`/v1/applications/${applicationId}/sop/ideation`,
-			);
-			return response.data;
+			const response = await customFetch<{
+				data: { data: IdeationResponse };
+			}>(`/v1/applications/${applicationId}/sop/ideation`);
+			return response.data.data;
 		},
 		retry: false,
 	});
@@ -255,11 +255,12 @@ export function useGenerateIdeation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: async (applicationId: string) => {
-			const response = await customFetch<{ data: GenerateIdeationResponse }>(
-				`/v1/applications/${applicationId}/sop/ideation/generate`,
-				{ method: "POST" },
-			);
-			return response.data;
+			const response = await customFetch<{
+				data: { data: GenerateIdeationResponse };
+			}>(`/v1/applications/${applicationId}/sop/ideation/generate`, {
+				method: "POST",
+			});
+			return response.data.data;
 		},
 		onSuccess: (_, applicationId) => {
 			queryClient.invalidateQueries({
@@ -282,15 +283,14 @@ export function useUpdateIdeation() {
 			applicationId: string;
 			data: UpdateIdeationRequest;
 		}) => {
-			const response = await customFetch<{ data: IdeationResponse }>(
-				`/v1/applications/${applicationId}/sop/ideation`,
-				{
-					method: "PATCH",
-					body: JSON.stringify(data),
-					headers: { "Content-Type": "application/json" },
-				},
-			);
-			return response.data;
+			const response = await customFetch<{
+				data: { data: IdeationResponse };
+			}>(`/v1/applications/${applicationId}/sop/ideation`, {
+				method: "PATCH",
+				body: JSON.stringify(data),
+				headers: { "Content-Type": "application/json" },
+			});
+			return response.data.data;
 		},
 		onSuccess: (_, { applicationId }) => {
 			queryClient.invalidateQueries({
@@ -304,10 +304,10 @@ export function useOutline(applicationId: string) {
 	return useQuery({
 		queryKey: sopWorkspaceKeys.outline(applicationId),
 		queryFn: async () => {
-			const response = await customFetch<{ data: OutlineResponse }>(
-				`/v1/applications/${applicationId}/sop/outline`,
-			);
-			return response.data;
+			const response = await customFetch<{
+				data: { data: OutlineResponse };
+			}>(`/v1/applications/${applicationId}/sop/outline`);
+			return response.data.data;
 		},
 		retry: false,
 	});
@@ -323,15 +323,14 @@ export function useGenerateOutline() {
 			applicationId: string;
 			wordLimit?: number;
 		}) => {
-			const response = await customFetch<{ data: OutlineResponse }>(
-				`/v1/applications/${applicationId}/sop/outline/generate`,
-				{
-					method: "POST",
-					body: JSON.stringify({ wordLimit }),
-					headers: { "Content-Type": "application/json" },
-				},
-			);
-			return response.data;
+			const response = await customFetch<{
+				data: { data: OutlineResponse };
+			}>(`/v1/applications/${applicationId}/sop/outline/generate`, {
+				method: "POST",
+				body: JSON.stringify({ wordLimit }),
+				headers: { "Content-Type": "application/json" },
+			});
+			return response.data.data;
 		},
 		onSuccess: (_, { applicationId }) => {
 			queryClient.invalidateQueries({
@@ -368,10 +367,10 @@ export function useSections(applicationId: string) {
 	return useQuery({
 		queryKey: sopWorkspaceKeys.sections(applicationId),
 		queryFn: async () => {
-			const response = await customFetch<{ data: SectionsListResponse }>(
-				`/v1/applications/${applicationId}/sop/sections`,
-			);
-			return response.data;
+			const response = await customFetch<{
+				data: { data: SectionsListResponse };
+			}>(`/v1/applications/${applicationId}/sop/sections`);
+			return response.data.data;
 		},
 	});
 }
@@ -388,15 +387,14 @@ export function useUpdateSection() {
 			sectionIndex: number;
 			data: { content: string };
 		}) => {
-			const response = await customFetch<{ data: UpdateSectionResponse }>(
-				`/v1/applications/${applicationId}/sop/sections/${sectionIndex}`,
-				{
-					method: "PATCH",
-					body: JSON.stringify(data),
-					headers: { "Content-Type": "application/json" },
-				},
-			);
-			return response.data;
+			const response = await customFetch<{
+				data: { data: UpdateSectionResponse };
+			}>(`/v1/applications/${applicationId}/sop/sections/${sectionIndex}`, {
+				method: "PATCH",
+				body: JSON.stringify(data),
+				headers: { "Content-Type": "application/json" },
+			});
+			return response.data.data;
 		},
 		onSuccess: (_, { applicationId }) => {
 			queryClient.invalidateQueries({
@@ -436,10 +434,12 @@ export function useEvidence(applicationId: string, sectionIndex: number) {
 	return useQuery({
 		queryKey: sopWorkspaceKeys.evidence(applicationId, sectionIndex),
 		queryFn: async () => {
-			const response = await customFetch<{ data: EvidenceCardsResponse }>(
+			const response = await customFetch<{
+				data: { data: EvidenceCardsResponse };
+			}>(
 				`/v1/applications/${applicationId}/sop/sections/${sectionIndex}/evidence`,
 			);
-			return response.data;
+			return response.data.data;
 		},
 	});
 }
@@ -453,11 +453,13 @@ export function useSectionFeedback() {
 			applicationId: string;
 			sectionIndex: number;
 		}) => {
-			const response = await customFetch<{ data: SectionFeedbackResponse }>(
+			const response = await customFetch<{
+				data: { data: SectionFeedbackResponse };
+			}>(
 				`/v1/applications/${applicationId}/sop/sections/${sectionIndex}/feedback`,
 				{ method: "POST" },
 			);
-			return response.data;
+			return response.data.data;
 		},
 	});
 }
@@ -466,10 +468,10 @@ export function useFullEssay(applicationId: string) {
 	return useQuery({
 		queryKey: sopWorkspaceKeys.fullEssay(applicationId),
 		queryFn: async () => {
-			const response = await customFetch<{ data: FullEssayResponse }>(
-				`/v1/applications/${applicationId}/sop/full`,
-			);
-			return response.data;
+			const response = await customFetch<{
+				data: { data: FullEssayResponse };
+			}>(`/v1/applications/${applicationId}/sop/full`);
+			return response.data.data;
 		},
 	});
 }
@@ -477,11 +479,10 @@ export function useFullEssay(applicationId: string) {
 export function useReview() {
 	return useMutation({
 		mutationFn: async (applicationId: string) => {
-			const response = await customFetch<{ data: ReviewResponse }>(
-				`/v1/applications/${applicationId}/sop/review`,
-				{ method: "POST" },
-			);
-			return response.data;
+			const response = await customFetch<{
+				data: { data: ReviewResponse };
+			}>(`/v1/applications/${applicationId}/sop/review`, { method: "POST" });
+			return response.data.data;
 		},
 	});
 }
@@ -490,11 +491,10 @@ export function useCompile() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: async (applicationId: string) => {
-			const response = await customFetch<{ data: CompileResponse }>(
-				`/v1/applications/${applicationId}/sop/compile`,
-				{ method: "POST" },
-			);
-			return response.data;
+			const response = await customFetch<{
+				data: { data: CompileResponse };
+			}>(`/v1/applications/${applicationId}/sop/compile`, { method: "POST" });
+			return response.data.data;
 		},
 		onSuccess: (_, applicationId) => {
 			queryClient.invalidateQueries({
