@@ -46,8 +46,11 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 
 	if (error) {
 		return (
-			<div className="text-center text-destructive p-8">
-				Không thể tải dữ liệu. Vui lòng thử lại.
+			<div className="text-center p-8">
+				<p className="text-muted-foreground mb-4">
+					Không thể tải SOP workspace.
+				</p>
+				<Button onClick={() => refetch()}>Thử lại</Button>
 			</div>
 		);
 	}

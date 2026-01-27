@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRight, Loader2, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,14 +33,14 @@ export function IdeationPhase({
 	const updateIdeation = useUpdateIdeation();
 
 	// Set initial values from server data
-	useState(() => {
+	useEffect(() => {
 		if (ideation?.selectedAngleId) {
 			setSelectedAngleId(ideation.selectedAngleId);
 		}
 		if (ideation?.tonePreference) {
 			setSelectedTone(ideation.tonePreference as Tone);
 		}
-	});
+	}, [ideation?.selectedAngleId, ideation?.tonePreference]);
 
 	const handleGenerate = async () => {
 		try {
