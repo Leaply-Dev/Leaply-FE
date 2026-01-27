@@ -28,7 +28,7 @@ export function IdeationPhase({
 	const [selectedAngleId, setSelectedAngleId] = useState<string | null>(null);
 	const [selectedTone, setSelectedTone] = useState<Tone>("academic");
 
-	const { data: ideation, isLoading, error } = useIdeation(applicationId);
+	const { data: ideation, isLoading } = useIdeation(applicationId);
 	const generateIdeation = useGenerateIdeation();
 	const updateIdeation = useUpdateIdeation();
 
@@ -72,7 +72,7 @@ export function IdeationPhase({
 	};
 
 	// Loading state
-	if (isLoading) {
+	if (isLoading && !generateIdeation.data) {
 		return (
 			<div className="flex items-center justify-center min-h-[300px]">
 				<Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -80,9 +80,12 @@ export function IdeationPhase({
 		);
 	}
 
+	// Use mutation data if available (for immediate display after generation)
+	// Fall back to query data from server
+	const angles = generateIdeation.data?.angles || ideation?.angles || [];
+
 	// No angles yet - show generate button
-	const angles = ideation?.angles || [];
-	if (angles.length === 0 || error) {
+	if (angles.length === 0) {
 		return (
 			<Card className="max-w-2xl mx-auto">
 				<CardHeader className="text-center">

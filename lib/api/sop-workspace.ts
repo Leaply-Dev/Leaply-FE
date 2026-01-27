@@ -159,7 +159,7 @@ export interface CompileResponse {
 
 export interface SopWorkspaceStatusResponse {
 	applicationId: string;
-	currentPhase: SopPhase;
+	sopPhase: SopPhase;
 	hasIdeation: boolean;
 	hasOutline: boolean;
 	sectionsCompleted: number;

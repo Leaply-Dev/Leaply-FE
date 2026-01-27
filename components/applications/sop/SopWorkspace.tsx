@@ -40,10 +40,10 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 
 	// Sync phase from server
 	useEffect(() => {
-		if (status?.currentPhase) {
-			setCurrentPhase(status.currentPhase);
+		if (status?.sopPhase) {
+			setCurrentPhase(status.sopPhase);
 		}
-	}, [status?.currentPhase]);
+	}, [status?.sopPhase]);
 
 	const handlePhaseChange = (newPhase: SopPhase) => {
 		setCurrentPhase(newPhase);
