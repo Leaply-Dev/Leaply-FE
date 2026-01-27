@@ -1,12 +1,23 @@
 "use client";
 
-import { AlertCircle, FileText, Plus, Search } from "lucide-react";
+import {
+	AlertCircle,
+	FileText,
+	GraduationCap,
+	Plus,
+	Search,
+} from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { ApplicationResponse } from "@/lib/generated/api/models";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +27,7 @@ interface ApplicationSidebarProps {
 	onSelectApplication: (id: string) => void;
 	isLoading?: boolean;
 	withWrapper?: boolean;
+	collapsed?: boolean;
 }
 
 const statusConfig: Record<
@@ -38,6 +50,7 @@ export function ApplicationSidebar({
 	onSelectApplication,
 	isLoading,
 	withWrapper = true,
+	collapsed = false,
 }: ApplicationSidebarProps) {
 	const t = useTranslations("applications");
 	const [searchQuery, setSearchQuery] = useState("");
@@ -76,6 +89,66 @@ export function ApplicationSidebar({
 		}
 		return null;
 	};
+
+	// Collapsed view - just icons for each application
+	if (collapsed) {
+		if (isLoading) {
+			return (
+				<div className="flex flex-col gap-2">
+					{[1, 2, 3].map((i) => (
+						<div
+							key={i}
+							className="animate-pulse h-10 w-10 bg-muted rounded-lg mx-auto"
+						/>
+					))}
+				</div>
+			);
+		}
+
+		if (filteredApplications.length === 0) {
+			return (
+				<div className="flex justify-center py-4">
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button asChild variant="ghost" size="icon">
+								<Link href="/explore">
+									<Plus className="w-4 h-4" />
+								</Link>
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side="right">{t("newApplication")}</TooltipContent>
+					</Tooltip>
+				</div>
+			);
+		}
+
+		return (
+			<div className="flex flex-col gap-1">
+				{filteredApplications.map((app) => (
+					<Tooltip key={app.id}>
+						<TooltipTrigger asChild>
+							<button
+								type="button"
+								onClick={() => app.id && onSelectApplication(app.id)}
+								className={cn(
+									"w-10 h-10 mx-auto rounded-lg flex items-center justify-center transition-colors hover:bg-muted",
+									selectedId === app.id && "bg-primary/10 ring-2 ring-primary",
+								)}
+							>
+								<GraduationCap className="w-4 h-4 text-muted-foreground" />
+							</button>
+						</TooltipTrigger>
+						<TooltipContent side="right" className="max-w-[200px]">
+							<p className="font-medium">{app.program?.universityName}</p>
+							<p className="text-xs text-muted-foreground">
+								{app.program?.programName}
+							</p>
+						</TooltipContent>
+					</Tooltip>
+				))}
+			</div>
+		);
+	}
 
 	const content = (
 		<>

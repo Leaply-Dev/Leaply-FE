@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { ArrowRight, Loader2, RefreshCw, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -11,22 +11,18 @@ import {
 	useIdeation,
 	useUpdateIdeation,
 } from "@/lib/api/sop-workspace";
-import { AngleCard } from "./AngleCard";
-import { ToneSelector } from "./ToneSelector";
+import { cn } from "@/lib/utils";
 
 interface IdeationPhaseProps {
 	applicationId: string;
 	onContinue: () => void;
 }
 
-type Tone = "academic" | "passionate" | "direct";
-
 export function IdeationPhase({
 	applicationId,
 	onContinue,
 }: IdeationPhaseProps) {
 	const [selectedAngleId, setSelectedAngleId] = useState<string | null>(null);
-	const [selectedTone, setSelectedTone] = useState<Tone>("academic");
 
 	const { data: ideation, isLoading } = useIdeation(applicationId);
 	const generateIdeation = useGenerateIdeation();
@@ -37,10 +33,7 @@ export function IdeationPhase({
 		if (ideation?.selectedAngleId) {
 			setSelectedAngleId(ideation.selectedAngleId);
 		}
-		if (ideation?.tonePreference) {
-			setSelectedTone(ideation.tonePreference as Tone);
-		}
-	}, [ideation?.selectedAngleId, ideation?.tonePreference]);
+	}, [ideation?.selectedAngleId]);
 
 	const handleGenerate = async () => {
 		try {
@@ -62,7 +55,7 @@ export function IdeationPhase({
 				applicationId,
 				data: {
 					selectedAngleId,
-					tonePreference: selectedTone,
+					tonePreference: "academic",
 				},
 			});
 			onContinue();
@@ -80,24 +73,21 @@ export function IdeationPhase({
 		);
 	}
 
-	// Use mutation data if available (for immediate display after generation)
-	// Fall back to query data from server
 	const angles = generateIdeation.data?.angles || ideation?.angles || [];
 
 	// No angles yet - show generate button
 	if (angles.length === 0) {
 		return (
-			<Card className="max-w-2xl mx-auto">
-				<CardHeader className="text-center">
-					<CardTitle className="flex items-center justify-center gap-2">
+			<Card className="max-w-xl mx-auto">
+				<CardHeader className="text-center pb-4">
+					<CardTitle className="flex items-center justify-center gap-2 text-lg">
 						<Sparkles className="w-5 h-5 text-amber-500" />
-						Tìm góc viết độc đáo
+						Chọn góc viết
 					</CardTitle>
 				</CardHeader>
-				<CardContent className="space-y-6">
-					<p className="text-center text-muted-foreground">
-						AI sẽ phân tích Persona Lab của bạn và đề xuất các góc viết phù hợp
-						nhất với SOP prompt và chương trình.
+				<CardContent className="space-y-4">
+					<p className="text-center text-sm text-muted-foreground">
+						AI sẽ phân tích Persona Lab và đề xuất các góc viết phù hợp.
 					</p>
 
 					<Button
@@ -114,71 +104,66 @@ export function IdeationPhase({
 						) : (
 							<>
 								<Sparkles className="w-4 h-4 mr-2" />
-								Tạo gợi ý góc viết
+								Tạo gợi ý
 							</>
 						)}
 					</Button>
-
-					<p className="text-xs text-center text-muted-foreground">
-						Đảm bảo bạn đã hoàn thành Persona Lab để có kết quả tốt nhất
-					</p>
 				</CardContent>
 			</Card>
 		);
 	}
 
-	// Show angles
+	// Show angles in a simple list
 	return (
-		<div className="space-y-8">
-			{/* Angle selection */}
-			<div className="space-y-4">
-				<h2 className="text-lg font-semibold text-foreground">
-					Chọn góc viết cho SOP
-				</h2>
-				<p className="text-sm text-muted-foreground">
-					Dựa trên Persona Lab của bạn, AI đề xuất các góc viết sau. Chọn một
-					góc phù hợp nhất với câu chuyện bạn muốn kể.
+		<div className="max-w-2xl mx-auto space-y-6">
+			<div className="text-center">
+				<h2 className="text-lg font-semibold">Chọn góc viết cho SOP</h2>
+				<p className="text-sm text-muted-foreground mt-1">
+					Chọn một hướng tiếp cận phù hợp với câu chuyện của bạn
 				</p>
-
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					{angles.map((angle: AngleDto) => (
-						<AngleCard
-							key={angle.id}
-							angle={angle}
-							isSelected={selectedAngleId === angle.id}
-							onSelect={() => setSelectedAngleId(angle.id)}
-						/>
-					))}
-				</div>
 			</div>
 
-			{/* Tone selection */}
-			{selectedAngleId && (
-				<div className="border-t pt-6">
-					<ToneSelector value={selectedTone} onChange={setSelectedTone} />
-				</div>
-			)}
-
-			{/* Continue button */}
-			{selectedAngleId && (
-				<div className="flex justify-end pt-4 border-t">
-					<Button
-						onClick={handleContinue}
-						disabled={updateIdeation.isPending}
-						size="lg"
-					>
-						{updateIdeation.isPending ? (
-							<Loader2 className="w-4 h-4 mr-2 animate-spin" />
-						) : (
-							<ArrowRight className="w-4 h-4 mr-2" />
+			{/* Angle Cards - Simple version */}
+			<div className="space-y-3">
+				{angles.map((angle: AngleDto) => (
+					<button
+						key={angle.id}
+						type="button"
+						onClick={() => setSelectedAngleId(angle.id)}
+						className={cn(
+							"w-full text-left p-4 rounded-lg border transition-all",
+							"hover:border-primary/50 hover:bg-primary/5",
+							selectedAngleId === angle.id
+								? "border-primary bg-primary/5 ring-2 ring-primary/20"
+								: "border-border",
 						)}
-						Tiếp tục tạo Outline
-					</Button>
-				</div>
-			)}
+					>
+						<div className="flex items-start justify-between gap-3">
+							<div className="flex-1 min-w-0">
+								<h3 className="font-medium text-foreground">{angle.title}</h3>
+								{angle.hook && (
+									<p className="text-sm text-muted-foreground mt-1 italic">
+										"{angle.hook}"
+									</p>
+								)}
+								{angle.fitReason && (
+									<p className="text-xs text-muted-foreground mt-2">
+										{angle.fitReason}
+									</p>
+								)}
+							</div>
+							{angle.fitScore && (
+								<span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded">
+									{Math.round(angle.fitScore * 100)}%
+								</span>
+							)}
+						</div>
+					</button>
+				))}
+			</div>
 
-			{/* Regenerate option */}
-			<div className="text-center">
+			{/* Actions */}
+			<div className="flex items-center justify-between pt-4 border-t">
 				<Button
 					variant="ghost"
 					size="sm"
@@ -188,9 +173,22 @@ export function IdeationPhase({
 					{generateIdeation.isPending ? (
 						<Loader2 className="w-4 h-4 mr-2 animate-spin" />
 					) : (
-						<Sparkles className="w-4 h-4 mr-2" />
+						<RefreshCw className="w-4 h-4 mr-2" />
 					)}
-					Tạo lại gợi ý khác
+					Tạo lại
+				</Button>
+
+				<Button
+					onClick={handleContinue}
+					disabled={!selectedAngleId || updateIdeation.isPending}
+					size="lg"
+				>
+					{updateIdeation.isPending ? (
+						<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+					) : (
+						<ArrowRight className="w-4 h-4 mr-2" />
+					)}
+					Tiếp tục viết
 				</Button>
 			</div>
 		</div>

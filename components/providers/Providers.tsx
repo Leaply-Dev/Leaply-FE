@@ -3,6 +3,7 @@
 import { QueryProvider } from "@/app/providers/query-provider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useSessionWarning } from "./AuthProvider";
 import { MotionProvider } from "./MotionProvider";
 import { SessionTimeoutWarning } from "./SessionTimeoutWarning";
@@ -38,9 +39,11 @@ export function Providers({ children }: ProvidersProps) {
 			<QueryProvider>
 				<AuthProvider>
 					<MotionProvider>
-						{children}
-						<SessionWarningRenderer />
-						<Toaster position="top-center" richColors closeButton />
+						<TooltipProvider delayDuration={300}>
+							{children}
+							<SessionWarningRenderer />
+							<Toaster position="top-center" richColors closeButton />
+						</TooltipProvider>
 					</MotionProvider>
 				</AuthProvider>
 			</QueryProvider>

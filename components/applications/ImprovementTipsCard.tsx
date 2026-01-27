@@ -1,7 +1,6 @@
 "use client";
 
-import { ChevronRight, Clock, Lightbulb } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Circle, Lightbulb } from "lucide-react";
 import {
 	Card,
 	CardContent,
@@ -17,35 +16,10 @@ interface ImprovementTipsCardProps {
 	className?: string;
 }
 
-const priorityConfig: Record<
-	string,
-	{ label: string; color: string; bgColor: string }
-> = {
-	high: {
-		label: "Ưu tiên cao",
-		color: "text-red-700 dark:text-red-400",
-		bgColor: "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800",
-	},
-	medium: {
-		label: "Ưu tiên TB",
-		color: "text-amber-700 dark:text-amber-400",
-		bgColor:
-			"bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800",
-	},
-	low: {
-		label: "Ưu tiên thấp",
-		color: "text-blue-700 dark:text-blue-400",
-		bgColor:
-			"bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800",
-	},
-};
-
-const categoryLabels: Record<string, string> = {
-	academic: "Học thuật",
-	test_scores: "Điểm thi",
-	experience: "Kinh nghiệm",
-	essays: "Bài luận",
-	profile: "Hồ sơ",
+const priorityColors: Record<string, string> = {
+	high: "text-red-500 fill-red-500",
+	medium: "text-amber-500 fill-amber-500",
+	low: "text-blue-500 fill-blue-500",
 };
 
 export function ImprovementTipsCard({
@@ -58,62 +32,32 @@ export function ImprovementTipsCard({
 
 	return (
 		<Card className={cn("", className)}>
-			<CardHeader>
-				<CardTitle className="flex items-center gap-2 text-lg">
-					<Lightbulb className="w-5 h-5 text-primary" />
-					Gợi ý cải thiện hồ sơ
+			<CardHeader className="pb-3">
+				<CardTitle className="flex items-center gap-2 text-base">
+					<Lightbulb className="w-4 h-4 text-primary" />
+					Gợi ý cải thiện
 				</CardTitle>
-				<CardDescription>
-					Những điều bạn có thể làm để tăng cơ hội trúng tuyển
+				<CardDescription className="text-xs">
+					Những việc cần làm để tăng cơ hội trúng tuyển
 				</CardDescription>
 			</CardHeader>
-			<CardContent>
-				<div className="space-y-3">
+			<CardContent className="pt-0">
+				<ul className="space-y-2">
 					{tips.tips.map((tip, index) => {
-						const priority =
-							priorityConfig[tip.priority ?? "low"] ?? priorityConfig.low;
-						const categoryLabel =
-							categoryLabels[tip.category ?? "profile"] ?? tip.category;
+						const colorClass =
+							priorityColors[tip.priority ?? "low"] ?? priorityColors.low;
 
 						return (
-							<div
+							<li
 								key={`${tip.category}-${index}`}
-								className={cn(
-									"flex items-start gap-3 p-3 rounded-lg border transition-colors hover:shadow-sm",
-									priority.bgColor,
-								)}
+								className="flex items-start gap-2 text-sm"
 							>
-								<ChevronRight
-									className={cn("w-5 h-5 mt-0.5 shrink-0", priority.color)}
-								/>
-								<div className="flex-1 min-w-0">
-									<div className="flex items-center gap-2 mb-1 flex-wrap">
-										<span className={cn("font-medium text-sm", priority.color)}>
-											{tip.title}
-										</span>
-										<Badge variant="outline" className="text-xs">
-											{categoryLabel}
-										</Badge>
-									</div>
-									<p className="text-sm text-muted-foreground">
-										{tip.description}
-									</p>
-									{tip.timeframe && (
-										<div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-											<Clock className="w-3 h-3" />
-											<span>{tip.timeframe}</span>
-										</div>
-									)}
-								</div>
-							</div>
+								<Circle className={cn("w-2 h-2 mt-1.5 shrink-0", colorClass)} />
+								<span className="text-foreground">{tip.title}</span>
+							</li>
 						);
 					})}
-				</div>
-				{tips.generatedAt && (
-					<p className="text-xs text-muted-foreground mt-4 text-center">
-						Cập nhật: {new Date(tips.generatedAt).toLocaleDateString("vi-VN")}
-					</p>
-				)}
+				</ul>
 			</CardContent>
 		</Card>
 	);

@@ -7,8 +7,14 @@ import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { ScholarshipApplicationResponse } from "@/lib/generated/api/models";
 import { cn } from "@/lib/utils";
+import { formatCoverageTypeI18n } from "@/lib/utils/displayFormatters";
 
 interface ScholarshipApplicationListProps {
 	applications: ScholarshipApplicationResponse[];
@@ -16,6 +22,7 @@ interface ScholarshipApplicationListProps {
 	onSelectApplication: (id: string) => void;
 	isLoading?: boolean;
 	withWrapper?: boolean;
+	collapsed?: boolean;
 }
 
 const statusVariants: Record<
@@ -35,6 +42,7 @@ export function ScholarshipApplicationList({
 	onSelectApplication,
 	isLoading,
 	withWrapper = true,
+	collapsed = false,
 }: ScholarshipApplicationListProps) {
 	const t = useTranslations("scholarships");
 	const [searchQuery, setSearchQuery] = useState("");
@@ -51,6 +59,68 @@ export function ScholarshipApplicationList({
 				app.scholarship?.sourceName?.toLowerCase().includes(query),
 		);
 	}, [applications, searchQuery]);
+
+	// Collapsed view - just icons for each application
+	if (collapsed) {
+		if (isLoading) {
+			return (
+				<div className="flex flex-col gap-2">
+					{[1, 2, 3].map((i) => (
+						<div
+							key={i}
+							className="animate-pulse h-10 w-10 bg-muted rounded-lg mx-auto"
+						/>
+					))}
+				</div>
+			);
+		}
+
+		if (filteredApplications.length === 0) {
+			return (
+				<div className="flex justify-center py-4">
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button asChild variant="ghost" size="icon">
+								<Link href="/explore/scholarships">
+									<Plus className="w-4 h-4" />
+								</Link>
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side="right">
+							{t("addNewScholarship")}
+						</TooltipContent>
+					</Tooltip>
+				</div>
+			);
+		}
+
+		return (
+			<div className="flex flex-col gap-1">
+				{filteredApplications.map((app) => (
+					<Tooltip key={app.id}>
+						<TooltipTrigger asChild>
+							<button
+								type="button"
+								onClick={() => app.id && onSelectApplication(app.id)}
+								className={cn(
+									"w-10 h-10 mx-auto rounded-lg flex items-center justify-center transition-colors hover:bg-muted",
+									selectedId === app.id && "bg-primary/10 ring-2 ring-primary",
+								)}
+							>
+								<Award className="w-4 h-4 text-muted-foreground" />
+							</button>
+						</TooltipTrigger>
+						<TooltipContent side="right" className="max-w-[200px]">
+							<p className="font-medium">{app.scholarship?.name}</p>
+							<p className="text-xs text-muted-foreground">
+								{app.scholarship?.sourceName}
+							</p>
+						</TooltipContent>
+					</Tooltip>
+				))}
+			</div>
+		);
+	}
 
 	const content = (
 		<>
@@ -140,7 +210,7 @@ export function ScholarshipApplicationList({
 									{/* Coverage Type */}
 									{app.scholarship?.coverageType && (
 										<Badge variant="outline" className="text-xs">
-											{t(`coverage.${app.scholarship.coverageType}`)}
+											{formatCoverageTypeI18n(app.scholarship.coverageType)}
 										</Badge>
 									)}
 
