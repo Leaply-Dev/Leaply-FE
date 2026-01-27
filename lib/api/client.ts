@@ -542,6 +542,43 @@ async function apiFetch<T>(
 	}
 }
 
+/**
+ * Buffer time in ms to proactively refresh token before it expires
+ * Used by long-running requests (like AI chat) to ensure token won't expire mid-request
+ */
+const PRE_REQUEST_REFRESH_BUFFER_MS = 180000; // 3 minutes
+
+/**
+ * Ensure token is fresh before starting a long-running request.
+ * Call this before making requests that may take 30+ seconds (like AI chat responses).
+ * Returns true if token is fresh or was successfully refreshed, false if refresh failed.
+ */
+export async function ensureFreshToken(): Promise<boolean> {
+	const { isAuthenticated, tokenExpiresAt } = useUserStore.getState();
+
+	if (!isAuthenticated) return false;
+
+	// For cookie-based auth, we can't pre-check - rely on backend session
+	if (isCookieAuth()) return true;
+
+	// If no expiry info, assume it's okay
+	if (!tokenExpiresAt) return true;
+
+	const timeUntilExpiry = tokenExpiresAt - Date.now();
+
+	// If token expires within buffer time, refresh it proactively
+	if (timeUntilExpiry <= PRE_REQUEST_REFRESH_BUFFER_MS) {
+		if (isDev)
+			console.log(
+				`Token expires in ${Math.round(timeUntilExpiry / 1000)}s, refreshing before long request...`,
+			);
+		const newToken = await refreshAccessToken();
+		return newToken !== null;
+	}
+
+	return true;
+}
+
 export const apiClient = {
 	get: <T>(endpoint: string, options?: FetchOptions) =>
 		apiFetch<T>(endpoint, "GET", undefined, options),

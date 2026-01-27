@@ -16,7 +16,7 @@ import { authService } from "@/lib/services/auth";
 import { useUserStore } from "@/lib/store/userStore";
 
 // Session management configuration
-const PROACTIVE_REFRESH_BUFFER_MS = 120000; // Refresh 2 minutes before expiry
+const PROACTIVE_REFRESH_BUFFER_MS = 300000; // Refresh 5 minutes before expiry (increased for long AI responses)
 const WARNING_BUFFER_MS = 60000; // Show warning 1 minute before expiry
 const REFRESH_CHECK_INTERVAL_MS = 10000; // Check every 10 seconds
 
