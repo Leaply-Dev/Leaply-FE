@@ -9,7 +9,7 @@ import {
 	MessageSquare,
 	Sparkles,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,8 +52,14 @@ export function WritingWorkspace({
 	const [showReview, setShowReview] = useState(false);
 	const [reviewData, setReviewData] = useState<ReviewResponse | null>(null);
 
-	const { data: outline, isLoading: outlineLoading } = useOutline(applicationId);
-	const { data: sectionsData, isLoading: sectionsLoading } = useSections(applicationId);
+	// Refs to prevent duplicate API calls
+	const hasTriggeredGenerate = useRef(false);
+	const hasTriggeredConfirm = useRef(false);
+
+	const { data: outline, isLoading: outlineLoading } =
+		useOutline(applicationId);
+	const { data: sectionsData, isLoading: sectionsLoading } =
+		useSections(applicationId);
 	const generateOutline = useGenerateOutline();
 	const confirmOutline = useConfirmOutline();
 	const updateSection = useUpdateSection();
@@ -71,19 +77,40 @@ export function WritingWorkspace({
 		}
 	}, [selectedSectionIndex, sections]);
 
-	// Generate outline if not exists
+	// Generate outline if not exists (only once)
+	// biome-ignore lint/correctness/useExhaustiveDependencies: mutate function intentionally excluded to prevent infinite loop
 	useEffect(() => {
-		if (!outlineLoading && !outline && !generateOutline.isPending) {
+		if (
+			!outlineLoading &&
+			!outline &&
+			!generateOutline.isPending &&
+			!hasTriggeredGenerate.current
+		) {
+			hasTriggeredGenerate.current = true;
 			generateOutline.mutate({ applicationId });
 		}
-	}, [applicationId, outline, outlineLoading, generateOutline]);
+	}, [applicationId, outline, outlineLoading, generateOutline.isPending]);
 
-	// Confirm outline after generation
+	// Confirm outline after generation (only once)
+	// biome-ignore lint/correctness/useExhaustiveDependencies: mutate function intentionally excluded to prevent infinite loop
 	useEffect(() => {
-		if (outline && !sectionsData && !confirmOutline.isPending) {
+		if (
+			outline &&
+			!sectionsData &&
+			!sectionsLoading &&
+			!confirmOutline.isPending &&
+			!hasTriggeredConfirm.current
+		) {
+			hasTriggeredConfirm.current = true;
 			confirmOutline.mutate(applicationId);
 		}
-	}, [applicationId, outline, sectionsData, confirmOutline]);
+	}, [
+		applicationId,
+		outline,
+		sectionsData,
+		sectionsLoading,
+		confirmOutline.isPending,
+	]);
 
 	const handleSaveSection = async () => {
 		try {
@@ -132,7 +159,11 @@ export function WritingWorkspace({
 		onComplete();
 	};
 
-	const isLoading = outlineLoading || sectionsLoading || generateOutline.isPending || confirmOutline.isPending;
+	const isLoading =
+		outlineLoading ||
+		sectionsLoading ||
+		generateOutline.isPending ||
+		confirmOutline.isPending;
 
 	if (isLoading) {
 		return (
@@ -164,34 +195,36 @@ export function WritingWorkspace({
 					<CardContent className="px-2 pb-4">
 						<ScrollArea className="h-[calc(100vh-24rem)]">
 							<div className="space-y-1 pr-2">
-								{outlineSections.map((section: OutlineSectionDto, index: number) => {
-									const sectionData = sections[index];
-									const isDone = sectionData?.status === "done";
-									const isSelected = selectedSectionIndex === index;
+								{outlineSections.map(
+									(section: OutlineSectionDto, index: number) => {
+										const sectionData = sections[index];
+										const isDone = sectionData?.status === "done";
+										const isSelected = selectedSectionIndex === index;
 
-									return (
-										<button
-											key={section.key}
-											type="button"
-											onClick={() => setSelectedSectionIndex(index)}
-											className={cn(
-												"w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
-												isSelected
-													? "bg-primary/10 text-primary"
-													: "hover:bg-muted",
-											)}
-										>
-											{isDone ? (
-												<Check className="w-4 h-4 text-green-600 shrink-0" />
-											) : (
-												<Circle className="w-4 h-4 text-muted-foreground shrink-0" />
-											)}
-											<span className={cn(isDone && "text-muted-foreground")}>
-												{section.title}
-											</span>
-										</button>
-									);
-								})}
+										return (
+											<button
+												key={section.key}
+												type="button"
+												onClick={() => setSelectedSectionIndex(index)}
+												className={cn(
+													"w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
+													isSelected
+														? "bg-primary/10 text-primary"
+														: "hover:bg-muted",
+												)}
+											>
+												{isDone ? (
+													<Check className="w-4 h-4 text-green-600 shrink-0" />
+												) : (
+													<Circle className="w-4 h-4 text-muted-foreground shrink-0" />
+												)}
+												<span className={cn(isDone && "text-muted-foreground")}>
+													{section.title}
+												</span>
+											</button>
+										);
+									},
+								)}
 							</div>
 						</ScrollArea>
 
@@ -220,7 +253,11 @@ export function WritingWorkspace({
 							<span className="text-xs text-muted-foreground">
 								{wordCount} từ
 								{currentOutlineSection?.wordTarget && (
-									<> / {currentOutlineSection.wordTarget.min}-{currentOutlineSection.wordTarget.max}</>
+									<>
+										{" "}
+										/ {currentOutlineSection.wordTarget.min}-
+										{currentOutlineSection.wordTarget.max}
+									</>
 								)}
 							</span>
 						</div>
@@ -349,7 +386,9 @@ export function WritingWorkspace({
 									<div className="text-4xl font-bold text-primary">
 										{reviewData.overallScore}/100
 									</div>
-									<p className="text-sm text-muted-foreground">Điểm tổng quan</p>
+									<p className="text-sm text-muted-foreground">
+										Điểm tổng quan
+									</p>
 								</div>
 							)}
 
@@ -369,19 +408,22 @@ export function WritingWorkspace({
 							)}
 
 							{/* Improvements */}
-							{reviewData.improvements && reviewData.improvements.length > 0 && (
-								<div>
-									<h4 className="font-medium text-amber-700 mb-2">Cần cải thiện</h4>
-									<ul className="space-y-1">
-										{reviewData.improvements.map((s, i) => (
-											<li key={i} className="text-sm flex items-start gap-2">
-												<Circle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-												<span>{s}</span>
-											</li>
-										))}
-									</ul>
-								</div>
-							)}
+							{reviewData.improvements &&
+								reviewData.improvements.length > 0 && (
+									<div>
+										<h4 className="font-medium text-amber-700 mb-2">
+											Cần cải thiện
+										</h4>
+										<ul className="space-y-1">
+											{reviewData.improvements.map((s, i) => (
+												<li key={i} className="text-sm flex items-start gap-2">
+													<Circle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+													<span>{s}</span>
+												</li>
+											))}
+										</ul>
+									</div>
+								)}
 
 							{/* Complete Button */}
 							<Button onClick={handleComplete} className="w-full" size="lg">
