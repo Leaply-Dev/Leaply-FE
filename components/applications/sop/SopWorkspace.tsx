@@ -1,10 +1,23 @@
 "use client";
 
-import { FileEdit, Loader2, Sparkles } from "lucide-react";
+import { ChevronDown, FileEdit, Info, Loader2, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type SopPhase, useWorkspaceStatus } from "@/lib/api/sop-workspace";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+	type SopPhase,
+	useSavePrompt,
+	useWorkspaceStatus,
+} from "@/lib/api/sop-workspace";
+import { cn } from "@/lib/utils";
 import { IdeationPhase } from "./IdeationPhase";
 import { OutlinePhase } from "./OutlinePhase";
 import { PhaseProgress } from "./PhaseProgress";
@@ -22,6 +35,7 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 		error,
 		refetch,
 	} = useWorkspaceStatus(applicationId);
+	const savePromptMutation = useSavePrompt();
 	const [currentPhase, setCurrentPhase] = useState<SopPhase>("not_started");
 
 	// Sync phase from server
@@ -34,6 +48,17 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 	const handlePhaseChange = (newPhase: SopPhase) => {
 		setCurrentPhase(newPhase);
 		refetch(); // Refresh status after phase change
+	};
+
+	const handleStartWithPrompt = async (prompt?: string, wordLimit?: number) => {
+		// Save prompt if provided
+		if (prompt || wordLimit) {
+			await savePromptMutation.mutateAsync({
+				applicationId,
+				data: { prompt, wordLimit },
+			});
+		}
+		handlePhaseChange("ideation");
 	};
 
 	if (isLoading) {
@@ -66,9 +91,10 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 			<div className="flex-1 min-h-0">
 				{currentPhase === "not_started" && (
 					<StartPrompt
-						hasPrompt={!!status?.sopPrompt}
-						wordLimit={status?.wordLimit}
-						onStart={() => handlePhaseChange("ideation")}
+						currentPrompt={status?.sopPrompt}
+						currentWordLimit={status?.wordLimit}
+						onStart={handleStartWithPrompt}
+						isLoading={savePromptMutation.isPending}
 					/>
 				)}
 
@@ -112,12 +138,33 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 }
 
 interface StartPromptProps {
-	hasPrompt: boolean;
-	wordLimit?: number;
-	onStart: () => void;
+	currentPrompt?: string;
+	currentWordLimit?: number;
+	onStart: (prompt?: string, wordLimit?: number) => void;
+	isLoading?: boolean;
 }
 
-function StartPrompt({ hasPrompt, wordLimit, onStart }: StartPromptProps) {
+function StartPrompt({
+	currentPrompt,
+	currentWordLimit,
+	onStart,
+	isLoading,
+}: StartPromptProps) {
+	const [promptText, setPromptText] = useState(currentPrompt || "");
+	const [wordLimitInput, setWordLimitInput] = useState(
+		currentWordLimit?.toString() || "",
+	);
+	const [showAdvanced, setShowAdvanced] = useState(false);
+
+	const hasEnteredPrompt = promptText.trim().length > 0;
+
+	const handleStart = () => {
+		onStart(
+			promptText.trim() || undefined,
+			wordLimitInput ? Number.parseInt(wordLimitInput, 10) : undefined,
+		);
+	};
+
 	return (
 		<Card className="max-w-2xl mx-auto">
 			<CardHeader className="text-center">
@@ -151,27 +198,82 @@ function StartPrompt({ hasPrompt, wordLimit, onStart }: StartPromptProps) {
 					</div>
 				</div>
 
-				{wordLimit && (
-					<p className="text-center text-sm text-muted-foreground">
-						Số từ mục tiêu: <span className="font-medium">{wordLimit} từ</span>
-					</p>
-				)}
+				{/* Prompt Input Section */}
+				<div className="space-y-3">
+					<div>
+						<Label htmlFor="sop-prompt" className="text-sm font-medium">
+							SOP Prompt / Đề bài
+						</Label>
+						<p className="text-xs text-muted-foreground mt-1 mb-2">
+							Dán đề bài SOP từ website chương trình để AI tạo gợi ý phù hợp hơn
+						</p>
+						<Textarea
+							id="sop-prompt"
+							value={promptText}
+							onChange={(e) => setPromptText(e.target.value)}
+							placeholder="Ví dụ: Describe your purpose for pursuing this graduate program and your career goals..."
+							className="min-h-[100px] resize-none"
+						/>
+					</div>
 
-				{!hasPrompt && (
-					<div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
-						⚠️ Chưa có SOP prompt. Vui lòng thêm prompt từ chương trình trước khi
-						bắt đầu.
+					{/* Advanced settings */}
+					<Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+						<CollapsibleTrigger className="text-sm text-primary flex items-center gap-1 hover:underline">
+							<ChevronDown
+								className={cn(
+									"w-4 h-4 transition-transform",
+									showAdvanced && "rotate-180",
+								)}
+							/>
+							Cài đặt nâng cao
+						</CollapsibleTrigger>
+						<CollapsibleContent className="mt-3">
+							<div className="flex items-center gap-3">
+								<Label
+									htmlFor="word-limit"
+									className="text-sm whitespace-nowrap"
+								>
+									Giới hạn từ:
+								</Label>
+								<Input
+									id="word-limit"
+									type="number"
+									value={wordLimitInput}
+									onChange={(e) => setWordLimitInput(e.target.value)}
+									placeholder="500"
+									className="w-24"
+								/>
+								<span className="text-xs text-muted-foreground">từ</span>
+							</div>
+						</CollapsibleContent>
+					</Collapsible>
+				</div>
+
+				{/* Info message when no prompt */}
+				{!hasEnteredPrompt && (
+					<div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-700 flex items-start gap-2">
+						<Info className="w-4 h-4 mt-0.5 shrink-0" />
+						<span>
+							Bạn có thể bắt đầu mà không cần prompt, nhưng AI sẽ tạo gợi ý
+							chung chung hơn.
+						</span>
 					</div>
 				)}
 
 				<Button
-					onClick={onStart}
-					disabled={!hasPrompt}
+					onClick={handleStart}
+					disabled={isLoading}
 					className="w-full"
 					size="lg"
 				>
-					<Sparkles className="w-4 h-4 mr-2" />
-					Bắt đầu với SOP Helper
+					{isLoading ? (
+						<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+					) : (
+						<Sparkles className="w-4 h-4 mr-2" />
+					)}
+					{hasEnteredPrompt
+						? "Bắt đầu với SOP Helper"
+						: "Bắt đầu (không có prompt)"}
 				</Button>
 
 				<p className="text-xs text-center text-muted-foreground">

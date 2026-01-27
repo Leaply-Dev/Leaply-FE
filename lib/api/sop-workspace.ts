@@ -206,6 +206,38 @@ export function useWorkspaceStatus(applicationId: string) {
 	});
 }
 
+export interface SavePromptRequest {
+	prompt?: string;
+	wordLimit?: number;
+}
+
+export function useSavePrompt() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async ({
+			applicationId,
+			data,
+		}: {
+			applicationId: string;
+			data: SavePromptRequest;
+		}) => {
+			await customFetch(
+				`/v1/applications/${applicationId}/sop/workspace/prompt`,
+				{
+					method: "PATCH",
+					body: JSON.stringify(data),
+					headers: { "Content-Type": "application/json" },
+				},
+			);
+		},
+		onSuccess: (_, { applicationId }) => {
+			queryClient.invalidateQueries({
+				queryKey: sopWorkspaceKeys.status(applicationId),
+			});
+		},
+	});
+}
+
 export function useIdeation(applicationId: string) {
 	return useQuery({
 		queryKey: sopWorkspaceKeys.ideation(applicationId),
