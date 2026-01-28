@@ -43,6 +43,15 @@ export default async function RootLayout({
 	const locale = await getLocale();
 	return (
 		<html lang={locale}>
+			{process.env.NODE_ENV === "development" && (
+				<head>
+					<script
+						async
+						crossOrigin="anonymous"
+						src="https://tweakcn.com/live-preview.min.js"
+					/>
+				</head>
+			)}
 			<body className={`${raleway.variable} ${inter.variable}`}>
 				<NextIntlClientProvider>
 					<Providers>{children}</Providers>
