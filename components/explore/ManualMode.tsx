@@ -576,9 +576,15 @@ export function ManualMode({
 										Ưu tiên của bạn (Recommended)
 									</SelectItem>
 								)}
-								<SelectItem value="ranking_qs">Ranking QS (cao → thấp)</SelectItem>
-								<SelectItem value="tuition_asc">Chi phí (thấp → cao)</SelectItem>
-								<SelectItem value="tuition_desc">Chi phí (cao → thấp)</SelectItem>
+								<SelectItem value="ranking_qs">
+									Ranking QS (cao → thấp)
+								</SelectItem>
+								<SelectItem value="tuition_asc">
+									Chi phí (thấp → cao)
+								</SelectItem>
+								<SelectItem value="tuition_desc">
+									Chi phí (cao → thấp)
+								</SelectItem>
 								<SelectItem value="deadline">Deadline (gần nhất)</SelectItem>
 								{isAuthenticated && (
 									<SelectItem value="fit_score">Độ phù hợp</SelectItem>
@@ -611,11 +617,12 @@ export function ManualMode({
 							</Select>
 
 							<Select
-								value={filters.tuitionMax?.toString() || ""}
+								value={filters.tuitionMax?.toString() || "all"}
 								onValueChange={(v) =>
 									setFilters({
 										...filters,
-										tuitionMax: v ? Number.parseInt(v, 10) : undefined,
+										tuitionMax:
+											v === "all" ? undefined : Number.parseInt(v, 10),
 									})
 								}
 							>
@@ -623,7 +630,7 @@ export function ManualMode({
 									<SelectValue placeholder="Học phí tối đa" />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="">Không giới hạn</SelectItem>
+									<SelectItem value="all">Không giới hạn</SelectItem>
 									<SelectItem value="20000">≤ $20,000/năm</SelectItem>
 									<SelectItem value="30000">≤ $30,000/năm</SelectItem>
 									<SelectItem value="50000">≤ $50,000/năm</SelectItem>
@@ -632,11 +639,12 @@ export function ManualMode({
 							</Select>
 
 							<Select
-								value={filters.deadlineWithin?.toString() || ""}
+								value={filters.deadlineWithin?.toString() || "all"}
 								onValueChange={(v) =>
 									setFilters({
 										...filters,
-										deadlineWithin: v ? Number.parseInt(v, 10) : undefined,
+										deadlineWithin:
+											v === "all" ? undefined : Number.parseInt(v, 10),
 									})
 								}
 							>
@@ -644,7 +652,7 @@ export function ManualMode({
 									<SelectValue placeholder="Deadline trong" />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="">Tất cả</SelectItem>
+									<SelectItem value="all">Tất cả</SelectItem>
 									<SelectItem value="30">Trong 30 ngày</SelectItem>
 									<SelectItem value="60">Trong 60 ngày</SelectItem>
 									<SelectItem value="90">Trong 90 ngày</SelectItem>

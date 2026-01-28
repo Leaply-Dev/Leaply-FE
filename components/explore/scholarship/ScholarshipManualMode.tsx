@@ -4,7 +4,6 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import {
 	ArrowRight,
 	Award,
-	Calendar,
 	DollarSign,
 	Filter,
 	Loader2,
@@ -558,26 +557,6 @@ export function ScholarshipManualMode({
 							)}
 						</Button>
 					</div>
-					<div className="flex items-center gap-3">
-						<span className="text-sm text-foreground">Sort by:</span>
-						<Select value={sortBy} onValueChange={setSortBy}>
-							<SelectTrigger className="w-56">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								{isAuthenticated && (
-									<SelectItem value="fit_score">
-										Best Match (Recommended)
-									</SelectItem>
-								)}
-								<SelectItem value="deadline">Deadline (Soonest)</SelectItem>
-								<SelectItem value="coverage_amount">
-									Coverage (High to Low)
-								</SelectItem>
-								<SelectItem value="name">Name (A-Z)</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
 				</div>
 
 				{/* Collapsible Filters Panel */}
@@ -641,11 +620,12 @@ export function ScholarshipManualMode({
 							</Select>
 
 							<Select
-								value={filters.deadlineWithin?.toString() || ""}
+								value={filters.deadlineWithin?.toString() || "all"}
 								onValueChange={(v) =>
 									setFilters({
 										...filters,
-										deadlineWithin: v ? Number.parseInt(v, 10) : undefined,
+										deadlineWithin:
+											v === "all" ? undefined : Number.parseInt(v, 10),
 									})
 								}
 							>
@@ -653,7 +633,7 @@ export function ScholarshipManualMode({
 									<SelectValue placeholder="Deadline within" />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="">All</SelectItem>
+									<SelectItem value="all">All</SelectItem>
 									<SelectItem value="30">Within 30 days</SelectItem>
 									<SelectItem value="60">Within 60 days</SelectItem>
 									<SelectItem value="90">Within 90 days</SelectItem>
