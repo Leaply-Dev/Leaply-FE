@@ -9,7 +9,6 @@ import {
 	Loader2,
 	Search,
 	Settings2,
-	Sparkles,
 	X,
 } from "lucide-react";
 import Image from "next/image";
@@ -353,7 +352,6 @@ interface ServerFilterState {
 	regions: string;
 	coverageTypes: string;
 	eligibilityTypes: string;
-	fullFundedOnly: boolean;
 	deadlineWithin: number | undefined;
 }
 
@@ -394,7 +392,6 @@ export function ScholarshipManualMode({
 		regions: "",
 		coverageTypes: "",
 		eligibilityTypes: "",
-		fullFundedOnly: false,
 		deadlineWithin: undefined,
 	});
 
@@ -421,7 +418,6 @@ export function ScholarshipManualMode({
 		if (filters.coverageTypes) params.coverageTypes = filters.coverageTypes;
 		if (filters.eligibilityTypes)
 			params.eligibilityTypes = filters.eligibilityTypes;
-		if (filters.fullFundedOnly) params.fullFundedOnly = true;
 		if (filters.deadlineWithin) params.deadlineWithin = filters.deadlineWithin;
 
 		return params;
@@ -500,7 +496,6 @@ export function ScholarshipManualMode({
 		filters.regions ||
 		filters.coverageTypes ||
 		filters.eligibilityTypes ||
-		filters.fullFundedOnly ||
 		filters.deadlineWithin;
 
 	const clearAllFilters = () => {
@@ -509,7 +504,6 @@ export function ScholarshipManualMode({
 			regions: "",
 			coverageTypes: "",
 			eligibilityTypes: "",
-			fullFundedOnly: false,
 			deadlineWithin: undefined,
 		});
 		setSearchQuery("");
@@ -554,7 +548,6 @@ export function ScholarshipManualMode({
 										filters.regions,
 										filters.coverageTypes,
 										filters.eligibilityTypes,
-										filters.fullFundedOnly,
 										filters.deadlineWithin,
 									].filter(Boolean).length
 								}
@@ -665,21 +658,6 @@ export function ScholarshipManualMode({
 									</SelectItem>
 								</SelectContent>
 							</Select>
-
-							<Button
-								variant={filters.fullFundedOnly ? "default" : "outline"}
-								size="sm"
-								onClick={() =>
-									setFilters({
-										...filters,
-										fullFundedOnly: !filters.fullFundedOnly,
-									})
-								}
-								className="gap-1.5"
-							>
-								<Sparkles className="w-3.5 h-3.5" />
-								{t("filters.fullFundedOnly")}
-							</Button>
 
 							{hasActiveFilters && (
 								<Button

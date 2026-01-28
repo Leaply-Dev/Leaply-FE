@@ -16,10 +16,7 @@ import {
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
-import {
-	PageTransition,
-	SlideUp,
-} from "@/components/PageTransition";
+import { PageTransition, SlideUp } from "@/components/PageTransition";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -221,7 +218,7 @@ export function DashboardClient() {
 										<Skeleton className="h-24 w-full rounded-xl" />
 									) : suggestedAction ? (
 										suggestedAction.type === "persona" ||
-											suggestedAction.type === "writing" ? (
+										suggestedAction.type === "writing" ? (
 											<div className="relative overflow-hidden rounded-xl border bg-linear-to-r from-primary/10 via-background to-background p-1">
 												<div className="flex items-center gap-4 bg-background/80 backdrop-blur-sm p-4 rounded-lg">
 													<div className="flex-1">
@@ -433,11 +430,12 @@ export function DashboardClient() {
 																className="flex items-center gap-3 p-4 hover:bg-muted/50 transition-colors group"
 															>
 																<div
-																	className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0 border ${deadline.daysRemaining !== undefined &&
-																			deadline.daysRemaining <= URGENT_DAYS
+																	className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0 border ${
+																		deadline.daysRemaining !== undefined &&
+																		deadline.daysRemaining <= URGENT_DAYS
 																			? "bg-red-50/50 border-red-100 text-red-600 dark:bg-red-950/20 dark:border-red-900/50"
 																			: "bg-muted/30 border-border/50 text-muted-foreground"
-																		}`}
+																	}`}
 																>
 																	<span className="text-xs font-bold leading-none">
 																		{deadline.daysRemaining}
