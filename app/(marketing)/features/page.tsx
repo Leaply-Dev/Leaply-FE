@@ -18,6 +18,7 @@ import {
 	TrendingUp,
 	Users,
 } from "lucide-react";
+import Image from "next/image"
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type React from "react";
@@ -221,28 +222,13 @@ function FeatureSection({
 					{/* Visual */}
 					<div className={cn(!isEven && "lg:col-start-1")}>
 						<SlideUp delay={0.1}>
-							<div className="relative aspect-4/3 rounded-2xl overflow-hidden bg-linear-to-br from-muted to-muted/50 border border-border shadow-xl">
-								<div className="absolute inset-0 flex items-center justify-center">
-									<div className="text-center p-8">
-										<div
-											className={cn(
-												`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 ${feature.color}/20`,
-											)}
-										>
-											<Icon
-												className={cn(
-													"w-10 h-10",
-													feature.id === "explore" && "text-blue-500",
-													feature.id === "applications" && "text-amber-500",
-													feature.id === "persona-lab" && "text-primary",
-												)}
-											/>
-										</div>
-										<p className="text-muted-foreground text-sm">
-											{t(feature.titleKey)} Preview
-										</p>
-									</div>
-								</div>
+							<div className="relative aspect-4/3 rounded-2xl overflow-hidden bg-muted border border-border shadow-xl">
+								<Image
+									src={`/features/${feature.id}-preview.png`}
+									alt={t(feature.titleKey)}
+									fill
+									className="object-cover"
+								/>
 							</div>
 						</SlideUp>
 					</div>
