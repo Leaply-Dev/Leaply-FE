@@ -37,7 +37,10 @@ import type {
 	ProgramListResponse,
 } from "@/lib/generated/api/models";
 import { useUserMe } from "@/lib/hooks/useUserMe";
-import { formatCountryName } from "@/lib/utils/displayFormatters";
+import {
+	formatCountryName,
+	formatTuitionRange,
+} from "@/lib/utils/displayFormatters";
 
 const PAGE_SIZE = 20;
 
@@ -303,10 +306,14 @@ function ProgramTableRow({
 
 			{/* Cost */}
 			<td className="p-4 text-center">
-				{program.tuitionAnnualUsd ? (
+				{program.tuitionAnnualMin ? (
 					<div className="flex flex-col items-center gap-1">
 						<span className="font-semibold text-foreground">
-							${program.tuitionAnnualUsd.toLocaleString()}
+							{formatTuitionRange(
+								program.tuitionAnnualMin,
+								program.tuitionAnnualMax,
+								program.tuitionCurrency || "USD",
+							)}
 						</span>
 						{program.scholarshipAvailable && (
 							<span className="text-xs text-green-600">

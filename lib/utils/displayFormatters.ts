@@ -132,8 +132,84 @@ export function formatLanguage(lang?: string | null): string {
 // =============================================================================
 
 /**
- * Format tuition with /year suffix
+ * Currency symbols for common currencies
+ */
+const CURRENCY_SYMBOLS: Record<string, string> = {
+	USD: "$",
+	EUR: "€",
+	GBP: "£",
+	AUD: "A$",
+	CAD: "C$",
+	SGD: "S$",
+	CHF: "CHF ",
+	JPY: "¥",
+	NZD: "NZ$",
+	VND: "₫",
+	SEK: "kr",
+	DKK: "kr",
+	NOK: "kr",
+};
+
+/**
+ * Format a currency value with symbol and code
+ * @example (30000, "USD") → "$30,000 USD"
+ * @example (25000, "EUR") → "€25,000 EUR"
+ */
+export function formatCurrencyWithCode(
+	value: number,
+	currency: string = "USD",
+): string {
+	const symbol = CURRENCY_SYMBOLS[currency.toUpperCase()] || "";
+	const formatted = new Intl.NumberFormat("en-US", {
+		maximumFractionDigits: 0,
+	}).format(value);
+	return `${symbol}${formatted} ${currency.toUpperCase()}`;
+}
+
+/**
+ * Format tuition range with currency support
+ * @example (30000, 35000, "USD") → "$30,000 - $35,000 USD/yr"
+ * @example (30000, null, "EUR") → "€30,000 EUR/yr"
+ * @example (30000, 30000, "USD") → "$30,000 USD/yr"
+ */
+export function formatTuitionRange(
+	min?: number | null,
+	max?: number | null,
+	currency: string = "USD",
+): string {
+	if (min === null && max === null) return "N/A";
+	if (min === undefined && max === undefined) return "N/A";
+
+	const symbol = CURRENCY_SYMBOLS[currency.toUpperCase()] || "";
+	const currencyCode = currency.toUpperCase();
+
+	const formatValue = (val: number) =>
+		new Intl.NumberFormat("en-US", {
+			maximumFractionDigits: 0,
+		}).format(val);
+
+	// Only min exists, or min equals max
+	if (min && (!max || min === max)) {
+		return `${symbol}${formatValue(min)} ${currencyCode}/yr`;
+	}
+
+	// Only max exists
+	if (!min && max) {
+		return `Up to ${symbol}${formatValue(max)} ${currencyCode}/yr`;
+	}
+
+	// Both min and max exist and are different
+	if (min && max && min !== max) {
+		return `${symbol}${formatValue(min)} - ${symbol}${formatValue(max)} ${currencyCode}/yr`;
+	}
+
+	return "N/A";
+}
+
+/**
+ * Format tuition with /year suffix (legacy, USD-only)
  * @example 45000 → "$45,000/yr"
+ * @deprecated Use formatTuitionRange() for multi-currency support
  */
 export function formatTuitionPerYear(value?: number | null): string {
 	if (value === null || value === undefined) return "N/A";

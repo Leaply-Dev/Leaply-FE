@@ -30,7 +30,7 @@ import {
 	formatDeliveryMode,
 	formatDuration,
 	formatIeltsRequirement,
-	formatTuitionPerYear,
+	formatTuitionRange,
 	isDeadlinePast,
 } from "@/lib/utils/displayFormatters";
 
@@ -146,11 +146,15 @@ export function ProgramCard({
 				{/* Quick Info Grid */}
 				<div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs mb-3">
 					{/* Tuition */}
-					{program.tuitionAnnualUsd && (
+					{program.tuitionAnnualMin && (
 						<div className="flex items-center gap-1.5 text-muted-foreground">
 							<DollarSign className="w-3.5 h-3.5 shrink-0" />
 							<span className="truncate">
-								{formatTuitionPerYear(program.tuitionAnnualUsd)}
+								{formatTuitionRange(
+									program.tuitionAnnualMin,
+									program.tuitionAnnualMax,
+									program.tuitionCurrency || "USD",
+								)}
 							</span>
 						</div>
 					)}

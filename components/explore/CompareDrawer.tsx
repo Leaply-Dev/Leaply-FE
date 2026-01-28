@@ -33,6 +33,7 @@ import {
 	formatCountryName,
 	formatDeliveryMode,
 	formatDuration,
+	formatTuitionRange,
 } from "@/lib/utils/displayFormatters";
 
 // ============================================================================
@@ -197,8 +198,12 @@ function TuitionCell({ program }: { program: ProgramListItemResponse }) {
 		<td className="p-4 border-l border-border align-top">
 			<div className="space-y-1">
 				<p className="font-semibold text-foreground">
-					{program.tuitionAnnualUsd
-						? `$${program.tuitionAnnualUsd.toLocaleString()} USD`
+					{program.tuitionAnnualMin
+						? formatTuitionRange(
+								program.tuitionAnnualMin,
+								program.tuitionAnnualMax,
+								program.tuitionCurrency || "USD",
+							)
 						: "N/A"}
 				</p>
 				{program.scholarshipAvailable && (
