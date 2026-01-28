@@ -41,8 +41,10 @@ import type {
 	ProgramIntakeResponse,
 } from "@/lib/generated/api/models";
 import {
+	formatCurrencyWithCode,
 	formatDeliveryMode,
 	formatLanguage,
+	formatTuitionRange,
 } from "@/lib/utils/displayFormatters";
 
 interface ProgramDetailDrawerProps {
@@ -586,7 +588,11 @@ export function ProgramDetailDrawer({
 										<div>
 											<p className="text-xs text-muted-foreground">Per Year</p>
 											<p className="text-lg font-bold text-foreground">
-												{formatCurrency(program.tuition?.annualUsd)}
+												{formatTuitionRange(
+													program.tuition?.annualMin,
+													program.tuition?.annualMax,
+													program.tuition?.currency || "USD",
+												)}
 											</p>
 										</div>
 										<div>
@@ -594,7 +600,12 @@ export function ProgramDetailDrawer({
 												Total Program
 											</p>
 											<p className="text-lg font-bold text-foreground">
-												{formatCurrency(program.tuition?.totalUsd)}
+												{program.tuition?.total
+													? formatCurrencyWithCode(
+															program.tuition.total,
+															program.tuition?.currency || "USD",
+														)
+													: "N/A"}
 											</p>
 										</div>
 										<div>
@@ -640,7 +651,7 @@ export function ProgramDetailDrawer({
 										{/* Budget - using gap data */}
 										<BudgetGapItem
 											gap={program.budgetGap}
-											tuitionAnnual={program.tuition?.annualUsd}
+											tuitionAnnual={program.tuition?.annualMin}
 										/>
 
 										{/* TOEFL - show if required and no English gap (fallback) */}

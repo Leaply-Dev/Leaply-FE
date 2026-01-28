@@ -157,7 +157,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
  */
 export function formatCurrencyWithCode(
 	value: number,
-	currency: string = "USD",
+	currency = "USD",
 ): string {
 	const symbol = CURRENCY_SYMBOLS[currency.toUpperCase()] || "";
 	const formatted = new Intl.NumberFormat("en-US", {
@@ -175,7 +175,7 @@ export function formatCurrencyWithCode(
 export function formatTuitionRange(
 	min?: number | null,
 	max?: number | null,
-	currency: string = "USD",
+	currency = "USD",
 ): string {
 	if (min === null && max === null) return "N/A";
 	if (min === undefined && max === undefined) return "N/A";

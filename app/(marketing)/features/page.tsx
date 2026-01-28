@@ -18,7 +18,7 @@ import {
 	TrendingUp,
 	Users,
 } from "lucide-react";
-import Image from "next/image"
+import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type React from "react";
