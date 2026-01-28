@@ -209,7 +209,7 @@ export function ScholarshipExploreClient() {
 								)}
 							>
 								<Sparkles className="w-4 h-4" />
-								<span className="text-sm font-medium">AI Enhanced</span>
+								<span className="text-sm font-medium">AI Suggest</span>
 							</Button>
 							<Button
 								variant="ghost"
