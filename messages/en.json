@@ -64,6 +64,11 @@
 				"dataScience": "Data Science / Analytics",
 				"design": "Design (UX/UI, Industrial)",
 				"health": "Public Health / Healthcare",
+				"arts": "Arts",
+				"mediaComm": "Media & Communication",
+				"science": "Science (Bio, Chem, Math, Physics)",
+				"humanities": "Humanities",
+				"law": "Law",
 				"other": "Other / Undecided"
 			},
 			"regions": {

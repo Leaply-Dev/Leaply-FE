@@ -367,7 +367,7 @@ export default function AboutPage() {
 										</p>
 										<div className="flex gap-3">
 											<a
-												href="https://linkedin.com"
+												href="https://www.linkedin.com/company/leaply-ai/"
 												target="_blank"
 												rel="noopener noreferrer"
 												className="w-10 h-10 bg-card border border-border rounded-lg flex items-center justify-center hover:border-primary hover:text-primary transition-colors"
@@ -375,7 +375,7 @@ export default function AboutPage() {
 												<Linkedin className="w-5 h-5" />
 											</a>
 											<a
-												href="https://facebook.com"
+												href="https://www.facebook.com/profile.php?id=61587005050437&locale=vi_VN"
 												target="_blank"
 												rel="noopener noreferrer"
 												className="w-10 h-10 bg-card border border-border rounded-lg flex items-center justify-center hover:border-primary hover:text-primary transition-colors"
@@ -383,7 +383,7 @@ export default function AboutPage() {
 												<Facebook className="w-5 h-5" />
 											</a>
 											<a
-												href="https://instagram.com"
+												href="https://www.instagram.com/leaply.ai/"
 												target="_blank"
 												rel="noopener noreferrer"
 												className="w-10 h-10 bg-card border border-border rounded-lg flex items-center justify-center hover:border-primary hover:text-primary transition-colors"

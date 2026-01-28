@@ -8,7 +8,7 @@
 /**
  * Maps field of study display labels to backend TargetField enum values
  *
- * Backend enum: cs_it, business, finance, engineering, data_science, design, health, other
+ * Backend enum: cs_it, business, finance, engineering, data_science, design, health, arts, media_communication, science, humanities, law, other
  */
 export const FIELD_LABEL_TO_KEY: Record<string, string> = {
 	// Vietnamese labels
@@ -19,6 +19,11 @@ export const FIELD_LABEL_TO_KEY: Record<string, string> = {
 	"Khoa học Dữ liệu / Phân tích": "data_science",
 	"Thiết kế (UX/UI, Công nghiệp)": "design",
 	"Y tế cộng đồng / Y tế": "health",
+	"Nghệ thuật": "arts",
+	"Truyền thông & Báo chí": "media_communication",
+	"Khoa học (Sinh, Hóa, Toán, Lý)": "science",
+	"Nhân văn": "humanities",
+	Luật: "law",
 	"Khác / Chưa xác định": "other",
 
 	// English labels (for future i18n support)
@@ -29,6 +34,11 @@ export const FIELD_LABEL_TO_KEY: Record<string, string> = {
 	"Data Science / Analytics": "data_science",
 	"Design (UX/UI, Industrial)": "design",
 	"Public Health / Healthcare": "health",
+	Arts: "arts",
+	"Media & Communication": "media_communication",
+	"Science (Bio, Chem, Math, Physics)": "science",
+	Humanities: "humanities",
+	Law: "law",
 	"Other / Undecided": "other",
 
 	// Also support direct enum keys (passthrough)
@@ -39,6 +49,11 @@ export const FIELD_LABEL_TO_KEY: Record<string, string> = {
 	data_science: "data_science",
 	design: "design",
 	health: "health",
+	arts: "arts",
+	media_communication: "media_communication",
+	science: "science",
+	humanities: "humanities",
+	law: "law",
 	other: "other",
 };
 
@@ -151,6 +166,11 @@ export const FIELD_KEY_TO_LABEL: Record<string, string> = {
 	data_science: "Khoa học Dữ liệu / Phân tích",
 	design: "Thiết kế (UX/UI, Công nghiệp)",
 	health: "Y tế cộng đồng / Y tế",
+	arts: "Nghệ thuật",
+	media_communication: "Truyền thông & Báo chí",
+	science: "Khoa học (Sinh, Hóa, Toán, Lý)",
+	humanities: "Nhân văn",
+	law: "Luật",
 	other: "Khác / Chưa xác định",
 };
 

@@ -7,9 +7,21 @@ import { useTranslations } from "next-intl";
 import { ThreadsIcon } from "@/components/icons/ThreadsIcon";
 
 const socialLinks = [
-	{ icon: Linkedin, href: "#", label: "LinkedIn" },
-	{ icon: Facebook, href: "#", label: "Facebook" },
-	{ icon: Instagram, href: "#", label: "Instagram" },
+	{
+		icon: Linkedin,
+		href: "https://www.linkedin.com/company/leaply-ai/",
+		label: "LinkedIn",
+	},
+	{
+		icon: Facebook,
+		href: "https://www.facebook.com/profile.php?id=61587005050437&locale=vi_VN",
+		label: "Facebook",
+	},
+	{
+		icon: Instagram,
+		href: "https://www.instagram.com/leaply.ai/",
+		label: "Instagram",
+	},
 	{ icon: ThreadsIcon, href: "#", label: "Threads" },
 ];
 
@@ -58,6 +70,8 @@ export function Footer() {
 										key={social.label}
 										href={social.href}
 										aria-label={social.label}
+										target="_blank"
+										rel="noopener noreferrer"
 										className="text-gray-400 hover:text-primary transition-colors"
 									>
 										<Icon className="w-5 h-5" />

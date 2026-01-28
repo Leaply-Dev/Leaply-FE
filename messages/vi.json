@@ -64,6 +64,11 @@
 				"dataScience": "Khoa học Dữ liệu / Phân tích",
 				"design": "Thiết kế (UX/UI, Công nghiệp)",
 				"health": "Y tế cộng đồng / Y tế",
+				"arts": "Nghệ thuật",
+				"mediaComm": "Truyền thông & Báo chí",
+				"science": "Khoa học (Sinh, Hóa, Toán, Lý)",
+				"humanities": "Nhân văn",
+				"law": "Luật",
 				"other": "Khác / Chưa xác định"
 			},
 			"regions": {
