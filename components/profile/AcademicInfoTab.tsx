@@ -57,6 +57,21 @@ const TARGET_DEGREES = [
 	{ value: "phd", labelKey: "phd" },
 ];
 
+// PrerequisiteMajor enum values from backend
+const CURRENT_MAJORS = [
+	{ value: "computer_science", labelKey: "computerScience" },
+	{ value: "engineering", labelKey: "engineering" },
+	{ value: "mathematics", labelKey: "mathematics" },
+	{ value: "business", labelKey: "business" },
+	{ value: "economics", labelKey: "economics" },
+	{ value: "statistics", labelKey: "statistics" },
+	{ value: "physics", labelKey: "physics" },
+	{ value: "finance", labelKey: "finance" },
+	{ value: "design", labelKey: "design" },
+	{ value: "natural_sciences", labelKey: "naturalSciences" },
+	{ value: "social_sciences", labelKey: "socialSciences" },
+];
+
 const TEST_TYPES = ["IELTS", "TOEFL", "GRE", "GMAT"] as const;
 
 interface AcademicInfoTabProps {
@@ -95,6 +110,7 @@ export function AcademicInfoTab({
 	// Generate unique IDs for form fields
 	const fullNameId = useId();
 	const educationLevelId = useId();
+	const currentMajorId = useId();
 	const targetDegreeId = useId();
 	const gpaId = useId();
 	const gpaScaleId = useId();
@@ -104,6 +120,7 @@ export function AcademicInfoTab({
 	const [formData, setFormData] = useState({
 		fullName: "",
 		currentEducationLevel: "",
+		currentMajor: "",
 		targetDegree: "",
 		gpa: "",
 		gpaScale: "4.0",
@@ -117,6 +134,7 @@ export function AcademicInfoTab({
 			setFormData({
 				fullName: userData.fullName || "",
 				currentEducationLevel: userData.currentEducationLevel || "",
+				currentMajor: userData.currentMajor || "",
 				targetDegree: userData.targetDegree || "",
 				gpa: userData.gpa?.toString() || "",
 				gpaScale: userData.gpaScale?.toString() || "4.0",
@@ -134,6 +152,11 @@ export function AcademicInfoTab({
 	const getDegreeLabel = (value?: string) => {
 		const degree = TARGET_DEGREES.find((d) => d.value === value);
 		return degree ? t(degree.labelKey) : t("noData");
+	};
+
+	const getCurrentMajorLabel = (value?: string) => {
+		const major = CURRENT_MAJORS.find((m) => m.value === value);
+		return major ? t(`currentMajors.${major.labelKey}`) : t("noData");
 	};
 
 	const handleTestScoreChange = (type: string, value: string) => {
@@ -163,6 +186,7 @@ export function AcademicInfoTab({
 			const updateData = {
 				fullName: validatedData.fullName,
 				currentEducationLevel: validatedData.currentEducationLevel,
+				currentMajor: formData.currentMajor || undefined,
 				targetDegree: validatedData.targetDegree,
 				gpa:
 					typeof validatedData.gpa === "number" ? validatedData.gpa : undefined,
@@ -360,6 +384,30 @@ export function AcademicInfoTab({
 							</div>
 
 							<div className="space-y-2">
+								<Label htmlFor={currentMajorId}>{t("currentMajor")}</Label>
+								<Select
+									value={formData.currentMajor}
+									onValueChange={(value) =>
+										setFormData((prev) => ({
+											...prev,
+											currentMajor: value,
+										}))
+									}
+								>
+									<SelectTrigger id={currentMajorId}>
+										<SelectValue placeholder={t("selectMajor")} />
+									</SelectTrigger>
+									<SelectContent>
+										{CURRENT_MAJORS.map((major) => (
+											<SelectItem key={major.value} value={major.value}>
+												{t(`currentMajors.${major.labelKey}`)}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
+
+							<div className="space-y-2">
 								<Label htmlFor={targetDegreeId}>{t("targetDegree")}</Label>
 								<Select
 									value={formData.targetDegree}
@@ -465,6 +513,11 @@ export function AcademicInfoTab({
 								icon={<GraduationCap className="h-4 w-4" />}
 								label={t("educationLevel")}
 								value={getEducationLabel(userData?.currentEducationLevel)}
+							/>
+							<InfoItem
+								icon={<BookOpen className="h-4 w-4" />}
+								label={t("currentMajor")}
+								value={getCurrentMajorLabel(userData?.currentMajor)}
 							/>
 							<InfoItem
 								icon={<Target className="h-4 w-4" />}
