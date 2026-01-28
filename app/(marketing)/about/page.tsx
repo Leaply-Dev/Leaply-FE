@@ -80,19 +80,19 @@ const teamMembers: TeamMember[] = [
 		name: "Nguyễn Thị Thu Duyên",
 		role: "Sales Researcher",
 		department: "Sales & Marketing",
-		school: "",
+		school: "FTU",
 	},
 	{
 		name: "Phạm Thị Phương Anh",
 		role: "Legal Researcher",
 		department: "Legal",
-		school: "",
+		school: "FTU",
 	},
 	{
 		name: "Đoàn Vũ Minh Nguyệt",
 		role: "Marketing Researcher",
 		department: "Sales & Marketing",
-		school: "",
+		school: "FTU",
 	},
 ];
 
