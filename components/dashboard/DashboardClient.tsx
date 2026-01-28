@@ -29,9 +29,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import { useGetPartsProgress } from "@/lib/generated/api/endpoints/persona-lab/persona-lab";
 import type {
-	DiscoveryProgressDto,
 	HomeResponse,
+	PartsStatus,
 	RecentApplicationDto,
 	UpcomingDeadlineDto,
 } from "@/lib/generated/api/models";
@@ -62,6 +63,8 @@ export function DashboardClient() {
 	const tHome = useTranslations("home");
 	const { profile } = useUserStore();
 	const { data: homeData, isLoading } = useHomeData();
+	const { data: partsProgressData, isLoading: isPartsLoading } =
+		useGetPartsProgress();
 
 	// Time-dependent state - computed only on client to prevent hydration mismatch
 	const [greeting, setGreeting] = useState<string>("");
@@ -81,6 +84,7 @@ export function DashboardClient() {
 	// Memoize derived values from homeData to prevent unnecessary recalculations
 	const dashboardData = useMemo(() => {
 		const data = unwrapResponse<HomeResponse>(homeData);
+		const partsProgress = unwrapResponse<PartsStatus>(partsProgressData);
 		if (!data) {
 			return {
 				profileCompletion: 0,
@@ -90,10 +94,7 @@ export function DashboardClient() {
 				suggestedAction: null,
 				recentApplications: [] as RecentApplicationDto[],
 				firstName: null,
-				discovery: {
-					completedTracks: 0,
-					totalTracks: 4,
-				} as DiscoveryProgressDto,
+				discoveryCompletedCount: partsProgress?.completedCount ?? 0,
 			};
 		}
 
@@ -105,9 +106,9 @@ export function DashboardClient() {
 			suggestedAction: data.suggestedAction,
 			recentApplications: data.recentApplications ?? [],
 			firstName: data.firstName,
-			discovery: data.discovery ?? { completedTracks: 0, totalTracks: 4 },
+			discoveryCompletedCount: partsProgress?.completedCount ?? 0,
 		};
-	}, [homeData]);
+	}, [homeData, partsProgressData]);
 
 	const {
 		profileCompletion,
@@ -117,7 +118,7 @@ export function DashboardClient() {
 		suggestedAction,
 		recentApplications,
 		firstName,
-		discovery,
+		discoveryCompletedCount,
 	} = dashboardData;
 
 	return (
@@ -375,10 +376,10 @@ export function DashboardClient() {
 											<div className="space-y-2">
 												<div className="flex items-baseline justify-between">
 													<span className="text-2xl font-bold text-foreground">
-														{isLoading ? (
+														{isLoading || isPartsLoading ? (
 															<Skeleton className="h-7 w-12 inline-block" />
 														) : (
-															`${discovery.completedTracks ?? 0}/${discovery.totalTracks ?? 4}`
+															`${discoveryCompletedCount}/4`
 														)}
 													</span>
 													<span className="text-xs text-muted-foreground">
@@ -387,11 +388,9 @@ export function DashboardClient() {
 												</div>
 												<Progress
 													value={
-														isLoading
+														isLoading || isPartsLoading
 															? 0
-															: ((discovery.completedTracks ?? 0) /
-																	(discovery.totalTracks ?? 4)) *
-																100
+															: (discoveryCompletedCount / 4) * 100
 													}
 													className="h-2"
 												/>
