@@ -4,27 +4,31 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import {
 	ArrowRight,
 	Award,
+	Calendar,
 	DollarSign,
-	Filter,
+	GraduationCap,
 	Loader2,
 	Search,
 	Settings2,
+	Sparkles,
 	X,
 } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScholarshipDetailDrawer } from "@/components/explore/scholarship/ScholarshipDetailDrawer";
+import {
+	FilterPanel,
+	QuickFilterChips,
+	RegionFilter,
+	useRegionOptions,
+	DeadlineWithinFilter,
+	CoverageTypeFilter,
+	EligibilityTypeFilter,
+} from "@/components/explore/filters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	getListScholarshipsQueryKey,
@@ -45,6 +49,9 @@ import {
 } from "@/lib/utils/displayFormatters";
 
 const PAGE_SIZE = 20;
+
+// Quick filter types for scholarships
+type ScholarshipQuickFilter = "fullFunded" | "meetReq" | "deadline" | "meritBased";
 
 function ScholarshipGapIndicators({
 	scholarship,
@@ -265,7 +272,7 @@ function ScholarshipTableRow({
 							</span>
 							{scholarship.universityCountry && (
 								<>
-									<span>•</span>
+									<span>-</span>
 									<span>{scholarship.universityCountry}</span>
 								</>
 							)}
@@ -353,6 +360,7 @@ interface ServerFilterState {
 	coverageTypes: string;
 	eligibilityTypes: string;
 	deadlineWithin: number | undefined;
+	quickFilters: ScholarshipQuickFilter[];
 }
 
 /**
@@ -393,10 +401,38 @@ export function ScholarshipManualMode({
 		coverageTypes: "",
 		eligibilityTypes: "",
 		deadlineWithin: undefined,
+		quickFilters: [],
 	});
 
-	// Show/hide filter panel
-	const [showFilters, setShowFilters] = useState(false);
+	// Region options from shared hook
+	const regionOptions = useRegionOptions((key) => t(`filters.${key}`));
+
+	// Quick filter definitions for scholarships
+	const quickFilterOptions = useMemo(
+		() => [
+			{
+				id: "fullFunded" as ScholarshipQuickFilter,
+				label: t("filters.fullFunded"),
+				icon: DollarSign,
+			},
+			{
+				id: "meetReq" as ScholarshipQuickFilter,
+				label: t("filters.meetTestReq"),
+				icon: GraduationCap,
+			},
+			{
+				id: "deadline" as ScholarshipQuickFilter,
+				label: t("filters.deadlineOver60Days"),
+				icon: Calendar,
+			},
+			{
+				id: "meritBased" as ScholarshipQuickFilter,
+				label: t("filters.meritBased"),
+				icon: Sparkles,
+			},
+		],
+		[t],
+	);
 
 	// Debounce search input
 	useEffect(() => {
@@ -415,10 +451,31 @@ export function ScholarshipManualMode({
 
 		if (debouncedSearch) params.search = debouncedSearch;
 		if (filters.regions) params.regions = filters.regions;
-		if (filters.coverageTypes) params.coverageTypes = filters.coverageTypes;
-		if (filters.eligibilityTypes)
+
+		// Quick filter: full funded
+		if (filters.quickFilters.includes("fullFunded")) {
+			params.coverageTypes = "full_funded";
+		} else if (filters.coverageTypes) {
+			params.coverageTypes = filters.coverageTypes;
+		}
+
+		// Quick filter: merit based
+		if (filters.quickFilters.includes("meritBased")) {
+			params.eligibilityTypes = "merit";
+		} else if (filters.eligibilityTypes) {
 			params.eligibilityTypes = filters.eligibilityTypes;
-		if (filters.deadlineWithin) params.deadlineWithin = filters.deadlineWithin;
+		}
+
+		// Quick filter: deadline > 60 days
+		if (filters.quickFilters.includes("deadline")) {
+			params.deadlineWithin = 60;
+		} else if (filters.deadlineWithin) {
+			params.deadlineWithin = filters.deadlineWithin;
+		}
+
+		// Note: "meetReq" quick filter requires backend support
+		// This is UI-only for now and will be enabled when the API supports it
+		// if (filters.quickFilters.includes("meetReq")) { params.meetRequirements = true; }
 
 		return params;
 	}, [sortBy, debouncedSearch, filters]);
@@ -496,7 +553,8 @@ export function ScholarshipManualMode({
 		filters.regions ||
 		filters.coverageTypes ||
 		filters.eligibilityTypes ||
-		filters.deadlineWithin;
+		filters.deadlineWithin ||
+		filters.quickFilters.length > 0;
 
 	const clearAllFilters = () => {
 		setFilters({
@@ -505,175 +563,116 @@ export function ScholarshipManualMode({
 			coverageTypes: "",
 			eligibilityTypes: "",
 			deadlineWithin: undefined,
+			quickFilters: [],
 		});
 		setSearchQuery("");
 	};
 
 	return (
 		<div className="space-y-6">
-			{/* Results Header with Search */}
-			<div className="space-y-4">
-				<div className="flex items-center gap-4">
-					<p className="text-sm text-muted-foreground">
-						{isLoading
-							? t("filters.loading")
-							: t("filters.showingResults", {
-									count: scholarships.length,
-									total: totalCount,
-								})}
-					</p>
-					<div className="relative">
-						<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-						<Input
-							type="text"
-							placeholder={t("filters.searchScholarships")}
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-							onFocus={(e) => e.target.select()}
-							className="pl-9 w-64"
-						/>
-					</div>
-					<Button
-						variant={showFilters ? "default" : "outline"}
-						size="sm"
-						onClick={() => setShowFilters(!showFilters)}
-						className="gap-2"
-					>
-						<Filter className="w-4 h-4" />
-						{t("filters.filters")}
-						{hasActiveFilters && (
-							<Badge variant="secondary" className="ml-1">
-								{
-									[
-										filters.regions,
-										filters.coverageTypes,
-										filters.eligibilityTypes,
-										filters.deadlineWithin,
-									].filter(Boolean).length
-								}
-							</Badge>
-						)}
-					</Button>
+			{/* Search Bar */}
+			<div className="flex items-center gap-4">
+				<p className="text-sm text-muted-foreground">
+					{isLoading
+						? t("filters.loading")
+						: t("filters.showingResults", {
+								count: scholarships.length,
+								total: totalCount,
+							})}
+				</p>
+				<div className="relative">
+					<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+					<Input
+						type="text"
+						placeholder={t("filters.searchScholarships")}
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+						onFocus={(e) => e.target.select()}
+						className="pl-9 w-64"
+					/>
 				</div>
-
-				{/* Collapsible Filters Panel */}
-				{showFilters && (
-					<div className="bg-card border border-border rounded-xl p-4 space-y-4">
-						<div className="flex flex-wrap items-center gap-3">
-							<Select
-								value={filters.regions || "all"}
-								onValueChange={(v) =>
-									setFilters({ ...filters, regions: v === "all" ? "" : v })
-								}
-							>
-								<SelectTrigger className="w-40">
-									<SelectValue placeholder={t("filters.region")} />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">{t("filters.allRegions")}</SelectItem>
-									<SelectItem value="north_america">
-										{t("filters.northAmerica")}
-									</SelectItem>
-									<SelectItem value="europe">{t("filters.europe")}</SelectItem>
-									<SelectItem value="asia_pacific">
-										{t("filters.asiaPacific")}
-									</SelectItem>
-									<SelectItem value="oceania">
-										{t("filters.oceania")}
-									</SelectItem>
-								</SelectContent>
-							</Select>
-
-							<Select
-								value={filters.coverageTypes || "all"}
-								onValueChange={(v) =>
-									setFilters({
-										...filters,
-										coverageTypes: v === "all" ? "" : v,
-									})
-								}
-							>
-								<SelectTrigger className="w-44">
-									<SelectValue placeholder={t("filters.coverageType")} />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">
-										{t("filters.allCoverage")}
-									</SelectItem>
-									<SelectItem value="full_funded">
-										{t("filters.fullFunded")}
-									</SelectItem>
-									<SelectItem value="partial_funded">
-										{t("filters.partialFunded")}
-									</SelectItem>
-								</SelectContent>
-							</Select>
-
-							<Select
-								value={filters.eligibilityTypes || "all"}
-								onValueChange={(v) =>
-									setFilters({
-										...filters,
-										eligibilityTypes: v === "all" ? "" : v,
-									})
-								}
-							>
-								<SelectTrigger className="w-40">
-									<SelectValue placeholder={t("filters.eligibility")} />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">{t("filters.allTypes")}</SelectItem>
-									<SelectItem value="merit">
-										{t("filters.meritBased")}
-									</SelectItem>
-									<SelectItem value="need_based">
-										{t("filters.needBased")}
-									</SelectItem>
-								</SelectContent>
-							</Select>
-
-							<Select
-								value={filters.deadlineWithin?.toString() || "all"}
-								onValueChange={(v) =>
-									setFilters({
-										...filters,
-										deadlineWithin:
-											v === "all" ? undefined : Number.parseInt(v, 10),
-									})
-								}
-							>
-								<SelectTrigger className="w-44">
-									<SelectValue placeholder={t("filters.deadlineWithin")} />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">{t("filters.all")}</SelectItem>
-									<SelectItem value="30">
-										{t("filters.within30Days")}
-									</SelectItem>
-									<SelectItem value="60">
-										{t("filters.within60Days")}
-									</SelectItem>
-									<SelectItem value="90">
-										{t("filters.within90Days")}
-									</SelectItem>
-								</SelectContent>
-							</Select>
-
-							{hasActiveFilters && (
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={clearAllFilters}
-									className="text-muted-foreground hover:text-foreground gap-1.5"
-								>
-									<X className="w-3.5 h-3.5" />
-									{t("filters.clearAll")}
-								</Button>
-							)}
-						</div>
-					</div>
+				{hasActiveFilters && (
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={clearAllFilters}
+						className="text-muted-foreground hover:text-foreground gap-1.5"
+					>
+						<X className="w-3.5 h-3.5" />
+						{t("filters.clearAll")}
+					</Button>
 				)}
 			</div>
+
+			{/* Beautiful Filter Panel */}
+			<FilterPanel
+				expandLabel={t("filters.moreFilters")}
+				collapseLabel={t("filters.lessFilters")}
+				quickFilters={
+					<QuickFilterChips
+						filters={quickFilterOptions}
+						activeFilters={filters.quickFilters}
+						onFiltersChange={(newFilters) =>
+							setFilters({ ...filters, quickFilters: newFilters })
+						}
+						disabled={!isAuthenticated && filters.quickFilters.includes("meetReq")}
+					/>
+				}
+				advancedFilters={
+					<>
+						<div className="space-y-2 col-span-2">
+							<span className="text-sm font-medium text-muted-foreground">
+								{t("filters.region")}
+							</span>
+							<RegionFilter
+								value={filters.regions}
+								onChange={(regions) => setFilters({ ...filters, regions })}
+								options={regionOptions}
+								placeholder={t("filters.allRegions")}
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<span className="text-sm font-medium text-muted-foreground">
+								{t("filters.coverageType")}
+							</span>
+							<CoverageTypeFilter
+								value={filters.coverageTypes}
+								onChange={(coverageTypes) =>
+									setFilters({ ...filters, coverageTypes })
+								}
+								t={(key) => t(`filters.${key}`)}
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<span className="text-sm font-medium text-muted-foreground">
+								{t("filters.eligibility")}
+							</span>
+							<EligibilityTypeFilter
+								value={filters.eligibilityTypes}
+								onChange={(eligibilityTypes) =>
+									setFilters({ ...filters, eligibilityTypes })
+								}
+								t={(key) => t(`filters.${key}`)}
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<span className="text-sm font-medium text-muted-foreground">
+								{t("filters.deadlineWithin")}
+							</span>
+							<DeadlineWithinFilter
+								value={filters.deadlineWithin}
+								onChange={(deadlineWithin) =>
+									setFilters({ ...filters, deadlineWithin })
+								}
+								t={(key) => t(`filters.${key}`)}
+							/>
+						</div>
+					</>
+				}
+			/>
 
 			{/* Table */}
 			<div className="border border-border rounded-lg overflow-hidden">

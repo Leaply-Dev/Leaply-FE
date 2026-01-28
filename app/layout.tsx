@@ -12,6 +12,7 @@ import { Inter, Raleway } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import { Providers } from "@/components/providers/Providers";
+import { Agentation } from "agentation";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +47,7 @@ export default async function RootLayout({
 				<NextIntlClientProvider>
 					<Providers>{children}</Providers>
 				</NextIntlClientProvider>
+				{process.env.NODE_ENV === "development" && <Agentation />}
 			</body>
 		</html>
 	);
