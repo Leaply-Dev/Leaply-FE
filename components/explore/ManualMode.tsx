@@ -10,6 +10,7 @@ import {
 	X,
 } from "lucide-react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
@@ -134,6 +135,7 @@ function ProgramTableRow({
 	isInDashboard,
 	isAdding,
 	onManage,
+	t,
 }: {
 	program: ProgramListItemResponse;
 	selected: boolean;
@@ -144,18 +146,29 @@ function ProgramTableRow({
 	isInDashboard?: boolean;
 	isAdding?: boolean;
 	onManage?: (id: string) => void;
+	t: ReturnType<typeof useTranslations<"explore">>;
 }) {
 	const getDeadlineUrgency = (deadline?: string) => {
-		if (!deadline) return { color: "text-muted-foreground", label: "N/A" };
+		if (!deadline)
+			return { color: "text-muted-foreground", label: t("table.na") };
 		const daysUntil = Math.floor(
 			(new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
 		);
 
+		if (daysUntil < 0) {
+			return { color: "text-muted-foreground", label: t("table.closed") };
+		}
 		if (daysUntil < 14) {
-			return { color: "text-destructive", label: `⚠️ Còn ${daysUntil} ngày` };
+			return {
+				color: "text-destructive",
+				label: `⚠️ ${t("table.daysLeft", { days: daysUntil })}`,
+			};
 		}
 		if (daysUntil <= 30) {
-			return { color: "text-orange-600", label: `⚠️ Còn ${daysUntil} ngày` };
+			return {
+				color: "text-orange-600",
+				label: `⚠️ ${t("table.daysLeft", { days: daysUntil })}`,
+			};
 		}
 		return {
 			color: "text-foreground",
@@ -172,19 +185,19 @@ function ProgramTableRow({
 			case "safety":
 				return (
 					<Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100">
-						An toàn
+						{t("table.safe")}
 					</Badge>
 				);
 			case "target":
 				return (
 					<Badge className="bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-100">
-						Cần nỗ lực
+						{t("table.target")}
 					</Badge>
 				);
 			case "reach":
 				return (
 					<Badge className="bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-100">
-						Thách thức
+						{t("table.reach")}
 					</Badge>
 				);
 			default:
@@ -284,7 +297,7 @@ function ProgramTableRow({
 						{getRankingBadge(program.rankingQsDisplay, "QS")}
 					</div>
 				) : (
-					<span className="text-muted-foreground">N/A</span>
+					<span className="text-muted-foreground">{t("table.na")}</span>
 				)}
 			</td>
 
@@ -296,11 +309,13 @@ function ProgramTableRow({
 							${program.tuitionAnnualUsd.toLocaleString()}
 						</span>
 						{program.scholarshipAvailable && (
-							<span className="text-xs text-green-600">💰 Có học bổng</span>
+							<span className="text-xs text-green-600">
+								💰 {t("filters.hasScholarship")}
+							</span>
 						)}
 					</div>
 				) : (
-					<span className="text-muted-foreground">N/A</span>
+					<span className="text-muted-foreground">{t("table.na")}</span>
 				)}
 			</td>
 
@@ -335,16 +350,16 @@ function ProgramTableRow({
 					{isAdding ? (
 						<>
 							<Loader2 className="w-4 h-4 animate-spin" />
-							Adding...
+							{t("table.adding")}
 						</>
 					) : isInDashboard ? (
 						<>
 							<Settings2 className="w-4 h-4" />
-							Manage
+							{t("table.manage")}
 						</>
 					) : (
 						<>
-							Apply
+							{t("table.apply")}
 							<ArrowRight className="w-4 h-4" />
 						</>
 					)}
@@ -365,7 +380,7 @@ interface ServerFilterState {
 
 /**
  * Manual Mode - Table view with server-side pagination and infinite scroll
- * Shows ALL programs (not limited by AI filters) with sorting and optional filtering
+ * Shows ALL programs (not limited by AI filters) with optional filtering
  */
 export function ManualMode({
 	selectedPrograms,
@@ -376,26 +391,19 @@ export function ManualMode({
 	onManageApplication,
 	addingProgramId,
 }: ManualModeProps) {
+	const t = useTranslations("explore");
+
 	// Detail drawer state
 	const [selectedProgram, setSelectedProgram] =
 		useState<ProgramListItemResponse | null>(null);
 	const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
 
-	// User auth state for preference sorting
+	// User auth state for automatic sorting
 	const { data: userResponse } = useUserMe();
 	const isAuthenticated = !!userResponse;
 
-	// Sorting state - default to preference (auth) or ranking_qs (guest)
-	const [sortBy, setSortBy] = useState(() =>
-		isAuthenticated ? "preference" : "ranking_qs",
-	);
-
-	// Update sort when auth state changes
-	useEffect(() => {
-		if (isAuthenticated && sortBy === "ranking_qs") {
-			setSortBy("preference");
-		}
-	}, [isAuthenticated, sortBy]);
+	// Auto-determine sort based on auth state (preference for auth, ranking_qs for guest)
+	const sortBy = isAuthenticated ? "preference" : "ranking_qs";
 
 	// Search state (with debounce)
 	const [searchQuery, setSearchQuery] = useState("");
@@ -522,76 +530,49 @@ export function ManualMode({
 
 	return (
 		<div className="space-y-6">
-			{/* Results Header with Search and Sort */}
+			{/* Results Header with Search */}
 			<div className="space-y-4">
-				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-4">
-						<p className="text-sm text-muted-foreground">
-							{isLoading
-								? "Đang tải..."
-								: `Hiện ${programs.length} trong ${totalCount} kết quả`}
-						</p>
-						<div className="relative">
-							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-							<Input
-								type="text"
-								placeholder="Tìm kiếm trường, program..."
-								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
-								onFocus={(e) => e.target.select()}
-								className="pl-9 w-64"
-							/>
-						</div>
-						<Button
-							variant={showFilters ? "default" : "outline"}
-							size="sm"
-							onClick={() => setShowFilters(!showFilters)}
-							className="gap-2"
-						>
-							<Filter className="w-4 h-4" />
-							Bộ lọc
-							{hasActiveFilters && (
-								<Badge variant="secondary" className="ml-1">
-									{
-										[
-											filters.regions,
-											filters.tuitionMax,
-											filters.scholarshipOnly,
-											filters.deadlineWithin,
-										].filter(Boolean).length
-									}
-								</Badge>
-							)}
-						</Button>
+				<div className="flex items-center gap-4">
+					<p className="text-sm text-muted-foreground">
+						{isLoading
+							? t("filters.loading")
+							: t("filters.showingResults", {
+									count: programs.length,
+									total: totalCount,
+								})}
+					</p>
+					<div className="relative">
+						<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+						<Input
+							type="text"
+							placeholder={t("filters.searchPrograms")}
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							onFocus={(e) => e.target.select()}
+							className="pl-9 w-64"
+						/>
 					</div>
-					<div className="flex items-center gap-3">
-						<span className="text-sm text-foreground">Sắp xếp:</span>
-						<Select value={sortBy} onValueChange={setSortBy}>
-							<SelectTrigger className="w-56">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								{isAuthenticated && (
-									<SelectItem value="preference">
-										Ưu tiên của bạn (Recommended)
-									</SelectItem>
-								)}
-								<SelectItem value="ranking_qs">
-									Ranking QS (cao → thấp)
-								</SelectItem>
-								<SelectItem value="tuition_asc">
-									Chi phí (thấp → cao)
-								</SelectItem>
-								<SelectItem value="tuition_desc">
-									Chi phí (cao → thấp)
-								</SelectItem>
-								<SelectItem value="deadline">Deadline (gần nhất)</SelectItem>
-								{isAuthenticated && (
-									<SelectItem value="fit_score">Độ phù hợp</SelectItem>
-								)}
-							</SelectContent>
-						</Select>
-					</div>
+					<Button
+						variant={showFilters ? "default" : "outline"}
+						size="sm"
+						onClick={() => setShowFilters(!showFilters)}
+						className="gap-2"
+					>
+						<Filter className="w-4 h-4" />
+						{t("filters.filters")}
+						{hasActiveFilters && (
+							<Badge variant="secondary" className="ml-1">
+								{
+									[
+										filters.regions,
+										filters.tuitionMax,
+										filters.scholarshipOnly,
+										filters.deadlineWithin,
+									].filter(Boolean).length
+								}
+							</Badge>
+						)}
+					</Button>
 				</div>
 
 				{/* Collapsible Filters Panel */}
@@ -599,20 +580,26 @@ export function ManualMode({
 					<div className="bg-card border border-border rounded-xl p-4 space-y-4">
 						<div className="flex flex-wrap items-center gap-3">
 							<Select
-								value={filters.regions}
+								value={filters.regions || "all"}
 								onValueChange={(v) =>
 									setFilters({ ...filters, regions: v === "all" ? "" : v })
 								}
 							>
 								<SelectTrigger className="w-40">
-									<SelectValue placeholder="Khu vực" />
+									<SelectValue placeholder={t("filters.region")} />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="all">Tất cả khu vực</SelectItem>
-									<SelectItem value="north_america">Bắc Mỹ</SelectItem>
-									<SelectItem value="europe">Châu Âu</SelectItem>
-									<SelectItem value="asia_pacific">Châu Á TBD</SelectItem>
-									<SelectItem value="oceania">Châu Đại Dương</SelectItem>
+									<SelectItem value="all">{t("filters.allRegions")}</SelectItem>
+									<SelectItem value="north_america">
+										{t("filters.northAmerica")}
+									</SelectItem>
+									<SelectItem value="europe">{t("filters.europe")}</SelectItem>
+									<SelectItem value="asia_pacific">
+										{t("filters.asiaPacific")}
+									</SelectItem>
+									<SelectItem value="oceania">
+										{t("filters.oceania")}
+									</SelectItem>
 								</SelectContent>
 							</Select>
 
@@ -627,14 +614,14 @@ export function ManualMode({
 								}
 							>
 								<SelectTrigger className="w-44">
-									<SelectValue placeholder="Học phí tối đa" />
+									<SelectValue placeholder={t("filters.tuitionMax")} />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="all">Không giới hạn</SelectItem>
-									<SelectItem value="20000">≤ $20,000/năm</SelectItem>
-									<SelectItem value="30000">≤ $30,000/năm</SelectItem>
-									<SelectItem value="50000">≤ $50,000/năm</SelectItem>
-									<SelectItem value="70000">≤ $70,000/năm</SelectItem>
+									<SelectItem value="all">{t("filters.noLimit")}</SelectItem>
+									<SelectItem value="20000">≤ $20,000/year</SelectItem>
+									<SelectItem value="30000">≤ $30,000/year</SelectItem>
+									<SelectItem value="50000">≤ $50,000/year</SelectItem>
+									<SelectItem value="70000">≤ $70,000/year</SelectItem>
 								</SelectContent>
 							</Select>
 
@@ -649,13 +636,19 @@ export function ManualMode({
 								}
 							>
 								<SelectTrigger className="w-44">
-									<SelectValue placeholder="Deadline trong" />
+									<SelectValue placeholder={t("filters.deadlineWithin")} />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="all">Tất cả</SelectItem>
-									<SelectItem value="30">Trong 30 ngày</SelectItem>
-									<SelectItem value="60">Trong 60 ngày</SelectItem>
-									<SelectItem value="90">Trong 90 ngày</SelectItem>
+									<SelectItem value="all">{t("filters.all")}</SelectItem>
+									<SelectItem value="30">
+										{t("filters.within30Days")}
+									</SelectItem>
+									<SelectItem value="60">
+										{t("filters.within60Days")}
+									</SelectItem>
+									<SelectItem value="90">
+										{t("filters.within90Days")}
+									</SelectItem>
 								</SelectContent>
 							</Select>
 
@@ -670,7 +663,7 @@ export function ManualMode({
 								}
 								className="gap-1.5"
 							>
-								💰 Có học bổng
+								💰 {t("filters.hasScholarship")}
 							</Button>
 
 							{hasActiveFilters && (
@@ -681,7 +674,7 @@ export function ManualMode({
 									className="text-muted-foreground hover:text-foreground gap-1.5"
 								>
 									<X className="w-3.5 h-3.5" />
-									Xóa bộ lọc
+									{t("filters.clearAll")}
 								</Button>
 							)}
 						</div>
@@ -695,7 +688,7 @@ export function ManualMode({
 					<div className="flex flex-col items-center justify-center py-16 px-4">
 						<Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
 						<p className="text-sm text-muted-foreground">
-							Đang tải chương trình...
+							{t("filters.loadingPrograms")}
 						</p>
 					</div>
 				) : isError ? (
@@ -704,10 +697,12 @@ export function ManualMode({
 							<span className="text-2xl">⚠️</span>
 						</div>
 						<h3 className="text-lg font-semibold text-foreground mb-2">
-							Không thể tải dữ liệu
+							{t("filters.failedToLoad")}
 						</h3>
 						<p className="text-sm text-muted-foreground text-center max-w-md">
-							{error instanceof Error ? error.message : "Đã xảy ra lỗi"}
+							{error instanceof Error
+								? error.message
+								: t("filters.failedToLoad")}
 						</p>
 					</div>
 				) : programs.length > 0 ? (
@@ -715,25 +710,25 @@ export function ManualMode({
 						<thead className="bg-muted/50">
 							<tr className="border-b border-border">
 								<th className="p-4 text-center font-semibold text-sm text-foreground w-30">
-									So sánh
+									{t("table.compare")}
 								</th>
 								<th className="p-4 text-left font-semibold text-sm text-foreground">
-									Chương trình
+									{t("table.program")}
 								</th>
 								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									Xếp hạng
+									{t("table.ranking")}
 								</th>
 								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									Chi phí
+									{t("table.cost")}
 								</th>
 								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									Deadline
+									{t("table.deadline")}
 								</th>
 								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									Độ phù hợp
+									{t("table.fit")}
 								</th>
 								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									Hành động
+									{t("table.action")}
 								</th>
 							</tr>
 						</thead>
@@ -757,6 +752,7 @@ export function ManualMode({
 									}
 									isAdding={addingProgramId === program.id}
 									onManage={onManageApplication}
+									t={t}
 								/>
 							))}
 						</tbody>
@@ -767,11 +763,10 @@ export function ManualMode({
 							<Search className="w-8 h-8 text-muted-foreground" />
 						</div>
 						<h3 className="text-lg font-semibold text-foreground mb-2">
-							Không tìm thấy chương trình
+							{t("filters.noPrograms")}
 						</h3>
 						<p className="text-sm text-muted-foreground text-center max-w-md">
-							Không có chương trình nào phù hợp với bộ lọc của bạn. Thử điều
-							chỉnh các bộ lọc hoặc tìm kiếm với từ khóa khác.
+							{t("filters.noProgramsDesc")}
 						</p>
 					</div>
 				)}
@@ -786,7 +781,7 @@ export function ManualMode({
 					{isFetchingNextPage && (
 						<div className="flex items-center gap-2 text-muted-foreground">
 							<Loader2 className="w-4 h-4 animate-spin" />
-							<span className="text-sm">Đang tải thêm...</span>
+							<span className="text-sm">{t("filters.loadingMore")}</span>
 						</div>
 					)}
 				</div>
@@ -796,7 +791,7 @@ export function ManualMode({
 			{!hasNextPage && programs.length > 0 && (
 				<div className="flex items-center justify-center py-4">
 					<p className="text-sm text-muted-foreground">
-						Đã hiển thị tất cả {programs.length} chương trình
+						{t("filters.showingAllPrograms", { count: programs.length })}
 					</p>
 				</div>
 			)}

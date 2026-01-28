@@ -13,6 +13,7 @@ import {
 	X,
 } from "lucide-react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScholarshipDetailDrawer } from "@/components/explore/scholarship/ScholarshipDetailDrawer";
 import { Badge } from "@/components/ui/badge";
@@ -128,6 +129,7 @@ function ScholarshipTableRow({
 	isInDashboard,
 	onManage,
 	isAdding,
+	t,
 }: {
 	scholarship: ScholarshipListItemResponse;
 	selected: boolean;
@@ -138,21 +140,29 @@ function ScholarshipTableRow({
 	isInDashboard?: boolean;
 	onManage?: (id: string) => void;
 	isAdding?: boolean;
+	t: ReturnType<typeof useTranslations<"explore">>;
 }) {
 	const getDeadlineUrgency = (deadline?: string) => {
-		if (!deadline) return { color: "text-muted-foreground", label: "N/A" };
+		if (!deadline)
+			return { color: "text-muted-foreground", label: t("table.na") };
 		const daysUntil = Math.floor(
 			(new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
 		);
 
 		if (daysUntil < 0) {
-			return { color: "text-muted-foreground", label: "Closed" };
+			return { color: "text-muted-foreground", label: t("table.closed") };
 		}
 		if (daysUntil < 14) {
-			return { color: "text-destructive", label: `${daysUntil} days left` };
+			return {
+				color: "text-destructive",
+				label: t("table.daysLeft", { days: daysUntil }),
+			};
 		}
 		if (daysUntil <= 30) {
-			return { color: "text-orange-600", label: `${daysUntil} days left` };
+			return {
+				color: "text-orange-600",
+				label: t("table.daysLeft", { days: daysUntil }),
+			};
 		}
 		return {
 			color: "text-foreground",
@@ -165,19 +175,19 @@ function ScholarshipTableRow({
 			case "safety":
 				return (
 					<Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100">
-						Strong Fit
+						{t("table.strongFit")}
 					</Badge>
 				);
 			case "target":
 				return (
 					<Badge className="bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-100">
-						Good Fit
+						{t("table.goodFit")}
 					</Badge>
 				);
 			case "reach":
 				return (
 					<Badge className="bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-100">
-						Competitive
+						{t("table.competitive")}
 					</Badge>
 				);
 			default:
@@ -274,7 +284,7 @@ function ScholarshipTableRow({
 					</span>
 					{scholarship.coverageType === "full_funded" && (
 						<Badge className="bg-green-100 text-green-700 border-0 text-xs">
-							Full Funded
+							{t("filters.fullFunded")}
 						</Badge>
 					)}
 				</div>
@@ -318,16 +328,16 @@ function ScholarshipTableRow({
 					{isInDashboard ? (
 						<>
 							<Settings2 className="w-4 h-4" />
-							Manage
+							{t("table.manage")}
 						</>
 					) : isAdding ? (
 						<>
 							<Loader2 className="w-4 h-4 animate-spin" />
-							Adding...
+							{t("table.adding")}
 						</>
 					) : (
 						<>
-							Apply
+							{t("table.apply")}
 							<ArrowRight className="w-4 h-4" />
 						</>
 					)}
@@ -349,7 +359,7 @@ interface ServerFilterState {
 
 /**
  * Scholarship Manual Mode - Table view with server-side pagination and infinite scroll
- * Shows ALL scholarships (not limited by AI filters) with sorting and optional filtering
+ * Shows ALL scholarships (not limited by AI filters) with optional filtering
  */
 export function ScholarshipManualMode({
 	selectedScholarships,
@@ -360,6 +370,8 @@ export function ScholarshipManualMode({
 	onManageApplication,
 	addingScholarshipId,
 }: ScholarshipManualModeProps) {
+	const t = useTranslations("explore");
+
 	// Detail drawer state
 	const [selectedScholarship, setSelectedScholarship] =
 		useState<ScholarshipListItemResponse | null>(null);
@@ -369,17 +381,8 @@ export function ScholarshipManualMode({
 	const { data: userResponse } = useUserMe();
 	const isAuthenticated = !!userResponse;
 
-	// Sorting state - default to fit_score (auth) or deadline (guest)
-	const [sortBy, setSortBy] = useState(() =>
-		isAuthenticated ? "fit_score" : "deadline",
-	);
-
-	// Update sort when auth state changes
-	useEffect(() => {
-		if (isAuthenticated && sortBy === "deadline") {
-			setSortBy("fit_score");
-		}
-	}, [isAuthenticated, sortBy]);
+	// Auto-determine sort based on auth state (fit_score for auth, deadline for guest)
+	const sortBy = isAuthenticated ? "fit_score" : "deadline";
 
 	// Search state (with debounce)
 	const [searchQuery, setSearchQuery] = useState("");
@@ -514,49 +517,50 @@ export function ScholarshipManualMode({
 
 	return (
 		<div className="space-y-6">
-			{/* Results Header with Search and Sort */}
+			{/* Results Header with Search */}
 			<div className="space-y-4">
-				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-4">
-						<p className="text-sm text-muted-foreground">
-							{isLoading
-								? "Loading..."
-								: `Showing ${scholarships.length} of ${totalCount} results`}
-						</p>
-						<div className="relative">
-							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-							<Input
-								type="text"
-								placeholder="Search scholarships..."
-								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
-								onFocus={(e) => e.target.select()}
-								className="pl-9 w-64"
-							/>
-						</div>
-						<Button
-							variant={showFilters ? "default" : "outline"}
-							size="sm"
-							onClick={() => setShowFilters(!showFilters)}
-							className="gap-2"
-						>
-							<Filter className="w-4 h-4" />
-							Filters
-							{hasActiveFilters && (
-								<Badge variant="secondary" className="ml-1">
-									{
-										[
-											filters.regions,
-											filters.coverageTypes,
-											filters.eligibilityTypes,
-											filters.fullFundedOnly,
-											filters.deadlineWithin,
-										].filter(Boolean).length
-									}
-								</Badge>
-							)}
-						</Button>
+				<div className="flex items-center gap-4">
+					<p className="text-sm text-muted-foreground">
+						{isLoading
+							? t("filters.loading")
+							: t("filters.showingResults", {
+									count: scholarships.length,
+									total: totalCount,
+								})}
+					</p>
+					<div className="relative">
+						<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+						<Input
+							type="text"
+							placeholder={t("filters.searchScholarships")}
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							onFocus={(e) => e.target.select()}
+							className="pl-9 w-64"
+						/>
 					</div>
+					<Button
+						variant={showFilters ? "default" : "outline"}
+						size="sm"
+						onClick={() => setShowFilters(!showFilters)}
+						className="gap-2"
+					>
+						<Filter className="w-4 h-4" />
+						{t("filters.filters")}
+						{hasActiveFilters && (
+							<Badge variant="secondary" className="ml-1">
+								{
+									[
+										filters.regions,
+										filters.coverageTypes,
+										filters.eligibilityTypes,
+										filters.fullFundedOnly,
+										filters.deadlineWithin,
+									].filter(Boolean).length
+								}
+							</Badge>
+						)}
+					</Button>
 				</div>
 
 				{/* Collapsible Filters Panel */}
@@ -564,25 +568,31 @@ export function ScholarshipManualMode({
 					<div className="bg-card border border-border rounded-xl p-4 space-y-4">
 						<div className="flex flex-wrap items-center gap-3">
 							<Select
-								value={filters.regions}
+								value={filters.regions || "all"}
 								onValueChange={(v) =>
 									setFilters({ ...filters, regions: v === "all" ? "" : v })
 								}
 							>
 								<SelectTrigger className="w-40">
-									<SelectValue placeholder="Region" />
+									<SelectValue placeholder={t("filters.region")} />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="all">All Regions</SelectItem>
-									<SelectItem value="north_america">North America</SelectItem>
-									<SelectItem value="europe">Europe</SelectItem>
-									<SelectItem value="asia_pacific">Asia Pacific</SelectItem>
-									<SelectItem value="oceania">Oceania</SelectItem>
+									<SelectItem value="all">{t("filters.allRegions")}</SelectItem>
+									<SelectItem value="north_america">
+										{t("filters.northAmerica")}
+									</SelectItem>
+									<SelectItem value="europe">{t("filters.europe")}</SelectItem>
+									<SelectItem value="asia_pacific">
+										{t("filters.asiaPacific")}
+									</SelectItem>
+									<SelectItem value="oceania">
+										{t("filters.oceania")}
+									</SelectItem>
 								</SelectContent>
 							</Select>
 
 							<Select
-								value={filters.coverageTypes}
+								value={filters.coverageTypes || "all"}
 								onValueChange={(v) =>
 									setFilters({
 										...filters,
@@ -591,17 +601,23 @@ export function ScholarshipManualMode({
 								}
 							>
 								<SelectTrigger className="w-44">
-									<SelectValue placeholder="Coverage Type" />
+									<SelectValue placeholder={t("filters.coverageType")} />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="all">All Coverage</SelectItem>
-									<SelectItem value="full_funded">Full Funded</SelectItem>
-									<SelectItem value="partial_funded">Partial Funded</SelectItem>
+									<SelectItem value="all">
+										{t("filters.allCoverage")}
+									</SelectItem>
+									<SelectItem value="full_funded">
+										{t("filters.fullFunded")}
+									</SelectItem>
+									<SelectItem value="partial_funded">
+										{t("filters.partialFunded")}
+									</SelectItem>
 								</SelectContent>
 							</Select>
 
 							<Select
-								value={filters.eligibilityTypes}
+								value={filters.eligibilityTypes || "all"}
 								onValueChange={(v) =>
 									setFilters({
 										...filters,
@@ -610,12 +626,16 @@ export function ScholarshipManualMode({
 								}
 							>
 								<SelectTrigger className="w-40">
-									<SelectValue placeholder="Eligibility" />
+									<SelectValue placeholder={t("filters.eligibility")} />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="all">All Types</SelectItem>
-									<SelectItem value="merit">Merit-based</SelectItem>
-									<SelectItem value="need_based">Need-based</SelectItem>
+									<SelectItem value="all">{t("filters.allTypes")}</SelectItem>
+									<SelectItem value="merit">
+										{t("filters.meritBased")}
+									</SelectItem>
+									<SelectItem value="need_based">
+										{t("filters.needBased")}
+									</SelectItem>
 								</SelectContent>
 							</Select>
 
@@ -630,13 +650,19 @@ export function ScholarshipManualMode({
 								}
 							>
 								<SelectTrigger className="w-44">
-									<SelectValue placeholder="Deadline within" />
+									<SelectValue placeholder={t("filters.deadlineWithin")} />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="all">All</SelectItem>
-									<SelectItem value="30">Within 30 days</SelectItem>
-									<SelectItem value="60">Within 60 days</SelectItem>
-									<SelectItem value="90">Within 90 days</SelectItem>
+									<SelectItem value="all">{t("filters.all")}</SelectItem>
+									<SelectItem value="30">
+										{t("filters.within30Days")}
+									</SelectItem>
+									<SelectItem value="60">
+										{t("filters.within60Days")}
+									</SelectItem>
+									<SelectItem value="90">
+										{t("filters.within90Days")}
+									</SelectItem>
 								</SelectContent>
 							</Select>
 
@@ -652,7 +678,7 @@ export function ScholarshipManualMode({
 								className="gap-1.5"
 							>
 								<Sparkles className="w-3.5 h-3.5" />
-								Full Funded Only
+								{t("filters.fullFundedOnly")}
 							</Button>
 
 							{hasActiveFilters && (
@@ -663,7 +689,7 @@ export function ScholarshipManualMode({
 									className="text-muted-foreground hover:text-foreground gap-1.5"
 								>
 									<X className="w-3.5 h-3.5" />
-									Clear all
+									{t("filters.clearAll")}
 								</Button>
 							)}
 						</div>
@@ -677,7 +703,7 @@ export function ScholarshipManualMode({
 					<div className="flex flex-col items-center justify-center py-16 px-4">
 						<Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
 						<p className="text-sm text-muted-foreground">
-							Loading scholarships...
+							{t("filters.loadingScholarships")}
 						</p>
 					</div>
 				) : isError ? (
@@ -686,10 +712,12 @@ export function ScholarshipManualMode({
 							<span className="text-2xl">!</span>
 						</div>
 						<h3 className="text-lg font-semibold text-foreground mb-2">
-							Failed to load data
+							{t("filters.failedToLoad")}
 						</h3>
 						<p className="text-sm text-muted-foreground text-center max-w-md">
-							{error instanceof Error ? error.message : "An error occurred"}
+							{error instanceof Error
+								? error.message
+								: t("filters.failedToLoad")}
 						</p>
 					</div>
 				) : scholarships.length > 0 ? (
@@ -697,25 +725,25 @@ export function ScholarshipManualMode({
 						<thead className="bg-muted/50">
 							<tr className="border-b border-border">
 								<th className="p-4 text-center font-semibold text-sm text-foreground w-20">
-									Compare
+									{t("table.compare")}
 								</th>
 								<th className="p-4 text-left font-semibold text-sm text-foreground">
-									Scholarship
+									{t("table.scholarship")}
 								</th>
 								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									Coverage
+									{t("table.coverage")}
 								</th>
 								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									Type
+									{t("table.type")}
 								</th>
 								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									Deadline
+									{t("table.deadline")}
 								</th>
 								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									Fit
+									{t("table.fit")}
 								</th>
 								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									Action
+									{t("table.action")}
 								</th>
 							</tr>
 						</thead>
@@ -741,6 +769,7 @@ export function ScholarshipManualMode({
 									}
 									onManage={onManageApplication}
 									isAdding={addingScholarshipId === scholarship.id}
+									t={t}
 								/>
 							))}
 						</tbody>
@@ -751,11 +780,10 @@ export function ScholarshipManualMode({
 							<Search className="w-8 h-8 text-muted-foreground" />
 						</div>
 						<h3 className="text-lg font-semibold text-foreground mb-2">
-							No scholarships found
+							{t("filters.noScholarships")}
 						</h3>
 						<p className="text-sm text-muted-foreground text-center max-w-md">
-							No scholarships match your current filters. Try adjusting your
-							filters or search terms.
+							{t("filters.noScholarshipsDesc")}
 						</p>
 					</div>
 				)}
@@ -770,7 +798,7 @@ export function ScholarshipManualMode({
 					{isFetchingNextPage && (
 						<div className="flex items-center gap-2 text-muted-foreground">
 							<Loader2 className="w-4 h-4 animate-spin" />
-							<span className="text-sm">Loading more...</span>
+							<span className="text-sm">{t("filters.loadingMore")}</span>
 						</div>
 					)}
 				</div>
@@ -780,7 +808,9 @@ export function ScholarshipManualMode({
 			{!hasNextPage && scholarships.length > 0 && (
 				<div className="flex items-center justify-center py-4">
 					<p className="text-sm text-muted-foreground">
-						Showing all {scholarships.length} scholarships
+						{t("filters.showingAllScholarships", {
+							count: scholarships.length,
+						})}
 					</p>
 				</div>
 			)}
