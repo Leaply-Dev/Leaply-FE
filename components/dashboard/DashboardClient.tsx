@@ -19,15 +19,20 @@ import { useEffect, useMemo, useState } from "react";
 import {
 	PageTransition,
 	SlideUp,
-	StaggerContainer,
-	StaggerItem,
 } from "@/components/PageTransition";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import { useGetPartsProgress } from "@/lib/generated/api/endpoints/persona-lab/persona-lab";
 import type {
@@ -123,469 +128,378 @@ export function DashboardClient() {
 
 	return (
 		<PageTransition>
-			<div className="min-h-screen bg-background">
+			<div className="min-h-screen bg-background text-foreground">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-					{/* Header */}
+					{/* Header & Key Metrics Strip */}
 					<SlideUp>
-						<div className="mb-8">
-							<h1 className="text-3xl font-bold text-foreground mb-2">
-								{greeting || <span className="invisible">…</span>},{" "}
-								{firstName ||
-									profile?.fullName?.split(" ").pop() ||
-									tHome("you")}
-								!
-							</h1>
-							<p className="text-lg text-muted-foreground">
-								{tHome("subtitle")}
-							</p>
+						<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+							<div>
+								<h1 className="text-3xl font-bold tracking-tight mb-1">
+									{greeting || <span className="invisible">…</span>},{" "}
+									{firstName ||
+										profile?.fullName?.split(" ").pop() ||
+										tHome("you")}
+									!
+								</h1>
+								<p className="text-muted-foreground text-lg">
+									{tHome("subtitle")}
+								</p>
+							</div>
+
+							{/* Top Level Compact Stats */}
+							<div className="flex items-center gap-3">
+								<div className="flex items-center gap-3 px-4 py-2 bg-card border rounded-full shadow-sm">
+									<div className="p-1.5 bg-primary/10 rounded-full">
+										<User className="w-4 h-4 text-primary" />
+									</div>
+									<div className="flex flex-col">
+										<span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+											{tHome("profile")}
+										</span>
+										<div className="flex items-center gap-2">
+											<span className="font-bold text-sm">
+												{isLoading ? (
+													<Skeleton className="h-5 w-8" />
+												) : (
+													`${profileCompletion}%`
+												)}
+											</span>
+										</div>
+									</div>
+								</div>
+
+								<div className="flex items-center gap-3 px-4 py-2 bg-card border rounded-full shadow-sm">
+									<div className="p-1.5 bg-chart-2/10 rounded-full">
+										<FolderOpen className="w-4 h-4 text-chart-2" />
+									</div>
+									<div className="flex flex-col">
+										<span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+											{tHome("applications")}
+										</span>
+										<span className="font-bold text-sm">
+											{isLoading ? (
+												<Skeleton className="h-5 w-4" />
+											) : (
+												applicationsCount
+											)}
+										</span>
+									</div>
+								</div>
+
+								<div className="flex items-center gap-3 px-4 py-2 bg-card border rounded-full shadow-sm">
+									<div className="p-1.5 bg-chart-3/10 rounded-full">
+										<Compass className="w-4 h-4 text-chart-3" />
+									</div>
+									<div className="flex flex-col">
+										<span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+											{tHome("discovery")}
+										</span>
+										<span className="font-bold text-sm">
+											{isLoading || isPartsLoading ? (
+												<Skeleton className="h-5 w-8" />
+											) : (
+												`${discoveryCompletedCount}/4`
+											)}
+										</span>
+									</div>
+								</div>
+							</div>
 						</div>
 					</SlideUp>
 
-					{/* Suggested Next Action */}
-					<SlideUp delay={0.1}>
-						<m.div
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 0.2 }}
-						>
-							{isLoading ? (
-								<Card className="mb-8">
-									<CardContent className="p-6">
-										<div className="flex items-start gap-4">
-											<Skeleton className="w-14 h-14 rounded-2xl" />
-											<div className="flex-1 space-y-3">
-												<Skeleton className="h-5 w-24" />
-												<Skeleton className="h-6 w-48" />
-												<Skeleton className="h-4 w-64" />
-												<Skeleton className="h-10 w-32" />
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-							) : suggestedAction?.type === "persona" ||
-								suggestedAction?.type === "writing" ? (
-								<Card className="mb-8 bg-linear-to-br from-primary/5 via-chart-2/5 to-transparent border-primary/20 overflow-hidden relative group hover:shadow-lg transition-shadow duration-300">
-									<div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-bl from-primary/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500" />
-									<CardContent className="p-6 relative">
-										<div className="flex items-start gap-4">
-											<div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0">
-												<Sparkles className="w-7 h-7 text-primary" />
-											</div>
-											<div className="flex-1">
-												<Badge className="bg-primary/10 text-primary mb-2 hover:bg-primary/20">
-													{tHome("suggestedForYou")}
-												</Badge>
-												<h3 className="text-xl font-semibold text-foreground mb-2">
-													{tHome(
-														`suggestedActions.${suggestedAction.type}.title`,
-													)}
-												</h3>
-												<p className="text-muted-foreground mb-4">
-													{tHome(
-														`suggestedActions.${suggestedAction.type}.description`,
-													)}
-												</p>
-												<Button asChild>
-													<Link href={suggestedAction?.link || "/persona-lab"}>
-														{tHome(
-															`suggestedActions.${suggestedAction.type}.cta`,
-														)}
-														<ArrowRight className="w-4 h-4 ml-2" />
-													</Link>
-												</Button>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-							) : suggestedAction?.type === "deadline" ? (
-								<Card className="mb-8 bg-linear-to-br from-chart-4/5 via-primary/5 to-transparent border-chart-4/20 overflow-hidden relative group hover:shadow-lg transition-shadow duration-300">
-									<div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-bl from-chart-4/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500" />
-									<CardContent className="p-6 relative">
-										<div className="flex items-start gap-4">
-											<div className="w-14 h-14 bg-chart-4/10 rounded-2xl flex items-center justify-center shrink-0">
-												<Calendar className="w-7 h-7 text-chart-4" />
-											</div>
-											<div className="flex-1">
-												<Badge className="bg-chart-4/10 text-chart-4 mb-2 hover:bg-chart-4/20">
-													{tHome("suggestedForYou")}
-												</Badge>
-												<h3 className="text-xl font-semibold text-foreground mb-2">
-													{tHome("suggestedActions.deadline.title")}
-												</h3>
-												<p className="text-muted-foreground mb-4">
-													{tHome("suggestedActions.deadline.description")}
-												</p>
-												<Button
-													asChild
-													className="bg-chart-4 hover:bg-chart-4/90"
-												>
-													<Link
-														href={
-															suggestedAction?.link || "/dashboard/applications"
-														}
-													>
-														{tHome("suggestedActions.deadline.cta")}
-														<ArrowRight className="w-4 h-4 ml-2" />
-													</Link>
-												</Button>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-							) : (
-								<Card className="mb-8 bg-linear-to-br from-chart-2/5 via-primary/5 to-transparent border-chart-2/20 overflow-hidden relative group hover:shadow-lg transition-shadow duration-300">
-									<div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-bl from-chart-2/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500" />
-									<CardContent className="p-6 relative">
-										<div className="flex items-start gap-4">
-											<div className="w-14 h-14 bg-chart-2/10 rounded-2xl flex items-center justify-center shrink-0">
-												<Target className="w-7 h-7 text-chart-2" />
-											</div>
-											<div className="flex-1">
-												<Badge className="bg-chart-2/10 text-chart-2 mb-2 hover:bg-chart-2/20">
-													{tHome("suggestedForYou")}
-												</Badge>
-												<h3 className="text-xl font-semibold text-foreground mb-2">
-													{tHome("suggestedActions.explore.title")}
-												</h3>
-												<p className="text-muted-foreground mb-4">
-													{tHome("suggestedActions.explore.description")}
-												</p>
-												<Button
-													asChild
-													className="bg-chart-2 hover:bg-chart-2/90"
-												>
-													<Link href={suggestedAction?.link || "/explore"}>
-														{tHome("suggestedActions.explore.cta")}
-														<ArrowRight className="w-4 h-4 ml-2" />
-													</Link>
-												</Button>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-							)}
-						</m.div>
-					</SlideUp>
-
-					{/* Quick Stats */}
-					<SlideUp delay={0.2}>
-						<StaggerContainer>
-							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-								{/* Profile Completion */}
-								<StaggerItem>
-									<Card className="hover:shadow-md transition-shadow">
-										<CardContent className="p-5">
-											<div className="flex items-center gap-3 mb-3">
-												<div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-													<User className="w-5 h-5 text-primary" />
-												</div>
-												<span className="text-sm font-medium text-muted-foreground">
-													{tHome("profile")}
-												</span>
-											</div>
-											<div className="space-y-2">
-												<div className="flex items-baseline justify-between">
-													<span className="text-2xl font-bold text-foreground">
-														{isLoading ? (
-															<Skeleton className="h-7 w-12 inline-block" />
-														) : (
-															`${profileCompletion}%`
-														)}
-													</span>
-													<span className="text-xs text-muted-foreground">
-														{tHome("completed")}
-													</span>
-												</div>
-												<Progress
-													value={isLoading ? 0 : profileCompletion}
-													className="h-2"
-												/>
-											</div>
-										</CardContent>
-									</Card>
-								</StaggerItem>
-
-								{/* Applications */}
-								<StaggerItem>
-									<Card className="hover:shadow-md transition-shadow">
-										<CardContent className="p-5">
-											<div className="flex items-center gap-3 mb-3">
-												<div className="w-10 h-10 bg-chart-2/10 rounded-lg flex items-center justify-center">
-													<FolderOpen className="w-5 h-5 text-chart-2" />
-												</div>
-												<span className="text-sm font-medium text-muted-foreground">
-													{tHome("applications")}
-												</span>
-											</div>
-											<div className="flex items-baseline gap-2">
-												<span className="text-2xl font-bold text-foreground">
-													{isLoading ? (
-														<Skeleton className="h-7 w-8 inline-block" />
-													) : (
-														applicationsCount
-													)}
-												</span>
-												<span className="text-sm text-muted-foreground">
-													{submittedApplications} {tHome("submitted")}
-												</span>
-											</div>
-										</CardContent>
-									</Card>
-								</StaggerItem>
-
-								{/* Upcoming Deadlines */}
-								<StaggerItem>
-									<Card className="hover:shadow-md transition-shadow">
-										<CardContent className="p-5">
-											<div className="flex items-center gap-3 mb-3">
-												<div className="w-10 h-10 bg-chart-4/10 rounded-lg flex items-center justify-center">
-													<Calendar className="w-5 h-5 text-chart-4" />
-												</div>
-												<span className="text-sm font-medium text-muted-foreground">
-													{tHome("upcomingDeadlines")}
-												</span>
-											</div>
-											<div className="flex items-baseline gap-2">
-												<span className="text-2xl font-bold text-foreground">
-													{isLoading ? (
-														<Skeleton className="h-7 w-8 inline-block" />
-													) : (
-														upcomingDeadlines.length
-													)}
-												</span>
-												<span className="text-sm text-muted-foreground">
-													{tHome("deadlines")}
-												</span>
-											</div>
-										</CardContent>
-									</Card>
-								</StaggerItem>
-
-								{/* Persona Discovery Progress */}
-								<StaggerItem>
-									<Card className="hover:shadow-md transition-shadow">
-										<CardContent className="p-5">
-											<div className="flex items-center gap-3 mb-3">
-												<div className="w-10 h-10 bg-chart-3/10 rounded-lg flex items-center justify-center">
-													<Compass className="w-5 h-5 text-chart-3" />
-												</div>
-												<span className="text-sm font-medium text-muted-foreground">
-													{tHome("discovery")}
-												</span>
-											</div>
-											<div className="space-y-2">
-												<div className="flex items-baseline justify-between">
-													<span className="text-2xl font-bold text-foreground">
-														{isLoading || isPartsLoading ? (
-															<Skeleton className="h-7 w-12 inline-block" />
-														) : (
-															`${discoveryCompletedCount}/4`
-														)}
-													</span>
-													<span className="text-xs text-muted-foreground">
-														{tHome("tracks")}
-													</span>
-												</div>
-												<Progress
-													value={
-														isLoading || isPartsLoading
-															? 0
-															: (discoveryCompletedCount / 4) * 100
-													}
-													className="h-2"
-												/>
-											</div>
-										</CardContent>
-									</Card>
-								</StaggerItem>
-							</div>
-						</StaggerContainer>
-					</SlideUp>
-
-					{/* Main Content - Applications & Deadlines */}
-					<div className="space-y-6">
-						{/* Your Applications */}
-						<SlideUp delay={0.3}>
-							<Card>
-								<CardHeader className="flex flex-row items-center justify-between pb-2">
-									<CardTitle className="text-lg flex items-center gap-2">
-										<School
-											className="w-5 h-5 text-muted-foreground"
-											aria-hidden="true"
-										/>
-										{tHome("yourApplications")}
-									</CardTitle>
-									<Button variant="ghost" size="sm" asChild>
-										<Link href="/dashboard/applications">
-											{tHome("viewAll")}
-											<ArrowRight className="w-4 h-4 ml-1" />
-										</Link>
-									</Button>
-								</CardHeader>
-								<CardContent>
+					<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+						{/* Left Column: Suggested + Applications */}
+						<div className="lg:col-span-2 space-y-8">
+							{/* Suggested Action - Compact Banner Design */}
+							<SlideUp delay={0.1}>
+								<m.div
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ delay: 0.2 }}
+								>
 									{isLoading ? (
-										<div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
-											{[1, 2, 3].map((i) => (
-												<div key={i} className="min-w-[220px] shrink-0">
-													<Card className="h-full">
-														<CardContent className="p-4 space-y-3">
-															<div className="flex items-start gap-3">
-																<Skeleton className="h-10 w-10 rounded-full" />
-																<div className="flex-1 space-y-2">
-																	<Skeleton className="h-4 w-24" />
-																	<Skeleton className="h-3 w-32" />
-																</div>
-															</div>
-															<div className="flex justify-between">
-																<Skeleton className="h-5 w-16" />
-																<Skeleton className="h-4 w-12" />
-															</div>
-														</CardContent>
-													</Card>
+										<Skeleton className="h-24 w-full rounded-xl" />
+									) : suggestedAction ? (
+										suggestedAction.type === "persona" ||
+											suggestedAction.type === "writing" ? (
+											<div className="relative overflow-hidden rounded-xl border bg-linear-to-r from-primary/10 via-background to-background p-1">
+												<div className="flex items-center gap-4 bg-background/80 backdrop-blur-sm p-4 rounded-lg">
+													<div className="flex-1">
+														<div className="flex items-center gap-2 mb-1">
+															<Badge
+																variant="secondary"
+																className="bg-primary/10 text-primary hover:bg-primary/20 text-[10px] px-2 py-0 h-5"
+															>
+																{tHome("suggestedForYou")}
+															</Badge>
+															<h3 className="font-semibold text-sm">
+																{tHome(
+																	`suggestedActions.${suggestedAction.type}.title`,
+																)}
+															</h3>
+														</div>
+														<p className="text-sm text-muted-foreground line-clamp-1">
+															{tHome(
+																`suggestedActions.${suggestedAction.type}.description`,
+															)}
+														</p>
+													</div>
+													<Button size="sm" asChild className="shrink-0">
+														<Link
+															href={suggestedAction?.link || "/persona-lab"}
+														>
+															{tHome(
+																`suggestedActions.${suggestedAction.type}.cta`,
+															)}
+															<ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+														</Link>
+													</Button>
 												</div>
-											))}
-										</div>
-									) : recentApplications.length > 0 ? (
-										<div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
-											{recentApplications.map((app: RecentApplicationDto) => (
-												<Link
-													key={app.id}
-													href={`/dashboard/applications?id=${app.id}`}
-													className="min-w-[220px] shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
-												>
-													<Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-														<CardContent className="p-4">
-															<div className="flex items-start gap-3 mb-3">
-																<Avatar className="h-10 w-10 shrink-0">
-																	<AvatarFallback className="text-xs">
-																		{(app.universityName ?? "")
-																			.substring(0, 2)
-																			.toUpperCase()}
-																	</AvatarFallback>
-																</Avatar>
-																<div className="flex-1 min-w-0">
-																	<h4 className="font-medium text-sm text-foreground truncate">
-																		{app.universityName}
-																	</h4>
-																	<p className="text-xs text-muted-foreground truncate">
-																		{app.programName}
-																	</p>
-																</div>
-															</div>
-															<div className="space-y-2">
-																<div className="flex items-center justify-between">
+											</div>
+										) : (
+											// Fallback/Generic Suggested Action
+											<div className="relative overflow-hidden rounded-xl border bg-linear-to-r from-muted/50 to-background p-4 flex items-center justify-between gap-4">
+												<div className="flex items-center gap-4">
+													<div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+														<Sparkles className="w-5 h-5 text-foreground" />
+													</div>
+													<div>
+														<h3 className="font-semibold text-sm">
+															{tHome("suggestedActions.explore.title")}
+														</h3>
+														<p className="text-sm text-muted-foreground">
+															{tHome("suggestedActions.explore.description")}
+														</p>
+													</div>
+												</div>
+												<Button variant="outline" size="sm" asChild>
+													<Link href={suggestedAction?.link || "/explore"}>
+														Go <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+													</Link>
+												</Button>
+											</div>
+										)
+									) : null}
+								</m.div>
+							</SlideUp>
+
+							{/* Your Applications - Table View */}
+							<SlideUp delay={0.2}>
+								<div className="space-y-4">
+									<div className="flex items-center justify-between px-1">
+										<h2 className="text-lg font-semibold flex items-center gap-2">
+											<School className="w-5 h-5 text-muted-foreground" />
+											{tHome("yourApplications")}
+										</h2>
+										<Button
+											variant="link"
+											size="sm"
+											asChild
+											className="text-muted-foreground hover:text-foreground"
+										>
+											<Link href="/dashboard/applications">
+												{tHome("viewAll")}{" "}
+												<ArrowRight className="w-4 h-4 ml-1" />
+											</Link>
+										</Button>
+									</div>
+
+									<Card className="overflow-hidden border-border/50 shadow-sm">
+										{isLoading ? (
+											<div className="p-6 space-y-4">
+												{[1, 2, 3].map((i) => (
+													<div key={i} className="flex items-center gap-4">
+														<Skeleton className="h-10 w-10 rounded-full" />
+														<div className="space-y-2 flex-1">
+															<Skeleton className="h-4 w-1/3" />
+															<Skeleton className="h-3 w-1/4" />
+														</div>
+													</div>
+												))}
+											</div>
+										) : recentApplications.length > 0 ? (
+											<Table>
+												<TableHeader className="bg-muted/30">
+													<TableRow className="hover:bg-transparent">
+														<TableHead className="w-[50%]">
+															University & Program
+														</TableHead>
+														<TableHead>Status</TableHead>
+														<TableHead className="text-right">Action</TableHead>
+													</TableRow>
+												</TableHeader>
+												<TableBody>
+													{recentApplications.map(
+														(app: RecentApplicationDto) => (
+															<TableRow
+																key={app.id}
+																className="group cursor-pointer hover:bg-muted/30"
+															>
+																<TableCell className="py-3">
+																	<div className="flex items-center gap-3">
+																		<Avatar className="h-9 w-9 border">
+																			<AvatarFallback className="text-[10px] text-muted-foreground">
+																				{(app.universityName ?? "")
+																					.substring(0, 2)
+																					.toUpperCase()}
+																			</AvatarFallback>
+																		</Avatar>
+																		<div className="flex flex-col">
+																			<span className="font-medium text-sm leading-none mb-1">
+																				{app.universityName}
+																			</span>
+																			<span className="text-xs text-muted-foreground leading-none">
+																				{app.programName}
+																			</span>
+																		</div>
+																	</div>
+																</TableCell>
+																<TableCell className="py-3">
 																	<Badge
 																		variant={
 																			app.status === "submitted"
 																				? "default"
 																				: "secondary"
 																		}
-																		className="text-xs capitalize"
+																		className="text-[10px] px-2.5 py-0.5 capitalize shadow-none font-medium"
 																	>
 																		{app.status}
 																	</Badge>
-																</div>
-															</div>
-														</CardContent>
-													</Card>
-												</Link>
-											))}
-										</div>
-									) : (
-										<div className="text-center py-8">
-											<div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-												<GraduationCap
-													className="w-8 h-8 text-muted-foreground"
-													aria-hidden="true"
-												/>
+																</TableCell>
+																<TableCell className="text-right py-3">
+																	<Button
+																		variant="ghost"
+																		size="icon"
+																		className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+																		asChild
+																	>
+																		<Link
+																			href={`/dashboard/applications?id=${app.id}`}
+																		>
+																			<ArrowRight className="w-4 h-4 text-muted-foreground" />
+																		</Link>
+																	</Button>
+																</TableCell>
+															</TableRow>
+														),
+													)}
+												</TableBody>
+											</Table>
+										) : (
+											<div className="flex flex-col items-center justify-center py-12 text-center px-4">
+												<div className="w-12 h-12 bg-muted/50 rounded-full flex items-center justify-center mb-3">
+													<FolderOpen className="w-6 h-6 text-muted-foreground" />
+												</div>
+												<p className="text-sm text-muted-foreground mb-4 max-w-[200px]">
+													{tHome("noApplicationsYet")}
+												</p>
+												<Button variant="outline" size="sm" asChild>
+													<Link href="/explore">{tHome("exploreSchools")}</Link>
+												</Button>
 											</div>
-											<p className="text-muted-foreground mb-4">
-												{tHome("noApplicationsYet")}
-											</p>
-											<Button variant="outline" size="sm" asChild>
-												<Link href="/explore">{tHome("exploreSchools")}</Link>
-											</Button>
-										</div>
-									)}
-								</CardContent>
-							</Card>
-						</SlideUp>
+										)}
+									</Card>
+								</div>
+							</SlideUp>
+						</div>
 
-						{/* Upcoming Deadlines Section */}
-						{upcomingDeadlines.length > 0 && (
-							<SlideUp delay={0.35}>
-								<Card>
-									<CardHeader className="flex flex-row items-center justify-between pb-2">
-										<CardTitle className="text-lg flex items-center gap-2">
-											<Calendar
-												className="w-5 h-5 text-muted-foreground"
-												aria-hidden="true"
-											/>
-											{tHome("upcomingDeadlines")}
-										</CardTitle>
-										<Button variant="ghost" size="sm" asChild>
-											<Link href="/dashboard/applications">
-												{tHome("viewAll")}
-												<ArrowRight className="w-4 h-4 ml-1" />
-											</Link>
-										</Button>
-									</CardHeader>
-									<CardContent>
-										<div className="space-y-3">
-											{upcomingDeadlines.slice(0, 3).map((deadline) => {
-												const urgency = getDeadlineUrgency(
-													deadline.daysRemaining,
-												);
-												return (
-													<Link
-														key={deadline.applicationId}
-														href={`/dashboard/applications?id=${deadline.applicationId}`}
-														className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-													>
-														<div className="flex items-center gap-3 min-w-0">
-															<div
-																className={`w-10 h-10 ${urgency.bgColor} rounded-lg flex items-center justify-center shrink-0`}
+						{/* Right Column: Deadlines & Widgets */}
+						<div className="space-y-8">
+							{/* Upcoming Deadlines */}
+							<SlideUp delay={0.3}>
+								<div className="space-y-4">
+									<h2 className="text-lg font-semibold flex items-center gap-2 px-1">
+										<Calendar className="w-5 h-5 text-muted-foreground" />
+										{tHome("upcomingDeadlines")}
+									</h2>
+									<Card className="border-border/50 shadow-sm">
+										<CardContent className="p-0">
+											{isLoading ? (
+												<div className="p-4 space-y-3">
+													{[1, 2].map((i) => (
+														<Skeleton key={i} className="h-12 w-full" />
+													))}
+												</div>
+											) : upcomingDeadlines.length > 0 ? (
+												<div className="divide-y divide-border/40">
+													{upcomingDeadlines.slice(0, 5).map((deadline) => {
+														const urgency = getDeadlineUrgency(
+															deadline.daysRemaining,
+														);
+														return (
+															<Link
+																key={deadline.applicationId}
+																href={`/dashboard/applications?id=${deadline.applicationId}`}
+																className="flex items-center gap-3 p-4 hover:bg-muted/50 transition-colors group"
 															>
-																{deadline.daysRemaining !== undefined &&
-																deadline.daysRemaining <= URGENT_DAYS ? (
-																	<AlertCircle
-																		className={`w-5 h-5 ${urgency.color}`}
-																		aria-hidden="true"
-																	/>
-																) : (
-																	<Calendar
-																		className={`w-5 h-5 ${urgency.color}`}
-																		aria-hidden="true"
-																	/>
-																)}
-															</div>
-															<div className="min-w-0">
-																<p className="font-medium text-sm text-foreground truncate">
-																	{deadline.programName}
-																</p>
-																<p className="text-xs text-muted-foreground">
-																	{deadline.deadline}
-																</p>
-															</div>
-														</div>
-														<div className="flex items-center gap-2 shrink-0">
-															<Badge
-																variant="outline"
-																className={`${urgency.color} border-current text-xs font-medium`}
-															>
-																{deadline.daysRemaining}{" "}
-																{tHome("daysAgo").replace("ago", "left")}
-															</Badge>
-															<ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-														</div>
-													</Link>
-												);
-											})}
+																<div
+																	className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0 border ${deadline.daysRemaining !== undefined &&
+																			deadline.daysRemaining <= URGENT_DAYS
+																			? "bg-red-50/50 border-red-100 text-red-600 dark:bg-red-950/20 dark:border-red-900/50"
+																			: "bg-muted/30 border-border/50 text-muted-foreground"
+																		}`}
+																>
+																	<span className="text-xs font-bold leading-none">
+																		{deadline.daysRemaining}
+																	</span>
+																	<span className="text-[9px] uppercase leading-none mt-0.5">
+																		Days
+																	</span>
+																</div>
+																<div className="min-w-0 flex-1">
+																	<p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
+																		{deadline.programName}
+																	</p>
+																	<p className="text-xs text-muted-foreground">
+																		{deadline.deadline}
+																	</p>
+																</div>
+															</Link>
+														);
+													})}
+												</div>
+											) : (
+												<div className="p-8 text-center">
+													<p className="text-sm text-muted-foreground">
+														No upcoming deadlines
+													</p>
+												</div>
+											)}
+										</CardContent>
+									</Card>
+								</div>
+							</SlideUp>
+
+							{/* Help / Resources Widget (Example) */}
+							<SlideUp delay={0.4}>
+								<Card className="bg-primary/5 border-primary/10 overflow-hidden">
+									<CardContent className="p-5">
+										<div className="flex items-start gap-4">
+											<div className="p-2 bg-background rounded-lg shadow-xs">
+												<Target className="w-5 h-5 text-primary" />
+											</div>
+											<div>
+												<h3 className="font-semibold text-sm mb-1">
+													Persona Lab
+												</h3>
+												<p className="text-xs text-muted-foreground mb-3">
+													Discover your strengths and find the perfect program
+													match.
+												</p>
+												<Button
+													variant="outline"
+													size="sm"
+													className="h-7 text-xs bg-background hover:bg-background/90"
+													asChild
+												>
+													<Link href="/persona-lab">Resume</Link>
+												</Button>
+											</div>
 										</div>
 									</CardContent>
 								</Card>
 							</SlideUp>
-						)}
+						</div>
 					</div>
 				</div>
 			</div>

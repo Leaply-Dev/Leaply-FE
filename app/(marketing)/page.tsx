@@ -13,11 +13,7 @@ import {
 	Brain,
 	ChevronDown,
 	FileCheck,
-	Globe,
-	MapPin,
-	School,
 	Sparkles,
-	Target,
 	User,
 	Users,
 } from "lucide-react";
@@ -554,25 +550,20 @@ export default function HomePage() {
 			</section>
 
 			{/* CTA Section */}
-			<section className="py-24 cta-pattern text-secondary-foreground/90 relative overflow-hidden">
-				<div className="absolute inset-0 bg-background/40 z-0" />
-				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+			<section className="py-20 bg-primary">
+				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
 					<SlideUp>
-						<div className="inline-flex items-center gap-2 bg-primary-foreground/20 rounded-full px-4 py-2 text-sm font-medium mb-6">
-							<Sparkles className="w-4 h-4" />
-							{t("ctaFree")}
-						</div>
-						<h2 className="text-3xl md:text-5xl font-bold mb-6">
+						<h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
 							{t("ctaTitle")}
 						</h2>
-						<p className="text-lg md:text-xl mb-10 text-secondary-foreground/90 max-w-2xl mx-auto">
+						<p className="text-lg text-primary-foreground/90 mb-8 max-w-xl mx-auto">
 							{t("ctaSubtitle")}
 						</p>
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
 							<Button
 								size="lg"
 								variant="secondary"
-								className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold text-lg px-8 py-6"
+								className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold"
 								asChild
 							>
 								<Link href="/register">
@@ -583,10 +574,9 @@ export default function HomePage() {
 							<Button
 								size="lg"
 								variant="outline"
-								className="bg-transparent border-secondary-foreground text-secondary-foreground/90 hover:bg-primary-foreground hover:text-primary text-lg px-8 py-6"
+								className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
 								asChild
 							>
-								{/* TODO: Add tNav.login translation key when i18n namespace is extended */}
 								<Link href="/login">{tNav("login")}</Link>
 							</Button>
 						</div>
@@ -602,23 +592,6 @@ export default function HomePage() {
 				.marquee-track {
 					width: max-content;
 					animation: leaply-marquee 30s linear infinite;
-				}
-				.cta-pattern {
-					--s: 185px;
-					/* Converted colors to hex for consistency if needed, but keeping vars is fine */
-					--c1: #9bdb70;
-					--c2: #e3ffd1;
-					--c3: #638e57;
-					--_g: 0 120deg,#0000 0;
-					background:
-						conic-gradient(at calc(250%/3) calc(100%/3),var(--c3) var(--_g)),
-						conic-gradient(from -120deg at calc( 50%/3) calc(100%/3),var(--c2) var(--_g)),
-						conic-gradient(from  120deg at calc(100%/3) calc(250%/3),var(--c1) var(--_g)),
-						conic-gradient(from  120deg at calc(200%/3) calc(250%/3),var(--c1) var(--_g)),
-						conic-gradient(from -180deg at calc(100%/3) 50%,var(--c2)  60deg,var(--c1) var(--_g)),
-						conic-gradient(from   60deg at calc(200%/3) 50%,var(--c1)  60deg,var(--c3) var(--_g)),
-						conic-gradient(from  -60deg at 50% calc(100%/3),var(--c1) 120deg,var(--c2) 0 240deg,var(--c3) 0);
-					background-size: calc(var(--s)*sqrt(3)) var(--s);
 				}
 			`}</style>
 		</div>

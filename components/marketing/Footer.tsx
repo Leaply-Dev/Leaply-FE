@@ -1,15 +1,16 @@
 "use client";
 
-import { Facebook, Instagram, Linkedin, Mail, Twitter } from "lucide-react";
+import { Facebook, Instagram, Linkedin, Mail } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { ThreadsIcon } from "@/components/icons/ThreadsIcon";
 
 const socialLinks = [
-	{ icon: Facebook, href: "#", label: "Facebook" },
-	{ icon: Twitter, href: "#", label: "Twitter" },
-	{ icon: Instagram, href: "#", label: "Instagram" },
 	{ icon: Linkedin, href: "#", label: "LinkedIn" },
+	{ icon: Facebook, href: "#", label: "Facebook" },
+	{ icon: Instagram, href: "#", label: "Instagram" },
+	{ icon: ThreadsIcon, href: "#", label: "Threads" },
 ];
 
 export function Footer() {
@@ -36,7 +37,7 @@ export function Footer() {
 	};
 
 	return (
-		<footer className="bg-foreground text-background mt-auto">
+		<footer className="bg-[#606160] text-white mt-auto">
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
 					{/* Logo and Description */}
@@ -69,7 +70,7 @@ export function Footer() {
 					{/* Footer Links */}
 					{Object.entries(footerLinks).map(([category, links]) => (
 						<div key={category}>
-							<h3 className="font-semibold text-background mb-4">{category}</h3>
+							<h3 className="font-semibold text-white mb-4">{category}</h3>
 							<ul className="space-y-2">
 								{links.map((link) => (
 									<li key={link.label}>
@@ -95,10 +96,10 @@ export function Footer() {
 						<div className="flex items-center gap-2 text-sm text-gray-400">
 							<Mail className="w-4 h-4" />
 							<a
-								href="mailto:support@leaply.ai.vn"
+								href="mailto:contact@leaply.ai.vn"
 								className="hover:text-primary transition-colors"
 							>
-								support@leaply.ai.vn
+								contact@leaply.ai.vn
 							</a>
 						</div>
 					</div>

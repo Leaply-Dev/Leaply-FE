@@ -2,21 +2,23 @@
 
 import {
 	ArrowRight,
+	Facebook,
 	GraduationCap,
 	Heart,
+	Instagram,
 	Linkedin,
 	Mail,
 	MapPin,
 	Rocket,
 	Send,
 	Sparkles,
-	Twitter,
 	Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type React from "react";
 import { useState } from "react";
+import { ThreadsIcon } from "@/components/icons/ThreadsIcon";
 import {
 	PageTransition,
 	SlideUp,
@@ -35,15 +37,33 @@ interface TeamMember {
 	role: string;
 	department: string;
 	school: string;
+	isLeader?: boolean;
 }
 
 const teamMembers: TeamMember[] = [
+	// Leaders (highlighted)
 	{
 		name: "Phạm Phan Anh",
-		role: "Team Leader",
+		role: "R&D Lead",
 		department: "R&D",
 		school: "HUST",
+		isLeader: true,
 	},
+	{
+		name: "Hoàng Hà Hải Anh",
+		role: "Sales Lead",
+		department: "Sales & Marketing",
+		school: "FTU",
+		isLeader: true,
+	},
+	{
+		name: "Chu Nguyễn Xuân Mai",
+		role: "Finance Lead",
+		department: "Finance",
+		school: "AOF",
+		isLeader: true,
+	},
+	// Other members
 	{
 		name: "Nguyễn Trường Sơn",
 		role: "Developer",
@@ -57,16 +77,22 @@ const teamMembers: TeamMember[] = [
 		school: "HUST",
 	},
 	{
-		name: "Hoàng Hà Hải Anh",
-		role: "Sales Lead",
+		name: "Nguyễn Thị Thu Duyên",
+		role: "Sales Researcher",
 		department: "Sales & Marketing",
-		school: "FTU",
+		school: "",
 	},
 	{
-		name: "Chu Nguyễn Xuân Mai",
-		role: "Finance Lead",
-		department: "Finance",
-		school: "AOF",
+		name: "Phạm Thị Phương Anh",
+		role: "Legal Researcher",
+		department: "Legal",
+		school: "",
+	},
+	{
+		name: "Đoàn Vũ Minh Nguyệt",
+		role: "Marketing Researcher",
+		department: "Sales & Marketing",
+		school: "",
 	},
 ];
 
@@ -93,6 +119,8 @@ function getDepartmentColor(department: string): string {
 			return "bg-amber-500";
 		case "Finance":
 			return "bg-emerald-500";
+		case "Legal":
+			return "bg-purple-500";
 		default:
 			return "bg-primary";
 	}
@@ -202,40 +230,85 @@ export default function AboutPage() {
 						</SlideUp>
 
 						<StaggerContainer>
+							{/* Leaders Row */}
+							<div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+								{teamMembers
+									.filter((member) => member.isLeader)
+									.map((member) => (
+										<StaggerItem key={member.name}>
+											<Card className="h-full hover:shadow-xl transition-all hover:-translate-y-2 group border-primary/30 hover:border-primary/50">
+												<CardContent className="p-8 text-center">
+													<div className="relative mb-4">
+														<div className="w-24 h-24 rounded-full bg-linear-to-br from-primary/30 to-primary/10 flex items-center justify-center mx-auto border-3 border-primary/40 group-hover:border-primary/60 transition-colors">
+															<span className="text-2xl font-bold text-primary">
+																{getInitials(member.name)}
+															</span>
+														</div>
+														<div
+															className={cn(
+																"absolute -bottom-1 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-medium text-white",
+																getDepartmentColor(member.department),
+															)}
+														>
+															{member.department}
+														</div>
+													</div>
+													<h3 className="text-lg font-semibold text-foreground mb-1">
+														{member.name}
+													</h3>
+													<p className="text-sm text-primary font-medium mb-2">
+														{member.role}
+													</p>
+													{member.school && (
+														<div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+															<GraduationCap className="w-3 h-3" />
+															{member.school}
+														</div>
+													)}
+												</CardContent>
+											</Card>
+										</StaggerItem>
+									))}
+							</div>
+							{/* Other Members Row */}
 							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-								{teamMembers.map((member) => (
-									<StaggerItem key={member.name}>
-										<Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1 group">
-											<CardContent className="p-6 text-center">
-												<div className="relative mb-4">
-													<div className="w-20 h-20 rounded-full bg-linear-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
-														<span className="text-xl font-bold text-primary">
-															{getInitials(member.name)}
-														</span>
+								{teamMembers
+									.filter((member) => !member.isLeader)
+									.map((member) => (
+										<StaggerItem key={member.name}>
+											<Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1 group">
+												<CardContent className="p-6 text-center">
+													<div className="relative mb-4">
+														<div className="w-20 h-20 rounded-full bg-linear-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
+															<span className="text-xl font-bold text-primary">
+																{getInitials(member.name)}
+															</span>
+														</div>
+														<div
+															className={cn(
+																"absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[10px] font-medium text-white",
+																getDepartmentColor(member.department),
+															)}
+														>
+															{member.department}
+														</div>
 													</div>
-													<div
-														className={cn(
-															"absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[10px] font-medium text-white",
-															getDepartmentColor(member.department),
-														)}
-													>
-														{member.department}
-													</div>
-												</div>
-												<h3 className="font-semibold text-foreground mb-1">
-													{member.name}
-												</h3>
-												<p className="text-sm text-primary font-medium mb-2">
-													{member.role}
-												</p>
-												<div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-													<GraduationCap className="w-3 h-3" />
-													{member.school}
-												</div>
-											</CardContent>
-										</Card>
-									</StaggerItem>
-								))}
+													<h3 className="font-semibold text-foreground mb-1">
+														{member.name}
+													</h3>
+													<p className="text-sm text-primary font-medium mb-2">
+														{member.role}
+													</p>
+													{member.school && (
+														<div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+															<GraduationCap className="w-3 h-3" />
+															{member.school}
+														</div>
+													)}
+												</CardContent>
+											</Card>
+										</StaggerItem>
+									))}
 							</div>
 						</StaggerContainer>
 					</div>
@@ -265,10 +338,10 @@ export default function AboutPage() {
 													{t("email")}
 												</h3>
 												<a
-													href="mailto:hello@leaply.ai.vn"
+													href="mailto:contact@leaply.ai.vn"
 													className="text-muted-foreground hover:text-primary transition-colors"
 												>
-													hello@leaply.ai.vn
+													contact@leaply.ai.vn
 												</a>
 											</div>
 										</div>
@@ -302,12 +375,28 @@ export default function AboutPage() {
 												<Linkedin className="w-5 h-5" />
 											</a>
 											<a
-												href="https://twitter.com"
+												href="https://facebook.com"
 												target="_blank"
 												rel="noopener noreferrer"
 												className="w-10 h-10 bg-card border border-border rounded-lg flex items-center justify-center hover:border-primary hover:text-primary transition-colors"
 											>
-												<Twitter className="w-5 h-5" />
+												<Facebook className="w-5 h-5" />
+											</a>
+											<a
+												href="https://instagram.com"
+												target="_blank"
+												rel="noopener noreferrer"
+												className="w-10 h-10 bg-card border border-border rounded-lg flex items-center justify-center hover:border-primary hover:text-primary transition-colors"
+											>
+												<Instagram className="w-5 h-5" />
+											</a>
+											<a
+												href="https://threads.net"
+												target="_blank"
+												rel="noopener noreferrer"
+												className="w-10 h-10 bg-card border border-border rounded-lg flex items-center justify-center hover:border-primary hover:text-primary transition-colors"
+											>
+												<ThreadsIcon className="w-5 h-5" />
 											</a>
 										</div>
 									</div>
