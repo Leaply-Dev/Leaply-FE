@@ -1,11 +1,10 @@
 "use client";
 
+import { useInfiniteQuery } from "@tanstack/react-query";
 import {
 	ArrowRight,
 	Award,
 	Calendar,
-	ChevronLeft,
-	ChevronRight,
 	DollarSign,
 	Filter,
 	Loader2,
@@ -15,7 +14,7 @@ import {
 	X,
 } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScholarshipDetailDrawer } from "@/components/explore/scholarship/ScholarshipDetailDrawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,16 +26,26 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import {
+	getListScholarshipsQueryKey,
+	listScholarships,
+} from "@/lib/generated/api/endpoints/scholarship-explore/scholarship-explore";
 import type {
 	EnglishGapStatus,
+	ListScholarshipsParams,
 	ScholarshipListItemResponse,
+	ScholarshipListResponse,
 } from "@/lib/generated/api/models";
+import { useUserMe } from "@/lib/hooks/useUserMe";
 import {
 	formatCoverageAmount,
 	formatCoverageType,
 	formatDate,
 	formatEligibilityType,
 } from "@/lib/utils/displayFormatters";
+
+const PAGE_SIZE = 20;
 
 function ScholarshipGapIndicators({
 	scholarship,
@@ -100,169 +109,13 @@ function ScholarshipGapIndicators({
 	);
 }
 
-export interface ScholarshipFilterState {
-	quickFilters: string[];
-	coverageType: string;
-	eligibilityType: string;
-	region: string;
-}
-
-interface ScholarshipFilterBarProps {
-	filters: ScholarshipFilterState;
-	onFiltersChange: (filters: ScholarshipFilterState) => void;
-}
-
-function ScholarshipFilterBar({
-	filters,
-	onFiltersChange,
-}: ScholarshipFilterBarProps) {
-	const toggleQuickFilter = (filter: string) => {
-		const current = filters.quickFilters;
-		const updated = current.includes(filter)
-			? current.filter((f) => f !== filter)
-			: [...current, filter];
-		onFiltersChange({ ...filters, quickFilters: updated });
-	};
-
-	const hasActiveFilters =
-		filters.quickFilters.length > 0 ||
-		filters.coverageType ||
-		filters.eligibilityType ||
-		filters.region;
-
-	const clearAllFilters = () => {
-		onFiltersChange({
-			quickFilters: [],
-			coverageType: "",
-			eligibilityType: "",
-			region: "",
-		});
-	};
-
-	return (
-		<div className="bg-card border border-border rounded-xl p-4 space-y-4">
-			{/* Quick Filters */}
-			<div className="flex flex-wrap items-center gap-2">
-				<span className="text-sm font-medium text-foreground flex items-center gap-1.5">
-					<Filter className="w-4 h-4" />
-					Quick Filters:
-				</span>
-				<Button
-					variant={
-						filters.quickFilters.includes("fullFunded") ? "default" : "outline"
-					}
-					size="sm"
-					onClick={() => toggleQuickFilter("fullFunded")}
-					className="gap-1.5"
-				>
-					<Sparkles className="w-3.5 h-3.5" />
-					Full Funded
-				</Button>
-				<Button
-					variant={
-						filters.quickFilters.includes("deadline60") ? "default" : "outline"
-					}
-					size="sm"
-					onClick={() => toggleQuickFilter("deadline60")}
-					className="gap-1.5"
-				>
-					<Calendar className="w-3.5 h-3.5" />
-					Deadline 60+ days
-				</Button>
-				<Button
-					variant={
-						filters.quickFilters.includes("noGpa") ? "default" : "outline"
-					}
-					size="sm"
-					onClick={() => toggleQuickFilter("noGpa")}
-					className="gap-1.5"
-				>
-					No GPA Required
-				</Button>
-			</div>
-
-			{/* Extended Filters */}
-			<div className="flex flex-wrap items-center gap-3">
-				<Select
-					value={filters.coverageType}
-					onValueChange={(v) =>
-						onFiltersChange({ ...filters, coverageType: v })
-					}
-				>
-					<SelectTrigger className="w-40">
-						<SelectValue placeholder="Coverage Type" />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="all">All Coverage</SelectItem>
-						<SelectItem value="full_funded">Full Funded</SelectItem>
-						<SelectItem value="partial_funded">Partial Funded</SelectItem>
-					</SelectContent>
-				</Select>
-
-				<Select
-					value={filters.eligibilityType}
-					onValueChange={(v) =>
-						onFiltersChange({ ...filters, eligibilityType: v })
-					}
-				>
-					<SelectTrigger className="w-40">
-						<SelectValue placeholder="Eligibility" />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="all">All Types</SelectItem>
-						<SelectItem value="merit">Merit-based</SelectItem>
-						<SelectItem value="need_based">Need-based</SelectItem>
-					</SelectContent>
-				</Select>
-
-				<Select
-					value={filters.region}
-					onValueChange={(v) => onFiltersChange({ ...filters, region: v })}
-				>
-					<SelectTrigger className="w-40">
-						<SelectValue placeholder="Region" />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="all">All Regions</SelectItem>
-						<SelectItem value="north_america">North America</SelectItem>
-						<SelectItem value="europe">Europe</SelectItem>
-						<SelectItem value="asia_pacific">Asia Pacific</SelectItem>
-						<SelectItem value="oceania">Oceania</SelectItem>
-					</SelectContent>
-				</Select>
-
-				{hasActiveFilters && (
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={clearAllFilters}
-						className="text-muted-foreground hover:text-foreground gap-1.5"
-					>
-						<X className="w-3.5 h-3.5" />
-						Clear all
-					</Button>
-				)}
-			</div>
-		</div>
-	);
-}
-
 interface ScholarshipManualModeProps {
-	scholarships: ScholarshipListItemResponse[];
 	selectedScholarships: Set<string>;
 	onToggleSelection: (id: string) => void;
 	isMaxReached: boolean;
 	onAddToDashboard?: (id: string) => void;
 	isScholarshipInDashboard?: (id: string) => boolean;
 	onManageApplication?: (id: string) => void;
-	// Server-side filtering props
-	onFiltersChange?: (filters: ScholarshipFilterState) => void;
-	onSearchChange?: (search: string) => void;
-	onSortChange?: (sort: string, dir: string) => void;
-	totalCount?: number;
-	currentPage?: number;
-	onPageChange?: (page: number) => void;
-	pageSize?: number;
 	addingScholarshipId?: string | null;
 }
 
@@ -485,18 +338,27 @@ function ScholarshipTableRow({
 	);
 }
 
+// Filter state interface for server-side filtering
+interface ServerFilterState {
+	search: string;
+	regions: string;
+	coverageTypes: string;
+	eligibilityTypes: string;
+	fullFundedOnly: boolean;
+	deadlineWithin: number | undefined;
+}
+
+/**
+ * Scholarship Manual Mode - Table view with server-side pagination and infinite scroll
+ * Shows ALL scholarships (not limited by AI filters) with sorting and optional filtering
+ */
 export function ScholarshipManualMode({
-	scholarships,
 	selectedScholarships,
 	onToggleSelection,
 	isMaxReached,
 	onAddToDashboard,
 	isScholarshipInDashboard,
 	onManageApplication,
-	totalCount,
-	currentPage = 1,
-	onPageChange,
-	pageSize = 10,
 	addingScholarshipId,
 }: ScholarshipManualModeProps) {
 	// Detail drawer state
@@ -504,140 +366,163 @@ export function ScholarshipManualMode({
 		useState<ScholarshipListItemResponse | null>(null);
 	const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
 
-	// Local pagination (for client-side filtering)
-	const [localPage, setLocalPage] = useState(1);
-	const itemsPerPage = pageSize;
+	// User auth state for fit_score sorting
+	const { data: userResponse } = useUserMe();
+	const isAuthenticated = !!userResponse;
 
-	// Sorting state
-	const [sortBy, setSortBy] = useState("fit_score");
+	// Sorting state - default to fit_score (auth) or deadline (guest)
+	const [sortBy, setSortBy] = useState(() =>
+		isAuthenticated ? "fit_score" : "deadline",
+	);
 
-	// Search state
+	// Update sort when auth state changes
+	useEffect(() => {
+		if (isAuthenticated && sortBy === "deadline") {
+			setSortBy("fit_score");
+		}
+	}, [isAuthenticated, sortBy]);
+
+	// Search state (with debounce)
 	const [searchQuery, setSearchQuery] = useState("");
+	const [debouncedSearch, setDebouncedSearch] = useState("");
 
 	// Filter state
-	const [filters, setFilters] = useState<ScholarshipFilterState>({
-		quickFilters: [],
-		coverageType: "",
-		eligibilityType: "",
-		region: "",
+	const [filters, setFilters] = useState<ServerFilterState>({
+		search: "",
+		regions: "",
+		coverageTypes: "",
+		eligibilityTypes: "",
+		fullFundedOnly: false,
+		deadlineWithin: undefined,
 	});
 
-	// Reset page on filter change
-	const handleFiltersChange = (newFilters: ScholarshipFilterState) => {
-		setFilters(newFilters);
-		setLocalPage(1);
+	// Show/hide filter panel
+	const [showFilters, setShowFilters] = useState(false);
+
+	// Debounce search input
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			setDebouncedSearch(searchQuery);
+		}, 300);
+		return () => clearTimeout(timer);
+	}, [searchQuery]);
+
+	// Build query params
+	const queryParams = useMemo((): ListScholarshipsParams => {
+		const params: ListScholarshipsParams = {
+			sort: sortBy,
+			size: PAGE_SIZE,
+		};
+
+		if (debouncedSearch) params.search = debouncedSearch;
+		if (filters.regions) params.regions = filters.regions;
+		if (filters.coverageTypes) params.coverageTypes = filters.coverageTypes;
+		if (filters.eligibilityTypes)
+			params.eligibilityTypes = filters.eligibilityTypes;
+		if (filters.fullFundedOnly) params.fullFundedOnly = true;
+		if (filters.deadlineWithin) params.deadlineWithin = filters.deadlineWithin;
+
+		return params;
+	}, [sortBy, debouncedSearch, filters]);
+
+	// Infinite query for scholarships
+	const {
+		data,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+		isLoading,
+		isError,
+		error,
+	} = useInfiniteQuery({
+		queryKey: [...getListScholarshipsQueryKey(queryParams), "infinite"],
+		queryFn: async ({ pageParam = 1 }) => {
+			const response = await listScholarships({
+				...queryParams,
+				page: pageParam,
+			});
+			return response;
+		},
+		getNextPageParam: (lastPage) => {
+			const result = unwrapResponse<ScholarshipListResponse>(lastPage);
+			if (!result?.pagination) return undefined;
+			const { page = 1, totalPages = 1 } = result.pagination;
+			return page < totalPages ? page + 1 : undefined;
+		},
+		initialPageParam: 1,
+	});
+
+	// Flatten all pages into a single array
+	const scholarships = useMemo(() => {
+		if (!data?.pages) return [];
+		return data.pages.flatMap((page) => {
+			const result = unwrapResponse<ScholarshipListResponse>(page);
+			return result?.data ?? [];
+		});
+	}, [data]);
+
+	// Get total count from first page
+	const totalCount = useMemo(() => {
+		if (!data?.pages?.[0]) return 0;
+		const result = unwrapResponse<ScholarshipListResponse>(data.pages[0]);
+		return result?.pagination?.total ?? 0;
+	}, [data]);
+
+	// Infinite scroll - intersection observer
+	const loadMoreRef = useRef<HTMLDivElement>(null);
+
+	const handleObserver = useCallback(
+		(entries: IntersectionObserverEntry[]) => {
+			const [target] = entries;
+			if (target.isIntersecting && hasNextPage && !isFetchingNextPage) {
+				fetchNextPage();
+			}
+		},
+		[fetchNextPage, hasNextPage, isFetchingNextPage],
+	);
+
+	useEffect(() => {
+		const element = loadMoreRef.current;
+		const option = { threshold: 0.1 };
+
+		const observer = new IntersectionObserver(handleObserver, option);
+		if (element) observer.observe(element);
+
+		return () => {
+			if (element) observer.unobserve(element);
+		};
+	}, [handleObserver]);
+
+	// Check if any filters are active
+	const hasActiveFilters =
+		filters.regions ||
+		filters.coverageTypes ||
+		filters.eligibilityTypes ||
+		filters.fullFundedOnly ||
+		filters.deadlineWithin;
+
+	const clearAllFilters = () => {
+		setFilters({
+			search: "",
+			regions: "",
+			coverageTypes: "",
+			eligibilityTypes: "",
+			fullFundedOnly: false,
+			deadlineWithin: undefined,
+		});
+		setSearchQuery("");
 	};
-
-	// Client-side filtering (when server-side filtering is not available)
-	const filteredScholarships = scholarships.filter((scholarship) => {
-		// Search filter
-		if (searchQuery) {
-			const query = searchQuery.toLowerCase();
-			const matchesSearch =
-				(scholarship.name || "").toLowerCase().includes(query) ||
-				(scholarship.universityName || "").toLowerCase().includes(query) ||
-				(scholarship.sourceName || "").toLowerCase().includes(query);
-			if (!matchesSearch) return false;
-		}
-
-		// Quick filters
-		if (filters.quickFilters.includes("fullFunded")) {
-			if (scholarship.coverageType?.toLowerCase() !== "full_funded")
-				return false;
-		}
-
-		if (filters.quickFilters.includes("deadline60")) {
-			if (!scholarship.applicationDeadline) return false;
-			const daysUntil = Math.floor(
-				(new Date(scholarship.applicationDeadline).getTime() - Date.now()) /
-					(1000 * 60 * 60 * 24),
-			);
-			if (daysUntil < 60) return false;
-		}
-
-		if (filters.quickFilters.includes("noGpa")) {
-			if (scholarship.minGpa && scholarship.minGpa > 0) return false;
-		}
-
-		// Coverage type filter
-		if (filters.coverageType && filters.coverageType !== "all") {
-			if (
-				scholarship.coverageType?.toLowerCase() !==
-				filters.coverageType.toLowerCase()
-			)
-				return false;
-		}
-
-		// Eligibility type filter
-		if (filters.eligibilityType && filters.eligibilityType !== "all") {
-			if (
-				scholarship.eligibilityType?.toLowerCase() !==
-				filters.eligibilityType.toLowerCase()
-			)
-				return false;
-		}
-
-		// Region filter
-		if (filters.region && filters.region !== "all") {
-			if (
-				scholarship.universityRegion?.toLowerCase() !==
-				filters.region.toLowerCase()
-			)
-				return false;
-		}
-
-		return true;
-	});
-
-	// Sort scholarships
-	const sortedScholarships = [...filteredScholarships].sort((a, b) => {
-		switch (sortBy) {
-			case "fit_score":
-				return (b.fitScore || 0) - (a.fitScore || 0);
-			case "coverage_desc":
-				return (
-					(b.coverageAmountMax || b.coveragePercentage || 0) -
-					(a.coverageAmountMax || a.coveragePercentage || 0)
-				);
-			case "deadline":
-				return (
-					new Date(a.applicationDeadline || "9999-12-31").getTime() -
-					new Date(b.applicationDeadline || "9999-12-31").getTime()
-				);
-			case "name":
-				return (a.name || "").localeCompare(b.name || "");
-			default:
-				return 0;
-		}
-	});
-
-	// Pagination
-	const actualPage = onPageChange ? currentPage : localPage;
-	const setPage = onPageChange || setLocalPage;
-	const total = totalCount || sortedScholarships.length;
-	const totalPages = Math.ceil(total / itemsPerPage);
-	const paginatedScholarships = onPageChange
-		? scholarships // Use provided data if server-side pagination
-		: sortedScholarships.slice(
-				(actualPage - 1) * itemsPerPage,
-				actualPage * itemsPerPage,
-			);
 
 	return (
 		<div className="space-y-6">
-			{/* Filter Bar */}
-			<ScholarshipFilterBar
-				filters={filters}
-				onFiltersChange={handleFiltersChange}
-			/>
-
-			{/* Results List */}
+			{/* Results Header with Search and Sort */}
 			<div className="space-y-4">
-				{/* Results Header */}
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-4">
 						<p className="text-sm text-muted-foreground">
-							Showing {paginatedScholarships.length} of {total} results
+							{isLoading
+								? "Loading..."
+								: `Showing ${scholarships.length} of ${totalCount} results`}
 						</p>
 						<div className="relative">
 							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -645,152 +530,280 @@ export function ScholarshipManualMode({
 								type="text"
 								placeholder="Search scholarships..."
 								value={searchQuery}
-								onChange={(e) => {
-									setSearchQuery(e.target.value);
-									setLocalPage(1);
-								}}
+								onChange={(e) => setSearchQuery(e.target.value)}
 								onFocus={(e) => e.target.select()}
 								className="pl-9 w-64"
 							/>
 						</div>
+						<Button
+							variant={showFilters ? "default" : "outline"}
+							size="sm"
+							onClick={() => setShowFilters(!showFilters)}
+							className="gap-2"
+						>
+							<Filter className="w-4 h-4" />
+							Filters
+							{hasActiveFilters && (
+								<Badge variant="secondary" className="ml-1">
+									{
+										[
+											filters.regions,
+											filters.coverageTypes,
+											filters.eligibilityTypes,
+											filters.fullFundedOnly,
+											filters.deadlineWithin,
+										].filter(Boolean).length
+									}
+								</Badge>
+							)}
+						</Button>
 					</div>
 					<div className="flex items-center gap-3">
 						<span className="text-sm text-foreground">Sort by:</span>
 						<Select value={sortBy} onValueChange={setSortBy}>
-							<SelectTrigger className="w-44">
+							<SelectTrigger className="w-56">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="fit_score">Best Match</SelectItem>
-								<SelectItem value="coverage_desc">
-									Coverage (High → Low)
-								</SelectItem>
+								{isAuthenticated && (
+									<SelectItem value="fit_score">
+										Best Match (Recommended)
+									</SelectItem>
+								)}
 								<SelectItem value="deadline">Deadline (Soonest)</SelectItem>
+								<SelectItem value="coverage_amount">
+									Coverage (High to Low)
+								</SelectItem>
 								<SelectItem value="name">Name (A-Z)</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>
 				</div>
 
-				{/* Table */}
-				<div className="border border-border rounded-lg overflow-hidden">
-					{paginatedScholarships.length > 0 ? (
-						<table className="w-full">
-							<thead className="bg-muted/50">
-								<tr className="border-b border-border">
-									<th className="p-4 text-center font-semibold text-sm text-foreground w-20">
-										Compare
-									</th>
-									<th className="p-4 text-left font-semibold text-sm text-foreground">
-										Scholarship
-									</th>
-									<th className="p-4 text-center font-semibold text-sm text-foreground">
-										Coverage
-									</th>
-									<th className="p-4 text-center font-semibold text-sm text-foreground">
-										Type
-									</th>
-									<th className="p-4 text-center font-semibold text-sm text-foreground">
-										Deadline
-									</th>
-									<th className="p-4 text-center font-semibold text-sm text-foreground">
-										Fit
-									</th>
-									<th className="p-4 text-center font-semibold text-sm text-foreground">
-										Action
-									</th>
-								</tr>
-							</thead>
-							<tbody>
-								{paginatedScholarships.map((scholarship) => (
-									<ScholarshipTableRow
-										key={scholarship.id}
-										scholarship={scholarship}
-										selected={selectedScholarships.has(scholarship.id || "")}
-										onSelect={() => onToggleSelection(scholarship.id || "")}
-										onClick={() => {
-											setSelectedScholarship(scholarship);
-											setIsDetailDrawerOpen(true);
-										}}
-										onAddToDashboard={() => {
-											scholarship.id && onAddToDashboard?.(scholarship.id);
-										}}
-										isMaxReached={isMaxReached}
-										isInDashboard={
-											scholarship.id
-												? isScholarshipInDashboard?.(scholarship.id)
-												: false
-										}
-										onManage={onManageApplication}
-										isAdding={addingScholarshipId === scholarship.id}
-									/>
-								))}
-							</tbody>
-						</table>
-					) : (
-						<div className="flex flex-col items-center justify-center py-16 px-4">
-							<div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-								<Search className="w-8 h-8 text-muted-foreground" />
-							</div>
-							<h3 className="text-lg font-semibold text-foreground mb-2">
-								No scholarships found
-							</h3>
-							<p className="text-sm text-muted-foreground text-center max-w-md">
-								No scholarships match your current filters. Try adjusting your
-								filters or search terms.
-							</p>
-						</div>
-					)}
-				</div>
-
-				{/* Pagination */}
-				{totalPages > 1 && total > 0 && (
-					<div className="flex items-center justify-between">
-						<p className="text-sm text-muted-foreground">
-							Showing {(actualPage - 1) * itemsPerPage + 1}-
-							{Math.min(actualPage * itemsPerPage, total)} of {total} results
-						</p>
-
-						<div className="flex items-center gap-2">
-							<Button
-								variant="outline"
-								size="icon"
-								disabled={actualPage === 1}
-								onClick={() => setPage(Math.max(1, actualPage - 1))}
+				{/* Collapsible Filters Panel */}
+				{showFilters && (
+					<div className="bg-card border border-border rounded-xl p-4 space-y-4">
+						<div className="flex flex-wrap items-center gap-3">
+							<Select
+								value={filters.regions}
+								onValueChange={(v) =>
+									setFilters({ ...filters, regions: v === "all" ? "" : v })
+								}
 							>
-								<ChevronLeft className="w-4 h-4" />
+								<SelectTrigger className="w-40">
+									<SelectValue placeholder="Region" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="all">All Regions</SelectItem>
+									<SelectItem value="north_america">North America</SelectItem>
+									<SelectItem value="europe">Europe</SelectItem>
+									<SelectItem value="asia_pacific">Asia Pacific</SelectItem>
+									<SelectItem value="oceania">Oceania</SelectItem>
+								</SelectContent>
+							</Select>
+
+							<Select
+								value={filters.coverageTypes}
+								onValueChange={(v) =>
+									setFilters({
+										...filters,
+										coverageTypes: v === "all" ? "" : v,
+									})
+								}
+							>
+								<SelectTrigger className="w-44">
+									<SelectValue placeholder="Coverage Type" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="all">All Coverage</SelectItem>
+									<SelectItem value="full_funded">Full Funded</SelectItem>
+									<SelectItem value="partial_funded">Partial Funded</SelectItem>
+								</SelectContent>
+							</Select>
+
+							<Select
+								value={filters.eligibilityTypes}
+								onValueChange={(v) =>
+									setFilters({
+										...filters,
+										eligibilityTypes: v === "all" ? "" : v,
+									})
+								}
+							>
+								<SelectTrigger className="w-40">
+									<SelectValue placeholder="Eligibility" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="all">All Types</SelectItem>
+									<SelectItem value="merit">Merit-based</SelectItem>
+									<SelectItem value="need_based">Need-based</SelectItem>
+								</SelectContent>
+							</Select>
+
+							<Select
+								value={filters.deadlineWithin?.toString() || ""}
+								onValueChange={(v) =>
+									setFilters({
+										...filters,
+										deadlineWithin: v ? Number.parseInt(v, 10) : undefined,
+									})
+								}
+							>
+								<SelectTrigger className="w-44">
+									<SelectValue placeholder="Deadline within" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="">All</SelectItem>
+									<SelectItem value="30">Within 30 days</SelectItem>
+									<SelectItem value="60">Within 60 days</SelectItem>
+									<SelectItem value="90">Within 90 days</SelectItem>
+								</SelectContent>
+							</Select>
+
+							<Button
+								variant={filters.fullFundedOnly ? "default" : "outline"}
+								size="sm"
+								onClick={() =>
+									setFilters({
+										...filters,
+										fullFundedOnly: !filters.fullFundedOnly,
+									})
+								}
+								className="gap-1.5"
+							>
+								<Sparkles className="w-3.5 h-3.5" />
+								Full Funded Only
 							</Button>
 
-							{[...Array(Math.min(5, totalPages))].map((_, i) => {
-								const pageNum = i + 1;
-								return (
-									<Button
-										key={pageNum}
-										variant={actualPage === pageNum ? "default" : "outline"}
-										size="icon"
-										onClick={() => setPage(pageNum)}
-									>
-										{pageNum}
-									</Button>
-								);
-							})}
-
-							{totalPages > 5 && (
-								<span className="text-muted-foreground">...</span>
+							{hasActiveFilters && (
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={clearAllFilters}
+									className="text-muted-foreground hover:text-foreground gap-1.5"
+								>
+									<X className="w-3.5 h-3.5" />
+									Clear all
+								</Button>
 							)}
-
-							<Button
-								variant="outline"
-								size="icon"
-								disabled={actualPage === totalPages}
-								onClick={() => setPage(Math.min(totalPages, actualPage + 1))}
-							>
-								<ChevronRight className="w-4 h-4" />
-							</Button>
 						</div>
 					</div>
 				)}
 			</div>
+
+			{/* Table */}
+			<div className="border border-border rounded-lg overflow-hidden">
+				{isLoading ? (
+					<div className="flex flex-col items-center justify-center py-16 px-4">
+						<Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+						<p className="text-sm text-muted-foreground">
+							Loading scholarships...
+						</p>
+					</div>
+				) : isError ? (
+					<div className="flex flex-col items-center justify-center py-16 px-4">
+						<div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+							<span className="text-2xl">!</span>
+						</div>
+						<h3 className="text-lg font-semibold text-foreground mb-2">
+							Failed to load data
+						</h3>
+						<p className="text-sm text-muted-foreground text-center max-w-md">
+							{error instanceof Error ? error.message : "An error occurred"}
+						</p>
+					</div>
+				) : scholarships.length > 0 ? (
+					<table className="w-full">
+						<thead className="bg-muted/50">
+							<tr className="border-b border-border">
+								<th className="p-4 text-center font-semibold text-sm text-foreground w-20">
+									Compare
+								</th>
+								<th className="p-4 text-left font-semibold text-sm text-foreground">
+									Scholarship
+								</th>
+								<th className="p-4 text-center font-semibold text-sm text-foreground">
+									Coverage
+								</th>
+								<th className="p-4 text-center font-semibold text-sm text-foreground">
+									Type
+								</th>
+								<th className="p-4 text-center font-semibold text-sm text-foreground">
+									Deadline
+								</th>
+								<th className="p-4 text-center font-semibold text-sm text-foreground">
+									Fit
+								</th>
+								<th className="p-4 text-center font-semibold text-sm text-foreground">
+									Action
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							{scholarships.map((scholarship) => (
+								<ScholarshipTableRow
+									key={scholarship.id}
+									scholarship={scholarship}
+									selected={selectedScholarships.has(scholarship.id || "")}
+									onSelect={() => onToggleSelection(scholarship.id || "")}
+									onClick={() => {
+										setSelectedScholarship(scholarship);
+										setIsDetailDrawerOpen(true);
+									}}
+									onAddToDashboard={() => {
+										scholarship.id && onAddToDashboard?.(scholarship.id);
+									}}
+									isMaxReached={isMaxReached}
+									isInDashboard={
+										scholarship.id
+											? isScholarshipInDashboard?.(scholarship.id)
+											: false
+									}
+									onManage={onManageApplication}
+									isAdding={addingScholarshipId === scholarship.id}
+								/>
+							))}
+						</tbody>
+					</table>
+				) : (
+					<div className="flex flex-col items-center justify-center py-16 px-4">
+						<div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+							<Search className="w-8 h-8 text-muted-foreground" />
+						</div>
+						<h3 className="text-lg font-semibold text-foreground mb-2">
+							No scholarships found
+						</h3>
+						<p className="text-sm text-muted-foreground text-center max-w-md">
+							No scholarships match your current filters. Try adjusting your
+							filters or search terms.
+						</p>
+					</div>
+				)}
+			</div>
+
+			{/* Infinite scroll trigger + Loading indicator */}
+			{hasNextPage && (
+				<div
+					ref={loadMoreRef}
+					className="flex items-center justify-center py-4"
+				>
+					{isFetchingNextPage && (
+						<div className="flex items-center gap-2 text-muted-foreground">
+							<Loader2 className="w-4 h-4 animate-spin" />
+							<span className="text-sm">Loading more...</span>
+						</div>
+					)}
+				</div>
+			)}
+
+			{/* End of list indicator */}
+			{!hasNextPage && scholarships.length > 0 && (
+				<div className="flex items-center justify-center py-4">
+					<p className="text-sm text-muted-foreground">
+						Showing all {scholarships.length} scholarships
+					</p>
+				</div>
+			)}
 
 			{/* Scholarship Detail Drawer */}
 			<ScholarshipDetailDrawer

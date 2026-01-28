@@ -1,20 +1,17 @@
 "use client";
 
+import { useInfiniteQuery } from "@tanstack/react-query";
 import {
 	ArrowRight,
-	ChevronLeft,
-	ChevronRight,
+	Filter,
 	Loader2,
 	Search,
 	Settings2,
+	X,
 } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import {
-	type FilterState,
-	HorizontalFilterBar,
-} from "@/components/explore/FilterBar";
 import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,12 +23,22 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import {
+	getListProgramsQueryKey,
+	listPrograms,
+} from "@/lib/generated/api/endpoints/explore/explore";
 import type {
 	BudgetGapStatus,
 	EnglishGapStatus,
+	ListProgramsParams,
 	ProgramListItemResponse,
+	ProgramListResponse,
 } from "@/lib/generated/api/models";
+import { useUserMe } from "@/lib/hooks/useUserMe";
 import { formatCountryName } from "@/lib/utils/displayFormatters";
+
+const PAGE_SIZE = 20;
 
 /**
  * Compact gap indicator for list view
@@ -105,7 +112,6 @@ function GapIndicators({ program }: { program: ProgramListItemResponse }) {
 }
 
 interface ManualModeProps {
-	programs: ProgramListItemResponse[];
 	selectedPrograms: Set<string>;
 	onToggleSelection: (id: string) => void;
 	isMaxReached: boolean;
@@ -348,11 +354,20 @@ function ProgramTableRow({
 	);
 }
 
+// Filter state interface for server-side filtering
+interface ServerFilterState {
+	search: string;
+	regions: string;
+	tuitionMax: number | undefined;
+	scholarshipOnly: boolean;
+	deadlineWithin: number | undefined;
+}
+
 /**
- * Manual Mode - Table view with filtering per spec
+ * Manual Mode - Table view with server-side pagination and infinite scroll
+ * Shows ALL programs (not limited by AI filters) with sorting and optional filtering
  */
 export function ManualMode({
-	programs,
 	selectedPrograms,
 	onToggleSelection,
 	isMaxReached,
@@ -366,149 +381,155 @@ export function ManualMode({
 		useState<ProgramListItemResponse | null>(null);
 	const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
 
-	// Pagination state
-	const [currentPage, setCurrentPage] = useState(1);
-	const itemsPerPage = 10; // Show 10 items per page
+	// User auth state for preference sorting
+	const { data: userResponse } = useUserMe();
+	const isAuthenticated = !!userResponse;
 
-	// Sorting state
-	const [sortBy, setSortBy] = useState("ranking");
+	// Sorting state - default to preference (auth) or ranking_qs (guest)
+	const [sortBy, setSortBy] = useState(() =>
+		isAuthenticated ? "preference" : "ranking_qs",
+	);
 
-	// Search state
+	// Update sort when auth state changes
+	useEffect(() => {
+		if (isAuthenticated && sortBy === "ranking_qs") {
+			setSortBy("preference");
+		}
+	}, [isAuthenticated, sortBy]);
+
+	// Search state (with debounce)
 	const [searchQuery, setSearchQuery] = useState("");
+	const [debouncedSearch, setDebouncedSearch] = useState("");
 
 	// Filter state
-	const [filters, setFilters] = useState<FilterState>({
-		quickFilters: [],
-		fieldOfStudy: "",
-		region: "",
-		tuitionRange: "",
-		duration: "",
+	const [filters, setFilters] = useState<ServerFilterState>({
+		search: "",
+		regions: "",
+		tuitionMax: undefined,
+		scholarshipOnly: false,
+		deadlineWithin: undefined,
 	});
 
-	// Reset to first page when filters change
-	const handleFiltersChange = (newFilters: FilterState) => {
-		setFilters(newFilters);
-		setCurrentPage(1);
-	};
+	// Show/hide filter panel
+	const [showFilters, setShowFilters] = useState(false);
 
-	// Apply filters to programs
-	const filteredPrograms = programs.filter((program) => {
-		// Search filter
-		if (searchQuery) {
-			const query = searchQuery.toLowerCase();
-			const matchesSearch =
-				(program.universityName || "").toLowerCase().includes(query) ||
-				(program.programName || "").toLowerCase().includes(query) ||
-				(program.universityCountry || "").toLowerCase().includes(query);
-			if (!matchesSearch) return false;
-		}
+	// Debounce search input
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			setDebouncedSearch(searchQuery);
+		}, 300);
+		return () => clearTimeout(timer);
+	}, [searchQuery]);
 
-		// Quick filters
-		if (filters.quickFilters.includes("budget")) {
-			// Assuming budget filter checks if tuition is under a certain threshold
-			// You can adjust this threshold based on user profile
-			if (!program.tuitionAnnualUsd || program.tuitionAnnualUsd > 50000)
-				return false;
-		}
+	// Build query params
+	const queryParams = useMemo((): ListProgramsParams => {
+		const params: ListProgramsParams = {
+			sort: sortBy,
+			size: PAGE_SIZE,
+		};
 
-		if (filters.quickFilters.includes("scholarship")) {
-			if (!program.scholarshipAvailable) return false;
-		}
+		if (debouncedSearch) params.search = debouncedSearch;
+		if (filters.regions) params.regions = filters.regions;
+		if (filters.tuitionMax) params.tuitionMax = filters.tuitionMax;
+		if (filters.scholarshipOnly) params.scholarshipOnly = true;
+		if (filters.deadlineWithin) params.deadlineWithin = filters.deadlineWithin;
 
-		if (filters.quickFilters.includes("deadline")) {
-			// Deadline > 60 days
-			if (!program.nextDeadline) return false;
-			const daysUntil = Math.floor(
-				(new Date(program.nextDeadline).getTime() - Date.now()) /
-					(1000 * 60 * 60 * 24),
-			);
-			if (daysUntil <= 60) return false;
-		}
+		return params;
+	}, [sortBy, debouncedSearch, filters]);
 
-		// Extended filters
-		if (filters.tuitionRange) {
-			const maxTuition = Number.parseInt(filters.tuitionRange, 10);
-			if (!program.tuitionAnnualUsd || program.tuitionAnnualUsd > maxTuition)
-				return false;
-		}
+	// Infinite query for programs
+	const {
+		data,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+		isLoading,
+		isError,
+		error,
+	} = useInfiniteQuery({
+		queryKey: [...getListProgramsQueryKey(queryParams), "infinite"],
+		queryFn: async ({ pageParam = 1 }) => {
+			const response = await listPrograms({ ...queryParams, page: pageParam });
+			return response;
+		},
+		getNextPageParam: (lastPage) => {
+			const result = unwrapResponse<ProgramListResponse>(lastPage);
+			if (!result?.pagination) return undefined;
+			const { page = 1, totalPages = 1 } = result.pagination;
+			return page < totalPages ? page + 1 : undefined;
+		},
+		initialPageParam: 1,
+	});
 
-		// Region filter (basic implementation - can be enhanced)
-		if (filters.region) {
-			const country = (program.universityCountry || "").toLowerCase();
-			if (filters.region === "na") {
-				if (!["us", "ca", "usa", "canada"].some((c) => country.includes(c)))
-					return false;
-			} else if (filters.region === "eu") {
-				if (
-					!["uk", "de", "fr", "nl", "se", "ch", "europe"].some((c) =>
-						country.includes(c),
-					)
-				)
-					return false;
-			} else if (filters.region === "asia") {
-				if (
-					!["sg", "jp", "kr", "cn", "hk", "singapore", "japan"].some((c) =>
-						country.includes(c),
-					)
-				)
-					return false;
+	// Flatten all pages into a single array
+	const programs = useMemo(() => {
+		if (!data?.pages) return [];
+		return data.pages.flatMap((page) => {
+			const result = unwrapResponse<ProgramListResponse>(page);
+			return result?.data ?? [];
+		});
+	}, [data]);
+
+	// Get total count from first page
+	const totalCount = useMemo(() => {
+		if (!data?.pages?.[0]) return 0;
+		const result = unwrapResponse<ProgramListResponse>(data.pages[0]);
+		return result?.pagination?.total ?? 0;
+	}, [data]);
+
+	// Infinite scroll - intersection observer
+	const loadMoreRef = useRef<HTMLDivElement>(null);
+
+	const handleObserver = useCallback(
+		(entries: IntersectionObserverEntry[]) => {
+			const [target] = entries;
+			if (target.isIntersecting && hasNextPage && !isFetchingNextPage) {
+				fetchNextPage();
 			}
-		}
-
-		return true;
-	});
-
-	// Helper to parse ranking display string to number for sorting
-	const parseRanking = (rankingDisplay?: string): number => {
-		if (!rankingDisplay) return 999;
-		const num = Number.parseInt(rankingDisplay.replace(/[^0-9]/g, ""), 10);
-		return Number.isNaN(num) ? 999 : num;
-	};
-
-	// Sort programs
-	const sortedPrograms = [...filteredPrograms].sort((a, b) => {
-		switch (sortBy) {
-			case "ranking":
-				return (
-					parseRanking(a.rankingQsDisplay) - parseRanking(b.rankingQsDisplay)
-				);
-			case "cost_asc":
-				return (a.tuitionAnnualUsd || 0) - (b.tuitionAnnualUsd || 0);
-			case "cost_desc":
-				return (b.tuitionAnnualUsd || 0) - (a.tuitionAnnualUsd || 0);
-			case "deadline":
-				return (
-					new Date(a.nextDeadline || "9999-12-31").getTime() -
-					new Date(b.nextDeadline || "9999-12-31").getTime()
-				);
-			default:
-				return 0;
-		}
-	});
-
-	// Paginate programs
-	const totalPages = Math.ceil(sortedPrograms.length / itemsPerPage);
-	const paginatedPrograms = sortedPrograms.slice(
-		(currentPage - 1) * itemsPerPage,
-		currentPage * itemsPerPage,
+		},
+		[fetchNextPage, hasNextPage, isFetchingNextPage],
 	);
+
+	useEffect(() => {
+		const element = loadMoreRef.current;
+		const option = { threshold: 0.1 };
+
+		const observer = new IntersectionObserver(handleObserver, option);
+		if (element) observer.observe(element);
+
+		return () => {
+			if (element) observer.unobserve(element);
+		};
+	}, [handleObserver]);
+
+	// Check if any filters are active
+	const hasActiveFilters =
+		filters.regions ||
+		filters.tuitionMax ||
+		filters.scholarshipOnly ||
+		filters.deadlineWithin;
+
+	const clearAllFilters = () => {
+		setFilters({
+			search: "",
+			regions: "",
+			tuitionMax: undefined,
+			scholarshipOnly: false,
+			deadlineWithin: undefined,
+		});
+		setSearchQuery("");
+	};
 
 	return (
 		<div className="space-y-6">
-			{/* Filter Bar */}
-			<HorizontalFilterBar
-				filters={filters}
-				onFiltersChange={handleFiltersChange}
-			/>
-
-			{/* Results List */}
+			{/* Results Header with Search and Sort */}
 			<div className="space-y-4">
-				{/* Results Header */}
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-4">
 						<p className="text-sm text-muted-foreground">
-							Hiện {paginatedPrograms.length} trong {sortedPrograms.length} kết
-							quả
+							{isLoading
+								? "Đang tải..."
+								: `Hiện ${programs.length} trong ${totalCount} kết quả`}
 						</p>
 						<div className="relative">
 							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -516,153 +537,261 @@ export function ManualMode({
 								type="text"
 								placeholder="Tìm kiếm trường, program..."
 								value={searchQuery}
-								onChange={(e) => {
-									setSearchQuery(e.target.value);
-									setCurrentPage(1); // Reset to first page on search
-								}}
+								onChange={(e) => setSearchQuery(e.target.value)}
 								onFocus={(e) => e.target.select()}
 								className="pl-9 w-64"
 							/>
 						</div>
+						<Button
+							variant={showFilters ? "default" : "outline"}
+							size="sm"
+							onClick={() => setShowFilters(!showFilters)}
+							className="gap-2"
+						>
+							<Filter className="w-4 h-4" />
+							Bộ lọc
+							{hasActiveFilters && (
+								<Badge variant="secondary" className="ml-1">
+									{
+										[
+											filters.regions,
+											filters.tuitionMax,
+											filters.scholarshipOnly,
+											filters.deadlineWithin,
+										].filter(Boolean).length
+									}
+								</Badge>
+							)}
+						</Button>
 					</div>
 					<div className="flex items-center gap-3">
 						<span className="text-sm text-foreground">Sắp xếp:</span>
 						<Select value={sortBy} onValueChange={setSortBy}>
-							<SelectTrigger className="w-50">
+							<SelectTrigger className="w-56">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="ranking">Ranking (cao → thấp)</SelectItem>
-								<SelectItem value="cost_asc">Chi phí (thấp → cao)</SelectItem>
-								<SelectItem value="cost_desc">Chi phí (cao → thấp)</SelectItem>
+								{isAuthenticated && (
+									<SelectItem value="preference">
+										Ưu tiên của bạn (Recommended)
+									</SelectItem>
+								)}
+								<SelectItem value="ranking_qs">Ranking QS (cao → thấp)</SelectItem>
+								<SelectItem value="tuition_asc">Chi phí (thấp → cao)</SelectItem>
+								<SelectItem value="tuition_desc">Chi phí (cao → thấp)</SelectItem>
 								<SelectItem value="deadline">Deadline (gần nhất)</SelectItem>
+								{isAuthenticated && (
+									<SelectItem value="fit_score">Độ phù hợp</SelectItem>
+								)}
 							</SelectContent>
 						</Select>
 					</div>
 				</div>
 
-				{/* Table */}
-				<div className="border border-border rounded-lg overflow-hidden">
-					{paginatedPrograms.length > 0 ? (
-						<table className="w-full">
-							<thead className="bg-muted/50">
-								<tr className="border-b border-border">
-									<th className="p-4 text-center font-semibold text-sm text-foreground w-30">
-										So sánh
-									</th>
-									<th className="p-4 text-left font-semibold text-sm text-foreground">
-										Chương trình
-									</th>
-									<th className="p-4 text-center font-semibold text-sm text-foreground">
-										Xếp hạng
-									</th>
-									<th className="p-4 text-center font-semibold text-sm text-foreground">
-										Chi phí
-									</th>
-									<th className="p-4 text-center font-semibold text-sm text-foreground">
-										Deadline
-									</th>
-									<th className="p-4 text-center font-semibold text-sm text-foreground">
-										Độ phù hợp
-									</th>
-									<th className="p-4 text-center font-semibold text-sm text-foreground">
-										Hành động
-									</th>
-								</tr>
-							</thead>
-							<tbody>
-								{paginatedPrograms.map((program) => (
-									<ProgramTableRow
-										key={program.id}
-										program={program}
-										selected={selectedPrograms.has(program.id || "")}
-										onSelect={() => onToggleSelection(program.id || "")}
-										onClick={() => {
-											setSelectedProgram(program);
-											setIsDetailDrawerOpen(true);
-										}}
-										onAddToDashboard={() => {
-											program.id && onAddToDashboard?.(program.id);
-										}}
-										isMaxReached={isMaxReached}
-										isInDashboard={
-											program.id ? isProgramInDashboard?.(program.id) : false
-										}
-										isAdding={addingProgramId === program.id}
-										onManage={onManageApplication}
-									/>
-								))}
-							</tbody>
-						</table>
-					) : (
-						<div className="flex flex-col items-center justify-center py-16 px-4">
-							<div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-								<Search className="w-8 h-8 text-muted-foreground" />
-							</div>
-							<h3 className="text-lg font-semibold text-foreground mb-2">
-								Không tìm thấy chương trình
-							</h3>
-							<p className="text-sm text-muted-foreground text-center max-w-md">
-								Không có chương trình nào phù hợp với bộ lọc của bạn. Thử điều
-								chỉnh các bộ lọc hoặc tìm kiếm với từ khóa khác.
-							</p>
-						</div>
-					)}
-				</div>
-
-				{/* Pagination */}
-				{totalPages > 1 && sortedPrograms.length > 0 && (
-					<div className="flex items-center justify-between">
-						{/* Results count on left */}
-						<p className="text-sm text-muted-foreground">
-							Hiện {(currentPage - 1) * itemsPerPage + 1}-
-							{Math.min(currentPage * itemsPerPage, sortedPrograms.length)}{" "}
-							trong {sortedPrograms.length} kết quả
-						</p>
-
-						{/* Pagination controls on right */}
-						<div className="flex items-center gap-2">
-							<Button
-								variant="outline"
-								size="icon"
-								disabled={currentPage === 1}
-								onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-							>
-								<ChevronLeft className="w-4 h-4" />
-							</Button>
-
-							{[...Array(Math.min(5, totalPages))].map((_, i) => {
-								const pageNum = i + 1;
-								return (
-									<Button
-										key={pageNum}
-										variant={currentPage === pageNum ? "default" : "outline"}
-										size="icon"
-										onClick={() => setCurrentPage(pageNum)}
-									>
-										{pageNum}
-									</Button>
-								);
-							})}
-
-							{totalPages > 5 && (
-								<span className="text-muted-foreground">...</span>
-							)}
-
-							<Button
-								variant="outline"
-								size="icon"
-								disabled={currentPage === totalPages}
-								onClick={() =>
-									setCurrentPage((p) => Math.min(totalPages, p + 1))
+				{/* Collapsible Filters Panel */}
+				{showFilters && (
+					<div className="bg-card border border-border rounded-xl p-4 space-y-4">
+						<div className="flex flex-wrap items-center gap-3">
+							<Select
+								value={filters.regions}
+								onValueChange={(v) =>
+									setFilters({ ...filters, regions: v === "all" ? "" : v })
 								}
 							>
-								<ChevronRight className="w-4 h-4" />
+								<SelectTrigger className="w-40">
+									<SelectValue placeholder="Khu vực" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="all">Tất cả khu vực</SelectItem>
+									<SelectItem value="north_america">Bắc Mỹ</SelectItem>
+									<SelectItem value="europe">Châu Âu</SelectItem>
+									<SelectItem value="asia_pacific">Châu Á TBD</SelectItem>
+									<SelectItem value="oceania">Châu Đại Dương</SelectItem>
+								</SelectContent>
+							</Select>
+
+							<Select
+								value={filters.tuitionMax?.toString() || ""}
+								onValueChange={(v) =>
+									setFilters({
+										...filters,
+										tuitionMax: v ? Number.parseInt(v, 10) : undefined,
+									})
+								}
+							>
+								<SelectTrigger className="w-44">
+									<SelectValue placeholder="Học phí tối đa" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="">Không giới hạn</SelectItem>
+									<SelectItem value="20000">≤ $20,000/năm</SelectItem>
+									<SelectItem value="30000">≤ $30,000/năm</SelectItem>
+									<SelectItem value="50000">≤ $50,000/năm</SelectItem>
+									<SelectItem value="70000">≤ $70,000/năm</SelectItem>
+								</SelectContent>
+							</Select>
+
+							<Select
+								value={filters.deadlineWithin?.toString() || ""}
+								onValueChange={(v) =>
+									setFilters({
+										...filters,
+										deadlineWithin: v ? Number.parseInt(v, 10) : undefined,
+									})
+								}
+							>
+								<SelectTrigger className="w-44">
+									<SelectValue placeholder="Deadline trong" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="">Tất cả</SelectItem>
+									<SelectItem value="30">Trong 30 ngày</SelectItem>
+									<SelectItem value="60">Trong 60 ngày</SelectItem>
+									<SelectItem value="90">Trong 90 ngày</SelectItem>
+								</SelectContent>
+							</Select>
+
+							<Button
+								variant={filters.scholarshipOnly ? "default" : "outline"}
+								size="sm"
+								onClick={() =>
+									setFilters({
+										...filters,
+										scholarshipOnly: !filters.scholarshipOnly,
+									})
+								}
+								className="gap-1.5"
+							>
+								💰 Có học bổng
 							</Button>
+
+							{hasActiveFilters && (
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={clearAllFilters}
+									className="text-muted-foreground hover:text-foreground gap-1.5"
+								>
+									<X className="w-3.5 h-3.5" />
+									Xóa bộ lọc
+								</Button>
+							)}
 						</div>
 					</div>
 				)}
 			</div>
+
+			{/* Table */}
+			<div className="border border-border rounded-lg overflow-hidden">
+				{isLoading ? (
+					<div className="flex flex-col items-center justify-center py-16 px-4">
+						<Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+						<p className="text-sm text-muted-foreground">
+							Đang tải chương trình...
+						</p>
+					</div>
+				) : isError ? (
+					<div className="flex flex-col items-center justify-center py-16 px-4">
+						<div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+							<span className="text-2xl">⚠️</span>
+						</div>
+						<h3 className="text-lg font-semibold text-foreground mb-2">
+							Không thể tải dữ liệu
+						</h3>
+						<p className="text-sm text-muted-foreground text-center max-w-md">
+							{error instanceof Error ? error.message : "Đã xảy ra lỗi"}
+						</p>
+					</div>
+				) : programs.length > 0 ? (
+					<table className="w-full">
+						<thead className="bg-muted/50">
+							<tr className="border-b border-border">
+								<th className="p-4 text-center font-semibold text-sm text-foreground w-30">
+									So sánh
+								</th>
+								<th className="p-4 text-left font-semibold text-sm text-foreground">
+									Chương trình
+								</th>
+								<th className="p-4 text-center font-semibold text-sm text-foreground">
+									Xếp hạng
+								</th>
+								<th className="p-4 text-center font-semibold text-sm text-foreground">
+									Chi phí
+								</th>
+								<th className="p-4 text-center font-semibold text-sm text-foreground">
+									Deadline
+								</th>
+								<th className="p-4 text-center font-semibold text-sm text-foreground">
+									Độ phù hợp
+								</th>
+								<th className="p-4 text-center font-semibold text-sm text-foreground">
+									Hành động
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							{programs.map((program) => (
+								<ProgramTableRow
+									key={program.id}
+									program={program}
+									selected={selectedPrograms.has(program.id || "")}
+									onSelect={() => onToggleSelection(program.id || "")}
+									onClick={() => {
+										setSelectedProgram(program);
+										setIsDetailDrawerOpen(true);
+									}}
+									onAddToDashboard={() => {
+										program.id && onAddToDashboard?.(program.id);
+									}}
+									isMaxReached={isMaxReached}
+									isInDashboard={
+										program.id ? isProgramInDashboard?.(program.id) : false
+									}
+									isAdding={addingProgramId === program.id}
+									onManage={onManageApplication}
+								/>
+							))}
+						</tbody>
+					</table>
+				) : (
+					<div className="flex flex-col items-center justify-center py-16 px-4">
+						<div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+							<Search className="w-8 h-8 text-muted-foreground" />
+						</div>
+						<h3 className="text-lg font-semibold text-foreground mb-2">
+							Không tìm thấy chương trình
+						</h3>
+						<p className="text-sm text-muted-foreground text-center max-w-md">
+							Không có chương trình nào phù hợp với bộ lọc của bạn. Thử điều
+							chỉnh các bộ lọc hoặc tìm kiếm với từ khóa khác.
+						</p>
+					</div>
+				)}
+			</div>
+
+			{/* Infinite scroll trigger + Loading indicator */}
+			{hasNextPage && (
+				<div
+					ref={loadMoreRef}
+					className="flex items-center justify-center py-4"
+				>
+					{isFetchingNextPage && (
+						<div className="flex items-center gap-2 text-muted-foreground">
+							<Loader2 className="w-4 h-4 animate-spin" />
+							<span className="text-sm">Đang tải thêm...</span>
+						</div>
+					)}
+				</div>
+			)}
+
+			{/* End of list indicator */}
+			{!hasNextPage && programs.length > 0 && (
+				<div className="flex items-center justify-center py-4">
+					<p className="text-sm text-muted-foreground">
+						Đã hiển thị tất cả {programs.length} chương trình
+					</p>
+				</div>
+			)}
 
 			{/* Program Detail Drawer */}
 			<ProgramDetailDrawer
@@ -674,8 +803,6 @@ export function ManualMode({
 					setIsDetailDrawerOpen(false);
 				}}
 				onAddToDashboard={onAddToDashboard}
-				// 	setIsDetailDrawerOpen(false);
-				// }}
 			/>
 		</div>
 	);

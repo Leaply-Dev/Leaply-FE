@@ -362,7 +362,6 @@ export function ExploreClient() {
 				{/* Manual Mode */}
 				{activeMode === "manual" && (
 					<ManualMode
-						programs={swimLanePrograms}
 						selectedPrograms={selectedPrograms}
 						onToggleSelection={toggleProgramSelection}
 						isMaxReached={isMaxReached}

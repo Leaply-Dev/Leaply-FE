@@ -327,7 +327,6 @@ export function ScholarshipExploreClient() {
 				{/* Manual Mode */}
 				{activeMode === "manual" && (
 					<ScholarshipManualMode
-						scholarships={allScholarships}
 						selectedScholarships={selectedScholarships}
 						onToggleSelection={toggleScholarshipSelection}
 						isMaxReached={isMaxReached}
