@@ -172,6 +172,7 @@
 	--font-sans: var(--font-sans);
 	--font-mono: var(--font-mono);
 	--font-serif: var(--font-serif);
+	--font-num: var(--font-num), ui-sans-serif, system-ui, sans-serif;
 
 	--radius-sm: calc(var(--radius) - 4px);
 	--radius-md: calc(var(--radius) - 2px);
@@ -227,6 +228,11 @@
 
 @utility page-container {
 	@apply max-w-7xl mx-auto container-padding py-8;
+}
+
+@utility font-num {
+	font-family: var(--font-num);
+	font-variant-numeric: tabular-nums;
 }
 
 @layer base {

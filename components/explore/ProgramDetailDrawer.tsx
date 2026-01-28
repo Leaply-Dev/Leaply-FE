@@ -186,7 +186,7 @@ function GapCheckItem({
 				<div className="text-right">
 					{hasData && delta !== undefined && delta !== 0 && (
 						<span
-							className={`text-sm font-semibold ${
+							className={`text-sm font-semibold font-num ${
 								delta >= 0 ? "text-green-600" : "text-orange-600"
 							}`}
 						>
@@ -532,19 +532,19 @@ export function ProgramDetailDrawer({
 									{/* Ranking Badges */}
 									<div className="flex flex-wrap gap-2">
 										{program.rankingQsDisplay && (
-											<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium">
+											<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium font-num">
 												<Award className="w-3 h-3 mr-1" />
 												QS #{program.rankingQsDisplay}
 											</Badge>
 										)}
 										{program.rankingTimesDisplay && (
-											<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium">
+											<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium font-num">
 												<Award className="w-3 h-3 mr-1" />
 												Times #{program.rankingTimesDisplay}
 											</Badge>
 										)}
 										{program.fitScore && (
-											<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium">
+											<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium font-num">
 												{program.fitScore}% Match
 											</Badge>
 										)}
@@ -556,7 +556,7 @@ export function ProgramDetailDrawer({
 									<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
 										<Clock className="w-5 h-5 text-primary mx-auto mb-2" />
 										<p className="text-xs text-muted-foreground">Duration</p>
-										<p className="font-semibold text-sm text-foreground mt-0.5">
+										<p className="font-semibold text-sm text-foreground mt-0.5 font-num">
 											{formatDuration(program.durationMonths)}
 										</p>
 									</div>
@@ -587,7 +587,7 @@ export function ProgramDetailDrawer({
 									<div className="grid grid-cols-3 gap-4">
 										<div>
 											<p className="text-xs text-muted-foreground">Per Year</p>
-											<p className="text-lg font-bold text-foreground">
+											<p className="text-lg font-bold text-foreground font-num">
 												{formatTuitionRange(
 													program.tuition?.annualMin,
 													program.tuition?.annualMax,
@@ -599,7 +599,7 @@ export function ProgramDetailDrawer({
 											<p className="text-xs text-muted-foreground">
 												Total Program
 											</p>
-											<p className="text-lg font-bold text-foreground">
+											<p className="text-lg font-bold text-foreground font-num">
 												{program.tuition?.total
 													? formatCurrencyWithCode(
 															program.tuition.total,
@@ -610,7 +610,7 @@ export function ProgramDetailDrawer({
 										</div>
 										<div>
 											<p className="text-xs text-muted-foreground">App Fee</p>
-											<p className="text-lg font-bold text-foreground">
+											<p className="text-lg font-bold text-foreground font-num">
 												{formatCurrency(program.applicationFeeUsd)}
 											</p>
 										</div>
@@ -698,7 +698,7 @@ export function ProgramDetailDrawer({
 												<p className="font-medium text-foreground text-sm">
 													Work Experience
 												</p>
-												<Badge className="bg-primary text-primary-foreground border-0">
+												<Badge className="bg-primary text-primary-foreground border-0 font-num">
 													{req.workExperienceYears}+ years
 												</Badge>
 											</div>

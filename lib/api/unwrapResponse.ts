@@ -9,7 +9,7 @@
  * These utilities extract the actual data cleanly.
  */
 
-type OrvalResponse<T> = {
+export type OrvalResponse<T> = {
 	data?: {
 		success?: boolean;
 		data?: T;

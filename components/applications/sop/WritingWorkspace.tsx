@@ -25,7 +25,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
 	type OutlineSectionDto,
 	type ReviewResponse,
-	type SectionResponse,
 	useConfirmOutline,
 	useGenerateOutline,
 	useMarkSectionDone,
@@ -176,7 +175,6 @@ export function WritingWorkspace({
 		);
 	}
 
-	const currentSection = sections[selectedSectionIndex];
 	const currentOutlineSection = outlineSections[selectedSectionIndex];
 	const allDone = sections.every((s) => s.status === "done");
 	const wordCount = sectionContent.split(/\s+/).filter(Boolean).length;
@@ -335,7 +333,7 @@ export function WritingWorkspace({
 									{currentOutlineSection.guidingQuestions.map(
 										(question: string, idx: number) => (
 											<li
-												key={idx}
+												key={`question-${idx}`}
 												className="text-sm text-muted-foreground flex items-start gap-2"
 											>
 												<span className="text-primary font-medium shrink-0">
@@ -398,7 +396,10 @@ export function WritingWorkspace({
 									<h4 className="font-medium text-green-700 mb-2">Điểm mạnh</h4>
 									<ul className="space-y-1">
 										{reviewData.strengths.map((s, i) => (
-											<li key={i} className="text-sm flex items-start gap-2">
+											<li
+												key={`review-strength-${i}`}
+												className="text-sm flex items-start gap-2"
+											>
 												<Check className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
 												<span>{s}</span>
 											</li>
@@ -416,7 +417,10 @@ export function WritingWorkspace({
 										</h4>
 										<ul className="space-y-1">
 											{reviewData.improvements.map((s, i) => (
-												<li key={i} className="text-sm flex items-start gap-2">
+												<li
+													key={`review-improvement-${i}`}
+													className="text-sm flex items-start gap-2"
+												>
 													<Circle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
 													<span>{s}</span>
 												</li>

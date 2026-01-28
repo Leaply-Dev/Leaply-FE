@@ -2,12 +2,10 @@
 
 import { m } from "framer-motion";
 import {
-	AlertCircle,
 	ArrowRight,
 	Calendar,
 	Compass,
 	FolderOpen,
-	GraduationCap,
 	School,
 	Sparkles,
 	Target,
@@ -20,7 +18,7 @@ import { PageTransition, SlideUp } from "@/components/PageTransition";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
@@ -104,7 +102,6 @@ export function DashboardClient() {
 			profileCompletion: data.profileCompletion ?? 0,
 			upcomingDeadlines: data.upcomingDeadlines ?? [],
 			applicationsCount: data.applications?.total ?? 0,
-			submittedApplications: data.applications?.byStatus?.submitted ?? 0,
 			suggestedAction: data.suggestedAction,
 			recentApplications: data.recentApplications ?? [],
 			firstName: data.firstName,
@@ -116,7 +113,6 @@ export function DashboardClient() {
 		profileCompletion,
 		upcomingDeadlines,
 		applicationsCount,
-		submittedApplications,
 		suggestedAction,
 		recentApplications,
 		firstName,
@@ -305,7 +301,10 @@ export function DashboardClient() {
 										{isLoading ? (
 											<div className="p-6 space-y-4">
 												{[1, 2, 3].map((i) => (
-													<div key={i} className="flex items-center gap-4">
+													<div
+														key={`recent-app-skeleton-${i}`}
+														className="flex items-center gap-4"
+													>
 														<Skeleton className="h-10 w-10 rounded-full" />
 														<div className="space-y-2 flex-1">
 															<Skeleton className="h-4 w-1/3" />
@@ -419,42 +418,37 @@ export function DashboardClient() {
 												</div>
 											) : upcomingDeadlines.length > 0 ? (
 												<div className="divide-y divide-border/40">
-													{upcomingDeadlines.slice(0, 5).map((deadline) => {
-														const urgency = getDeadlineUrgency(
-															deadline.daysRemaining,
-														);
-														return (
-															<Link
-																key={deadline.applicationId}
-																href={`/dashboard/applications?id=${deadline.applicationId}`}
-																className="flex items-center gap-3 p-4 hover:bg-muted/50 transition-colors group"
+													{upcomingDeadlines.slice(0, 5).map((deadline) => (
+														<Link
+															key={deadline.applicationId}
+															href={`/dashboard/applications?id=${deadline.applicationId}`}
+															className="flex items-center gap-3 p-4 hover:bg-muted/50 transition-colors group"
+														>
+															<div
+																className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0 border ${
+																	deadline.daysRemaining !== undefined &&
+																	deadline.daysRemaining <= URGENT_DAYS
+																		? "bg-red-50/50 border-red-100 text-red-600 dark:bg-red-950/20 dark:border-red-900/50"
+																		: "bg-muted/30 border-border/50 text-muted-foreground"
+																}`}
 															>
-																<div
-																	className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0 border ${
-																		deadline.daysRemaining !== undefined &&
-																		deadline.daysRemaining <= URGENT_DAYS
-																			? "bg-red-50/50 border-red-100 text-red-600 dark:bg-red-950/20 dark:border-red-900/50"
-																			: "bg-muted/30 border-border/50 text-muted-foreground"
-																	}`}
-																>
-																	<span className="text-xs font-bold leading-none">
-																		{deadline.daysRemaining}
-																	</span>
-																	<span className="text-[9px] uppercase leading-none mt-0.5">
-																		Days
-																	</span>
-																</div>
-																<div className="min-w-0 flex-1">
-																	<p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
-																		{deadline.programName}
-																	</p>
-																	<p className="text-xs text-muted-foreground">
-																		{deadline.deadline}
-																	</p>
-																</div>
-															</Link>
-														);
-													})}
+																<span className="text-xs font-bold leading-none">
+																	{deadline.daysRemaining}
+																</span>
+																<span className="text-[9px] uppercase leading-none mt-0.5">
+																	Days
+																</span>
+															</div>
+															<div className="min-w-0 flex-1">
+																<p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
+																	{deadline.programName}
+																</p>
+																<p className="text-xs text-muted-foreground">
+																	{deadline.deadline}
+																</p>
+															</div>
+														</Link>
+													))}
 												</div>
 											) : (
 												<div className="p-8 text-center">

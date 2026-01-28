@@ -187,10 +187,10 @@ export function ApplicationsClient() {
 		applications.find((app) => app.id === selectedApplicationId) ?? null;
 
 	const handleUpdateStatus = async (status: string) => {
-		if (selectedApplication) {
+		if (selectedApplication?.id) {
 			try {
 				await updateStatus({
-					id: selectedApplication.id!,
+					id: selectedApplication.id,
 					data: {
 						status: status as "planning" | "writing" | "submitted",
 					},
@@ -208,9 +208,9 @@ export function ApplicationsClient() {
 	};
 
 	const handleDelete = async () => {
-		if (selectedApplication) {
+		if (selectedApplication?.id) {
 			try {
-				await deleteApp({ id: selectedApplication.id! });
+				await deleteApp({ id: selectedApplication.id });
 				await queryClient.invalidateQueries({
 					queryKey: getGetApplications1QueryKey(),
 				});

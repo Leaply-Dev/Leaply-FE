@@ -277,7 +277,7 @@ function ScholarshipTableRow({
 			{/* Coverage */}
 			<td className="p-4 text-center">
 				<div className="flex flex-col items-center gap-1">
-					<span className="font-semibold text-foreground flex items-center gap-1">
+					<span className="font-semibold text-foreground font-num flex items-center gap-1">
 						<DollarSign className="w-3.5 h-3.5" />
 						{getCoverageDisplay()}
 					</span>
@@ -298,7 +298,7 @@ function ScholarshipTableRow({
 
 			{/* Deadline */}
 			<td className="p-4 text-center">
-				<span className={`text-sm font-medium ${deadline.color}`}>
+				<span className={`text-sm font-medium font-num ${deadline.color}`}>
 					{deadline.label}
 				</span>
 			</td>

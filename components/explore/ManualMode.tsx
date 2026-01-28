@@ -228,7 +228,7 @@ function ProgramTableRow({
 		}
 
 		return (
-			<Badge className={`${colorClass} hover:${colorClass}`}>
+			<Badge className={`${colorClass} hover:${colorClass} font-num`}>
 				{label && `${label} `}#{rankingDisplay}
 			</Badge>
 		);
@@ -308,7 +308,7 @@ function ProgramTableRow({
 			<td className="p-4 text-center">
 				{program.tuitionAnnualMin ? (
 					<div className="flex flex-col items-center gap-1">
-						<span className="font-semibold text-foreground">
+						<span className="font-semibold text-foreground font-num">
 							{formatTuitionRange(
 								program.tuitionAnnualMin,
 								program.tuitionAnnualMax,
@@ -328,7 +328,7 @@ function ProgramTableRow({
 
 			{/* Deadline */}
 			<td className="p-4 text-center">
-				<span className={`text-sm font-medium ${deadline.color}`}>
+				<span className={`text-sm font-medium font-num ${deadline.color}`}>
 					{deadline.label}
 				</span>
 			</td>

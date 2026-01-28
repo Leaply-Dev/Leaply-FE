@@ -89,7 +89,7 @@ export function SopFeedbackPanel({
 								<ul className="space-y-2">
 									{feedback.strengths.map((strength, index) => (
 										<li
-											key={index}
+											key={`strength-${index}`}
 											className="text-sm text-muted-foreground flex items-start gap-2"
 										>
 											<span className="text-green-500 mt-1">+</span>
@@ -109,7 +109,7 @@ export function SopFeedbackPanel({
 								</h4>
 								<ul className="space-y-3">
 									{feedback.improvements.map((improvement, index) => (
-										<li key={index} className="text-sm">
+										<li key={`improvement-${index}`} className="text-sm">
 											<div className="flex items-start gap-2 text-muted-foreground">
 												<span className="text-amber-500 mt-1">!</span>
 												<div>

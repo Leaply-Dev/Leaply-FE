@@ -260,7 +260,10 @@ export function AcademicInfoTab({
 					<CardContent>
 						<div className="grid gap-4 sm:grid-cols-2">
 							{[...Array(5)].map((_, i) => (
-								<div key={i} className="flex items-start gap-3">
+								<div
+									key={`personal-skeleton-${i}`}
+									className="flex items-start gap-3"
+								>
 									<Skeleton className="h-8 w-8 rounded-lg" />
 									<div className="space-y-2">
 										<Skeleton className="h-3 w-20" />
@@ -279,7 +282,10 @@ export function AcademicInfoTab({
 					<CardContent>
 						<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 							{[...Array(4)].map((_, i) => (
-								<Skeleton key={i} className="h-24 rounded-lg" />
+								<Skeleton
+									key={`test-skeleton-${i}`}
+									className="h-24 rounded-lg"
+								/>
 							))}
 						</div>
 					</CardContent>

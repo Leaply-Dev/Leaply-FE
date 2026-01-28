@@ -3,6 +3,7 @@
  * This maintains backward compatibility while using generated hooks
  */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { OrvalResponse } from "@/lib/api/unwrapResponse";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	getGetMatchedScholarshipsQueryKey,
@@ -15,6 +16,7 @@ import {
 import type {
 	ListScholarshipsParams,
 	ScholarshipAiMatchResponse,
+	ScholarshipListItemResponse,
 	ScholarshipListResponse,
 } from "@/lib/generated/api/models";
 
@@ -68,7 +70,13 @@ export function useSaveScholarship() {
 			});
 
 			// Helper to update scholarship in any query data structure
-			const updateScholarshipInData = (old: any): any => {
+			const updateScholarshipInData = (
+				old: OrvalResponse<
+					ScholarshipListResponse | ScholarshipAiMatchResponse
+				>,
+			): OrvalResponse<
+				ScholarshipListResponse | ScholarshipAiMatchResponse
+			> => {
 				if (!old) return old;
 
 				// Handle list response structure
@@ -80,10 +88,11 @@ export function useSaveScholarship() {
 							...old.data,
 							data: {
 								...listResult,
-								data: listResult.data.map((scholarship: any) =>
-									scholarship.id === id
-										? { ...scholarship, isSaved: !isSaved }
-										: scholarship,
+								data: listResult.data.map(
+									(scholarship: ScholarshipListItemResponse) =>
+										scholarship.id === id
+											? { ...scholarship, isSaved: !isSaved }
+											: scholarship,
 								),
 							},
 						},
@@ -103,20 +112,23 @@ export function useSaveScholarship() {
 							...old.data,
 							data: {
 								...aiMatchResult,
-								reach: aiMatchResult.reach?.map((scholarship: any) =>
-									scholarship.id === id
-										? { ...scholarship, isSaved: !isSaved }
-										: scholarship,
+								reach: aiMatchResult.reach?.map(
+									(scholarship: ScholarshipListItemResponse) =>
+										scholarship.id === id
+											? { ...scholarship, isSaved: !isSaved }
+											: scholarship,
 								),
-								target: aiMatchResult.target?.map((scholarship: any) =>
-									scholarship.id === id
-										? { ...scholarship, isSaved: !isSaved }
-										: scholarship,
+								target: aiMatchResult.target?.map(
+									(scholarship: ScholarshipListItemResponse) =>
+										scholarship.id === id
+											? { ...scholarship, isSaved: !isSaved }
+											: scholarship,
 								),
-								safety: aiMatchResult.safety?.map((scholarship: any) =>
-									scholarship.id === id
-										? { ...scholarship, isSaved: !isSaved }
-										: scholarship,
+								safety: aiMatchResult.safety?.map(
+									(scholarship: ScholarshipListItemResponse) =>
+										scholarship.id === id
+											? { ...scholarship, isSaved: !isSaved }
+											: scholarship,
 								),
 							},
 						},

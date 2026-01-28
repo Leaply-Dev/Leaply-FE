@@ -8,7 +8,7 @@
  */
 
 import type { Metadata } from "next";
-import { Raleway } from "next/font/google";
+import { Inter, Raleway } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import { Providers } from "@/components/providers/Providers";
@@ -17,6 +17,11 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 
 const raleway = Raleway({ subsets: ["latin"], variable: "--font-sans" });
+const inter = Inter({
+	subsets: ["latin"],
+	variable: "--font-num",
+	display: "swap",
+});
 
 export const metadata: Metadata = {
 	title: "Leaply - Study Abroad Simplified",
@@ -37,7 +42,7 @@ export default async function RootLayout({
 	const locale = await getLocale();
 	return (
 		<html lang={locale}>
-			<body className={raleway.variable}>
+			<body className={`${raleway.variable} ${inter.variable}`}>
 				<NextIntlClientProvider>
 					<Providers>{children}</Providers>
 				</NextIntlClientProvider>

@@ -3,6 +3,7 @@
  * This maintains backward compatibility while using generated hooks
  */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { OrvalResponse } from "@/lib/api/unwrapResponse";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	useSaveProgram as useGeneratedSaveProgram,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/generated/api/endpoints/explore/explore";
 import type {
 	ListProgramsParams,
+	ProgramListItemResponse,
 	ProgramListResponse,
 } from "@/lib/generated/api/models";
 
@@ -48,23 +50,29 @@ export function useSaveProgram() {
 			const previousPrograms = queryClient.getQueryData(["programs"]);
 
 			// Optimistically update all program queries
-			queryClient.setQueriesData({ queryKey: ["programs"] }, (old: any) => {
-				const programsResult = unwrapResponse<ProgramListResponse>(old);
-				if (!programsResult?.data) return old;
+			queryClient.setQueriesData(
+				{ queryKey: ["programs"] },
+				(old: OrvalResponse<ProgramListResponse>) => {
+					const programsResult = unwrapResponse<ProgramListResponse>(old);
+					if (!programsResult?.data || !old) return old;
 
-				return {
-					...old,
-					data: {
-						...old.data,
+					return {
+						...old,
 						data: {
-							...programsResult,
-							data: programsResult.data.map((program: any) =>
-								program.id === id ? { ...program, isSaved: !isSaved } : program,
-							),
+							...old.data,
+							data: {
+								...programsResult,
+								data: programsResult.data.map(
+									(program: ProgramListItemResponse) =>
+										program.id === id
+											? { ...program, isSaved: !isSaved }
+											: program,
+								),
+							},
 						},
-					},
-				};
-			});
+					};
+				},
+			);
 
 			return { previousPrograms };
 		},
