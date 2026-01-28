@@ -809,6 +809,28 @@
 		"subtitle": "Here's your journey",
 		"you": "you",
 		"suggestedForYou": "Suggested for you",
+		"suggestedActions": {
+			"persona": {
+				"title": "Start discovering yourself",
+				"description": "Understand your strengths and story before choosing the right schools.",
+				"cta": "Go to Persona Lab"
+			},
+			"writing": {
+				"title": "Continue your essay",
+				"description": "Pick up where you left off on your personal statement.",
+				"cta": "Continue writing"
+			},
+			"deadline": {
+				"title": "Upcoming deadline",
+				"description": "Don't miss your application deadline.",
+				"cta": "View details"
+			},
+			"explore": {
+				"title": "Add your first target school",
+				"description": "Discover schools that match your profile and start building your list.",
+				"cta": "Explore Schools"
+			}
+		},
 		"startDiscovery": "Start discovering yourself",
 		"startDiscoveryDesc": "Understand your strengths and story before choosing the right schools. Persona Lab will help you discover the amazing things about yourself.",
 		"goToPersonaLab": "Go to Persona Lab",

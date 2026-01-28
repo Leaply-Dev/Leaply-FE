@@ -809,6 +809,28 @@
 		"subtitle": "Đây là hành trình của bạn",
 		"you": "bạn",
 		"suggestedForYou": "Gợi ý cho bạn",
+		"suggestedActions": {
+			"persona": {
+				"title": "Bắt đầu khám phá bản thân",
+				"description": "Hiểu rõ điểm mạnh và câu chuyện của bạn trước khi chọn trường phù hợp.",
+				"cta": "Vào Persona Lab"
+			},
+			"writing": {
+				"title": "Tiếp tục viết essay",
+				"description": "Hoàn thành bài luận cá nhân của bạn.",
+				"cta": "Tiếp tục viết"
+			},
+			"deadline": {
+				"title": "Deadline sắp đến",
+				"description": "Đừng bỏ lỡ deadline nộp hồ sơ của bạn.",
+				"cta": "Xem chi tiết"
+			},
+			"explore": {
+				"title": "Thêm trường mục tiêu đầu tiên",
+				"description": "Khám phá các trường phù hợp với profile của bạn và bắt đầu xây dựng danh sách.",
+				"cta": "Khám phá trường"
+			}
+		},
 		"startDiscovery": "Bắt đầu khám phá bản thân",
 		"startDiscoveryDesc": "Hiểu rõ điểm mạnh và câu chuyện của bạn trước khi chọn trường phù hợp. Persona Lab sẽ giúp bạn khám phá những điều tuyệt vời về bản thân.",
 		"goToPersonaLab": "Vào Persona Lab",

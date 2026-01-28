@@ -134,16 +134,37 @@ export function ApplicationsClient() {
 	const { mutateAsync: deleteScholarshipApp } =
 		useDeleteScholarshipApplication();
 
-	// Auto-select first program application if none selected
+	// Get application id from URL param (for deep linking from dashboard)
+	const urlApplicationId = searchParams.get("id");
+
+	// Auto-select application: prioritize URL param, then first application
 	useEffect(() => {
+		if (applications.length === 0) return;
+
+		// If URL has id param and it exists in applications, select it
 		if (
-			applications.length > 0 &&
-			(!selectedApplicationId ||
-				!applications.find((app) => app.id === selectedApplicationId))
+			urlApplicationId &&
+			applications.find((app) => app.id === urlApplicationId)
+		) {
+			if (selectedApplicationId !== urlApplicationId) {
+				setSelectedApplicationId(urlApplicationId);
+			}
+			return;
+		}
+
+		// Otherwise auto-select first if none selected or current selection invalid
+		if (
+			!selectedApplicationId ||
+			!applications.find((app) => app.id === selectedApplicationId)
 		) {
 			setSelectedApplicationId(applications[0].id ?? null);
 		}
-	}, [applications, selectedApplicationId, setSelectedApplicationId]);
+	}, [
+		applications,
+		selectedApplicationId,
+		setSelectedApplicationId,
+		urlApplicationId,
+	]);
 
 	// Auto-select first scholarship application if none selected
 	useEffect(() => {

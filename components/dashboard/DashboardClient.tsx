@@ -29,24 +29,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
-import { useGetCoverage } from "@/lib/generated/api/endpoints/persona-lab/persona-lab";
 import type {
-	CoverageMetrics,
+	DiscoveryProgressDto,
 	HomeResponse,
 	RecentApplicationDto,
 	UpcomingDeadlineDto,
 } from "@/lib/generated/api/models";
 import { useHomeData } from "@/lib/hooks/useHomeData";
 import { useUserStore } from "@/lib/store/userStore";
-
-// Coverage category info for display
-const COVERAGE_CATEGORIES = [
-	{ key: "goals", label: "Goals", color: "bg-primary" },
-	{ key: "evidence", label: "Evidence", color: "bg-chart-2" },
-	{ key: "skills", label: "Skills", color: "bg-chart-3" },
-	{ key: "values", label: "Values", color: "bg-chart-4" },
-	{ key: "tensions", label: "Tensions", color: "bg-chart-5" },
-] as const;
 
 // Deadline urgency thresholds
 const URGENT_DAYS = 7;
@@ -72,9 +62,6 @@ export function DashboardClient() {
 	const tHome = useTranslations("home");
 	const { profile } = useUserStore();
 	const { data: homeData, isLoading } = useHomeData();
-
-	// Fetch persona coverage metrics for enhanced progress display
-	const { data: coverageData, isLoading: isCoverageLoading } = useGetCoverage();
 
 	// Time-dependent state - computed only on client to prevent hydration mismatch
 	const [greeting, setGreeting] = useState<string>("");
@@ -103,6 +90,10 @@ export function DashboardClient() {
 				suggestedAction: null,
 				recentApplications: [] as RecentApplicationDto[],
 				firstName: null,
+				discovery: {
+					completedTracks: 0,
+					totalTracks: 4,
+				} as DiscoveryProgressDto,
 			};
 		}
 
@@ -114,22 +105,9 @@ export function DashboardClient() {
 			suggestedAction: data.suggestedAction,
 			recentApplications: data.recentApplications ?? [],
 			firstName: data.firstName,
+			discovery: data.discovery ?? { completedTracks: 0, totalTracks: 4 },
 		};
 	}, [homeData]);
-
-	// Extract coverage metrics
-	const coverage = useMemo(() => {
-		if (!coverageData) return null;
-		// Handle the API response structure
-		const response = coverageData as {
-			data?: CoverageMetrics;
-			status?: number;
-		};
-		if (response?.data && response.status === 200) {
-			return response.data;
-		}
-		return null;
-	}, [coverageData]);
 
 	const {
 		profileCompletion,
@@ -139,76 +117,8 @@ export function DashboardClient() {
 		suggestedAction,
 		recentApplications,
 		firstName,
+		discovery,
 	} = dashboardData;
-
-	// Compute contextual quick actions based on user state
-	const quickActions = useMemo(() => {
-		const actions: Array<{
-			href: string;
-			icon: typeof Sparkles;
-			label: string;
-			color: string;
-		}> = [];
-
-		// Priority 1: If profile incomplete, suggest completing it
-		if (profileCompletion < 100) {
-			actions.push({
-				href: "/dashboard/profile",
-				icon: User,
-				label: `${tHome("updateProfile")} (${profileCompletion}%)`,
-				color: "text-chart-4",
-			});
-		}
-
-		// Priority 2: If no applications, suggest exploring schools
-		if (applicationsCount === 0) {
-			actions.push({
-				href: "/explore",
-				icon: GraduationCap,
-				label: tHome("exploreSchools"),
-				color: "text-chart-2",
-			});
-		}
-
-		// Priority 3: If coverage is low, suggest persona discovery
-		const overallProgress = coverage?.overallProgress ?? 0;
-		if (overallProgress < 50) {
-			actions.push({
-				href: "/persona-lab",
-				icon: Sparkles,
-				label: "Persona Lab",
-				color: "text-primary",
-			});
-		}
-
-		// Always show these as fallback options
-		if (!actions.some((a) => a.href === "/persona-lab")) {
-			actions.push({
-				href: "/persona-lab",
-				icon: Sparkles,
-				label: "Persona Lab",
-				color: "text-primary",
-			});
-		}
-		if (!actions.some((a) => a.href === "/explore")) {
-			actions.push({
-				href: "/explore",
-				icon: GraduationCap,
-				label: tHome("exploreSchools"),
-				color: "text-chart-2",
-			});
-		}
-		if (!actions.some((a) => a.href === "/dashboard/profile")) {
-			actions.push({
-				href: "/dashboard/profile",
-				icon: User,
-				label: tHome("updateProfile"),
-				color: "text-chart-4",
-			});
-		}
-
-		return actions.slice(0, 3);
-	}, [profileCompletion, applicationsCount, coverage, tHome]);
 
 	return (
 		<PageTransition>
@@ -265,15 +175,20 @@ export function DashboardClient() {
 													{tHome("suggestedForYou")}
 												</Badge>
 												<h3 className="text-xl font-semibold text-foreground mb-2">
-													{suggestedAction?.title || tHome("startDiscovery")}
+													{tHome(
+														`suggestedActions.${suggestedAction.type}.title`,
+													)}
 												</h3>
 												<p className="text-muted-foreground mb-4">
-													{suggestedAction?.description ||
-														tHome("startDiscoveryDesc")}
+													{tHome(
+														`suggestedActions.${suggestedAction.type}.description`,
+													)}
 												</p>
 												<Button asChild>
 													<Link href={suggestedAction?.link || "/persona-lab"}>
-														{tHome("goToPersonaLab")}
+														{tHome(
+															`suggestedActions.${suggestedAction.type}.cta`,
+														)}
 														<ArrowRight className="w-4 h-4 ml-2" />
 													</Link>
 												</Button>
@@ -294,10 +209,10 @@ export function DashboardClient() {
 													{tHome("suggestedForYou")}
 												</Badge>
 												<h3 className="text-xl font-semibold text-foreground mb-2">
-													{suggestedAction?.title}
+													{tHome("suggestedActions.deadline.title")}
 												</h3>
 												<p className="text-muted-foreground mb-4">
-													{suggestedAction?.description}
+													{tHome("suggestedActions.deadline.description")}
 												</p>
 												<Button
 													asChild
@@ -308,7 +223,7 @@ export function DashboardClient() {
 															suggestedAction?.link || "/dashboard/applications"
 														}
 													>
-														{tHome("viewAll")}
+														{tHome("suggestedActions.deadline.cta")}
 														<ArrowRight className="w-4 h-4 ml-2" />
 													</Link>
 												</Button>
@@ -329,18 +244,17 @@ export function DashboardClient() {
 													{tHome("suggestedForYou")}
 												</Badge>
 												<h3 className="text-xl font-semibold text-foreground mb-2">
-													{suggestedAction?.title || tHome("addFirstTarget")}
+													{tHome("suggestedActions.explore.title")}
 												</h3>
 												<p className="text-muted-foreground mb-4">
-													{suggestedAction?.description ||
-														tHome("addFirstTargetDesc")}
+													{tHome("suggestedActions.explore.description")}
 												</p>
 												<Button
 													asChild
 													className="bg-chart-2 hover:bg-chart-2/90"
 												>
 													<Link href={suggestedAction?.link || "/explore"}>
-														{tHome("exploreSchools")}
+														{tHome("suggestedActions.explore.cta")}
 														<ArrowRight className="w-4 h-4 ml-2" />
 													</Link>
 												</Button>
@@ -446,7 +360,7 @@ export function DashboardClient() {
 									</Card>
 								</StaggerItem>
 
-								{/* Persona Progress - Coverage-based */}
+								{/* Persona Discovery Progress */}
 								<StaggerItem>
 									<Card className="hover:shadow-md transition-shadow">
 										<CardContent className="p-5">
@@ -461,21 +375,23 @@ export function DashboardClient() {
 											<div className="space-y-2">
 												<div className="flex items-baseline justify-between">
 													<span className="text-2xl font-bold text-foreground">
-														{isLoading || isCoverageLoading ? (
+														{isLoading ? (
 															<Skeleton className="h-7 w-12 inline-block" />
 														) : (
-															`${coverage?.overallProgress ?? 0}%`
+															`${discovery.completedTracks ?? 0}/${discovery.totalTracks ?? 4}`
 														)}
 													</span>
 													<span className="text-xs text-muted-foreground">
-														{tHome("completed")}
+														{tHome("tracks")}
 													</span>
 												</div>
 												<Progress
 													value={
-														isLoading || isCoverageLoading
+														isLoading
 															? 0
-															: (coverage?.overallProgress ?? 0)
+															: ((discovery.completedTracks ?? 0) /
+																	(discovery.totalTracks ?? 4)) *
+																100
 													}
 													className="h-2"
 												/>
@@ -487,20 +403,126 @@ export function DashboardClient() {
 						</StaggerContainer>
 					</SlideUp>
 
-					{/* Main Content - 2 column layout */}
-					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-						{/* Left Column - Applications & Deadlines */}
-						<div className="lg:col-span-2 space-y-6">
-							{/* Your Applications */}
-							<SlideUp delay={0.3}>
+					{/* Main Content - Applications & Deadlines */}
+					<div className="space-y-6">
+						{/* Your Applications */}
+						<SlideUp delay={0.3}>
+							<Card>
+								<CardHeader className="flex flex-row items-center justify-between pb-2">
+									<CardTitle className="text-lg flex items-center gap-2">
+										<School
+											className="w-5 h-5 text-muted-foreground"
+											aria-hidden="true"
+										/>
+										{tHome("yourApplications")}
+									</CardTitle>
+									<Button variant="ghost" size="sm" asChild>
+										<Link href="/dashboard/applications">
+											{tHome("viewAll")}
+											<ArrowRight className="w-4 h-4 ml-1" />
+										</Link>
+									</Button>
+								</CardHeader>
+								<CardContent>
+									{isLoading ? (
+										<div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
+											{[1, 2, 3].map((i) => (
+												<div key={i} className="min-w-[220px] shrink-0">
+													<Card className="h-full">
+														<CardContent className="p-4 space-y-3">
+															<div className="flex items-start gap-3">
+																<Skeleton className="h-10 w-10 rounded-full" />
+																<div className="flex-1 space-y-2">
+																	<Skeleton className="h-4 w-24" />
+																	<Skeleton className="h-3 w-32" />
+																</div>
+															</div>
+															<div className="flex justify-between">
+																<Skeleton className="h-5 w-16" />
+																<Skeleton className="h-4 w-12" />
+															</div>
+														</CardContent>
+													</Card>
+												</div>
+											))}
+										</div>
+									) : recentApplications.length > 0 ? (
+										<div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
+											{recentApplications.map((app: RecentApplicationDto) => (
+												<Link
+													key={app.id}
+													href={`/dashboard/applications?id=${app.id}`}
+													className="min-w-[220px] shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
+												>
+													<Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+														<CardContent className="p-4">
+															<div className="flex items-start gap-3 mb-3">
+																<Avatar className="h-10 w-10 shrink-0">
+																	<AvatarFallback className="text-xs">
+																		{(app.universityName ?? "")
+																			.substring(0, 2)
+																			.toUpperCase()}
+																	</AvatarFallback>
+																</Avatar>
+																<div className="flex-1 min-w-0">
+																	<h4 className="font-medium text-sm text-foreground truncate">
+																		{app.universityName}
+																	</h4>
+																	<p className="text-xs text-muted-foreground truncate">
+																		{app.programName}
+																	</p>
+																</div>
+															</div>
+															<div className="space-y-2">
+																<div className="flex items-center justify-between">
+																	<Badge
+																		variant={
+																			app.status === "submitted"
+																				? "default"
+																				: "secondary"
+																		}
+																		className="text-xs capitalize"
+																	>
+																		{app.status}
+																	</Badge>
+																</div>
+															</div>
+														</CardContent>
+													</Card>
+												</Link>
+											))}
+										</div>
+									) : (
+										<div className="text-center py-8">
+											<div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+												<GraduationCap
+													className="w-8 h-8 text-muted-foreground"
+													aria-hidden="true"
+												/>
+											</div>
+											<p className="text-muted-foreground mb-4">
+												{tHome("noApplicationsYet")}
+											</p>
+											<Button variant="outline" size="sm" asChild>
+												<Link href="/explore">{tHome("exploreSchools")}</Link>
+											</Button>
+										</div>
+									)}
+								</CardContent>
+							</Card>
+						</SlideUp>
+
+						{/* Upcoming Deadlines Section */}
+						{upcomingDeadlines.length > 0 && (
+							<SlideUp delay={0.35}>
 								<Card>
 									<CardHeader className="flex flex-row items-center justify-between pb-2">
 										<CardTitle className="text-lg flex items-center gap-2">
-											<School
+											<Calendar
 												className="w-5 h-5 text-muted-foreground"
 												aria-hidden="true"
 											/>
-											{tHome("yourApplications")}
+											{tHome("upcomingDeadlines")}
 										</CardTitle>
 										<Button variant="ghost" size="sm" asChild>
 											<Link href="/dashboard/applications">
@@ -510,257 +532,61 @@ export function DashboardClient() {
 										</Button>
 									</CardHeader>
 									<CardContent>
-										{isLoading ? (
-											<div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
-												{[1, 2, 3].map((i) => (
-													<div key={i} className="min-w-[220px] shrink-0">
-														<Card className="h-full">
-															<CardContent className="p-4 space-y-3">
-																<div className="flex items-start gap-3">
-																	<Skeleton className="h-10 w-10 rounded-full" />
-																	<div className="flex-1 space-y-2">
-																		<Skeleton className="h-4 w-24" />
-																		<Skeleton className="h-3 w-32" />
-																	</div>
-																</div>
-																<div className="flex justify-between">
-																	<Skeleton className="h-5 w-16" />
-																	<Skeleton className="h-4 w-12" />
-																</div>
-															</CardContent>
-														</Card>
-													</div>
-												))}
-											</div>
-										) : recentApplications.length > 0 ? (
-											<div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
-												{recentApplications.map((app: RecentApplicationDto) => (
+										<div className="space-y-3">
+											{upcomingDeadlines.slice(0, 3).map((deadline) => {
+												const urgency = getDeadlineUrgency(
+													deadline.daysRemaining,
+												);
+												return (
 													<Link
-														key={app.id}
-														href={`/dashboard/applications/${app.id}`}
-														className="min-w-[220px] shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
+														key={deadline.applicationId}
+														href={`/dashboard/applications?id=${deadline.applicationId}`}
+														className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 													>
-														<Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-															<CardContent className="p-4">
-																<div className="flex items-start gap-3 mb-3">
-																	<Avatar className="h-10 w-10 shrink-0">
-																		<AvatarFallback className="text-xs">
-																			{(app.universityName ?? "")
-																				.substring(0, 2)
-																				.toUpperCase()}
-																		</AvatarFallback>
-																	</Avatar>
-																	<div className="flex-1 min-w-0">
-																		<h4 className="font-medium text-sm text-foreground truncate">
-																			{app.universityName}
-																		</h4>
-																		<p className="text-xs text-muted-foreground truncate">
-																			{app.programName}
-																		</p>
-																	</div>
-																</div>
-																<div className="space-y-2">
-																	<div className="flex items-center justify-between">
-																		<Badge
-																			variant={
-																				app.status === "submitted"
-																					? "default"
-																					: "secondary"
-																			}
-																			className="text-xs capitalize"
-																		>
-																			{app.status}
-																		</Badge>
-																	</div>
-																</div>
-															</CardContent>
-														</Card>
-													</Link>
-												))}
-											</div>
-										) : (
-											<div className="text-center py-8">
-												<div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-													<GraduationCap
-														className="w-8 h-8 text-muted-foreground"
-														aria-hidden="true"
-													/>
-												</div>
-												<p className="text-muted-foreground mb-4">
-													{tHome("noApplicationsYet")}
-												</p>
-												<Button variant="outline" size="sm" asChild>
-													<Link href="/explore">{tHome("exploreSchools")}</Link>
-												</Button>
-											</div>
-										)}
-									</CardContent>
-								</Card>
-							</SlideUp>
-
-							{/* Upcoming Deadlines Section */}
-							{upcomingDeadlines.length > 0 && (
-								<SlideUp delay={0.35}>
-									<Card>
-										<CardHeader className="flex flex-row items-center justify-between pb-2">
-											<CardTitle className="text-lg flex items-center gap-2">
-												<Calendar
-													className="w-5 h-5 text-muted-foreground"
-													aria-hidden="true"
-												/>
-												{tHome("upcomingDeadlines")}
-											</CardTitle>
-											<Button variant="ghost" size="sm" asChild>
-												<Link href="/dashboard/applications">
-													{tHome("viewAll")}
-													<ArrowRight className="w-4 h-4 ml-1" />
-												</Link>
-											</Button>
-										</CardHeader>
-										<CardContent>
-											<div className="space-y-3">
-												{upcomingDeadlines.slice(0, 3).map((deadline) => {
-													const urgency = getDeadlineUrgency(
-														deadline.daysRemaining,
-													);
-													return (
-														<Link
-															key={deadline.applicationId}
-															href={`/dashboard/applications/${deadline.applicationId}`}
-															className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-														>
-															<div className="flex items-center gap-3 min-w-0">
-																<div
-																	className={`w-10 h-10 ${urgency.bgColor} rounded-lg flex items-center justify-center shrink-0`}
-																>
-																	{deadline.daysRemaining !== undefined &&
-																	deadline.daysRemaining <= URGENT_DAYS ? (
-																		<AlertCircle
-																			className={`w-5 h-5 ${urgency.color}`}
-																			aria-hidden="true"
-																		/>
-																	) : (
-																		<Calendar
-																			className={`w-5 h-5 ${urgency.color}`}
-																			aria-hidden="true"
-																		/>
-																	)}
-																</div>
-																<div className="min-w-0">
-																	<p className="font-medium text-sm text-foreground truncate">
-																		{deadline.programName}
-																	</p>
-																	<p className="text-xs text-muted-foreground">
-																		{deadline.deadline}
-																	</p>
-																</div>
+														<div className="flex items-center gap-3 min-w-0">
+															<div
+																className={`w-10 h-10 ${urgency.bgColor} rounded-lg flex items-center justify-center shrink-0`}
+															>
+																{deadline.daysRemaining !== undefined &&
+																deadline.daysRemaining <= URGENT_DAYS ? (
+																	<AlertCircle
+																		className={`w-5 h-5 ${urgency.color}`}
+																		aria-hidden="true"
+																	/>
+																) : (
+																	<Calendar
+																		className={`w-5 h-5 ${urgency.color}`}
+																		aria-hidden="true"
+																	/>
+																)}
 															</div>
-															<div className="flex items-center gap-2 shrink-0">
-																<Badge
-																	variant="outline"
-																	className={`${urgency.color} border-current text-xs font-medium`}
-																>
-																	{deadline.daysRemaining}{" "}
-																	{tHome("daysAgo").replace("ago", "left")}
-																</Badge>
-																<ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-															</div>
-														</Link>
-													);
-												})}
-											</div>
-										</CardContent>
-									</Card>
-								</SlideUp>
-							)}
-						</div>
-
-						{/* Right Column - Quick Actions & Coverage */}
-						<div className="space-y-6">
-							{/* Coverage Breakdown (if data available) */}
-							{coverage && (coverage.overallProgress ?? 0) > 0 && (
-								<SlideUp delay={0.4}>
-									<Card>
-										<CardHeader className="pb-2">
-											<CardTitle className="text-lg flex items-center gap-2">
-												<Sparkles
-													className="w-5 h-5 text-muted-foreground"
-													aria-hidden="true"
-												/>
-												Persona Coverage
-											</CardTitle>
-										</CardHeader>
-										<CardContent>
-											<div className="space-y-3">
-												{COVERAGE_CATEGORIES.map(({ key, label, color }) => {
-													const value = coverage[
-														key as keyof CoverageMetrics
-													] as number | undefined;
-													return (
-														<div key={key} className="space-y-1">
-															<div className="flex items-center justify-between text-sm">
-																<span className="text-muted-foreground">
-																	{label}
-																</span>
-																<span className="font-medium tabular-nums">
-																	{value ?? 0}%
-																</span>
-															</div>
-															<div className="h-1.5 bg-muted rounded-full overflow-hidden">
-																<div
-																	className={`h-full ${color} rounded-full transition-all duration-500`}
-																	style={{ width: `${value ?? 0}%` }}
-																/>
+															<div className="min-w-0">
+																<p className="font-medium text-sm text-foreground truncate">
+																	{deadline.programName}
+																</p>
+																<p className="text-xs text-muted-foreground">
+																	{deadline.deadline}
+																</p>
 															</div>
 														</div>
-													);
-												})}
-											</div>
-											<div className="mt-4 pt-4 border-t">
-												<Button asChild className="w-full" variant="outline">
-													<Link href="/persona-lab">
-														{tHome("goToPersonaLab")}
-														<ArrowRight className="w-4 h-4 ml-2" />
+														<div className="flex items-center gap-2 shrink-0">
+															<Badge
+																variant="outline"
+																className={`${urgency.color} border-current text-xs font-medium`}
+															>
+																{deadline.daysRemaining}{" "}
+																{tHome("daysAgo").replace("ago", "left")}
+															</Badge>
+															<ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+														</div>
 													</Link>
-												</Button>
-											</div>
-										</CardContent>
-									</Card>
-								</SlideUp>
-							)}
-
-							{/* Quick Actions */}
-							<SlideUp delay={0.45}>
-								<Card>
-									<CardHeader className="pb-2">
-										<CardTitle className="text-lg">
-											{tHome("quickActions")}
-										</CardTitle>
-									</CardHeader>
-									<CardContent className="space-y-2">
-										{quickActions.map((action) => {
-											const Icon = action.icon;
-											return (
-												<Button
-													key={action.href}
-													variant="outline"
-													className="w-full justify-start"
-													asChild
-												>
-													<Link href={action.href}>
-														<Icon
-															className={`w-4 h-4 mr-2 ${action.color}`}
-															aria-hidden="true"
-														/>
-														{action.label}
-													</Link>
-												</Button>
-											);
-										})}
+												);
+											})}
+										</div>
 									</CardContent>
 								</Card>
 							</SlideUp>
-						</div>
+						)}
 					</div>
 				</div>
 			</div>
