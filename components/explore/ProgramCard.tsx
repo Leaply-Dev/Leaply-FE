@@ -40,7 +40,7 @@ interface ProgramCardProps {
 	onSaveToggle?: (id: string) => void;
 	onClick?: (program: ProgramListItemResponse) => void;
 	isSelected?: boolean;
-	onToggleSelection?: (id: string) => void;
+	onToggleSelection?: (id: string, program?: ProgramListItemResponse) => void;
 	isMaxReached?: boolean;
 	onAddToDashboard?: (id: string) => void;
 	isInDashboard?: boolean;
@@ -241,7 +241,7 @@ export function ProgramCard({
 					disabled={!isSelected && isMaxReached}
 					onClick={(e) => {
 						e.stopPropagation();
-						program.id && onToggleSelection?.(program.id);
+						program.id && onToggleSelection?.(program.id, program);
 					}}
 				>
 					{isSelected ? (

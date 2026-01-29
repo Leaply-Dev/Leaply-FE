@@ -39,6 +39,7 @@ import type {
 	GpaGap,
 	ProgramDetailResponse,
 	ProgramIntakeResponse,
+	ProgramListItemResponse,
 } from "@/lib/generated/api/models";
 import {
 	formatCurrencyWithCode,
@@ -51,7 +52,10 @@ interface ProgramDetailDrawerProps {
 	programId: string | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	onCompare?: (id: string) => void;
+	onCompare?: (
+		id: string,
+		program?: ProgramListItemResponse | ProgramDetailResponse,
+	) => void;
 	onAddToDashboard?: (id: string) => void;
 }
 

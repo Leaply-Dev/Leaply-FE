@@ -159,48 +159,55 @@ export function ExploreClient() {
 
 	// Compare state
 	const MAX_COMPARE_PROGRAMS = 4;
-	const [selectedPrograms, setSelectedPrograms] = useState<Set<string>>(
-		new Set(),
-	);
+	// Store full program objects instead of just IDs to support cross-mode comparison
+	const [selectedProgramsMap, setSelectedProgramsMap] = useState<
+		Map<string, ProgramListItemResponse>
+	>(new Map());
 	const [isCompareDialogOpen, setIsCompareDialogOpen] = useState(false);
 
 	// Toggle program selection
-	const toggleProgramSelection = (id: string) => {
-		setSelectedPrograms((prev) => {
-			const newSet = new Set(prev);
-			if (newSet.has(id)) {
-				newSet.delete(id);
-			} else if (newSet.size < MAX_COMPARE_PROGRAMS) {
-				newSet.add(id);
+	// Accepts ID and optional program object (for manual mode/when object is known)
+	const toggleProgramSelection = (
+		id: string,
+		program?: ProgramListItemResponse,
+	) => {
+		setSelectedProgramsMap((prev) => {
+			const newMap = new Map(prev);
+			if (newMap.has(id)) {
+				newMap.delete(id);
+			} else if (newMap.size < MAX_COMPARE_PROGRAMS) {
+				// 1. Use provided program object if available
+				if (program) {
+					newMap.set(id, program);
+				} else {
+					// 2. Fallback: Search in valid programs list
+					const inPrograms = programs.find(
+						(p: ProgramListItemResponse) => p.id === id,
+					);
+					if (inPrograms) {
+						newMap.set(id, inPrograms);
+					} else {
+						// 3. Fallback: Search in AI Match data
+						const aiData = unwrapResponse<AiMatchResponse>(aiMatchData);
+						if (aiData) {
+							const inAi = [
+								...(aiData.reach || []),
+								...(aiData.target || []),
+								...(aiData.safety || []),
+							].find((p) => p.id === id);
+							if (inAi) newMap.set(id, inAi);
+						}
+					}
+				}
 			}
-			return newSet;
+			return newMap;
 		});
 	};
 
-	const isMaxReached = selectedPrograms.size >= MAX_COMPARE_PROGRAMS;
-	const selectedCount = selectedPrograms.size;
-	const selectedProgramsList = Array.from(selectedPrograms)
-		.map((id) => {
-			// Search in valid programs list first
-			const inPrograms = programs.find(
-				(p: ProgramListItemResponse) => p.id === id,
-			);
-			if (inPrograms) return inPrograms;
-
-			// If not found, search in AI Match data (no unknown category)
-			const aiData = unwrapResponse<AiMatchResponse>(aiMatchData);
-			if (aiData) {
-				const { reach, target, safety } = aiData;
-				const inAi = [
-					...(reach || []),
-					...(target || []),
-					...(safety || []),
-				].find((p) => p.id === id);
-				if (inAi) return inAi;
-			}
-			return undefined;
-		})
-		.filter((p): p is ProgramListItemResponse => !!p);
+	const selectedPrograms = new Set(selectedProgramsMap.keys());
+	const isMaxReached = selectedProgramsMap.size >= MAX_COMPARE_PROGRAMS;
+	const selectedCount = selectedProgramsMap.size;
+	const selectedProgramsList = Array.from(selectedProgramsMap.values());
 
 	// Compute swimlane programs from AI Match or programs (no unknown category)
 	const aiData = unwrapResponse<AiMatchResponse>(aiMatchData);
@@ -379,7 +386,7 @@ export function ExploreClient() {
 				maxPrograms={MAX_COMPARE_PROGRAMS}
 				selectedProgramsList={selectedProgramsList}
 				onRemoveProgram={toggleProgramSelection}
-				onClearAll={() => setSelectedPrograms(new Set())}
+				onClearAll={() => setSelectedProgramsMap(new Map())}
 				onCompare={() => setIsCompareDialogOpen(true)}
 			/>
 
@@ -404,7 +411,10 @@ export function ExploreClient() {
 				open={isDetailDrawerOpen}
 				onOpenChange={setIsDetailDrawerOpen}
 				onCompare={(id) => {
-					toggleProgramSelection(id);
+					// We only have ID here, but if it's selected it should be in map.
+					// If adding from detail, we should pass program, but drawer logic needs update if we want that.
+					// For now, ID toggle works if program is already in list or fetchable.
+					toggleProgramSelection(id, selectedProgram || undefined);
 					setIsDetailDrawerOpen(false);
 				}}
 				onAddToDashboard={handleAddToDashboard}

@@ -124,7 +124,7 @@ function GapIndicators({ program }: { program: ProgramListItemResponse }) {
 
 interface ManualModeProps {
 	selectedPrograms: Set<string>;
-	onToggleSelection: (id: string) => void;
+	onToggleSelection: (id: string, program?: ProgramListItemResponse) => void;
 	isMaxReached: boolean;
 	onAddToDashboard?: (id: string) => void;
 	isProgramInDashboard?: (id: string) => boolean;
@@ -733,7 +733,7 @@ export function ManualMode({
 									key={program.id}
 									program={program}
 									selected={selectedPrograms.has(program.id || "")}
-									onSelect={() => onToggleSelection(program.id || "")}
+									onSelect={() => onToggleSelection(program.id || "", program)}
 									onClick={() => {
 										setSelectedProgram(program);
 										setIsDetailDrawerOpen(true);
@@ -797,7 +797,7 @@ export function ManualMode({
 				open={isDetailDrawerOpen}
 				onOpenChange={setIsDetailDrawerOpen}
 				onCompare={(id) => {
-					onToggleSelection(id);
+					onToggleSelection(id, selectedProgram || undefined);
 					setIsDetailDrawerOpen(false);
 				}}
 				onAddToDashboard={onAddToDashboard}

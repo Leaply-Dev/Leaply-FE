@@ -28,7 +28,7 @@ export function TabBasedCategories({
 	onSaveToggle?: (id: string) => void;
 	onProgramClick?: (program: ProgramListItemResponse) => void;
 	selectedPrograms?: Set<string>;
-	onToggleSelection?: (id: string) => void;
+	onToggleSelection?: (id: string, program?: ProgramListItemResponse) => void;
 	isMaxReached?: boolean;
 	onAddToDashboard?: (id: string) => void;
 	isProgramInDashboard?: (id: string) => boolean;
