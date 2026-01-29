@@ -1,10 +1,10 @@
 "use client";
 
 import { AnimatePresence, m } from "framer-motion";
-import { ArrowRight, Sparkles, X } from "lucide-react";
+import { ArrowRight, Sparkles, Star, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,8 @@ function Confetti() {
 		"#EC4899",
 		"#F59E0B",
 		"#6366F1",
+		"#A855F7",
+		"#14B8A6",
 	];
 	const pieces = Array.from({ length: 50 }, (_, i) => ({
 		id: i,
@@ -67,12 +69,17 @@ function Confetti() {
 
 export function ArchetypeCelebrationModal() {
 	const t = useTranslations("personaLab");
+	const locale = useLocale();
 	const router = useRouter();
 	const [showConfetti, setShowConfetti] = useState(false);
 
 	// Store state
 	const showModal = usePersonaStore((state) => state.showArchetypeModal);
 	const archetypeType = usePersonaStore((state) => state.archetypeType);
+	const personalizedSummary = usePersonaStore(
+		(state) => state.archetypePersonalizedSummary,
+	);
+	const rarity = usePersonaStore((state) => state.archetypeRarity);
 	const setShowArchetypeModal = usePersonaStore(
 		(state) => state.setShowArchetypeModal,
 	);
@@ -100,18 +107,31 @@ export function ArchetypeCelebrationModal() {
 
 	// Get localized content based on locale
 	const getLocalizedContent = (config: ArchetypeConfig) => {
-		// For now, use English. In production, detect locale and use Vi if needed.
+		const isVietnamese = locale === "vi";
 		return {
-			title: config.title,
-			tagline: config.tagline,
-			description: config.description,
-			strengths: config.essayStrengths,
+			title: isVietnamese ? config.titleVi : config.title,
+			tagline: isVietnamese ? config.taglineVi : config.tagline,
+			description: isVietnamese ? config.descriptionVi : config.description,
+			strengths: isVietnamese ? config.essayStrengthsVi : config.essayStrengths,
 		};
+	};
+
+	// Get rarity display text
+	const getRarityText = (rarityPercent: number | null) => {
+		if (!rarityPercent) return null;
+		const isVietnamese = locale === "vi";
+		return isVietnamese
+			? `Chỉ ${rarityPercent}% học sinh có archetype này`
+			: `Only ${rarityPercent}% of students share this archetype`;
 	};
 
 	if (!config) return null;
 
 	const content = getLocalizedContent(config);
+	const rarityText = getRarityText(rarity ?? config.rarity);
+
+	// Use personalized summary if available, otherwise fall back to static description
+	const displayDescription = personalizedSummary || content.description;
 
 	return (
 		<AnimatePresence>
@@ -137,7 +157,7 @@ export function ArchetypeCelebrationModal() {
 						exit={{ opacity: 0 }}
 					>
 						<m.div
-							className="bg-background rounded-2xl shadow-2xl max-w-md w-full overflow-hidden"
+							className="bg-background rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative"
 							initial={{ scale: 0.8, y: 50 }}
 							animate={{ scale: 1, y: 0 }}
 							exit={{ scale: 0.8, y: 50 }}
@@ -222,14 +242,37 @@ export function ArchetypeCelebrationModal() {
 
 							{/* Content */}
 							<div className="px-6 py-4">
-								{/* Description */}
+								{/* Rarity Badge */}
+								{rarityText && (
+									<m.div
+										className="flex items-center justify-center gap-2 mb-4 p-3 rounded-lg"
+										style={{ backgroundColor: `${config.color}10` }}
+										initial={{ opacity: 0, scale: 0.9 }}
+										animate={{ opacity: 1, scale: 1 }}
+										transition={{ delay: 0.55 }}
+									>
+										<Star
+											className="w-4 h-4"
+											style={{ color: config.color }}
+											fill={config.color}
+										/>
+										<span
+											className="text-sm font-medium"
+											style={{ color: config.color }}
+										>
+											{rarityText}
+										</span>
+									</m.div>
+								)}
+
+								{/* Personalized Description */}
 								<m.p
 									className="text-sm text-muted-foreground mb-4 leading-relaxed"
 									initial={{ opacity: 0 }}
 									animate={{ opacity: 1 }}
 									transition={{ delay: 0.6 }}
 								>
-									{content.description}
+									{displayDescription}
 								</m.p>
 
 								{/* Essay strengths */}

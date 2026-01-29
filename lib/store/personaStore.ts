@@ -12,9 +12,12 @@
  */
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import {
+	type ArchetypeKey,
+	getArchetypeConfig,
+} from "@/lib/config/archetypeConfig";
 import type { PartKey, PartsProgress } from "@/lib/config/partsConfig";
 import type {
-	ArchetypeDtoType,
 	CoverageMetrics,
 	GraphMessageResponse,
 	PersonaEdgeDto,
@@ -84,7 +87,9 @@ interface PersonaStoreState {
 	conversationState: GuidedConversationState | null;
 
 	// === Archetype State ===
-	archetypeType: ArchetypeDtoType | null;
+	archetypeType: ArchetypeKey | null;
+	archetypePersonalizedSummary: string | null; // LLM-generated personalized comment
+	archetypeRarity: number | null; // Percentage of users with this archetype
 	archetypeRevealed: boolean;
 	showArchetypeModal: boolean;
 
@@ -114,7 +119,11 @@ interface PersonaStoreState {
 	updatePartStatus: (part: PartKey, status: PartsProgress[PartKey]) => void;
 
 	// Archetype actions
-	setArchetype: (type: ArchetypeDtoType) => void;
+	setArchetype: (
+		type: ArchetypeKey,
+		personalizedSummary?: string | null,
+		rarity?: number | null,
+	) => void;
 	setShowArchetypeModal: (show: boolean) => void;
 
 	// Chat message actions
@@ -170,7 +179,9 @@ const initialState = {
 	conversationState: null as GuidedConversationState | null,
 
 	// Archetype state
-	archetypeType: null as ArchetypeDtoType | null,
+	archetypeType: null as ArchetypeKey | null,
+	archetypePersonalizedSummary: null as string | null,
+	archetypeRarity: null as number | null,
 	archetypeRevealed: false,
 	showArchetypeModal: false,
 
@@ -277,6 +288,8 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					partsProgress: defaultPartsProgress,
 					conversationState: null,
 					archetypeType: null,
+					archetypePersonalizedSummary: null,
+					archetypeRarity: null,
 					archetypeRevealed: false,
 					showArchetypeModal: false,
 				}),
@@ -305,9 +318,15 @@ export const usePersonaStore = create<PersonaStoreState>()(
 
 			// === Archetype Actions ===
 
-			setArchetype: (type: ArchetypeDtoType) =>
+			setArchetype: (
+				type: ArchetypeKey,
+				personalizedSummary?: string | null,
+				rarity?: number | null,
+			) =>
 				set({
 					archetypeType: type,
+					archetypePersonalizedSummary: personalizedSummary ?? null,
+					archetypeRarity: rarity ?? null,
 					archetypeRevealed: true,
 					showArchetypeModal: true, // Show celebration modal
 				}),
@@ -414,8 +433,13 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					// Sync archetype from server if available
 					const archetypeUpdates: Partial<PersonaStoreState> = {};
 					if (data.archetype?.type && !state.archetypeRevealed) {
-						archetypeUpdates.archetypeType = data.archetype
-							.type as ArchetypeDtoType;
+						const archetypeKey = data.archetype.type as ArchetypeKey;
+						const archetypeConfig = getArchetypeConfig(archetypeKey);
+						archetypeUpdates.archetypeType = archetypeKey;
+						archetypeUpdates.archetypePersonalizedSummary =
+							data.archetype.personalizedSummary ?? null;
+						// Get rarity from config since ArchetypeDto may not have it
+						archetypeUpdates.archetypeRarity = archetypeConfig?.rarity ?? null;
 						archetypeUpdates.archetypeRevealed = true;
 					}
 
@@ -504,6 +528,8 @@ export const usePersonaStore = create<PersonaStoreState>()(
 				// New fields for guided flow
 				partsProgress: state.partsProgress,
 				archetypeType: state.archetypeType,
+				archetypePersonalizedSummary: state.archetypePersonalizedSummary,
+				archetypeRarity: state.archetypeRarity,
 				archetypeRevealed: state.archetypeRevealed,
 			}),
 			onRehydrateStorage: () => (state, error) => {
@@ -549,6 +575,10 @@ export const selectConversationState = (state: PersonaStoreState) =>
 	state.conversationState;
 export const selectArchetypeType = (state: PersonaStoreState) =>
 	state.archetypeType;
+export const selectArchetypePersonalizedSummary = (state: PersonaStoreState) =>
+	state.archetypePersonalizedSummary;
+export const selectArchetypeRarity = (state: PersonaStoreState) =>
+	state.archetypeRarity;
 export const selectArchetypeRevealed = (state: PersonaStoreState) =>
 	state.archetypeRevealed;
 export const selectShowArchetypeModal = (state: PersonaStoreState) =>
