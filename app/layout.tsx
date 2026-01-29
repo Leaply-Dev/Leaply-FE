@@ -7,21 +7,31 @@
  * TODO: Refactor pages with useSearchParams to use proper Suspense boundaries for SSG optimization.
  */
 
+import { Agentation } from "agentation";
 import type { Metadata } from "next";
-import { Inter, Raleway } from "next/font/google";
+import {
+	EB_Garamond,
+	JetBrains_Mono,
+	Plus_Jakarta_Sans,
+} from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import { Providers } from "@/components/providers/Providers";
-import { Agentation } from "agentation";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
 
-const raleway = Raleway({ subsets: ["latin"], variable: "--font-sans" });
-const inter = Inter({
+const plus_jakarta_sans = Plus_Jakarta_Sans({
+	variable: "--font-sans",
 	subsets: ["latin"],
-	variable: "--font-num",
-	display: "swap",
+});
+const eb_garamond = EB_Garamond({
+	variable: "--font-serif",
+	subsets: ["latin"],
+});
+const jetbrains_mono = JetBrains_Mono({
+	variable: "--font-mono",
+	subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -52,7 +62,9 @@ export default async function RootLayout({
 					/>
 				</head>
 			)}
-			<body className={`${raleway.variable} ${inter.variable}`}>
+			<body
+				className={`font-sans ${plus_jakarta_sans.variable} ${eb_garamond.variable} ${jetbrains_mono.variable}`}
+			>
 				<NextIntlClientProvider>
 					<Providers>{children}</Providers>
 				</NextIntlClientProvider>
