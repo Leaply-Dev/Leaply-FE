@@ -1,6 +1,6 @@
 /**
  * API Error class for structured error handling.
- * 
+ *
  * This is the only export needed from this file - used by errorUtils and query-provider.
  * All API calls go through mutator.ts which handles cookie-based auth.
  */

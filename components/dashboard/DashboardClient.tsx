@@ -29,6 +29,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import { useGetHomeData } from "@/lib/generated/api/endpoints/home/home";
 import { useGetPartsProgress } from "@/lib/generated/api/endpoints/persona-lab/persona-lab";
 import type {
 	HomeResponse,
@@ -36,33 +37,15 @@ import type {
 	RecentApplicationDto,
 	UpcomingDeadlineDto,
 } from "@/lib/generated/api/models";
-import { useHomeData } from "@/lib/hooks/useHomeData";
 import { useUserStore } from "@/lib/store/userStore";
 
 // Deadline urgency thresholds
 const URGENT_DAYS = 7;
-const WARNING_DAYS = 30;
-
-function getDeadlineUrgency(daysRemaining: number | undefined): {
-	color: string;
-	bgColor: string;
-} {
-	if (daysRemaining === undefined)
-		return { color: "text-muted-foreground", bgColor: "bg-muted" };
-	if (daysRemaining <= URGENT_DAYS)
-		return { color: "text-red-600", bgColor: "bg-red-50 dark:bg-red-950/30" };
-	if (daysRemaining <= WARNING_DAYS)
-		return {
-			color: "text-amber-600",
-			bgColor: "bg-amber-50 dark:bg-amber-950/30",
-		};
-	return { color: "text-muted-foreground", bgColor: "bg-muted/50" };
-}
 
 export function DashboardClient() {
 	const tHome = useTranslations("home");
 	const { profile } = useUserStore();
-	const { data: homeData, isLoading } = useHomeData();
+	const { data: homeData, isLoading } = useGetHomeData();
 	const { data: partsProgressData, isLoading: isPartsLoading } =
 		useGetPartsProgress();
 

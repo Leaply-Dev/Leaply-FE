@@ -7,24 +7,24 @@ import { useEffect, useState } from "react";
 import { OnboardingProgress } from "@/components/OnboardingProgress";
 import { PageTransition } from "@/components/PageTransition";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	mapBudgetIndexToKey,
 	mapFieldsToKeys,
 	mapRegionsToKeys,
 } from "@/lib/constants/onboardingMappings";
-import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	getStatus,
 	updateOnboarding,
 } from "@/lib/generated/api/endpoints/onboarding/onboarding";
 import {
-	getProfile,
 	getPreferences,
+	getProfile,
 } from "@/lib/generated/api/endpoints/user/user";
 import type {
 	OnboardingDataResponse,
-	ProfileResponse,
 	PreferencesResponse,
+	ProfileResponse,
 } from "@/lib/generated/api/models";
 import { type JourneyType, useUserStore } from "@/lib/store/userStore";
 import { OnboardingHeader } from "./OnboardingHeader";
@@ -91,7 +91,7 @@ export function OnboardingClient({
 
 				// Get onboarding status to determine starting step
 				const statusResponse = await getStatus().catch(() => null);
-				const status = statusResponse 
+				const status = statusResponse
 					? unwrapResponse<OnboardingDataResponse>(statusResponse)
 					: { completedSteps: 0, isComplete: false };
 
@@ -115,8 +115,12 @@ export function OnboardingClient({
 					getProfile().catch(() => null),
 					getPreferences().catch(() => null),
 				]);
-				const profileData = profileResponse ? unwrapResponse<ProfileResponse>(profileResponse) : null;
-				const preferencesData = preferencesResponse ? unwrapResponse<PreferencesResponse>(preferencesResponse) : null;
+				const profileData = profileResponse
+					? unwrapResponse<ProfileResponse>(profileResponse)
+					: null;
+				const preferencesData = preferencesResponse
+					? unwrapResponse<PreferencesResponse>(preferencesResponse)
+					: null;
 
 				// Populate form with existing data
 				if (profileData) {

@@ -15,13 +15,13 @@ import ForceGraph2D from "react-force-graph-2d";
 import { Button } from "@/components/ui/button";
 import { getNodeConfig } from "@/lib/config/graphConfig";
 import type { PersonaNodeDto } from "@/lib/generated/api/models";
+import { useExpandNode } from "@/lib/hooks/persona";
 import { useMockGraphData } from "@/lib/hooks/persona/useMockGraphData";
 import { useContainerDimensions } from "@/lib/hooks/useContainerDimensions";
 import { useGraphControls } from "@/lib/hooks/useGraphControls";
 import { useGraphForces } from "@/lib/hooks/useGraphForces";
 import { useGraphInteraction } from "@/lib/hooks/useGraphInteraction";
 import { useGraphRenderers } from "@/lib/hooks/useGraphRenderers";
-import { useExpandNode } from "@/lib/hooks/usePersonaConversation";
 import {
 	type StarStructureKey,
 	usePersonaStore,

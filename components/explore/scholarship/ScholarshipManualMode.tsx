@@ -30,6 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import { useGetCurrentUser } from "@/lib/generated/api/endpoints/authentication/authentication";
 import {
 	getListScholarshipsQueryKey,
 	listScholarships,
@@ -40,7 +41,6 @@ import type {
 	ScholarshipListItemResponse,
 	ScholarshipListResponse,
 } from "@/lib/generated/api/models";
-import { useUserMe } from "@/lib/hooks/useUserMe";
 import {
 	formatCoverageAmount,
 	formatCoverageType,
@@ -388,7 +388,7 @@ export function ScholarshipManualMode({
 	const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
 
 	// User auth state for fit_score sorting
-	const { data: userResponse } = useUserMe();
+	const { data: userResponse } = useGetCurrentUser();
 	const isAuthenticated = !!userResponse;
 
 	// Auto-determine sort based on auth state (fit_score for auth, deadline for guest)

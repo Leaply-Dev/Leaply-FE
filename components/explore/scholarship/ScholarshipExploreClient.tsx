@@ -18,12 +18,12 @@ import {
 	useCreateApplication,
 	useGetApplications,
 } from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
+import { useGetMatchedScholarships } from "@/lib/generated/api/endpoints/scholarship-explore/scholarship-explore";
 import type {
 	ScholarshipAiMatchResponse,
 	ScholarshipApplicationListResponse,
 	ScholarshipListItemResponse,
 } from "@/lib/generated/api/models";
-import { useScholarshipAiMatch } from "@/lib/hooks/useScholarshipAiMatch";
 import { cn } from "@/lib/utils";
 
 /**
@@ -69,7 +69,7 @@ export function ScholarshipExploreClient() {
 		data: aiMatchData,
 		isLoading: isLoadingAiMatch,
 		error: aiMatchError,
-	} = useScholarshipAiMatch();
+	} = useGetMatchedScholarships({});
 
 	// Fetch existing scholarship applications to check if already applied
 	const { data: scholarshipAppsResponse } = useGetApplications();

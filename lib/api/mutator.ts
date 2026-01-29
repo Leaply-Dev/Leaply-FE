@@ -2,17 +2,6 @@ import { performLogout } from "../auth/logout";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
-/**
- * Simplified mutator for cookie-based authentication.
- *
- * After backend migration to HttpOnly cookies:
- * - No more localStorage token storage
- * - Browser automatically sends cookies with credentials: 'include'
- * - 401 triggers silent cookie refresh via /oauth/refresh
- *
- * This removes ~200 lines of complex token refresh logic.
- */
-
 // Track refresh state to prevent multiple simultaneous refresh attempts
 let isRefreshing = false;
 let refreshPromise: Promise<boolean> | null = null;

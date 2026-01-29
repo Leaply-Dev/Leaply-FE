@@ -2,16 +2,9 @@
 
 import Cookies from "js-cookie";
 import { usePathname } from "next/navigation";
-import {
-	createContext,
-	useCallback,
-	useContext,
-	useEffect,
-	useRef,
-	useState,
-} from "react";
-import { getCurrentUser } from "@/lib/generated/api/endpoints/authentication/authentication";
+import { useEffect, useRef } from "react";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import { getCurrentUser } from "@/lib/generated/api/endpoints/authentication/authentication";
 import type { UserContextResponse } from "@/lib/generated/api/models";
 import { useUserStore } from "@/lib/store/userStore";
 
@@ -43,22 +36,6 @@ interface AuthProviderProps {
 	children: React.ReactNode;
 }
 
-interface SessionWarningContextValue {
-	showWarning: boolean;
-	secondsRemaining: number;
-	onExtendSession: () => void;
-}
-
-const SessionWarningContext = createContext<SessionWarningContextValue>({
-	showWarning: false,
-	secondsRemaining: 0,
-	onExtendSession: () => {},
-});
-
-export function useSessionWarning() {
-	return useContext(SessionWarningContext);
-}
-
 /**
  * Check if auth was already validated this session
  */
@@ -82,15 +59,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	const { isAuthenticated, login, profile, _hasHydrated } = useUserStore();
 	const validationInProgress = useRef(false);
 	const pathname = usePathname();
-
-	// Session warning state (kept for UI compatibility, but not actively used with cookie auth)
-	const [showWarning, setShowWarning] = useState(false);
-	const [secondsRemaining, setSecondsRemaining] = useState(0);
-
-	const handleExtendSession = useCallback(() => {
-		setShowWarning(false);
-		setSecondsRemaining(0);
-	}, []);
 
 	useEffect(() => {
 		if (!_hasHydrated) return;
@@ -158,15 +126,5 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		validateAuth();
 	}, [_hasHydrated, isAuthenticated, login, profile, pathname]);
 
-	const sessionWarningValue: SessionWarningContextValue = {
-		showWarning,
-		secondsRemaining,
-		onExtendSession: handleExtendSession,
-	};
-
-	return (
-		<SessionWarningContext.Provider value={sessionWarningValue}>
-			{children}
-		</SessionWarningContext.Provider>
-	);
+	return <>{children}</>;
 }

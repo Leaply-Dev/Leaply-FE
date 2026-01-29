@@ -1,8 +1,8 @@
 // Filter Panel Components
-export { FilterPanel, FilterPanelInline } from "./FilterPanel";
+export { FilterPanel } from "./FilterPanel";
 
 // Quick Filter Chips
-export { QuickFilterChip, QuickFilterChips } from "./QuickFilterChip";
+export { QuickFilterChips } from "./QuickFilterChip";
 
 // Region Filter
 export {
@@ -16,6 +16,5 @@ export {
 	CoverageTypeFilter,
 	DeadlineWithinFilter,
 	EligibilityTypeFilter,
-	SelectFilter,
 	TuitionMaxFilter,
 } from "./SelectFilters";

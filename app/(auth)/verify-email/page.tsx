@@ -19,7 +19,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { useResendVerification } from "@/lib/hooks/useResendVerification";
+import { useResendVerification } from "@/lib/generated/api/endpoints/authentication/authentication";
 import { useVerifyEmail } from "@/lib/hooks/useVerifyEmail";
 import { useUserStore } from "@/lib/store/userStore";
 

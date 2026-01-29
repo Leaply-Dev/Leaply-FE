@@ -54,9 +54,9 @@ function ProgramCardSkeleton() {
 	);
 }
 
-import { useAiMatch } from "@/lib/hooks/useAiMatch";
+import { useGetCurrentUser } from "@/lib/generated/api/endpoints/authentication/authentication";
+import { useGetMatchedPrograms } from "@/lib/generated/api/endpoints/explore/explore";
 import { usePrograms, useSaveProgram } from "@/lib/hooks/usePrograms";
-import { useUserMe } from "@/lib/hooks/useUserMe";
 import { cn } from "@/lib/utils";
 
 export function ExploreClient() {
@@ -75,9 +75,9 @@ export function ExploreClient() {
 		data: aiMatchData,
 		isLoading: isLoadingAiMatch,
 		error: aiMatchError,
-	} = useAiMatch();
+	} = useGetMatchedPrograms({});
 
-	const { data: userProfile } = useUserMe();
+	const { data: userProfile } = useGetCurrentUser();
 
 	const saveMutation = useSaveProgram();
 	const router = useRouter();

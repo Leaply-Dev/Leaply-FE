@@ -24,8 +24,8 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import { useLogin } from "@/lib/generated/api/endpoints/authentication/authentication";
 import type { AuthResponse } from "@/lib/generated/api/models";
-import { useLogin } from "@/lib/hooks/useLogin";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
 import { type LoginFormData, loginSchema } from "@/lib/validations/auth";

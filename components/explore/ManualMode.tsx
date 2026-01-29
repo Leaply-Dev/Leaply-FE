@@ -29,6 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import { useGetCurrentUser } from "@/lib/generated/api/endpoints/authentication/authentication";
 import {
 	getListProgramsQueryKey,
 	listPrograms,
@@ -40,7 +41,6 @@ import type {
 	ProgramListItemResponse,
 	ProgramListResponse,
 } from "@/lib/generated/api/models";
-import { useUserMe } from "@/lib/hooks/useUserMe";
 import {
 	formatCountryName,
 	formatTuitionRange,
@@ -413,7 +413,7 @@ export function ManualMode({
 	const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
 
 	// User auth state for automatic sorting
-	const { data: userResponse } = useUserMe();
+	const { data: userResponse } = useGetCurrentUser();
 	const isAuthenticated = !!userResponse;
 
 	// Auto-determine sort based on auth state (preference for auth, ranking_qs for guest)
