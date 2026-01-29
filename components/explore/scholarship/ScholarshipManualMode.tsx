@@ -16,16 +16,16 @@ import {
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ScholarshipDetailDrawer } from "@/components/explore/scholarship/ScholarshipDetailDrawer";
 import {
+	CoverageTypeFilter,
+	DeadlineWithinFilter,
+	EligibilityTypeFilter,
 	FilterPanel,
 	QuickFilterChips,
 	RegionFilter,
 	useRegionOptions,
-	DeadlineWithinFilter,
-	CoverageTypeFilter,
-	EligibilityTypeFilter,
 } from "@/components/explore/filters";
+import { ScholarshipDetailDrawer } from "@/components/explore/scholarship/ScholarshipDetailDrawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,7 +51,11 @@ import {
 const PAGE_SIZE = 20;
 
 // Quick filter types for scholarships
-type ScholarshipQuickFilter = "fullFunded" | "meetReq" | "deadline" | "meritBased";
+type ScholarshipQuickFilter =
+	| "fullFunded"
+	| "meetReq"
+	| "deadline"
+	| "meritBased";
 
 function ScholarshipGapIndicators({
 	scholarship,
@@ -615,7 +619,9 @@ export function ScholarshipManualMode({
 						onFiltersChange={(newFilters) =>
 							setFilters({ ...filters, quickFilters: newFilters })
 						}
-						disabled={!isAuthenticated && filters.quickFilters.includes("meetReq")}
+						disabled={
+							!isAuthenticated && filters.quickFilters.includes("meetReq")
+						}
 					/>
 				}
 				advancedFilters={

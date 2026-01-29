@@ -83,13 +83,8 @@ export function SignupForm({
 				fullName: validatedData.fullName,
 			};
 
-			login(
-				userProfile,
-				authResponse.accessToken ?? "",
-				authResponse.refreshToken ?? "",
-				authResponse.expiresIn ?? 0,
-				authResponse.onboardingCompleted ?? false,
-			);
+			// Backend now sets HttpOnly cookies - we just update UI state
+			login(userProfile, authResponse.onboardingCompleted ?? false);
 
 			// Redirect to verify-email page for email verification prompt
 			router.push("/verify-email");

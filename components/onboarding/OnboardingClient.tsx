@@ -12,8 +12,20 @@ import {
 	mapFieldsToKeys,
 	mapRegionsToKeys,
 } from "@/lib/constants/onboardingMappings";
-import { onboardingService } from "@/lib/services/onboarding";
-import { userService } from "@/lib/services/user";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import {
+	getStatus,
+	updateOnboarding,
+} from "@/lib/generated/api/endpoints/onboarding/onboarding";
+import {
+	getProfile,
+	getPreferences,
+} from "@/lib/generated/api/endpoints/user/user";
+import type {
+	OnboardingDataResponse,
+	ProfileResponse,
+	PreferencesResponse,
+} from "@/lib/generated/api/models";
 import { type JourneyType, useUserStore } from "@/lib/store/userStore";
 import { OnboardingHeader } from "./OnboardingHeader";
 import {
@@ -78,15 +90,10 @@ export function OnboardingClient({
 				setIsLoading(true);
 
 				// Get onboarding status to determine starting step
-				const status = await onboardingService
-					.getOnboardingStatus()
-					.catch((error) => {
-						// If user has no onboarding data yet (404), start from step 0
-						if (error?.status === 404 || error?.message?.includes("404")) {
-							return { completedSteps: 0, isComplete: false };
-						}
-						return { completedSteps: 0, isComplete: false };
-					});
+				const statusResponse = await getStatus().catch(() => null);
+				const status = statusResponse 
+					? unwrapResponse<OnboardingDataResponse>(statusResponse)
+					: { completedSteps: 0, isComplete: false };
 
 				// If onboarding is complete, redirect to dashboard
 				if (status?.isComplete) {
@@ -104,14 +111,12 @@ export function OnboardingClient({
 				setCurrentStep(startingStep);
 
 				// Load user profile and preferences
-				const [profileData, preferencesData] = await Promise.all([
-					userService.getProfile().catch((_e) => {
-						return null;
-					}),
-					userService.getPreferences().catch((_e) => {
-						return null;
-					}),
+				const [profileResponse, preferencesResponse] = await Promise.all([
+					getProfile().catch(() => null),
+					getPreferences().catch(() => null),
 				]);
+				const profileData = profileResponse ? unwrapResponse<ProfileResponse>(profileResponse) : null;
+				const preferencesData = preferencesResponse ? unwrapResponse<PreferencesResponse>(preferencesResponse) : null;
 
 				// Populate form with existing data
 				if (profileData) {
@@ -176,7 +181,7 @@ export function OnboardingClient({
 			});
 
 			// Update onboarding progress (this also persists profile data on backend)
-			await onboardingService.updateOnboarding({
+			await updateOnboarding({
 				currentLevel: basicInfo.educationLevel as
 					| "high_school"
 					| "undergrad"
@@ -211,7 +216,7 @@ export function OnboardingClient({
 			const regionKeys = mapRegionsToKeys(prefs.regions);
 
 			// Update onboarding progress with enum keys
-			await onboardingService.updateOnboarding({
+			await updateOnboarding({
 				targetFields: fieldKeys,
 				targetRegions: regionKeys,
 			});
@@ -240,7 +245,7 @@ export function OnboardingClient({
 			const budgetKey = mapBudgetIndexToKey(prefs.budgetIndex);
 
 			// Update onboarding progress with enum key
-			await onboardingService.updateOnboarding({
+			await updateOnboarding({
 				targetIntake: formattedTimeline,
 				budgetRange: budgetKey,
 			});
@@ -271,7 +276,7 @@ export function OnboardingClient({
 			});
 
 			// Mark onboarding as complete (this also persists journey selection)
-			await onboardingService.updateOnboarding({
+			await updateOnboarding({
 				direction: type === "exploring" ? "exploring" : "has_target",
 			});
 

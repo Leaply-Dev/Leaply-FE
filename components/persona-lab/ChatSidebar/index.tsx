@@ -24,7 +24,6 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
-import { ensureFreshToken } from "@/lib/api/client";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import type { ArchetypeKey } from "@/lib/config/archetypeConfig";
 import type { PartKey, PartsProgress } from "@/lib/config/partsConfig";
@@ -211,15 +210,8 @@ export function ChatSidebar() {
 
 	const handleSendMessage = useCallback(
 		async (content: string) => {
-			// Ensure token is fresh before starting long-running AI request
-			// This prevents "Authentication required" errors mid-conversation
-			const tokenFresh = await ensureFreshToken();
-			if (!tokenFresh) {
-				toast.error(t("sessionExpired"), {
-					description: t("pleaseLoginAgain"),
-				});
-				return;
-			}
+			// With cookie-based auth, token freshness is handled automatically
+			// Browser sends cookies, backend refreshes if needed via /oauth/refresh
 
 			// Track when we started thinking
 			const startTime = Date.now();

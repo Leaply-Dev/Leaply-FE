@@ -76,28 +76,16 @@ export function LoginForm({
 				throw new Error("Login failed - no data received");
 			}
 
-			// Add validation for critical fields
-			if (!authResponse.accessToken) {
-				console.error("Login response missing access token:", authResponse);
-				throw new Error("Login failed - missing access token");
-			}
-
 			const userProfile = {
 				id: authResponse.userId ?? "",
 				email: authResponse.email ?? "",
 				fullName: "", // API doesn't return name on login yet, will need to fetch profile or adjust
 			};
 
-			login(
-				userProfile,
-				authResponse.accessToken,
-				authResponse.refreshToken ?? "",
-				authResponse.expiresIn ?? 0,
-				authResponse.onboardingCompleted ?? false,
-			);
+			// Backend now sets HttpOnly cookies - we just update UI state
+			login(userProfile, authResponse.onboardingCompleted ?? false);
 
 			// Wait for Zustand persist to complete
-			// This ensures tokens are written to localStorage before redirect
 			await new Promise((resolve) => setTimeout(resolve, 200));
 
 			if (authResponse.onboardingCompleted) {

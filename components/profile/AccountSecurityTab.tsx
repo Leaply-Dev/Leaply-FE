@@ -40,9 +40,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import {
+	forgotPassword,
+	resendVerification,
+} from "@/lib/generated/api/endpoints/authentication/authentication";
 import { useGetMe } from "@/lib/generated/api/endpoints/user/user";
 import type { UserMeResponse } from "@/lib/generated/api/models";
-import { authService } from "@/lib/services/auth";
 
 export function AccountSecurityTab() {
 	const t = useTranslations("profile");
@@ -71,7 +74,7 @@ export function AccountSecurityTab() {
 		setIsResettingPassword(true);
 
 		try {
-			await authService.forgotPassword(userData.email);
+			await forgotPassword({ email: userData.email });
 			toast.success(t("resetPasswordSent"));
 		} catch {
 			toast.error(t("resetPasswordError"));
@@ -86,7 +89,7 @@ export function AccountSecurityTab() {
 		setIsSendingVerification(true);
 
 		try {
-			await authService.resendVerification(userData.email);
+			await resendVerification({ email: userData.email });
 			toast.success(t("verificationSent"));
 		} catch {
 			toast.error(t("verificationError"));

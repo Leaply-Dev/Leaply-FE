@@ -27,7 +27,7 @@ import {
 	FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { authService } from "@/lib/services/auth";
+import { resetPassword } from "@/lib/generated/api/endpoints/authentication/authentication";
 import { cn } from "@/lib/utils";
 
 type ResetState = "form" | "submitting" | "success" | "error";
@@ -108,7 +108,7 @@ export default function ResetPasswordPage() {
 		setError(null);
 
 		try {
-			await authService.resetPassword(token, newPassword);
+			await resetPassword({ token, newPassword });
 			setState("success");
 		} catch (err) {
 			setState("error");

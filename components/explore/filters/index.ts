@@ -5,13 +5,17 @@ export { FilterPanel, FilterPanelInline } from "./FilterPanel";
 export { QuickFilterChip, QuickFilterChips } from "./QuickFilterChip";
 
 // Region Filter
-export { RegionFilter, useRegionOptions, type RegionOption } from "./RegionFilter";
+export {
+	RegionFilter,
+	type RegionOption,
+	useRegionOptions,
+} from "./RegionFilter";
 
 // Select Filters
 export {
-	SelectFilter,
-	DeadlineWithinFilter,
-	TuitionMaxFilter,
 	CoverageTypeFilter,
+	DeadlineWithinFilter,
 	EligibilityTypeFilter,
+	SelectFilter,
+	TuitionMaxFilter,
 } from "./SelectFilters";

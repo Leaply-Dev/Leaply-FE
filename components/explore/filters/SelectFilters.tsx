@@ -49,17 +49,17 @@ export function SelectFilter<T extends string | number | undefined>({
 	};
 
 	return (
-		<Select
-			value={value?.toString() || "all"}
-			onValueChange={handleChange}
-		>
+		<Select value={value?.toString() || "all"} onValueChange={handleChange}>
 			<SelectTrigger className={className}>
 				<SelectValue placeholder={placeholder} />
 			</SelectTrigger>
 			<SelectContent>
 				<SelectItem value="all">{allLabel}</SelectItem>
 				{options.map((opt) => (
-					<SelectItem key={opt.value?.toString()} value={opt.value?.toString() || ""}>
+					<SelectItem
+						key={opt.value?.toString()}
+						value={opt.value?.toString() || ""}
+					>
 						{opt.label}
 					</SelectItem>
 				))}

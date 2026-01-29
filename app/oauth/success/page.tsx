@@ -8,7 +8,6 @@
 import { Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { TOKEN_LIFETIME_SECONDS } from "@/lib/api/client";
 import { useUserStore } from "@/lib/store/userStore";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
@@ -25,8 +24,7 @@ export default function OAuthSuccessPage() {
 			try {
 				/*
 				 * Verify session via backend and sync user state to Zustand store.
-				 * Backend provides httpOnly cookies; we use a marker token locally.
-				 * We track TOKEN_LIFETIME_SECONDS for session timeout warning and proactive refresh.
+				 * Backend manages auth via httpOnly cookies - we just update UI state.
 				 */
 				const response = await fetch(`${API_URL}/v1/auth/me`, {
 					credentials: "include",
@@ -47,13 +45,8 @@ export default function OAuthSuccessPage() {
 						fullName: userContext.profile?.fullName || "",
 					};
 
-					login(
-						userProfile,
-						"COOKIE_AUTH", // Special marker for cookie-based authentication
-						"COOKIE_AUTH", // Refresh token is also in httpOnly cookie
-						TOKEN_LIFETIME_SECONDS, // Track expiry for proactive refresh & warning modal
-						userContext.user.isOnboardingComplete,
-					);
+					// Backend sets HttpOnly cookies - we just update UI state
+					login(userProfile, userContext.user.isOnboardingComplete);
 
 					if (userContext.preferences) {
 						updatePreferences({

@@ -2,23 +2,27 @@ import Cookies from "js-cookie";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-// ... (keep lines 5-242 unchanged, just showing context for replacement if needed,
-// but since this is a specific tool usage, I will target the imports and the persist options)
+/**
+ * Simplified user store for cookie-based authentication.
+ *
+ * After backend migration to HttpOnly cookies:
+ * - Tokens are no longer stored in localStorage (security improvement)
+ * - Browser manages auth cookies automatically
+ * - This store only tracks UI state (profile, preferences, onboarding)
+ */
 
-// Cookie configuration constants
+// Cookie for Next.js middleware (non-HttpOnly, just for routing)
 const AUTH_COOKIE_NAME = "leaply-auth-state";
 const AUTH_COOKIE_OPTIONS = {
-	expires: 7, // 7 days
+	expires: 7,
 	path: "/",
 	sameSite: "lax" as const,
 };
 
 /**
- * Sync auth state to cookie - called SYNCHRONOUSLY within actions
- * This ensures cookie and store are always in sync and prevents race conditions
- *
- * When authenticated: Sets cookie with auth state
- * When not authenticated: Removes cookie entirely (prevents stale cookie issues)
+ * Sync auth state to middleware cookie.
+ * This is a non-HttpOnly cookie just to tell Next.js middleware
+ * whether the user is authenticated (for route protection).
  */
 function syncAuthCookie(
 	isAuthenticated: boolean,
@@ -31,8 +35,6 @@ function syncAuthCookie(
 			AUTH_COOKIE_OPTIONS,
 		);
 	} else {
-		// When not authenticated, remove cookie entirely
-		// This prevents the "2 refresh" problem where stale cookies cause routing issues
 		Cookies.remove(AUTH_COOKIE_NAME, { path: "/" });
 	}
 }
@@ -73,7 +75,6 @@ export interface UserPreferences {
 	interests?: string[];
 	priorities?: string[];
 	selfDescription?: string;
-	// New fields for onboarding
 	programType?: string;
 	fieldOfInterest?: string[];
 	intendedStartTerm?: string;
@@ -84,9 +85,6 @@ export type JourneyType = "exploring" | "targeted" | null;
 
 interface UserState {
 	profile: UserProfile | null;
-	accessToken: string | null;
-	refreshToken: string | null;
-	tokenExpiresAt: number | null; // Unix timestamp in ms
 	preferences: UserPreferences;
 	journeyType: JourneyType;
 	isOnboardingComplete: boolean;
@@ -97,8 +95,9 @@ interface UserState {
 		title: string;
 		timestamp: number;
 	};
-	// Hydration state - set by onRehydrateStorage callback
 	_hasHydrated: boolean;
+
+	// Actions
 	setHasHydrated: (state: boolean) => void;
 	setProfile: (profile: UserProfile) => void;
 	updateProfile: (updates: Partial<UserProfile>) => void;
@@ -111,34 +110,23 @@ interface UserState {
 		title: string;
 	}) => void;
 	completeOnboarding: () => void;
-	login: (
-		profile: UserProfile,
-		accessToken: string,
-		refreshToken: string,
-		expiresIn: number,
-		isOnboardingComplete?: boolean,
-	) => void;
-	setTokens: (
-		accessToken: string,
-		refreshToken: string,
-		expiresIn: number,
-	) => void;
+	/**
+	 * Mark user as logged in.
+	 * Tokens are now managed by HttpOnly cookies - we just update UI state.
+	 */
+	login: (profile: UserProfile, isOnboardingComplete?: boolean) => void;
 	logout: () => void;
 }
 
 export const useUserStore = create<UserState>()(
 	persist(
-		(set, _get) => ({
+		(set) => ({
 			profile: null,
-			accessToken: null,
-			refreshToken: null,
-			tokenExpiresAt: null,
 			preferences: {},
 			journeyType: null,
 			isOnboardingComplete: false,
 			isAuthenticated: false,
 			lastActivity: undefined,
-			// Hydration state - starts false, set to true by onRehydrateStorage
 			_hasHydrated: false,
 
 			setHasHydrated: (state: boolean) => {
@@ -172,70 +160,48 @@ export const useUserStore = create<UserState>()(
 				}),
 
 			completeOnboarding: () => {
-				// Sync cookie SYNCHRONOUSLY with new onboarding status
 				syncAuthCookie(true, true);
 				set({ isOnboardingComplete: true });
 			},
 
-			login: (
-				profile,
-				accessToken,
-				refreshToken,
-				expiresIn,
-				isOnboardingComplete = false,
-			) => {
-				if (process.env.NODE_ENV === "development") {
-					console.log("Login: Storing tokens", {
-						hasAccessToken: !!accessToken,
-						hasRefreshToken: !!refreshToken,
-						isOnboardingComplete,
-					});
-				}
-
-				// Sync cookie SYNCHRONOUSLY before updating state
-				// This ensures middleware sees correct auth state immediately
+			login: (profile, isOnboardingComplete = false) => {
+				// Sync middleware cookie
 				syncAuthCookie(true, isOnboardingComplete);
 
-				// Mark auth as validated in session to prevent AuthProvider from re-validating
-				// This prevents the race condition where AuthProvider tries to validate
-				// before tokens are properly synced
+				// Mark auth as validated in session
 				if (typeof window !== "undefined") {
 					sessionStorage.setItem("leaply-auth-validated", "true");
 				}
 
 				set({
 					profile,
-					accessToken,
-					refreshToken,
-					tokenExpiresAt: Date.now() + expiresIn * 1000,
 					isAuthenticated: true,
 					isOnboardingComplete,
 				});
 			},
 
-			setTokens: (accessToken, refreshToken, expiresIn) =>
-				set({
-					accessToken,
-					refreshToken,
-					tokenExpiresAt: Date.now() + expiresIn * 1000,
-				}),
-
 			logout: () => {
-				// Clear cookie SYNCHRONOUSLY inside the action
-				// This ensures cookie is cleared before any redirect happens
-				// The subscription below runs asynchronously and may not clear in time
-				Cookies.remove("leaply-auth-state", { path: "/" });
+				// Clear middleware cookie
+				Cookies.remove(AUTH_COOKIE_NAME, { path: "/" });
 
 				// Clear session validation marker
 				if (typeof window !== "undefined") {
 					sessionStorage.removeItem("leaply-auth-validated");
 				}
 
+				// Also call backend logout to clear HttpOnly cookies
+				fetch(
+					`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api"}/v1/auth/logout`,
+					{
+						method: "POST",
+						credentials: "include",
+					},
+				).catch(() => {
+					// Ignore errors - we're logging out anyway
+				});
+
 				set({
 					profile: null,
-					accessToken: null,
-					refreshToken: null,
-					tokenExpiresAt: null,
 					isAuthenticated: false,
 					isOnboardingComplete: false,
 					preferences: {},
@@ -249,9 +215,6 @@ export const useUserStore = create<UserState>()(
 			storage: createJSONStorage(() => localStorage),
 			partialize: (state) => ({
 				profile: state.profile,
-				accessToken: state.accessToken,
-				refreshToken: state.refreshToken,
-				tokenExpiresAt: state.tokenExpiresAt,
 				preferences: state.preferences,
 				journeyType: state.journeyType,
 				isOnboardingComplete: state.isOnboardingComplete,
@@ -260,41 +223,22 @@ export const useUserStore = create<UserState>()(
 				// Note: _hasHydrated is intentionally NOT persisted
 			}),
 			onRehydrateStorage: () => (state, error) => {
-				// This callback is called when hydration finishes
 				if (error) {
 					console.error("Zustand hydration error:", error);
 				}
-				// Note: Calling setHasHydrated here may not trigger React re-renders reliably
-				// due to how persist merges state. The onFinishHydration listener below
-				// is the primary mechanism. This serves as a fallback.
 				state?.setHasHydrated(true);
 			},
 		},
 	),
 );
 
-// Register hydration listener using persist API
-// This is more reliable than onRehydrateStorage for triggering React updates
-// because it uses getState() which properly notifies subscribers
-// See: https://zustand.docs.pmnd.rs/integrations/persisting-store-data
+// Register hydration listener
 if (typeof window !== "undefined") {
-	// Handle case where hydration already completed before this code runs
-	// This covers the race condition where components subscribe after hydration
 	if (useUserStore.persist.hasHydrated()) {
 		useUserStore.getState().setHasHydrated(true);
 	}
 
-	// Listen for future hydration completions (e.g., after rehydrate() is called)
 	useUserStore.persist.onFinishHydration(() => {
 		useUserStore.getState().setHasHydrated(true);
 	});
 }
-
-// NOTE: We removed the useUserStore.subscribe() block that was here.
-// It was causing a race condition where:
-// 1. logout() clears the cookie synchronously
-// 2. The async subscription fires and recreates the cookie
-// 3. Middleware reads stale cookie before it's properly cleared
-//
-// Cookie sync is now done SYNCHRONOUSLY inside login(), completeOnboarding(), and logout() actions.
-// This ensures the cookie is always in sync with the store state.

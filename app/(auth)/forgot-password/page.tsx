@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { authService } from "@/lib/services/auth";
+import { forgotPassword } from "@/lib/generated/api/endpoints/authentication/authentication";
 
 type ForgotState = "form" | "sending" | "sent";
 
@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
 		setError(null);
 
 		try {
-			await authService.forgotPassword(email);
+			await forgotPassword({ email });
 			setState("sent");
 		} catch (_err) {
 			// Always show success to prevent email enumeration

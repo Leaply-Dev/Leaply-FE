@@ -16,16 +16,15 @@ import {
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
-import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import {
+	DeadlineWithinFilter,
 	FilterPanel,
 	QuickFilterChips,
 	RegionFilter,
-	useRegionOptions,
-	DeadlineWithinFilter,
 	TuitionMaxFilter,
+	useRegionOptions,
 } from "@/components/explore/filters";
+import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -655,7 +654,9 @@ export function ManualMode({
 							</span>
 							<TuitionMaxFilter
 								value={filters.tuitionMax}
-								onChange={(tuitionMax) => setFilters({ ...filters, tuitionMax })}
+								onChange={(tuitionMax) =>
+									setFilters({ ...filters, tuitionMax })
+								}
 								t={(key) => t(`filters.${key}`)}
 							/>
 						</div>
