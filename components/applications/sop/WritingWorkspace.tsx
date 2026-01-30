@@ -9,6 +9,7 @@ import {
 	MessageSquare,
 	Sparkles,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ export function WritingWorkspace({
 	onComplete,
 	sopPrompt,
 }: WritingWorkspaceProps) {
+	const t = useTranslations("sop");
 	const [selectedSectionIndex, setSelectedSectionIndex] = useState(0);
 	const [sectionContent, setSectionContent] = useState("");
 	const [showReview, setShowReview] = useState(false);
@@ -126,9 +128,9 @@ export function WritingWorkspace({
 				sectionIndex: selectedSectionIndex,
 				data: { content: sectionContent },
 			});
-			toast.success("Đã lưu nháp");
+			toast.success(t("savedDraft"));
 		} catch {
-			toast.error("Không thể lưu. Vui lòng thử lại.");
+			toast.error(t("saveError2"));
 		}
 	};
 
@@ -139,13 +141,13 @@ export function WritingWorkspace({
 				applicationId,
 				sectionIndex: selectedSectionIndex,
 			});
-			toast.success("Đã hoàn thành section này");
+			toast.success(t("sectionComplete"));
 			// Move to next section if available
 			if (selectedSectionIndex < sections.length - 1) {
 				setSelectedSectionIndex(selectedSectionIndex + 1);
 			}
 		} catch {
-			toast.error("Không thể đánh dấu hoàn thành");
+			toast.error(t("markDoneError"));
 		}
 	};
 
@@ -157,7 +159,7 @@ export function WritingWorkspace({
 			setReviewData(result);
 			setShowReview(true);
 		} catch {
-			toast.error("Không thể tạo review. Vui lòng thử lại.");
+			toast.error(t("reviewError"));
 		}
 	};
 
@@ -252,7 +254,7 @@ export function WritingWorkspace({
 						<div className="flex items-center justify-between">
 							<CardTitle className="text-sm font-medium flex items-center gap-2">
 								<CheckCircle className="w-4 h-4 text-primary" />
-								Outline
+								{t("outline")}
 							</CardTitle>
 						</div>
 						{/* Back Button moved to top */}
@@ -263,7 +265,7 @@ export function WritingWorkspace({
 							className="w-full"
 						>
 							<ArrowLeft className="w-4 h-4 mr-2" />
-							Quay lại chọn góc
+							{t("backToAngle")}
 						</Button>
 					</CardHeader>
 					<CardContent className="px-2 pb-4 flex-1 min-h-0">
@@ -322,7 +324,7 @@ export function WritingWorkspace({
 										{updateSection.isPending && (
 											<Loader2 className="w-3 h-3 mr-2 animate-spin" />
 										)}
-										Save Draft
+										{t("saveDraft")}
 									</Button>
 
 									<Button
@@ -337,7 +339,7 @@ export function WritingWorkspace({
 										) : (
 											<Check className="w-3 h-3 mr-2" />
 										)}
-										Complete
+										{t("complete")}
 									</Button>
 								</div>
 
@@ -354,7 +356,7 @@ export function WritingWorkspace({
 										) : (
 											<Sparkles className="w-3 h-3 mr-2" />
 										)}
-										Review với AI
+										{t("reviewWithAI")}
 									</Button>
 								)}
 							</div>
@@ -365,7 +367,7 @@ export function WritingWorkspace({
 									{sopPrompt && (
 										<div>
 											<span className="font-semibold text-foreground">
-												Đề bài:{" "}
+												{t("topic")}{" "}
 											</span>
 											{sopPrompt}
 										</div>
@@ -373,7 +375,7 @@ export function WritingWorkspace({
 									{selectedAngle && (
 										<div>
 											<span className="font-semibold text-foreground">
-												Góc nhìn:{" "}
+												{t("perspective")}{" "}
 											</span>
 											<span className="text-primary font-medium">
 												{selectedAngle.title}
@@ -391,10 +393,10 @@ export function WritingWorkspace({
 
 							<div className="flex items-center justify-between pt-2">
 								<CardTitle className="text-base">
-									{currentOutlineSection?.title || "Section"}
+									{currentOutlineSection?.title || t("section")}
 								</CardTitle>
 								<span className="text-xs text-muted-foreground">
-									{wordCount} từ
+									{wordCount} {t("words")}
 									{currentOutlineSection?.wordTarget && (
 										<>
 											{" "}
@@ -421,7 +423,7 @@ export function WritingWorkspace({
 							placeholder={
 								currentOutlineSection?.tip
 									? `Tip: ${currentOutlineSection.tip}`
-									: "Viết nội dung section này..."
+									: t("writePlaceholder")
 							}
 							className="flex-1 min-h-[200px] resize-none text-sm font-normal leading-relaxed"
 						/>
@@ -435,7 +437,7 @@ export function WritingWorkspace({
 					<CardHeader className="py-3 px-4">
 						<CardTitle className="text-sm font-medium flex items-center gap-2">
 							<MessageSquare className="w-4 h-4 text-amber-500" />
-							Câu hỏi gợi ý
+							{t("guidingQuestions")}
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="px-4 pb-4">
@@ -459,7 +461,7 @@ export function WritingWorkspace({
 								</ul>
 							) : (
 								<p className="text-sm text-muted-foreground italic">
-									Không có câu hỏi gợi ý cho section này.
+									{t("noQuestions")}
 								</p>
 							)}
 						</ScrollArea>
@@ -473,11 +475,9 @@ export function WritingWorkspace({
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
 							<Sparkles className="w-5 h-5 text-primary" />
-							Review SOP
+							{t("reviewSop")}
 						</DialogTitle>
-						<DialogDescription>
-							Đánh giá tổng quan về bài SOP của bạn
-						</DialogDescription>
+						<DialogDescription>{t("reviewDesc")}</DialogDescription>
 					</DialogHeader>
 
 					{reviewData && (
@@ -489,7 +489,7 @@ export function WritingWorkspace({
 										{reviewData.overallScore}/100
 									</div>
 									<p className="text-sm text-muted-foreground">
-										Điểm tổng quan
+										{t("overallScore")}
 									</p>
 								</div>
 							)}
@@ -497,7 +497,9 @@ export function WritingWorkspace({
 							{/* Strengths */}
 							{reviewData.strengths && reviewData.strengths.length > 0 && (
 								<div>
-									<h4 className="font-medium text-green-700 mb-2">Điểm mạnh</h4>
+									<h4 className="font-medium text-green-700 mb-2">
+										{t("strengths")}
+									</h4>
 									<ul className="space-y-1">
 										{reviewData.strengths.map((s, i) => (
 											<li
@@ -517,7 +519,7 @@ export function WritingWorkspace({
 								reviewData.improvements.length > 0 && (
 									<div>
 										<h4 className="font-medium text-amber-700 mb-2">
-											Cần cải thiện
+											{t("improvements")}
 										</h4>
 										<ul className="space-y-1">
 											{reviewData.improvements.map((s, i) => (
@@ -536,7 +538,7 @@ export function WritingWorkspace({
 							{/* Complete Button */}
 							<Button onClick={handleComplete} className="w-full" size="lg">
 								<CheckCircle className="w-4 h-4 mr-2" />
-								Hoàn thành SOP
+								{t("completeSop")}
 							</Button>
 						</div>
 					)}

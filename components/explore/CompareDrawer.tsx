@@ -18,6 +18,7 @@ import {
 	Trophy,
 } from "lucide-react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -64,35 +65,42 @@ interface EnglishRequirement {
 // Helper Functions
 // ============================================================================
 
-function getMatchBadge(fitCategory?: string, fitScore?: number) {
+function MatchBadge({
+	fitCategory,
+	fitScore,
+}: {
+	fitCategory?: string;
+	fitScore?: number;
+}) {
+	const t = useTranslations("compare");
 	const score = fitScore ?? 0;
 	switch (fitCategory) {
 		case "safety":
 			return (
 				<Badge className="bg-green-100 text-green-700 border-green-200 gap-1">
 					<CheckCircle2 className="w-3 h-3" />
-					High Match ({score}%)
+					{t("highMatch")} ({score}%)
 				</Badge>
 			);
 		case "target":
 			return (
 				<Badge className="bg-blue-100 text-blue-700 border-blue-200 gap-1">
 					<ThumbsUp className="w-3 h-3" />
-					Good Match ({score}%)
+					{t("goodMatch")} ({score}%)
 				</Badge>
 			);
 		case "reach":
 			return (
 				<Badge className="bg-orange-100 text-orange-700 border-orange-200 gap-1">
 					<TrendingUp className="w-3 h-3" />
-					Reach ({score}%)
+					{t("reach")} ({score}%)
 				</Badge>
 			);
 		case "unknown":
 			return (
 				<Badge className="bg-amber-100 text-amber-700 border-amber-200 gap-1">
 					<HelpCircle className="w-3 h-3" />
-					Chưa đủ dữ liệu
+					{t("insufficientData")}
 				</Badge>
 			);
 		default:
@@ -172,7 +180,10 @@ function ProgramHeaderCell({ program }: { program: ProgramListItemResponse }) {
 							</span>
 						)}
 					</div>
-					{getMatchBadge(program.fitCategory, program.fitScore)}
+					<MatchBadge
+						fitCategory={program.fitCategory}
+						fitScore={program.fitScore}
+					/>
 				</div>
 
 				<div>
@@ -194,6 +205,7 @@ function ProgramHeaderCell({ program }: { program: ProgramListItemResponse }) {
 }
 
 function TuitionCell({ program }: { program: ProgramListItemResponse }) {
+	const t = useTranslations("compare");
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<div className="space-y-1">
@@ -207,11 +219,11 @@ function TuitionCell({ program }: { program: ProgramListItemResponse }) {
 						: "N/A"}
 				</p>
 				{program.scholarshipAvailable && (
-					<p className="text-sm text-green-600">✓ Có học bổng</p>
+					<p className="text-sm text-green-600">✓ {t("hasScholarship")}</p>
 				)}
 				{!program.scholarshipAvailable && (
 					<p className="text-sm text-muted-foreground italic">
-						Không có học bổng kỳ này
+						{t("noScholarshipThisTerm")}
 					</p>
 				)}
 			</div>
@@ -335,17 +347,18 @@ function EnglishCell({ program }: { program: ProgramListItemResponse }) {
 
 // AI-generated analysis from backend (future feature)
 function AnalysisCell({ program }: { program: ProgramListItemResponse }) {
+	const t = useTranslations("compare");
 	// Fit category-based simple insight
 	const getFitInsight = () => {
 		switch (program.fitCategory) {
 			case "safety":
-				return "Chương trình an toàn - khả năng cao đạt yêu cầu";
+				return t("safeProgram");
 			case "target":
-				return "Chương trình phù hợp - cần chuẩn bị kỹ hồ sơ";
+				return t("targetProgram");
 			case "reach":
-				return "Chương trình thử thách - cần nỗ lực nhiều hơn";
+				return t("reachProgram");
 			default:
-				return "Chưa đủ dữ liệu để phân tích chi tiết";
+				return t("unknownProgram");
 		}
 	};
 
@@ -368,6 +381,7 @@ function ActionsCell({
 	onAddToDashboard: (id: string) => void;
 	onRemoveProgram: (id: string) => void;
 }) {
+	const t = useTranslations("compare");
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<div className="space-y-3">
@@ -378,14 +392,14 @@ function ActionsCell({
 						program.id && onAddToDashboard(program.id);
 					}}
 				>
-					Nộp học bổng
+					{t("applyScholarship")}
 				</Button>
 				<button
 					type="button"
 					onClick={() => onRemoveProgram(program.id ?? "")}
 					className="w-full text-sm text-muted-foreground hover:text-destructive transition-colors text-center"
 				>
-					Bỏ khỏi so sánh
+					{t("removeFromCompare")}
 				</button>
 			</div>
 		</td>
@@ -420,14 +434,13 @@ export function CompareDialog({
 	onRemoveProgram,
 	onAddToDashboard,
 }: CompareDialogProps) {
+	const t = useTranslations("compare");
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange}>
 			<DrawerContent className="max-h-[90vh] p-0 gap-0 overflow-hidden">
 				<DrawerHeader className="sr-only">
-					<DrawerTitle>So sánh chương trình</DrawerTitle>
-					<DrawerDescription>
-						So sánh các chương trình học đã chọn
-					</DrawerDescription>
+					<DrawerTitle>{t("title")}</DrawerTitle>
+					<DrawerDescription>{t("compareDesc")}</DrawerDescription>
 				</DrawerHeader>
 
 				<ScrollArea className="max-h-[90vh] overflow-y-auto">
@@ -438,7 +451,7 @@ export function CompareDialog({
 									<tr className="border-b border-border bg-muted/30">
 										<th className="p-4 text-left font-medium text-sm text-muted-foreground w-40 align-top">
 											<span className="uppercase tracking-wide text-xs">
-												Tiêu chí so sánh
+												{t("criteria")}
 											</span>
 										</th>
 										{selectedProgramsList.map((program) => (
@@ -448,49 +461,52 @@ export function CompareDialog({
 								</thead>
 								<tbody>
 									<tr className="border-b border-border">
-										<RowLabel icon={DollarSign} label="Học phí / năm" />
+										<RowLabel icon={DollarSign} label={t("tuitionPerYear")} />
 										{selectedProgramsList.map((program) => (
 											<TuitionCell key={program.id} program={program} />
 										))}
 									</tr>
 
 									<tr className="border-b border-border">
-										<RowLabel icon={Trophy} label="Xếp hạng QS" />
+										<RowLabel icon={Trophy} label={t("qsRanking")} />
 										{selectedProgramsList.map((program) => (
 											<RankingCell key={program.id} program={program} />
 										))}
 									</tr>
 
 									<tr className="border-b border-border">
-										<RowLabel icon={BookOpen} label="Bằng cấp & Hình thức" />
+										<RowLabel icon={BookOpen} label={t("degreeFormat")} />
 										{selectedProgramsList.map((program) => (
 											<DegreeDeliveryCell key={program.id} program={program} />
 										))}
 									</tr>
 
 									<tr className="border-b border-border">
-										<RowLabel icon={Clock} label="Thời gian học" />
+										<RowLabel icon={Clock} label={t("studyDuration")} />
 										{selectedProgramsList.map((program) => (
 											<DurationCell key={program.id} program={program} />
 										))}
 									</tr>
 
 									<tr className="border-b border-border">
-										<RowLabel icon={Calendar} label="Hạn nộp hồ sơ" />
+										<RowLabel
+											icon={Calendar}
+											label={t("applicationDeadline")}
+										/>
 										{selectedProgramsList.map((program) => (
 											<DeadlineCell key={program.id} program={program} />
 										))}
 									</tr>
 
 									<tr className="border-b border-border">
-										<RowLabel icon={GraduationCap} label="Yêu cầu GPA" />
+										<RowLabel icon={GraduationCap} label={t("gpaRequired")} />
 										{selectedProgramsList.map((program) => (
 											<GpaCell key={program.id} program={program} />
 										))}
 									</tr>
 
 									<tr className="border-b border-border">
-										<RowLabel icon={Languages} label="Tiếng Anh" />
+										<RowLabel icon={Languages} label={t("english")} />
 										{selectedProgramsList.map((program) => (
 											<EnglishCell key={program.id} program={program} />
 										))}
@@ -501,9 +517,9 @@ export function CompareDialog({
 											<div className="flex items-start gap-2 text-sm font-medium text-primary">
 												<Info className="w-4 h-4 mt-0.5" />
 												<div>
-													<p>Phân tích chi tiết</p>
+													<p>{t("detailedAnalysis")}</p>
 													<p className="font-normal text-xs text-muted-foreground mt-1">
-														So sánh hồ sơ của bạn với yêu cầu từng trường
+														{t("compareYourProfile")}
 													</p>
 												</div>
 											</div>
@@ -536,7 +552,7 @@ export function CompareDialog({
 									className="gap-2"
 								>
 									<Plus className="w-4 h-4" />
-									Thêm chương trình khác để so sánh (Tối đa 4)
+									{t("addMorePrograms")}
 								</Button>
 							</div>
 						)}

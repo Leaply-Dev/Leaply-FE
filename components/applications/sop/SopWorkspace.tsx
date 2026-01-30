@@ -1,6 +1,7 @@
 "use client";
 
 import { FileEdit, Loader2, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +22,7 @@ interface SopWorkspaceProps {
 }
 
 export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
+	const t = useTranslations("sop");
 	const {
 		data: status,
 		isLoading,
@@ -88,10 +90,8 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 	if (error) {
 		return (
 			<div className="text-center p-8">
-				<p className="text-muted-foreground mb-4">
-					Không thể tải SOP workspace.
-				</p>
-				<Button onClick={() => refetch()}>Thử lại</Button>
+				<p className="text-muted-foreground mb-4">{t("loadError")}</p>
+				<Button onClick={() => refetch()}>{t("retry")}</Button>
 			</div>
 		);
 	}
@@ -146,6 +146,7 @@ function StartPrompt({
 	onStart,
 	isLoading,
 }: StartPromptProps) {
+	const t = useTranslations("sop");
 	const [promptText, setPromptText] = useState(currentPrompt || "");
 	const [wordLimitInput, setWordLimitInput] = useState(
 		currentWordLimit?.toString() || "",
@@ -163,20 +164,20 @@ function StartPrompt({
 			<CardHeader className="text-center pb-4">
 				<CardTitle className="flex items-center justify-center gap-2 text-lg">
 					<Sparkles className="w-5 h-5 text-primary" />
-					Viết SOP
+					{t("title")}
 				</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-4">
 				{/* SOP Prompt Input */}
 				<div className="space-y-2">
 					<Label htmlFor="sop-prompt" className="text-sm font-medium">
-						Dán đề bài SOP (tùy chọn)
+						{t("pastePrompt")}
 					</Label>
 					<Textarea
 						id="sop-prompt"
 						value={promptText}
 						onChange={(e) => setPromptText(e.target.value)}
-						placeholder="VD: Describe your purpose for pursuing this graduate program..."
+						placeholder={t("promptPlaceholder")}
 						className="min-h-[80px] resize-none text-sm"
 					/>
 				</div>
@@ -184,7 +185,7 @@ function StartPrompt({
 				{/* Word Limit Input */}
 				<div className="flex items-center gap-3">
 					<Label htmlFor="word-limit" className="text-sm whitespace-nowrap">
-						Giới hạn từ:
+						{t("wordLimit")}
 					</Label>
 					<Input
 						id="word-limit"
@@ -194,7 +195,7 @@ function StartPrompt({
 						placeholder="500"
 						className="w-24"
 					/>
-					<span className="text-xs text-muted-foreground">từ</span>
+					<span className="text-xs text-muted-foreground">{t("words")}</span>
 				</div>
 
 				{/* Start Button */}
@@ -209,7 +210,7 @@ function StartPrompt({
 					) : (
 						<Sparkles className="w-4 h-4 mr-2" />
 					)}
-					Bắt đầu
+					{t("start")}
 				</Button>
 			</CardContent>
 		</Card>
@@ -221,24 +222,22 @@ interface CompletedStateProps {
 }
 
 function CompletedState({ onEdit }: CompletedStateProps) {
+	const t = useTranslations("sop");
 	return (
 		<Card className="max-w-xl mx-auto">
 			<CardHeader className="text-center">
 				<div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
 					<Sparkles className="w-8 h-8 text-green-600" />
 				</div>
-				<CardTitle className="text-green-700">SOP đã hoàn thành!</CardTitle>
+				<CardTitle className="text-green-700">{t("completed")}</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-6 text-center">
-				<p className="text-muted-foreground">
-					Bài SOP của bạn đã được lưu. Bạn có thể xem và chỉnh sửa bất cứ lúc
-					nào.
-				</p>
+				<p className="text-muted-foreground">{t("completedDesc")}</p>
 
 				<div className="flex justify-center gap-3">
 					<Button variant="outline" onClick={onEdit}>
 						<FileEdit className="w-4 h-4 mr-2" />
-						Chỉnh sửa
+						{t("edit")}
 					</Button>
 				</div>
 			</CardContent>

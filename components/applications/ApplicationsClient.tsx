@@ -11,6 +11,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Award, ChevronLeft, ChevronRight, GraduationCap } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { ApplicationDashboard } from "@/components/ApplicationDashboard";
@@ -46,6 +47,7 @@ import { useScholarshipApplicationStore } from "@/lib/store/scholarshipApplicati
 type MainTab = "programs" | "scholarships";
 
 export function ApplicationsClient() {
+	const t = useTranslations("applications");
 	const queryClient = useQueryClient();
 	const router = useRouter();
 	const searchParams = useSearchParams();
@@ -200,7 +202,7 @@ export function ApplicationsClient() {
 				});
 				return true;
 			} catch {
-				toast.error("Cập nhật trạng thái thất bại");
+				toast.error(t("toast.statusUpdateFailed"));
 				return false;
 			}
 		}
@@ -216,7 +218,7 @@ export function ApplicationsClient() {
 				});
 				return true;
 			} catch {
-				toast.error("Xóa đơn thất bại");
+				toast.error(t("toast.deleteFailed"));
 				return false;
 			}
 		}
@@ -233,7 +235,7 @@ export function ApplicationsClient() {
 				});
 				return true;
 			} catch {
-				toast.error("Xóa đơn học bổng thất bại");
+				toast.error(t("toast.deleteScholarshipFailed"));
 				return false;
 			}
 		}
@@ -271,7 +273,9 @@ export function ApplicationsClient() {
 										</Button>
 									</TooltipTrigger>
 									<TooltipContent side="right">
-										{sidebarCollapsed ? "Mở rộng" : "Thu gọn"}
+										{sidebarCollapsed
+											? t("sidebar.expand")
+											: t("sidebar.collapse")}
 									</TooltipContent>
 								</Tooltip>
 
@@ -297,7 +301,9 @@ export function ApplicationsClient() {
 													)}
 												</Button>
 											</TooltipTrigger>
-											<TooltipContent side="right">Chương trình</TooltipContent>
+											<TooltipContent side="right">
+												{t("sidebar.programs")}
+											</TooltipContent>
 										</Tooltip>
 
 										<Tooltip>
@@ -318,7 +324,9 @@ export function ApplicationsClient() {
 													)}
 												</Button>
 											</TooltipTrigger>
-											<TooltipContent side="right">Học bổng</TooltipContent>
+											<TooltipContent side="right">
+												{t("sidebar.scholarships")}
+											</TooltipContent>
 										</Tooltip>
 
 										<div className="w-8 border-t border-border my-2" />
@@ -354,7 +362,7 @@ export function ApplicationsClient() {
 											<TabsList className="w-full grid grid-cols-2">
 												<TabsTrigger value="programs" className="gap-2">
 													<GraduationCap className="w-4 h-4" />
-													Chương trình
+													{t("sidebar.programs")}
 													{applications.length > 0 && (
 														<span className="ml-1 text-xs bg-primary/10 px-1.5 py-0.5 rounded-full">
 															{applications.length}
@@ -363,7 +371,7 @@ export function ApplicationsClient() {
 												</TabsTrigger>
 												<TabsTrigger value="scholarships" className="gap-2">
 													<Award className="w-4 h-4" />
-													Học bổng
+													{t("sidebar.scholarships")}
 													{scholarshipApplications.length > 0 && (
 														<span className="ml-1 text-xs bg-primary/10 px-1.5 py-0.5 rounded-full">
 															{scholarshipApplications.length}
@@ -404,7 +412,7 @@ export function ApplicationsClient() {
 								<TabsList className="w-full grid grid-cols-2">
 									<TabsTrigger value="programs" className="gap-2">
 										<GraduationCap className="w-4 h-4" />
-										Chương trình
+										{t("sidebar.programs")}
 										{applications.length > 0 && (
 											<span className="ml-1 text-xs bg-primary/10 px-1.5 py-0.5 rounded-full">
 												{applications.length}
@@ -413,7 +421,7 @@ export function ApplicationsClient() {
 									</TabsTrigger>
 									<TabsTrigger value="scholarships" className="gap-2">
 										<Award className="w-4 h-4" />
-										Học bổng
+										{t("sidebar.scholarships")}
 										{scholarshipApplications.length > 0 && (
 											<span className="ml-1 text-xs bg-primary/10 px-1.5 py-0.5 rounded-full">
 												{scholarshipApplications.length}
@@ -461,9 +469,7 @@ export function ApplicationsClient() {
 			{/* Error Toast */}
 			{apiError ? (
 				<div className="fixed bottom-4 right-4 bg-destructive text-destructive-foreground px-4 py-2 rounded-lg shadow-lg">
-					{apiError instanceof Error
-						? apiError.message
-						: "Không thể tải dữ liệu"}
+					{apiError instanceof Error ? apiError.message : t("toast.loadFailed")}
 				</div>
 			) : null}
 		</>

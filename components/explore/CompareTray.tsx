@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ProgramListItemResponse } from "@/lib/generated/api/models";
@@ -54,6 +55,7 @@ export function CompareTray({
 	onClearAll,
 	onCompare,
 }: CompareTrayProps) {
+	const t = useTranslations("compare");
 	if (selectedCount === 0) {
 		return null;
 	}
@@ -67,7 +69,7 @@ export function CompareTray({
 						{/* Title */}
 						<div className="flex items-center gap-2">
 							<h3 className="text-lg font-bold text-foreground">
-								So sánh chương trình
+								{t("comparePrograms")}
 							</h3>
 							<Badge variant="secondary" className="font-semibold">
 								{selectedCount}/{maxPrograms}
@@ -95,7 +97,7 @@ export function CompareTray({
 								onClick={onClearAll}
 								className="text-sm text-muted-foreground hover:text-destructive transition-colors font-medium underline underline-offset-2"
 							>
-								Xóa tất cả
+								{t("clearAll")}
 							</button>
 						</div>
 					</div>
@@ -112,7 +114,7 @@ export function CompareTray({
 							}`}
 							onClick={onCompare}
 						>
-							So sánh ngay
+							{t("compareNow")}
 							<ArrowRight className="w-5 h-5" />
 						</Button>
 					</div>

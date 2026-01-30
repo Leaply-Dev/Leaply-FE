@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, Loader2, RefreshCw, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ export function IdeationPhase({
 	applicationId,
 	onContinue,
 }: IdeationPhaseProps) {
+	const t = useTranslations("sop");
 	const [selectedAngleId, setSelectedAngleId] = useState<string | null>(null);
 
 	const { data: ideation, isLoading } = useIdeation(applicationId);
@@ -38,15 +40,15 @@ export function IdeationPhase({
 	const handleGenerate = async () => {
 		try {
 			await generateIdeation.mutateAsync(applicationId);
-			toast.success("Đã tạo gợi ý góc viết");
+			toast.success(t("generatedSuccess"));
 		} catch {
-			toast.error("Không thể tạo gợi ý. Vui lòng thử lại.");
+			toast.error(t("generateError"));
 		}
 	};
 
 	const handleContinue = async () => {
 		if (!selectedAngleId) {
-			toast.error("Vui lòng chọn một góc viết");
+			toast.error(t("selectAngleError"));
 			return;
 		}
 
@@ -60,7 +62,7 @@ export function IdeationPhase({
 			});
 			onContinue();
 		} catch {
-			toast.error("Không thể lưu lựa chọn. Vui lòng thử lại.");
+			toast.error(t("saveError"));
 		}
 	};
 
@@ -82,12 +84,12 @@ export function IdeationPhase({
 				<CardHeader className="text-center pb-4">
 					<CardTitle className="flex items-center justify-center gap-2 text-lg">
 						<Sparkles className="w-5 h-5 text-amber-500" />
-						Chọn góc viết
+						{t("selectAngle")}
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<p className="text-center text-sm text-muted-foreground">
-						AI sẽ phân tích Persona Lab và đề xuất các góc viết phù hợp.
+						{t("aiAnalyzing")}
 					</p>
 
 					<Button
@@ -99,12 +101,12 @@ export function IdeationPhase({
 						{generateIdeation.isPending ? (
 							<>
 								<Loader2 className="w-4 h-4 mr-2 animate-spin" />
-								Đang phân tích...
+								{t("generating")}
 							</>
 						) : (
 							<>
 								<Sparkles className="w-4 h-4 mr-2" />
-								Tạo gợi ý
+								{t("generateSuggestions")}
 							</>
 						)}
 					</Button>
@@ -117,9 +119,9 @@ export function IdeationPhase({
 	return (
 		<div className="max-w-5xl mx-auto space-y-6">
 			<div className="text-center">
-				<h2 className="text-lg font-semibold">Chọn góc viết cho SOP</h2>
+				<h2 className="text-lg font-semibold">{t("selectAngleForSop")}</h2>
 				<p className="text-sm text-muted-foreground mt-1">
-					Chọn một hướng tiếp cận phù hợp với câu chuyện của bạn
+					{t("selectApproach")}
 				</p>
 			</div>
 
@@ -175,7 +177,7 @@ export function IdeationPhase({
 					) : (
 						<RefreshCw className="w-4 h-4 mr-2" />
 					)}
-					Tạo lại
+					{t("regenerate")}
 				</Button>
 
 				<Button
@@ -188,7 +190,7 @@ export function IdeationPhase({
 					) : (
 						<ArrowRight className="w-4 h-4 mr-2" />
 					)}
-					Tiếp tục viết
+					{t("continueWriting")}
 				</Button>
 			</div>
 		</div>

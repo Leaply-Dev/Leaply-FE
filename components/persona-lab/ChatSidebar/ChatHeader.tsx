@@ -37,11 +37,12 @@ export function ChatHeader({
 					<h2 className="font-semibold text-sm">{t("discoveryChat")}</h2>
 					<div className="flex items-center gap-2 mt-0.5">
 						<span className="text-[10px] text-muted-foreground">
-							{storyNodeCount} {storyNodeCount === 1 ? "story" : "stories"}
+							{storyNodeCount}{" "}
+							{storyNodeCount === 1 ? t("story") : t("stories")}
 						</span>
 						{(completionReady || allPartsComplete) && (
 							<span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-medium">
-								Ready!
+								{t("ready")}
 							</span>
 						)}
 					</div>
