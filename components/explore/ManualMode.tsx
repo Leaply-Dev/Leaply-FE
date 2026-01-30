@@ -28,6 +28,7 @@ import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import { useGetCurrentUser } from "@/lib/generated/api/endpoints/authentication/authentication";
 import {
@@ -680,11 +681,40 @@ export function ManualMode({
 			{/* Table */}
 			<div className="border border-border rounded-lg overflow-hidden">
 				{isLoading ? (
-					<div className="flex flex-col items-center justify-center py-16 px-4">
-						<Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
-						<p className="text-sm text-muted-foreground">
-							{t("filters.loadingPrograms")}
-						</p>
+					<div className="w-full">
+						<div className="bg-muted/50 border-b border-border h-12 w-full" />
+						{[1, 2, 3, 4, 5].map((i) => (
+							<div
+								key={i}
+								className="flex items-center p-4 border-b border-border"
+							>
+								<div className="w-12 flex justify-center">
+									<Skeleton className="h-5 w-5 rounded" />
+								</div>
+								<div className="flex-1 flex gap-3">
+									<Skeleton className="h-12 w-12 rounded-lg shrink-0" />
+									<div className="space-y-2 flex-1 max-w-md">
+										<Skeleton className="h-4 w-3/4" />
+										<Skeleton className="h-3 w-1/2" />
+									</div>
+								</div>
+								<div className="w-32 flex justify-center">
+									<Skeleton className="h-6 w-16" />
+								</div>
+								<div className="w-32 flex justify-center">
+									<Skeleton className="h-6 w-24" />
+								</div>
+								<div className="w-32 flex justify-center">
+									<Skeleton className="h-6 w-20" />
+								</div>
+								<div className="w-32 flex justify-center">
+									<Skeleton className="h-6 w-20" />
+								</div>
+								<div className="w-32 flex justify-center">
+									<Skeleton className="h-9 w-24" />
+								</div>
+							</div>
+						))}
 					</div>
 				) : isError ? (
 					<div className="flex flex-col items-center justify-center py-16 px-4">

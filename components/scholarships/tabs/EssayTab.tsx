@@ -1,13 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import {
-	ClipboardList,
-	FileEdit,
-	Lightbulb,
-	Loader2,
-	Sparkles,
-} from "lucide-react";
+import { ClipboardList, FileEdit, Lightbulb, Sparkles } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { TipTapEditor } from "@/components/editor/TipTapEditor";
@@ -24,6 +18,7 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	getGetApplicationQueryKey,
@@ -117,8 +112,37 @@ export function EssayTab({ applicationId, documents }: EssayTabProps) {
 
 	if (isLoadingContent) {
 		return (
-			<div className="flex items-center justify-center h-64">
-				<Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+			<div className="flex gap-6 h-full">
+				<div className="flex-1 flex flex-col min-w-0 space-y-4">
+					<Card>
+						<CardHeader className="pb-2">
+							<Skeleton className="h-6 w-48" />
+						</CardHeader>
+					</Card>
+					<Card className="flex-1">
+						<CardHeader>
+							<Skeleton className="h-6 w-32" />
+							<Skeleton className="h-4 w-64 mt-2" />
+						</CardHeader>
+						<CardContent className="flex-1">
+							<Skeleton className="h-full w-full rounded-md" />
+						</CardContent>
+					</Card>
+				</div>
+				<div className="w-80 shrink-0">
+					<Card className="h-48">
+						<CardHeader>
+							<Skeleton className="h-6 w-32" />
+						</CardHeader>
+						<CardContent>
+							<div className="space-y-2">
+								<Skeleton className="h-12 w-12 rounded-full mx-auto" />
+								<Skeleton className="h-4 w-full" />
+								<Skeleton className="h-4 w-3/4 mx-auto" />
+							</div>
+						</CardContent>
+					</Card>
+				</div>
 			</div>
 		);
 	}

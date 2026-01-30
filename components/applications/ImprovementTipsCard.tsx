@@ -1,6 +1,6 @@
 "use client";
 
-import { Circle, Lightbulb, Loader2 } from "lucide-react";
+import { Circle, Lightbulb } from "lucide-react";
 import {
 	Card,
 	CardContent,
@@ -34,19 +34,20 @@ export function ImprovementTipsCard({
 		return (
 			<Card className={cn("", className)}>
 				<CardHeader className="pb-3">
-					<CardTitle className="flex items-center gap-2 text-base">
-						<Loader2 className="w-4 h-4 text-primary animate-spin" />
-						Đang phân tích hồ sơ...
-					</CardTitle>
-					<CardDescription className="text-xs">
-						AI đang tạo gợi ý cải thiện cho bạn
-					</CardDescription>
+					<div className="flex items-center gap-2 mb-1.5">
+						<Skeleton className="h-4 w-4 rounded-full" />
+						<Skeleton className="h-5 w-32" />
+					</div>
+					<Skeleton className="h-3 w-48" />
 				</CardHeader>
 				<CardContent className="pt-0">
-					<div className="space-y-2">
-						<Skeleton className="h-4 w-full" />
-						<Skeleton className="h-4 w-4/5" />
-						<Skeleton className="h-4 w-3/4" />
+					<div className="space-y-3">
+						{[1, 2, 3].map((i) => (
+							<div key={i} className="flex gap-2 items-start">
+								<Skeleton className="w-2 h-2 mt-1.5 rounded-full shrink-0" />
+								<Skeleton className="h-4 w-full" />
+							</div>
+						))}
 					</div>
 				</CardContent>
 			</Card>

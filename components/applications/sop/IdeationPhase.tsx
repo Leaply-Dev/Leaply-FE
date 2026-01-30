@@ -115,7 +115,7 @@ export function IdeationPhase({
 
 	// Show angles in a simple list
 	return (
-		<div className="max-w-2xl mx-auto space-y-6">
+		<div className="max-w-5xl mx-auto space-y-6">
 			<div className="text-center">
 				<h2 className="text-lg font-semibold">Chọn góc viết cho SOP</h2>
 				<p className="text-sm text-muted-foreground mt-1">

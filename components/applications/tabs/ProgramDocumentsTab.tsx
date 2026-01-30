@@ -29,6 +29,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
 	getGetDocuments1QueryKey,
 	useDeleteDocument1,
@@ -247,8 +248,25 @@ export function ProgramDocumentsTab({
 				</CardHeader>
 				<CardContent>
 					{isLoadingDocuments ? (
-						<div className="flex justify-center py-8">
-							<Loader2 className="w-8 h-8 text-muted-foreground animate-spin" />
+						<div className="space-y-3">
+							{[1, 2, 3].map((i) => (
+								<div
+									key={i}
+									className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+								>
+									<div className="flex items-center gap-3 w-full">
+										<Skeleton className="w-5 h-5 rounded-full shrink-0" />
+										<div className="space-y-2 w-full max-w-md">
+											<Skeleton className="h-4 w-1/2" />
+											<div className="flex gap-2">
+												<Skeleton className="h-3 w-20" />
+												<Skeleton className="h-3 w-16" />
+											</div>
+										</div>
+									</div>
+									<Skeleton className="w-8 h-8 rounded-md shrink-0" />
+								</div>
+							))}
 						</div>
 					) : documents.length === 0 ? (
 						<div className="text-center py-8">

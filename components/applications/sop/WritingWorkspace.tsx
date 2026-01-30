@@ -21,12 +21,14 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
 	type OutlineSectionDto,
 	type ReviewResponse,
 	useConfirmOutline,
 	useGenerateOutline,
+	useIdeation,
 	useMarkSectionDone,
 	useOutline,
 	useReview,
@@ -39,12 +41,14 @@ interface WritingWorkspaceProps {
 	applicationId: string;
 	onBack: () => void;
 	onComplete: () => void;
+	sopPrompt?: string;
 }
 
 export function WritingWorkspace({
 	applicationId,
 	onBack,
 	onComplete,
+	sopPrompt,
 }: WritingWorkspaceProps) {
 	const [selectedSectionIndex, setSelectedSectionIndex] = useState(0);
 	const [sectionContent, setSectionContent] = useState("");
@@ -55,6 +59,7 @@ export function WritingWorkspace({
 	const hasTriggeredGenerate = useRef(false);
 	const hasTriggeredConfirm = useRef(false);
 
+	const { data: ideation } = useIdeation(applicationId);
 	const { data: outline, isLoading: outlineLoading } =
 		useOutline(applicationId);
 	const { data: sectionsData, isLoading: sectionsLoading } =
@@ -67,6 +72,9 @@ export function WritingWorkspace({
 
 	const sections = sectionsData?.sections || [];
 	const outlineSections = outline?.sections || [];
+	const selectedAngle = ideation?.angles?.find(
+		(a) => a.id === ideation.selectedAngleId,
+	);
 
 	// Sync section content when switching sections
 	useEffect(() => {
@@ -118,7 +126,7 @@ export function WritingWorkspace({
 				sectionIndex: selectedSectionIndex,
 				data: { content: sectionContent },
 			});
-			toast.success("Đã lưu");
+			toast.success("Đã lưu nháp");
 		} catch {
 			toast.error("Không thể lưu. Vui lòng thử lại.");
 		}
@@ -166,11 +174,60 @@ export function WritingWorkspace({
 
 	if (isLoading) {
 		return (
-			<div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-				<Loader2 className="w-8 h-8 animate-spin text-primary" />
-				<p className="text-sm text-muted-foreground">
-					{generateOutline.isPending ? "Đang tạo outline..." : "Đang tải..."}
-				</p>
+			<div className="h-full flex flex-col lg:flex-row gap-4">
+				{/* Left Panel Skeleton */}
+				<div className="lg:w-64 shrink-0">
+					<Card className="h-full">
+						<CardHeader className="py-3 px-4 space-y-4">
+							<Skeleton className="h-5 w-24" />
+							<Skeleton className="h-9 w-full" />
+						</CardHeader>
+						<CardContent className="px-2 pb-4 space-y-2">
+							{[1, 2, 3, 4, 5].map((i) => (
+								<Skeleton key={i} className="h-8 w-full rounded-md" />
+							))}
+						</CardContent>
+					</Card>
+				</div>
+
+				{/* Center Panel Skeleton */}
+				<div className="flex-1 flex flex-col gap-4 min-w-0">
+					<Card className="flex-1 flex flex-col">
+						<CardHeader className="py-3 px-4 border-b space-y-4">
+							<div className="flex justify-between">
+								<div className="flex gap-2">
+									<Skeleton className="h-8 w-24" />
+									<Skeleton className="h-8 w-24" />
+								</div>
+								<Skeleton className="h-8 w-32" />
+							</div>
+							<div className="flex justify-between items-center">
+								<Skeleton className="h-6 w-48" />
+								<Skeleton className="h-4 w-24" />
+							</div>
+						</CardHeader>
+						<CardContent className="flex-1 p-4">
+							<Skeleton className="h-full w-full rounded-md" />
+						</CardContent>
+					</Card>
+				</div>
+
+				{/* Right Panel Skeleton */}
+				<div className="lg:w-72 shrink-0">
+					<Card className="h-full">
+						<CardHeader className="py-3 px-4">
+							<Skeleton className="h-5 w-32" />
+						</CardHeader>
+						<CardContent className="px-4 pb-4 space-y-4">
+							{[1, 2, 3].map((i) => (
+								<div key={i} className="space-y-2">
+									<Skeleton className="h-4 w-full" />
+									<Skeleton className="h-4 w-3/4" />
+								</div>
+							))}
+						</CardContent>
+					</Card>
+				</div>
 			</div>
 		);
 	}
@@ -179,19 +236,38 @@ export function WritingWorkspace({
 	const allDone = sections.every((s) => s.status === "done");
 	const wordCount = sectionContent.split(/\s+/).filter(Boolean).length;
 
+	// Calculate accumulated content from previous sections
+	const previousContent = sections
+		.slice(0, selectedSectionIndex)
+		.map((s) => s.content)
+		.filter(Boolean)
+		.join("\n\n");
+
 	return (
 		<div className="h-full flex flex-col lg:flex-row gap-4">
 			{/* Left Panel - Outline Checklist */}
-			<div className="lg:w-64 shrink-0">
-				<Card className="h-full">
-					<CardHeader className="py-3 px-4">
-						<CardTitle className="text-sm font-medium flex items-center gap-2">
-							<CheckCircle className="w-4 h-4 text-primary" />
-							Outline
-						</CardTitle>
+			<div className="lg:w-64 shrink-0 flex flex-col gap-4">
+				<Card className="h-full flex flex-col">
+					<CardHeader className="py-3 px-4 shrink-0 space-y-4">
+						<div className="flex items-center justify-between">
+							<CardTitle className="text-sm font-medium flex items-center gap-2">
+								<CheckCircle className="w-4 h-4 text-primary" />
+								Outline
+							</CardTitle>
+						</div>
+						{/* Back Button moved to top */}
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={onBack}
+							className="w-full"
+						>
+							<ArrowLeft className="w-4 h-4 mr-2" />
+							Quay lại chọn góc
+						</Button>
 					</CardHeader>
-					<CardContent className="px-2 pb-4">
-						<ScrollArea className="h-[calc(100vh-24rem)]">
+					<CardContent className="px-2 pb-4 flex-1 min-h-0">
+						<ScrollArea className="h-full">
 							<div className="space-y-1 pr-2">
 								{outlineSections.map(
 									(section: OutlineSectionDto, index: number) => {
@@ -225,17 +301,6 @@ export function WritingWorkspace({
 								)}
 							</div>
 						</ScrollArea>
-
-						{/* Back Button */}
-						<Button
-							variant="ghost"
-							size="sm"
-							onClick={onBack}
-							className="w-full mt-4"
-						>
-							<ArrowLeft className="w-4 h-4 mr-2" />
-							Quay lại
-						</Button>
 					</CardContent>
 				</Card>
 			</div>
@@ -243,77 +308,125 @@ export function WritingWorkspace({
 			{/* Center Panel - Writing Area */}
 			<div className="flex-1 flex flex-col gap-4 min-w-0">
 				<Card className="flex-1 flex flex-col">
-					<CardHeader className="py-3 px-4 border-b">
-						<div className="flex items-center justify-between">
-							<CardTitle className="text-base">
-								{currentOutlineSection?.title || "Section"}
-							</CardTitle>
-							<span className="text-xs text-muted-foreground">
-								{wordCount} từ
-								{currentOutlineSection?.wordTarget && (
-									<>
-										{" "}
-										/ {currentOutlineSection.wordTarget.min}-
-										{currentOutlineSection.wordTarget.max}
-									</>
+					<CardHeader className="py-3 px-4 border-b shrink-0">
+						<div className="flex flex-col gap-4">
+							{/* Top Actions Row */}
+							<div className="flex items-center justify-between">
+								<div className="flex items-center gap-2">
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={handleSaveSection}
+										disabled={updateSection.isPending}
+									>
+										{updateSection.isPending && (
+											<Loader2 className="w-3 h-3 mr-2 animate-spin" />
+										)}
+										Save Draft
+									</Button>
+
+									<Button
+										size="sm"
+										onClick={handleMarkDone}
+										disabled={
+											markSectionDone.isPending || !sectionContent.trim()
+										}
+									>
+										{markSectionDone.isPending ? (
+											<Loader2 className="w-3 h-3 mr-2 animate-spin" />
+										) : (
+											<Check className="w-3 h-3 mr-2" />
+										)}
+										Complete
+									</Button>
+								</div>
+
+								{/* Review Button moved to top */}
+								{allDone && (
+									<Button
+										size="sm"
+										onClick={handleReview}
+										disabled={review.isPending}
+										className="bg-purple-600 hover:bg-purple-700 text-white"
+									>
+										{review.isPending ? (
+											<Loader2 className="w-3 h-3 mr-2 animate-spin" />
+										) : (
+											<Sparkles className="w-3 h-3 mr-2" />
+										)}
+										Review với AI
+									</Button>
 								)}
-							</span>
+							</div>
+
+							{/* Info Display */}
+							{(sopPrompt || selectedAngle) && (
+								<div className="bg-muted/50 p-3 rounded-md text-sm text-muted-foreground space-y-2">
+									{sopPrompt && (
+										<div>
+											<span className="font-semibold text-foreground">
+												Đề bài:{" "}
+											</span>
+											{sopPrompt}
+										</div>
+									)}
+									{selectedAngle && (
+										<div>
+											<span className="font-semibold text-foreground">
+												Góc nhìn:{" "}
+											</span>
+											<span className="text-primary font-medium">
+												{selectedAngle.title}
+											</span>
+											{selectedAngle.hook && (
+												<span className="italic text-muted-foreground">
+													{" "}
+													- "{selectedAngle.hook}"
+												</span>
+											)}
+										</div>
+									)}
+								</div>
+							)}
+
+							<div className="flex items-center justify-between pt-2">
+								<CardTitle className="text-base">
+									{currentOutlineSection?.title || "Section"}
+								</CardTitle>
+								<span className="text-xs text-muted-foreground">
+									{wordCount} từ
+									{currentOutlineSection?.wordTarget && (
+										<>
+											{" "}
+											/ {currentOutlineSection.wordTarget.min}-
+											{currentOutlineSection.wordTarget.max}
+										</>
+									)}
+								</span>
+							</div>
 						</div>
 					</CardHeader>
-					<CardContent className="flex-1 p-4 flex flex-col">
+
+					<CardContent className="flex-1 p-4 flex flex-col min-h-0">
+						{/* Previous Content Display */}
+						{previousContent && (
+							<div className="mb-4 p-4 bg-muted/30 rounded-lg border border-border/50 text-sm text-muted-foreground whitespace-pre-wrap max-h-48 overflow-y-auto shrink-0">
+								{previousContent}
+							</div>
+						)}
+
 						<Textarea
 							value={sectionContent}
 							onChange={(e) => setSectionContent(e.target.value)}
-							placeholder="Viết nội dung section này..."
-							className="flex-1 min-h-[200px] resize-none text-sm"
+							placeholder={
+								currentOutlineSection?.tip
+									? `Tip: ${currentOutlineSection.tip}`
+									: "Viết nội dung section này..."
+							}
+							className="flex-1 min-h-[200px] resize-none text-sm font-normal leading-relaxed"
 						/>
-
-						{/* Section Actions */}
-						<div className="flex items-center justify-between mt-4 pt-4 border-t">
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={handleSaveSection}
-								disabled={updateSection.isPending}
-							>
-								{updateSection.isPending && (
-									<Loader2 className="w-3 h-3 mr-2 animate-spin" />
-								)}
-								Lưu
-							</Button>
-
-							<Button
-								size="sm"
-								onClick={handleMarkDone}
-								disabled={markSectionDone.isPending || !sectionContent.trim()}
-							>
-								{markSectionDone.isPending ? (
-									<Loader2 className="w-3 h-3 mr-2 animate-spin" />
-								) : (
-									<Check className="w-3 h-3 mr-2" />
-								)}
-								Hoàn thành section
-							</Button>
-						</div>
 					</CardContent>
 				</Card>
-
-				{/* Review Button - Show when all sections are done */}
-				{allDone && (
-					<Button
-						size="lg"
-						onClick={handleReview}
-						disabled={review.isPending}
-						className="w-full"
-					>
-						{review.isPending ? (
-							<Loader2 className="w-4 h-4 mr-2 animate-spin" />
-						) : (
-							<Sparkles className="w-4 h-4 mr-2" />
-						)}
-						Review với AI
-					</Button>
-				)}
 			</div>
 
 			{/* Right Panel - Guiding Questions */}
@@ -348,15 +461,6 @@ export function WritingWorkspace({
 								<p className="text-sm text-muted-foreground italic">
 									Không có câu hỏi gợi ý cho section này.
 								</p>
-							)}
-
-							{/* Tip */}
-							{currentOutlineSection?.tip && (
-								<div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
-									<p className="text-xs text-amber-800">
-										<strong>Tip:</strong> {currentOutlineSection.tip}
-									</p>
-								</div>
 							)}
 						</ScrollArea>
 					</CardContent>

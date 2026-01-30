@@ -5,7 +5,6 @@ import {
 	ExternalLink,
 	FileText,
 	Info,
-	Loader2,
 	PenLine,
 	Trash2,
 } from "lucide-react";
@@ -27,6 +26,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
@@ -135,8 +135,20 @@ export function ScholarshipDashboard({
 	// Loading state
 	if (isLoadingApplication) {
 		return (
-			<div className="flex items-center justify-center h-full bg-muted/30">
-				<Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+			<div className="flex-1 overflow-y-auto bg-muted/30">
+				<div className="max-w-4xl mx-auto p-6 space-y-6">
+					<div className="flex justify-between items-start">
+						<div className="space-y-2">
+							<Skeleton className="h-8 w-64" />
+							<Skeleton className="h-5 w-48" />
+						</div>
+						<Skeleton className="h-9 w-28" />
+					</div>
+					<div className="space-y-6">
+						<Skeleton className="h-10 w-full max-w-sm" />
+						<Skeleton className="h-[400px] w-full rounded-xl" />
+					</div>
+				</div>
 			</div>
 		);
 	}
@@ -264,8 +276,10 @@ export function ScholarshipDashboard({
 
 						<TabsContent value="documents" className="mt-0">
 							{isLoadingDocuments ? (
-								<div className="flex items-center justify-center h-64">
-									<Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+								<div className="space-y-4 pt-4">
+									{[1, 2, 3].map((i) => (
+										<Skeleton key={i} className="h-20 w-full rounded-lg" />
+									))}
 								</div>
 							) : (
 								<DocumentsTab

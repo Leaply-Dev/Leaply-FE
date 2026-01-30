@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
 	type SopPhase,
@@ -59,8 +60,27 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 
 	if (isLoading) {
 		return (
-			<div className="flex items-center justify-center min-h-[400px]">
-				<Loader2 className="w-8 h-8 animate-spin text-primary" />
+			<div className="h-full flex flex-col">
+				<div className="flex-1 min-h-0">
+					<Card className="max-w-xl mx-auto">
+						<CardHeader className="text-center pb-4">
+							<div className="flex justify-center">
+								<Skeleton className="h-8 w-48 rounded-lg" />
+							</div>
+						</CardHeader>
+						<CardContent className="space-y-6">
+							<div className="space-y-2">
+								<Skeleton className="h-4 w-32" />
+								<Skeleton className="h-[80px] w-full rounded-md" />
+							</div>
+							<div className="flex items-center gap-3">
+								<Skeleton className="h-4 w-24" />
+								<Skeleton className="h-10 w-24 rounded-md" />
+							</div>
+							<Skeleton className="h-11 w-full rounded-md" />
+						</CardContent>
+					</Card>
+				</div>
 			</div>
 		);
 	}
@@ -101,6 +121,7 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 						applicationId={applicationId}
 						onBack={() => handlePhaseChange("ideation")}
 						onComplete={() => handlePhaseChange("completed")}
+						sopPrompt={status?.sopPrompt}
 					/>
 				)}
 
