@@ -24,8 +24,15 @@ export function performLogout(options?: { redirect?: string }) {
 	// This handles edge cases where persist middleware might restore state
 	clearAllStorageKeys();
 
-	// 4. Redirect if specified
+	// 4. Redirect if specified (validate to prevent open redirect)
 	if (options?.redirect) {
-		window.location.href = options.redirect;
+		const redirect = options.redirect;
+		// Only allow relative paths starting with "/" but not "//" (protocol-relative URLs)
+		if (redirect.startsWith("/") && !redirect.startsWith("//")) {
+			window.location.href = redirect;
+		} else {
+			// Fallback to safe default
+			window.location.href = "/";
+		}
 	}
 }

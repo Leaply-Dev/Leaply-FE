@@ -303,6 +303,158 @@ export function isDeadlinePast(dateStr?: string | null): boolean {
 }
 
 // =============================================================================
+// Deadline Utilities
+// =============================================================================
+
+/**
+ * Calculate days until a deadline
+ * @returns Number of days (negative if past), or null if no deadline
+ * @example getDaysUntilDeadline("2025-01-15") → 30
+ * @example getDaysUntilDeadline("2024-01-01") → -180 (past)
+ */
+export function getDaysUntilDeadline(deadline?: string | null): number | null {
+	if (!deadline) return null;
+	try {
+		const deadlineDate = new Date(deadline);
+		if (Number.isNaN(deadlineDate.getTime())) return null;
+		const now = new Date();
+		const diff = deadlineDate.getTime() - now.getTime();
+		return Math.ceil(diff / (1000 * 60 * 60 * 24));
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Deadline urgency levels with associated styling
+ */
+export type DeadlineUrgencyLevel = "passed" | "urgent" | "soon" | "normal";
+
+export interface DeadlineUrgency {
+	level: DeadlineUrgencyLevel;
+	color: string;
+	daysUntil: number | null;
+}
+
+/**
+ * Get urgency level and styling for a deadline
+ * @example getDeadlineUrgency("2025-01-01") → { level: "urgent", color: "text-destructive", daysUntil: 5 }
+ */
+export function getDeadlineUrgency(deadline?: string | null): DeadlineUrgency {
+	const daysUntil = getDaysUntilDeadline(deadline);
+
+	if (daysUntil === null) {
+		return { level: "normal", color: "text-muted-foreground", daysUntil: null };
+	}
+
+	if (daysUntil < 0) {
+		return { level: "passed", color: "text-muted-foreground", daysUntil };
+	}
+
+	if (daysUntil < 14) {
+		return { level: "urgent", color: "text-destructive", daysUntil };
+	}
+
+	if (daysUntil <= 30) {
+		return { level: "soon", color: "text-orange-600", daysUntil };
+	}
+
+	return { level: "normal", color: "text-foreground", daysUntil };
+}
+
+/**
+ * Full deadline info including formatted text and urgency
+ */
+export interface DeadlineInfo {
+	text: string;
+	isUrgent: boolean;
+	daysLeft: string | null;
+	color: string;
+}
+
+/**
+ * Get comprehensive deadline info for display
+ * Includes formatted date, urgency status, and human-readable time remaining
+ * @param deadline - ISO date string
+ * @param locale - Display locale ("en" or "vi")
+ * @example getDeadlineInfo("2025-01-15", "vi") → { text: "15/01/2025", isUrgent: true, daysLeft: "Sắp hết hạn (5 ngày)", color: "text-destructive" }
+ */
+export function getDeadlineInfo(
+	deadline?: string | null,
+	locale: Locale = "en",
+): DeadlineInfo {
+	if (!deadline) {
+		return {
+			text: "N/A",
+			isUrgent: false,
+			daysLeft: null,
+			color: "text-muted-foreground",
+		};
+	}
+
+	const urgency = getDeadlineUrgency(deadline);
+	const daysUntil = urgency.daysUntil;
+
+	const formatted =
+		locale === "vi"
+			? new Date(deadline).toLocaleDateString("vi-VN", {
+					day: "2-digit",
+					month: "2-digit",
+					year: "numeric",
+				})
+			: formatDate(deadline);
+
+	if (daysUntil === null) {
+		return {
+			text: "N/A",
+			isUrgent: false,
+			daysLeft: null,
+			color: "text-muted-foreground",
+		};
+	}
+
+	if (daysUntil < 0) {
+		return {
+			text: locale === "vi" ? "Đã đóng" : "Closed",
+			isUrgent: false,
+			daysLeft: null,
+			color: "text-muted-foreground",
+		};
+	}
+
+	if (daysUntil < 14) {
+		return {
+			text: formatted,
+			isUrgent: true,
+			daysLeft:
+				locale === "vi"
+					? `Sắp hết hạn (${daysUntil} ngày)`
+					: `Urgent (${daysUntil} days)`,
+			color: "text-destructive",
+		};
+	}
+
+	if (daysUntil <= 60) {
+		const months = Math.floor(daysUntil / 30);
+		return {
+			text: formatted,
+			isUrgent: false,
+			daysLeft:
+				locale === "vi" ? `Còn ${months} tháng` : `${months} month(s) left`,
+			color: "text-muted-foreground",
+		};
+	}
+
+	return {
+		text: formatted,
+		isUrgent: false,
+		daysLeft:
+			locale === "vi" ? `Còn ${daysUntil} ngày` : `${daysUntil} days left`,
+		color: "text-muted-foreground",
+	};
+}
+
+// =============================================================================
 // Test Score Formatting
 // =============================================================================
 

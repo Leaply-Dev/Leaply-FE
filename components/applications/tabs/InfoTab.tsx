@@ -18,7 +18,10 @@ import {
 } from "@/components/ui/select";
 import type { ApplicationResponse, GapDto } from "@/lib/generated/api/models";
 import { cn } from "@/lib/utils";
-import { formatSopStatus } from "@/lib/utils/displayFormatters";
+import {
+	formatSopStatus,
+	getDaysUntilDeadline,
+} from "@/lib/utils/displayFormatters";
 
 interface InfoTabProps {
 	application: ApplicationResponse;
@@ -44,16 +47,9 @@ const gapSeverityConfig: Record<
 };
 
 export function InfoTab({ application, onUpdateStatus }: InfoTabProps) {
-	// Calculate days until deadline
-	const getDaysUntilDeadline = () => {
-		if (!application.program?.nextDeadline) return null;
-		const deadline = new Date(application.program.nextDeadline);
-		const now = new Date();
-		const diff = deadline.getTime() - now.getTime();
-		return Math.ceil(diff / (1000 * 60 * 60 * 24));
-	};
-
-	const daysUntilDeadline = getDaysUntilDeadline();
+	const daysUntilDeadline = getDaysUntilDeadline(
+		application.program?.nextDeadline,
+	);
 
 	const handleStatusChange = async (newStatus: string) => {
 		if (onUpdateStatus) {

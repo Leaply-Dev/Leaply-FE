@@ -3,10 +3,16 @@
 import Cookies from "js-cookie";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
+import { z } from "zod";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import { getCurrentUser } from "@/lib/generated/api/endpoints/authentication/authentication";
 import type { UserContextResponse } from "@/lib/generated/api/models";
 import { useUserStore } from "@/lib/store/userStore";
+
+const AuthStateCookieSchema = z.object({
+	isAuthenticated: z.boolean(),
+	isOnboardingComplete: z.boolean().optional(),
+});
 
 /**
  * Simplified AuthProvider for cookie-based authentication.
@@ -27,42 +33,25 @@ const PROTECTED_ROUTES = [
 	"/explore",
 ];
 
-/**
- * Session key for tracking validation state
- */
-const AUTH_VALIDATION_KEY = "leaply-auth-validated";
-
-interface AuthProviderProps {
-	children: React.ReactNode;
-}
-
-/**
- * Check if auth was already validated this session
- */
-function wasValidatedThisSession(): boolean {
-	if (typeof window === "undefined") return false;
-	return sessionStorage.getItem(AUTH_VALIDATION_KEY) === "true";
-}
-
-function markValidated(): void {
-	if (typeof window === "undefined") return;
-	sessionStorage.setItem(AUTH_VALIDATION_KEY, "true");
-}
-
 function isProtectedRoute(pathname: string): boolean {
 	return PROTECTED_ROUTES.some(
 		(route) => pathname === route || pathname.startsWith(`${route}/`),
 	);
 }
 
+interface AuthProviderProps {
+	children: React.ReactNode;
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
 	const { isAuthenticated, login, profile, _hasHydrated } = useUserStore();
 	const validationInProgress = useRef(false);
+	const hasValidated = useRef(false);
 	const pathname = usePathname();
 
 	useEffect(() => {
 		if (!_hasHydrated) return;
-		if (wasValidatedThisSession()) return;
+		if (hasValidated.current) return;
 		if (validationInProgress.current) return;
 		validationInProgress.current = true;
 
@@ -70,11 +59,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			const authStateCookie = Cookies.get("leaply-auth-state");
 			let cookieAuth = false;
 
-			try {
-				const parsed = JSON.parse(authStateCookie || "{}");
-				cookieAuth = parsed.isAuthenticated === true;
-			} catch {
-				// Invalid cookie
+			const parseResult = AuthStateCookieSchema.safeParse(
+				(() => {
+					try {
+						return JSON.parse(authStateCookie || "{}");
+					} catch {
+						return {};
+					}
+				})(),
+			);
+
+			if (parseResult.success) {
+				cookieAuth = parseResult.data.isAuthenticated === true;
 			}
 
 			const redirectIfProtected = () => {
@@ -83,7 +79,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				}
 			};
 
-			// Corruption: Cookie says auth, but Zustand says not
 			if (cookieAuth && !isAuthenticated) {
 				Cookies.remove("leaply-auth-state", { path: "/" });
 				validationInProgress.current = false;
@@ -91,18 +86,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				return;
 			}
 
-			// Skip if not authenticated
 			if (!isAuthenticated) {
 				validationInProgress.current = false;
 				return;
 			}
 
-			// Validate with backend
 			try {
 				const response = await getCurrentUser();
 				const userContext = unwrapResponse<UserContextResponse>(response);
 
-				// Update profile if needed
 				if (userContext?.user) {
 					login(
 						profile || {
@@ -114,10 +106,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 					);
 				}
 
-				markValidated();
+				hasValidated.current = true;
 			} catch (_error) {
-				// Don't logout on validation error - let individual API calls handle it
-				markValidated();
+				hasValidated.current = true;
 			} finally {
 				validationInProgress.current = false;
 			}

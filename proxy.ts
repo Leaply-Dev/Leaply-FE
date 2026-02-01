@@ -1,5 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const AuthStateCookieSchema = z.object({
+	isAuthenticated: z.boolean(),
+	isOnboardingComplete: z.boolean().optional(),
+});
 
 // Routes that require authentication
 const PROTECTED_ROUTES = ["/dashboard", "/explore", "/persona-lab"];
@@ -37,12 +43,19 @@ export function proxy(request: NextRequest) {
 	let isOnboardingComplete = false;
 
 	if (authStateCookie) {
-		try {
-			const authState = JSON.parse(authStateCookie);
-			isAuthenticated = authState.isAuthenticated;
-			isOnboardingComplete = authState.isOnboardingComplete;
-		} catch {
-			// If cookie is invalid, treat as unauthenticated
+		const parseResult = AuthStateCookieSchema.safeParse(
+			(() => {
+				try {
+					return JSON.parse(authStateCookie);
+				} catch {
+					return {};
+				}
+			})(),
+		);
+
+		if (parseResult.success) {
+			isAuthenticated = parseResult.data.isAuthenticated;
+			isOnboardingComplete = parseResult.data.isOnboardingComplete ?? false;
 		}
 	}
 

@@ -165,14 +165,3 @@ export function logError(error: unknown, context?: string): void {
 		console.groupEnd();
 	}
 }
-
-/**
- * Send error report to backend (future implementation)
- */
-export async function reportErrorToBackend(report: ErrorReport): Promise<void> {
-	// TODO: Implement backend error reporting endpoint
-	// For now, just log in development
-	if (process.env.NODE_ENV === "development") {
-		console.log("Error report would be sent:", report);
-	}
-}

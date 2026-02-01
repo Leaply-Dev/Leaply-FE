@@ -165,13 +165,7 @@ export const useUserStore = create<UserState>()(
 			},
 
 			login: (profile, isOnboardingComplete = false) => {
-				// Sync middleware cookie
 				syncAuthCookie(true, isOnboardingComplete);
-
-				// Mark auth as validated in session
-				if (typeof window !== "undefined") {
-					sessionStorage.setItem("leaply-auth-validated", "true");
-				}
 
 				set({
 					profile,
@@ -181,24 +175,15 @@ export const useUserStore = create<UserState>()(
 			},
 
 			logout: () => {
-				// Clear middleware cookie
 				Cookies.remove(AUTH_COOKIE_NAME, { path: "/" });
 
-				// Clear session validation marker
-				if (typeof window !== "undefined") {
-					sessionStorage.removeItem("leaply-auth-validated");
-				}
-
-				// Also call backend logout to clear HttpOnly cookies
 				fetch(
 					`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api"}/v1/auth/logout`,
 					{
 						method: "POST",
 						credentials: "include",
 					},
-				).catch(() => {
-					// Ignore errors - we're logging out anyway
-				});
+				).catch(() => {});
 
 				set({
 					profile: null,

@@ -444,15 +444,6 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					}
 
 					if (isServerDifferent) {
-						console.log(
-							"🔄 [PersonaStore] Syncing conversation with server (Server state preferred)",
-							{
-								serverCount: serverMessages.length,
-								localSentCount: localSentMessages.length,
-								pendingCount: pendingMessages.length,
-							},
-						);
-
 						return {
 							graphMessages: [...serverMessages, ...pendingMessages],
 							...archetypeUpdates,
@@ -473,38 +464,20 @@ export const usePersonaStore = create<PersonaStoreState>()(
 				set((state) => {
 					const localNodes = state.apiGraphNodes;
 
-					// Debug: Log sync decision
-					console.log("🔄 [PersonaStore] syncGraph called:", {
-						serverNodeCount: nodes.length,
-						localNodeCount: localNodes.length,
-						serverIds: nodes.map((n) => n.id?.substring(0, 8)),
-						localIds: localNodes.map((n) => n.id?.substring(0, 8)),
-					});
-
-					// ALWAYS sync with server data when server has nodes
-					// This ensures we never use stale/corrupted localStorage data
 					if (nodes.length > 0) {
-						console.log(
-							"✅ [PersonaStore] Using server data (nodes:",
-							nodes.length,
-							")",
-						);
 						return {
 							apiGraphNodes: nodes,
 							apiGraphEdges: edges,
 						};
 					}
 
-					// Server is empty - check if we should clear local data
 					if (nodes.length === 0 && localNodes.length > 0) {
-						console.log("⚠️ [PersonaStore] Server empty, clearing local data");
 						return {
 							apiGraphNodes: [],
 							apiGraphEdges: [],
 						};
 					}
 
-					// Both empty - no change needed
 					return state;
 				});
 			},

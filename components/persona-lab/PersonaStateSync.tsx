@@ -54,24 +54,16 @@ export function PersonaStateSync() {
 
 	useEffect(() => {
 		if (isHydrated && personaState && graphState && coverageData) {
-			console.log(
-				"🔄 [PersonaSync] Restoring full state from server",
-				new Date().toISOString(),
-			);
-
-			// 1. Sync History
 			const stateData = unwrapResponse<PersonaStateResponse>(personaState);
 			if (stateData) {
 				syncWithServer(stateData);
 			}
 
-			// 2. Sync Graph (Nodes + Edges)
 			const graphData = unwrapResponse<PersonaGraphResponse>(graphState);
 			if (graphData) {
 				syncGraph(graphData.nodes ?? [], graphData.edges ?? []);
 			}
 
-			// 3. Sync Coverage
 			const covData = unwrapResponse<CoverageMetrics>(coverageData);
 			if (covData) {
 				setCoverage(covData);

@@ -36,7 +36,10 @@ export function GoogleLoginButton({
 			const data = await response.json();
 
 			if (data.success && data.data?.url) {
-				// Redirect to Google OAuth
+				const oauthUrl = new URL(data.data.url);
+				if (oauthUrl.hostname !== "accounts.google.com") {
+					throw new Error("Invalid OAuth URL");
+				}
 				window.location.href = data.data.url;
 			} else {
 				throw new Error(data.message || "Failed to get OAuth URL");

@@ -44,7 +44,9 @@ import type {
 } from "@/lib/generated/api/models";
 import {
 	formatCountryName,
+	formatDate,
 	formatTuitionRange,
+	getDeadlineUrgency,
 } from "@/lib/utils/displayFormatters";
 
 const PAGE_SIZE = 20;
@@ -159,35 +161,27 @@ function ProgramTableRow({
 	onManage?: (id: string) => void;
 	t: ReturnType<typeof useTranslations<"explore">>;
 }) {
-	const getDeadlineUrgency = (deadline?: string) => {
-		if (!deadline)
-			return { color: "text-muted-foreground", label: t("table.na") };
-		const daysUntil = Math.floor(
-			(new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-		);
+	const getDeadlineDisplay = (deadline?: string) => {
+		const urgency = getDeadlineUrgency(deadline);
 
-		if (daysUntil < 0) {
-			return { color: "text-muted-foreground", label: t("table.closed") };
+		if (urgency.daysUntil === null) {
+			return { color: "text-muted-foreground", label: t("table.na") };
 		}
-		if (daysUntil < 14) {
+
+		if (urgency.level === "passed") {
+			return { color: urgency.color, label: t("table.closed") };
+		}
+
+		if (urgency.level === "urgent" || urgency.level === "soon") {
 			return {
-				color: "text-destructive",
-				label: `${t("table.daysLeft", { days: daysUntil })}`,
+				color: urgency.color,
+				label: t("table.daysLeft", { days: urgency.daysUntil }),
 			};
 		}
-		if (daysUntil <= 30) {
-			return {
-				color: "text-orange-600",
-				label: `${t("table.daysLeft", { days: daysUntil })}`,
-			};
-		}
+
 		return {
-			color: "text-foreground",
-			label: new Date(deadline).toLocaleDateString("vi-VN", {
-				day: "2-digit",
-				month: "short",
-				year: "numeric",
-			}),
+			color: urgency.color,
+			label: formatDate(deadline, { short: true }),
 		};
 	};
 
@@ -242,7 +236,7 @@ function ProgramTableRow({
 		);
 	};
 
-	const deadline = getDeadlineUrgency(program.nextDeadline);
+	const deadline = getDeadlineDisplay(program.nextDeadline);
 
 	return (
 		<tr

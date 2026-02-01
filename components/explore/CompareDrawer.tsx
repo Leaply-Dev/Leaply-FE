@@ -31,10 +31,12 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ProgramListItemResponse } from "@/lib/generated/api/models";
 import {
+	type DeadlineInfo,
 	formatCountryName,
 	formatDeliveryMode,
 	formatDuration,
 	formatTuitionRange,
+	getDeadlineInfo,
 } from "@/lib/utils/displayFormatters";
 
 // ============================================================================
@@ -47,13 +49,6 @@ interface CompareDialogProps {
 	selectedProgramsList: ProgramListItemResponse[];
 	onRemoveProgram: (id: string) => void;
 	onAddToDashboard: (id: string) => void;
-}
-
-interface DeadlineInfo {
-	text: string;
-	isUrgent: boolean;
-	daysLeft: string | null;
-	color?: string;
 }
 
 interface EnglishRequirement {
@@ -106,41 +101,6 @@ function MatchBadge({
 		default:
 			return null;
 	}
-}
-
-function getDeadlineInfo(deadline?: string): DeadlineInfo {
-	if (!deadline) return { text: "N/A", isUrgent: false, daysLeft: null };
-	const daysUntil = Math.floor(
-		(new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-	);
-	const formatted = new Date(deadline).toLocaleDateString("vi-VN", {
-		day: "2-digit",
-		month: "2-digit",
-		year: "numeric",
-	});
-
-	if (daysUntil < 14) {
-		return {
-			text: formatted,
-			isUrgent: true,
-			daysLeft: `Sắp hết hạn (${daysUntil} ngày)`,
-			color: "text-destructive",
-		};
-	}
-	if (daysUntil <= 60) {
-		return {
-			text: formatted,
-			isUrgent: false,
-			daysLeft: `Còn ${Math.floor(daysUntil / 30)} tháng`,
-			color: "text-muted-foreground",
-		};
-	}
-	return {
-		text: formatted,
-		isUrgent: false,
-		daysLeft: `Còn ${daysUntil} ngày`,
-		color: "text-muted-foreground",
-	};
 }
 
 function getEnglishRequirement(
@@ -289,7 +249,7 @@ function DurationCell({ program }: { program: ProgramListItemResponse }) {
 	);
 }
 function DeadlineCell({ program }: { program: ProgramListItemResponse }) {
-	const deadline = getDeadlineInfo(program.nextDeadline);
+	const deadline = getDeadlineInfo(program.nextDeadline, "vi");
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<div className="space-y-1">

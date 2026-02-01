@@ -18,7 +18,10 @@ import {
 } from "@/components/ui/select";
 import type { ScholarshipApplicationResponse } from "@/lib/generated/api/models";
 import { cn } from "@/lib/utils";
-import { formatCoverageTypeI18n } from "@/lib/utils/displayFormatters";
+import {
+	formatCoverageTypeI18n,
+	getDaysUntilDeadline,
+} from "@/lib/utils/displayFormatters";
 
 interface OverviewTabProps {
 	application: ScholarshipApplicationResponse;
@@ -26,16 +29,7 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ application, onUpdateStatus }: OverviewTabProps) {
-	// Calculate days until deadline
-	const getDaysUntilDeadline = () => {
-		if (!application.targetDeadline) return null;
-		const deadline = new Date(application.targetDeadline);
-		const now = new Date();
-		const diff = deadline.getTime() - now.getTime();
-		return Math.ceil(diff / (1000 * 60 * 60 * 24));
-	};
-
-	const daysUntilDeadline = getDaysUntilDeadline();
+	const daysUntilDeadline = getDaysUntilDeadline(application.targetDeadline);
 
 	const handleStatusChange = async (newStatus: string) => {
 		if (onUpdateStatus) {

@@ -29,12 +29,14 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ScholarshipListItemResponse } from "@/lib/generated/api/models";
 import {
+	type DeadlineInfo,
 	formatCoverageAmount,
 	formatCoverageDuration,
 	formatCoverageType,
 	formatDate,
 	formatEligibilityType,
 	formatScholarshipDegreeLevel,
+	getDeadlineInfo,
 } from "@/lib/utils/displayFormatters";
 
 // ============================================================================
@@ -47,13 +49,6 @@ interface ScholarshipCompareDialogProps {
 	selectedScholarshipsList: ScholarshipListItemResponse[];
 	onRemoveScholarship: (id: string) => void;
 	onAddToDashboard: (id: string) => void;
-}
-
-interface DeadlineInfo {
-	text: string;
-	isUrgent: boolean;
-	daysLeft: string | null;
-	color?: string;
 }
 
 // ============================================================================
@@ -94,47 +89,6 @@ function getMatchBadge(fitCategory?: string, fitScore?: number) {
 		default:
 			return null;
 	}
-}
-
-function getDeadlineInfo(deadline?: string): DeadlineInfo {
-	if (!deadline) return { text: "N/A", isUrgent: false, daysLeft: null };
-	const daysUntil = Math.floor(
-		(new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-	);
-
-	if (daysUntil < 0) {
-		return {
-			text: "Closed",
-			isUrgent: false,
-			daysLeft: null,
-			color: "text-muted-foreground",
-		};
-	}
-
-	const formatted = formatDate(deadline);
-
-	if (daysUntil < 14) {
-		return {
-			text: formatted,
-			isUrgent: true,
-			daysLeft: `Urgent (${daysUntil} days)`,
-			color: "text-destructive",
-		};
-	}
-	if (daysUntil <= 60) {
-		return {
-			text: formatted,
-			isUrgent: false,
-			daysLeft: `${Math.floor(daysUntil / 30)} month(s) left`,
-			color: "text-muted-foreground",
-		};
-	}
-	return {
-		text: formatted,
-		isUrgent: false,
-		daysLeft: `${daysUntil} days left`,
-		color: "text-muted-foreground",
-	};
 }
 
 function getCoverageDisplay(scholarship: ScholarshipListItemResponse): string {
@@ -302,7 +256,7 @@ function DeadlineCell({
 }: {
 	scholarship: ScholarshipListItemResponse;
 }) {
-	const deadline = getDeadlineInfo(scholarship.applicationDeadline);
+	const deadline = getDeadlineInfo(scholarship.applicationDeadline, "en");
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<div className="space-y-1">
