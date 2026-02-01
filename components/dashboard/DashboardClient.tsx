@@ -196,8 +196,8 @@ export function DashboardClient() {
 									{isLoading ? (
 										<Skeleton className="h-24 w-full rounded-xl" />
 									) : suggestedAction ? (
-										suggestedAction.type === "persona" ||
-										suggestedAction.type === "writing" ? (
+										(suggestedAction.type as string) === "persona" ||
+										(suggestedAction.type as string) === "writing" ? (
 											<div className="relative overflow-hidden rounded-xl border bg-linear-to-r from-primary/10 via-background to-background p-1">
 												<div className="flex items-center gap-4 bg-background/80 backdrop-blur-sm p-4 rounded-lg">
 													<div className="flex-1">
@@ -336,7 +336,7 @@ export function DashboardClient() {
 																<TableCell className="py-3">
 																	<Badge
 																		variant={
-																			app.status === "submitted"
+																			(app.status as string) === "submitted"
 																				? "default"
 																				: "secondary"
 																		}

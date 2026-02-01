@@ -88,7 +88,10 @@ const convertConversationState = (
 			: null;
 
 	return {
-		phase: state.phase === "completed" ? "completed" : ("questioning" as const),
+		phase:
+			(state.phase as string) === "completed"
+				? "completed"
+				: ("questioning" as const),
 		currentPart,
 		currentQuestionId: state.currentQuestionId || null,
 		followUpCount: state.followUpCount || 0,

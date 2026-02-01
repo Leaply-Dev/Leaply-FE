@@ -190,7 +190,7 @@ export function AcademicInfoTab({
 				targetDegree: validatedData.targetDegree,
 				gpa:
 					typeof validatedData.gpa === "number" ? validatedData.gpa : undefined,
-				gpaScale: validatedData.gpaScale,
+				gpaScale: validatedData.gpaScale as 4 | 10,
 				workExperienceYears:
 					typeof validatedData.workExperienceYears === "number"
 						? validatedData.workExperienceYears
