@@ -90,8 +90,11 @@ export const customInstance = async <T>(
 
 	let response = await fetch(fullUrl, fetchConfig);
 
-	// Handle 401 with silent refresh
-	if (response.status === 401) {
+	// Handle 401 with silent refresh.
+	// Skip for auth endpoints (e.g. /v1/auth/login) — a 401 there means bad
+	// credentials, NOT an expired session, so we must NOT redirect to /?expired=true.
+	const isAuthEndpoint = url.includes("/v1/auth/");
+	if (response.status === 401 && !isAuthEndpoint) {
 		const refreshed = await refreshAuth();
 
 		if (refreshed) {
