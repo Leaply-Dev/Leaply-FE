@@ -30,7 +30,6 @@ import {
 	getGetApplications1QueryKey,
 	useDeleteApplication1,
 	useGetApplications1,
-	useUpdateApplication1,
 } from "@/lib/generated/api/endpoints/applications/applications";
 import {
 	getGetApplicationsQueryKey as getScholarshipApplicationsQueryKey,
@@ -103,26 +102,22 @@ export function ApplicationsClient() {
 		unwrapResponse<ScholarshipApplicationListResponse>(scholarshipAppsResponse);
 	const scholarshipApplications = scholarshipAppsData?.applications ?? [];
 
-	// Helper to check if any application needs tips polling (created <60s ago, no tips)
+	// Helper to check if any scholarship application needs tips polling (created <60s ago, no tips)
 	const hasPendingTips = useMemo(() => {
 		const now = Date.now();
-		const allApps = [...applications, ...scholarshipApplications];
-		return allApps.some(
+		return scholarshipApplications.some(
 			(app) =>
 				!app.improvementTips?.tips?.length &&
 				app.createdAt &&
 				now - new Date(app.createdAt).getTime() < 60000,
 		);
-	}, [applications, scholarshipApplications]);
+	}, [scholarshipApplications]);
 
 	// Poll for tips updates when there are pending applications
 	useEffect(() => {
 		if (!hasPendingTips) return;
 
 		const interval = setInterval(() => {
-			queryClient.invalidateQueries({
-				queryKey: getGetApplications1QueryKey(),
-			});
 			queryClient.invalidateQueries({
 				queryKey: getScholarshipApplicationsQueryKey(),
 			});
@@ -131,7 +126,6 @@ export function ApplicationsClient() {
 		return () => clearInterval(interval);
 	}, [hasPendingTips, queryClient]);
 
-	const { mutateAsync: updateStatus } = useUpdateApplication1();
 	const { mutateAsync: deleteApp } = useDeleteApplication1();
 	const { mutateAsync: deleteScholarshipApp } =
 		useDeleteScholarshipApplication();
@@ -187,27 +181,6 @@ export function ApplicationsClient() {
 
 	const selectedApplication =
 		applications.find((app) => app.id === selectedApplicationId) ?? null;
-
-	const handleUpdateStatus = async (status: string) => {
-		if (selectedApplication?.id) {
-			try {
-				await updateStatus({
-					id: selectedApplication.id,
-					data: {
-						status: status as "planning" | "writing" | "submitted",
-					},
-				});
-				await queryClient.invalidateQueries({
-					queryKey: getGetApplications1QueryKey(),
-				});
-				return true;
-			} catch {
-				toast.error(t("toast.statusUpdateFailed"));
-				return false;
-			}
-		}
-		return false;
-	};
 
 	const handleDelete = async () => {
 		if (selectedApplication?.id) {
@@ -452,7 +425,6 @@ export function ApplicationsClient() {
 							{mainTab === "programs" ? (
 								<ApplicationDashboard
 									application={selectedApplication}
-									onUpdateStatus={handleUpdateStatus}
 									onDelete={handleDelete}
 								/>
 							) : (

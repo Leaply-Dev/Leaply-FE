@@ -1,7 +1,6 @@
 "use client";
 
-import { AlertCircle, Calendar, CheckCircle2, FileText } from "lucide-react";
-import { ImprovementTipsCard } from "@/components/applications/ImprovementTipsCard";
+import { AlertCircle, FileText } from "lucide-react";
 import {
 	Card,
 	CardContent,
@@ -9,23 +8,12 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import type { ApplicationResponse, GapDto } from "@/lib/generated/api/models";
 import { cn } from "@/lib/utils";
-import {
-	formatSopStatus,
-	getDaysUntilDeadline,
-} from "@/lib/utils/displayFormatters";
+import { formatSopStatus } from "@/lib/utils/displayFormatters";
 
 interface InfoTabProps {
 	application: ApplicationResponse;
-	onUpdateStatus?: (status: string) => Promise<boolean>;
 }
 
 const gapSeverityConfig: Record<
@@ -46,113 +34,26 @@ const gapSeverityConfig: Record<
 	},
 };
 
-export function InfoTab({ application, onUpdateStatus }: InfoTabProps) {
-	const daysUntilDeadline = getDaysUntilDeadline(
-		application.program?.nextDeadline,
-	);
-
-	const handleStatusChange = async (newStatus: string) => {
-		if (onUpdateStatus) {
-			await onUpdateStatus(newStatus);
-		}
-	};
-
+export function InfoTab({ application }: InfoTabProps) {
 	return (
 		<div className="space-y-6">
-			{/* Quick Stats Row */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-				{/* Status */}
-				<Card>
-					<CardContent className="p-4">
-						<div className="flex items-center gap-2 mb-1">
-							<CheckCircle2
-								className="w-4 h-4 text-muted-foreground"
-								aria-hidden="true"
-							/>
-							<span className="text-xs font-medium text-muted-foreground">
-								Trạng thái
-							</span>
-						</div>
-						<Select
-							value={application.status}
-							onValueChange={handleStatusChange}
-						>
-							<SelectTrigger className="w-full h-8 text-sm mt-1">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="planning">Đang chuẩn bị</SelectItem>
-								<SelectItem value="writing">Đang viết</SelectItem>
-								<SelectItem value="submitted">Đã nộp</SelectItem>
-							</SelectContent>
-						</Select>
-					</CardContent>
-				</Card>
-
-				{/* SOP Status */}
-				<Card>
-					<CardContent className="p-4">
-						<div className="flex items-center gap-2 mb-1">
-							<FileText
-								className="w-4 h-4 text-muted-foreground"
-								aria-hidden="true"
-							/>
-							<span className="text-xs font-medium text-muted-foreground">
-								Trạng thái SOP
-							</span>
-						</div>
-						<p className="text-lg font-semibold text-foreground">
-							{formatSopStatus(application.sopStatus)}
-						</p>
-					</CardContent>
-				</Card>
-
-				{/* Next Deadline */}
-				<Card
-					className={cn(
-						daysUntilDeadline !== null &&
-							daysUntilDeadline <= 7 &&
-							"border-red-200 bg-red-50",
-					)}
-				>
-					<CardContent className="p-4">
-						<div className="flex items-center gap-2 mb-1">
-							<Calendar
-								className="w-4 h-4 text-muted-foreground"
-								aria-hidden="true"
-							/>
-							<span className="text-xs font-medium text-muted-foreground">
-								Hạn chót tiếp theo
-							</span>
-						</div>
-						{application.program?.nextDeadline ? (
-							<>
-								<p className="text-sm font-semibold text-foreground">
-									{new Date(
-										application.program.nextDeadline,
-									).toLocaleDateString("vi-VN")}
-								</p>
-								{daysUntilDeadline !== null && (
-									<p
-										className={cn(
-											"text-xs font-medium",
-											daysUntilDeadline <= 7
-												? "text-red-600"
-												: daysUntilDeadline <= 30
-													? "text-amber-600"
-													: "text-muted-foreground",
-										)}
-									>
-										Còn {daysUntilDeadline} ngày
-									</p>
-								)}
-							</>
-						) : (
-							<p className="text-sm text-muted-foreground">Chưa có</p>
-						)}
-					</CardContent>
-				</Card>
-			</div>
+			{/* SOP Status */}
+			<Card>
+				<CardContent className="p-4">
+					<div className="flex items-center gap-2 mb-1">
+						<FileText
+							className="w-4 h-4 text-muted-foreground"
+							aria-hidden="true"
+						/>
+						<span className="text-xs font-medium text-muted-foreground">
+							Trạng thái SOP
+						</span>
+					</div>
+					<p className="text-lg font-semibold text-foreground">
+						{formatSopStatus(application.sopStatus)}
+					</p>
+				</CardContent>
+			</Card>
 
 			{/* Gaps Analysis */}
 			{application.gaps && application.gaps.length > 0 && (
@@ -197,30 +98,6 @@ export function InfoTab({ application, onUpdateStatus }: InfoTabProps) {
 								);
 							})}
 						</div>
-					</CardContent>
-				</Card>
-			)}
-
-			{/* Improvement Tips */}
-			<ImprovementTipsCard
-				tips={application.improvementTips}
-				isLoading={
-					!application.improvementTips?.tips?.length &&
-					!!application.createdAt &&
-					Date.now() - new Date(application.createdAt).getTime() < 60000
-				}
-			/>
-
-			{/* Next Intake Info */}
-			{application.program?.nextIntake && (
-				<Card>
-					<CardHeader>
-						<CardTitle className="text-lg">Kỳ nhập học</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<p className="text-lg font-semibold">
-							{application.program?.nextIntake}
-						</p>
 					</CardContent>
 				</Card>
 			)}

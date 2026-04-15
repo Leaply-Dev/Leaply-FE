@@ -14,7 +14,6 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { InfoTab } from "@/components/applications/tabs/InfoTab";
-import { ProgramDocumentsTab } from "@/components/applications/tabs/ProgramDocumentsTab";
 import { SopTab } from "@/components/applications/tabs/SopTab";
 import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { Button } from "@/components/ui/button";
@@ -39,22 +38,18 @@ import type { ApplicationResponse } from "@/lib/generated/api/models";
 
 interface ApplicationDashboardProps {
 	application: ApplicationResponse | null;
-	onUpdateStatus?: (status: string) => Promise<boolean>;
 	onDelete?: () => Promise<boolean>;
 }
 
 export function ApplicationDashboard({
 	application,
-	onUpdateStatus,
 	onDelete,
 }: ApplicationDashboardProps) {
 	const t = useTranslations("applications");
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [isProgramDrawerOpen, setIsProgramDrawerOpen] = useState(false);
-	const [activeTab, setActiveTab] = useState<"info" | "documents" | "sop">(
-		"info",
-	);
+	const [activeTab, setActiveTab] = useState<"info" | "sop">("info");
 
 	if (!application) {
 		return (
@@ -190,9 +185,7 @@ export function ApplicationDashboard({
 					{/* Tabs */}
 					<Tabs
 						value={activeTab}
-						onValueChange={(value) =>
-							setActiveTab(value as "info" | "documents" | "sop")
-						}
+						onValueChange={(value) => setActiveTab(value as "info" | "sop")}
 						className="flex-1 flex flex-col min-h-0"
 					>
 						<div className="flex items-center justify-between shrink-0 mb-6">
@@ -200,10 +193,6 @@ export function ApplicationDashboard({
 								<TabsTrigger value="info" className="gap-2">
 									<Info className="w-4 h-4" />
 									{t("tabs.overview")}
-								</TabsTrigger>
-								<TabsTrigger value="documents" className="gap-2">
-									<FileText className="w-4 h-4" />
-									{t("tabs.documents")}
 								</TabsTrigger>
 								<TabsTrigger value="sop" className="gap-2">
 									<Award className="w-4 h-4" />
@@ -215,10 +204,7 @@ export function ApplicationDashboard({
 						<div className="flex-1 min-h-0 relative">
 							{/* Info Tab */}
 							<TabsContent value="info" className="mt-0 h-full overflow-y-auto">
-								<InfoTab
-									application={application}
-									onUpdateStatus={onUpdateStatus}
-								/>
+								<InfoTab application={application} />
 								<div className="text-xs text-muted-foreground text-center mt-8 pb-8">
 									{t("addedOn")}{" "}
 									{new Date(application.createdAt ?? "").toLocaleDateString(
@@ -234,11 +220,6 @@ export function ApplicationDashboard({
 										</>
 									)}
 								</div>
-							</TabsContent>
-
-							{/* Documents Tab */}
-							<TabsContent value="documents" className="mt-0 h-full">
-								<ProgramDocumentsTab applicationId={application.id ?? ""} />
 							</TabsContent>
 
 							{/* SOP Tab */}

@@ -34,7 +34,10 @@ import {
 	useGetDocuments,
 	useUpdateApplication,
 } from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
-import type { ScholarshipApplicationResponse } from "@/lib/generated/api/models";
+import type {
+	ScholarshipApplicationResponse,
+	UpdateScholarshipApplicationRequestStatus,
+} from "@/lib/generated/api/models";
 import { useScholarshipApplicationStore } from "@/lib/store/scholarshipApplicationStore";
 
 interface ScholarshipDashboardProps {
@@ -89,7 +92,7 @@ export function ScholarshipDashboard({
 		try {
 			await updateApplication({
 				applicationId,
-				data: { status: status as "planning" | "writing" | "submitted" },
+				data: { status: status as UpdateScholarshipApplicationRequestStatus },
 			});
 			await refetchApplication();
 			return true;
