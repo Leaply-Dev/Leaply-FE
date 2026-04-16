@@ -916,7 +916,6 @@
 		"emailPlaceholder": "email@example.com",
 		"emailDescription": "Chúng mình sẽ dùng email này để liên lạc với bạn. Chúng mình sẽ không chia sẻ email của bạn với ai khác.",
 		"password": "Mật khẩu",
-		"passwordDescription": "Phải có ít nhất 8 ký tự.",
 		"confirmPassword": "Xác nhận mật khẩu",
 		"confirmPasswordDescription": "Vui lòng xác nhận mật khẩu.",
 		"createAccount": "Tạo tài khoản",
@@ -987,6 +986,29 @@
 			"invalidTokenMessage": "Liên kết đặt lại này không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu liên kết mới.",
 			"requestNew": "Yêu cầu Liên kết Mới",
 			"passwordsNotMatch": "Mật khẩu không khớp"
+		},
+		"pleaseFixErrors": "Vui lòng sửa các lỗi bên dưới",
+		"validation": {
+			"fullName": {
+				"required": "Vui lòng nhập họ và tên",
+				"min": "Họ và tên phải có ít nhất 2 ký tự",
+				"max": "Họ và tên không được vượt quá 100 ký tự",
+				"regex": "Họ và tên chỉ được chứa chữ cái, khoảng trắng, dấu gạch ngang và dấu nháy đơn"
+			},
+			"email": {
+				"required": "Vui lòng nhập email",
+				"invalid": "Vui lòng nhập địa chỉ email hợp lệ"
+			},
+			"password": {
+				"min": "Mật khẩu phải có ít nhất 8 ký tự",
+				"uppercase": "Mật khẩu phải chứa ít nhất một chữ cái viết hoa",
+				"lowercase": "Mật khẩu phải chứa ít nhất một chữ cái viết thường",
+				"number": "Mật khẩu phải chứa ít nhất một chữ số"
+			},
+			"confirmPassword": {
+				"required": "Vui lòng xác nhận mật khẩu",
+				"mismatch": "Mật khẩu không khớp"
+			}
 		}
 	},
 	"common": {
