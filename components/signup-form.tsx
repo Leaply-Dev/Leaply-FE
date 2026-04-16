@@ -1,10 +1,11 @@
 "use client";
 
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Check, Circle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { ZodError } from "zod";
 import { GoogleLoginButton } from "@/components/GoogleLoginButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,24 @@ import { useRegister } from "@/lib/generated/api/endpoints/authentication/authen
 import type { AuthResponse } from "@/lib/generated/api/models";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
-import { type RegisterFormData, registerSchema } from "@/lib/validations/auth";
+import {
+	createRegisterSchema,
+	type RegisterFormData,
+} from "@/lib/validations/auth";
+
+const FIELD_ORDER: Array<keyof RegisterFormData> = [
+	"fullName",
+	"email",
+	"password",
+	"confirmPassword",
+];
+
+const PASSWORD_RULES = [
+	{ key: "min", test: (p: string) => p.length >= 8 },
+	{ key: "uppercase", test: (p: string) => /[A-Z]/.test(p) },
+	{ key: "lowercase", test: (p: string) => /[a-z]/.test(p) },
+	{ key: "number", test: (p: string) => /[0-9]/.test(p) },
+] as const;
 
 export function SignupForm({
 	className,
@@ -36,6 +54,11 @@ export function SignupForm({
 }: React.ComponentProps<"div">) {
 	const router = useRouter();
 	const t = useTranslations("auth");
+	const tValidation = useTranslations("auth.validation");
+	const registerSchema = useMemo(
+		() => createRegisterSchema(tValidation),
+		[tValidation],
+	);
 	const login = useUserStore((state) => state.login);
 	const registerMutation = useRegister();
 	const [formData, setFormData] = useState({
@@ -46,7 +69,7 @@ export function SignupForm({
 	});
 	const [error, setError] = useState<string | null>(null);
 	const [fieldErrors, setFieldErrors] = useState<
-		Partial<Record<keyof RegisterFormData, string>>
+		Partial<Record<keyof RegisterFormData, string[]>>
 	>({});
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,19 +115,17 @@ export function SignupForm({
 			console.error("Registration failed", err);
 
 			// Handle Zod validation errors
-			if (err && typeof err === "object" && "errors" in err) {
-				const zodError = err as {
-					errors: Array<{ path: string[]; message: string }>;
-				};
-				const errors: Partial<Record<keyof RegisterFormData, string>> = {};
-				zodError.errors.forEach((error) => {
-					const field = error.path[0] as keyof RegisterFormData;
-					if (field) {
-						errors[field] = error.message;
-					}
-				});
+			if (err instanceof ZodError) {
+				const errors: Partial<Record<keyof RegisterFormData, string[]>> = {};
+				for (const issue of err.issues) {
+					const field = issue.path[0] as keyof RegisterFormData | undefined;
+					if (!field) continue;
+					const existing = errors[field] ?? [];
+					existing.push(issue.message);
+					errors[field] = existing;
+				}
 				setFieldErrors(errors);
-				setError("Please fix the errors below");
+				setError(t("pleaseFixErrors"));
 			} else {
 				setError(
 					err instanceof Error ? err.message : "Failed to create account",
@@ -134,7 +155,29 @@ export function SignupForm({
 								<Alert variant="destructive">
 									<AlertCircle className="h-4 w-4" />
 									<AlertTitle>{t("error")}</AlertTitle>
-									<AlertDescription>{error}</AlertDescription>
+									<AlertDescription>
+										<p>{error}</p>
+										{FIELD_ORDER.some(
+											(key) => (fieldErrors[key]?.length ?? 0) > 0,
+										) && (
+											<div className="mt-2 space-y-2">
+												{FIELD_ORDER.map((key) => {
+													const messages = fieldErrors[key];
+													if (!messages || messages.length === 0) return null;
+													return (
+														<div key={key}>
+															<p className="font-medium">{t(key)}:</p>
+															<ul className="list-disc pl-5">
+																{messages.map((msg) => (
+																	<li key={msg}>{msg}</li>
+																))}
+															</ul>
+														</div>
+													);
+												})}
+											</div>
+										)}
+									</AlertDescription>
 								</Alert>
 							)}
 
@@ -148,13 +191,10 @@ export function SignupForm({
 									value={formData.fullName}
 									onChange={handleChange}
 									disabled={registerMutation.isPending}
-									className={fieldErrors.fullName ? "border-destructive" : ""}
+									className={
+										fieldErrors.fullName?.length ? "border-destructive" : ""
+									}
 								/>
-								{fieldErrors.fullName && (
-									<p className="text-sm text-destructive">
-										{fieldErrors.fullName}
-									</p>
-								)}
 							</Field>
 							<Field>
 								<FieldLabel htmlFor="email">{t("email")}</FieldLabel>
@@ -166,13 +206,10 @@ export function SignupForm({
 									value={formData.email}
 									onChange={handleChange}
 									disabled={registerMutation.isPending}
-									className={fieldErrors.email ? "border-destructive" : ""}
+									className={
+										fieldErrors.email?.length ? "border-destructive" : ""
+									}
 								/>
-								{fieldErrors.email && (
-									<p className="text-sm text-destructive">
-										{fieldErrors.email}
-									</p>
-								)}
 							</Field>
 							<Field>
 								<Field className="grid grid-cols-2 gap-4">
@@ -186,14 +223,9 @@ export function SignupForm({
 											onChange={handleChange}
 											disabled={registerMutation.isPending}
 											className={
-												fieldErrors.password ? "border-destructive" : ""
+												fieldErrors.password?.length ? "border-destructive" : ""
 											}
 										/>
-										{fieldErrors.password && (
-											<p className="text-sm text-destructive">
-												{fieldErrors.password}
-											</p>
-										)}
 									</Field>
 									<Field>
 										<FieldLabel htmlFor="confirmPassword">
@@ -207,17 +239,34 @@ export function SignupForm({
 											onChange={handleChange}
 											disabled={registerMutation.isPending}
 											className={
-												fieldErrors.confirmPassword ? "border-destructive" : ""
+												fieldErrors.confirmPassword?.length
+													? "border-destructive"
+													: ""
 											}
 										/>
-										{fieldErrors.confirmPassword && (
-											<p className="text-sm text-destructive">
-												{fieldErrors.confirmPassword}
-											</p>
-										)}
 									</Field>
 								</Field>
-								<FieldDescription>{t("passwordDescription")}</FieldDescription>
+								<ul className="mt-1 space-y-1 text-sm">
+									{PASSWORD_RULES.map((rule) => {
+										const ok = rule.test(formData.password);
+										return (
+											<li
+												key={rule.key}
+												className={cn(
+													"flex items-center gap-2",
+													ok ? "text-green-600" : "text-muted-foreground",
+												)}
+											>
+												{ok ? (
+													<Check className="h-3.5 w-3.5 shrink-0" />
+												) : (
+													<Circle className="h-3.5 w-3.5 shrink-0" />
+												)}
+												<span>{tValidation(`password.${rule.key}`)}</span>
+											</li>
+										);
+									})}
+								</ul>
 							</Field>
 							<Field>
 								<Button type="submit" disabled={registerMutation.isPending}>

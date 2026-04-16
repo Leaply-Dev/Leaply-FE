@@ -917,7 +917,6 @@
 		"emailPlaceholder": "m@example.com",
 		"emailDescription": "We'll use this to contact you. We will not share your email with anyone else.",
 		"password": "Password",
-		"passwordDescription": "Must be at least 8 characters long.",
 		"confirmPassword": "Confirm Password",
 		"confirmPasswordDescription": "Please confirm your password.",
 		"createAccount": "Create Account",
@@ -988,6 +987,29 @@
 			"invalidTokenMessage": "This reset link is invalid or has expired. Please request a new one.",
 			"requestNew": "Request New Link",
 			"passwordsNotMatch": "Passwords do not match"
+		},
+		"pleaseFixErrors": "Please fix the errors below",
+		"validation": {
+			"fullName": {
+				"required": "Full name is required",
+				"min": "Full name must be at least 2 characters",
+				"max": "Full name must not exceed 100 characters",
+				"regex": "Full name can only contain letters, spaces, hyphens, and apostrophes"
+			},
+			"email": {
+				"required": "Email is required",
+				"invalid": "Please enter a valid email address"
+			},
+			"password": {
+				"min": "Password must be at least 8 characters",
+				"uppercase": "Password must contain at least one uppercase letter",
+				"lowercase": "Password must contain at least one lowercase letter",
+				"number": "Password must contain at least one number"
+			},
+			"confirmPassword": {
+				"required": "Please confirm your password",
+				"mismatch": "Passwords do not match"
+			}
 		}
 	},
 	"common": {
