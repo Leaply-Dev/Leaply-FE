@@ -21,6 +21,16 @@ export type LoginFormData = z.infer<typeof loginSchema>;
  */
 export type ValidationTranslate = (key: string) => string;
 
+/**
+ * Creates a Zod schema for validating user registration data.
+ *
+ * The schema validates `fullName`, `email`, `password`, and `confirmPassword` with length,
+ * character, format, and strength constraints, and enforces that `password` and
+ * `confirmPassword` match. Validation messages are produced by the provided translate function.
+ *
+ * @param t - A translation function that maps validation message keys (e.g., `"fullName.required"`) to localized strings
+ * @returns A Zod object schema for the registration form data
+ */
 export function createRegisterSchema(t: ValidationTranslate) {
 	return z
 		.object({

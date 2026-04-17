@@ -47,6 +47,13 @@ const PASSWORD_RULES = [
 	{ key: "number", test: (p: string) => /[0-9]/.test(p) },
 ] as const;
 
+/**
+ * Renders a signup form that validates user input, displays field and server errors, submits a registration request, logs the user in on success, and navigates to the email verification page.
+ *
+ * The component performs client-side validation (including password rules and confirm-password matching), focuses the first invalid field on submit, and shows a destructive alert for server errors. It accepts standard div props such as `className`.
+ *
+ * @returns The rendered signup form as a React element
+ */
 export function SignupForm({
 	className,
 	...props
