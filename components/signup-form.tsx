@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
-import { ZodError } from "zod";
 import { GoogleLoginButton } from "@/components/GoogleLoginButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -61,31 +60,93 @@ export function SignupForm({
 	);
 	const login = useUserStore((state) => state.login);
 	const registerMutation = useRegister();
+
 	const [formData, setFormData] = useState({
 		fullName: "",
 		email: "",
 		password: "",
 		confirmPassword: "",
 	});
-	const [error, setError] = useState<string | null>(null);
+	const [serverError, setServerError] = useState<string | null>(null);
 	const [fieldErrors, setFieldErrors] = useState<
 		Partial<Record<keyof RegisterFormData, string[]>>
 	>({});
+	const [touchedFields, setTouchedFields] = useState<
+		Set<keyof RegisterFormData>
+	>(new Set());
+	const [hasSubmitted, setHasSubmitted] = useState(false);
+
+	const collectErrors = (data: typeof formData) => {
+		const result = registerSchema.safeParse(data);
+		if (result.success) return {};
+		const errors: Partial<Record<keyof RegisterFormData, string[]>> = {};
+		for (const issue of result.error.issues) {
+			const field = issue.path[0] as keyof RegisterFormData | undefined;
+			if (!field) continue;
+			const existing = errors[field] ?? [];
+			existing.push(issue.message);
+			errors[field] = existing;
+		}
+		return errors;
+	};
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setFormData({ ...formData, [e.target.id]: e.target.value });
+		const fieldId = e.target.id as keyof RegisterFormData;
+		const newFormData = { ...formData, [fieldId]: e.target.value };
+		setFormData(newFormData);
+
+		if (touchedFields.size === 0) return;
+
+		const fieldsToCheck = new Set<keyof RegisterFormData>();
+		if (touchedFields.has(fieldId)) fieldsToCheck.add(fieldId);
+		if (fieldId === "password" && touchedFields.has("confirmPassword")) {
+			fieldsToCheck.add("confirmPassword");
+		}
+
+		if (fieldsToCheck.size > 0) {
+			const allErrors = collectErrors(newFormData);
+			setFieldErrors((prev) => {
+				const next = { ...prev };
+				for (const field of fieldsToCheck) {
+					if (allErrors[field]?.length) {
+						next[field] = allErrors[field];
+					} else {
+						delete next[field];
+					}
+				}
+				return next;
+			});
+		}
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		setError(null);
+		setServerError(null);
+		setHasSubmitted(true);
+
+		const errors = collectErrors(formData);
+		const hasErrors = FIELD_ORDER.some((f) => (errors[f]?.length ?? 0) > 0);
+
+		if (hasErrors) {
+			setFieldErrors(errors);
+			setTouchedFields((prev) => {
+				const next = new Set(prev);
+				for (const field of FIELD_ORDER) {
+					if (errors[field]?.length) next.add(field);
+				}
+				return next;
+			});
+			const firstErrorField = FIELD_ORDER.find((f) => errors[f]?.length);
+			if (firstErrorField) {
+				document.getElementById(firstErrorField)?.focus();
+			}
+			return;
+		}
+
 		setFieldErrors({});
 
 		try {
-			// Validate form data with Zod
 			const validatedData = registerSchema.parse(formData);
-
-			// Register returns AuthResponse which includes token
 			const response = await registerMutation.mutateAsync({
 				data: {
 					fullName: validatedData.fullName,
@@ -99,40 +160,28 @@ export function SignupForm({
 				throw new Error("Registration failed - no data received");
 			}
 
-			// Transform to UserProfile
 			const userProfile = {
 				id: authResponse.userId ?? "",
 				email: authResponse.email ?? "",
 				fullName: validatedData.fullName,
 			};
 
-			// Backend now sets HttpOnly cookies - we just update UI state
 			login(userProfile, authResponse.onboardingCompleted ?? false);
-
-			// Redirect to verify-email page for email verification prompt
 			router.push("/verify-email");
 		} catch (err) {
 			console.error("Registration failed", err);
-
-			// Handle Zod validation errors
-			if (err instanceof ZodError) {
-				const errors: Partial<Record<keyof RegisterFormData, string[]>> = {};
-				for (const issue of err.issues) {
-					const field = issue.path[0] as keyof RegisterFormData | undefined;
-					if (!field) continue;
-					const existing = errors[field] ?? [];
-					existing.push(issue.message);
-					errors[field] = existing;
-				}
-				setFieldErrors(errors);
-				setError(t("pleaseFixErrors"));
-			} else {
-				setError(
-					err instanceof Error ? err.message : "Failed to create account",
-				);
-			}
+			setServerError(
+				err instanceof Error ? err.message : "Failed to create account",
+			);
 		}
 	};
+
+	const passwordAllRulesPass = PASSWORD_RULES.every((r) =>
+		r.test(formData.password),
+	);
+	const confirmPasswordMatch =
+		formData.confirmPassword.length > 0 &&
+		formData.password === formData.confirmPassword;
 
 	return (
 		<div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -143,41 +192,19 @@ export function SignupForm({
 				</CardHeader>
 				<CardContent>
 					<form onSubmit={handleSubmit}>
-						<FieldGroup>
+						<FieldGroup className="gap-4">
 							<Field>
 								<GoogleLoginButton variant="register" />
 							</Field>
-							<FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
+							<FieldSeparator className="my-1 *:data-[slot=field-separator-content]:bg-card">
 								{t("orContinueWith")}
 							</FieldSeparator>
 
-							{error && (
+							{serverError && (
 								<Alert variant="destructive">
 									<AlertCircle className="h-4 w-4" />
 									<AlertTitle>{t("error")}</AlertTitle>
-									<AlertDescription>
-										<p>{error}</p>
-										{FIELD_ORDER.some(
-											(key) => (fieldErrors[key]?.length ?? 0) > 0,
-										) && (
-											<div className="mt-2 space-y-2">
-												{FIELD_ORDER.map((key) => {
-													const messages = fieldErrors[key];
-													if (!messages || messages.length === 0) return null;
-													return (
-														<div key={key}>
-															<p className="font-medium">{t(key)}:</p>
-															<ul className="list-disc pl-5">
-																{messages.map((msg) => (
-																	<li key={msg}>{msg}</li>
-																))}
-															</ul>
-														</div>
-													);
-												})}
-											</div>
-										)}
-									</AlertDescription>
+									<AlertDescription>{serverError}</AlertDescription>
 								</Alert>
 							)}
 
@@ -195,7 +222,15 @@ export function SignupForm({
 										fieldErrors.fullName?.length ? "border-destructive" : ""
 									}
 								/>
+								{fieldErrors.fullName && fieldErrors.fullName.length > 0 && (
+									<ul className="space-y-0.5 text-sm text-destructive">
+										{fieldErrors.fullName.map((msg) => (
+											<li key={msg}>{msg}</li>
+										))}
+									</ul>
+								)}
 							</Field>
+
 							<Field>
 								<FieldLabel htmlFor="email">{t("email")}</FieldLabel>
 								<Input
@@ -210,42 +245,30 @@ export function SignupForm({
 										fieldErrors.email?.length ? "border-destructive" : ""
 									}
 								/>
+								{fieldErrors.email && fieldErrors.email.length > 0 && (
+									<ul className="space-y-0.5 text-sm text-destructive">
+										{fieldErrors.email.map((msg) => (
+											<li key={msg}>{msg}</li>
+										))}
+									</ul>
+								)}
 							</Field>
+
 							<Field>
-								<Field className="grid grid-cols-2 gap-4">
-									<Field>
-										<FieldLabel htmlFor="password">{t("password")}</FieldLabel>
-										<Input
-											id="password"
-											type="password"
-											required
-											value={formData.password}
-											onChange={handleChange}
-											disabled={registerMutation.isPending}
-											className={
-												fieldErrors.password?.length ? "border-destructive" : ""
-											}
-										/>
-									</Field>
-									<Field>
-										<FieldLabel htmlFor="confirmPassword">
-											{t("confirmPassword")}
-										</FieldLabel>
-										<Input
-											id="confirmPassword"
-											type="password"
-											required
-											value={formData.confirmPassword}
-											onChange={handleChange}
-											disabled={registerMutation.isPending}
-											className={
-												fieldErrors.confirmPassword?.length
-													? "border-destructive"
-													: ""
-											}
-										/>
-									</Field>
-								</Field>
+								<FieldLabel htmlFor="password">{t("password")}</FieldLabel>
+								<Input
+									id="password"
+									type="password"
+									required
+									value={formData.password}
+									onChange={handleChange}
+									disabled={registerMutation.isPending}
+									className={
+										hasSubmitted && !passwordAllRulesPass
+											? "border-destructive"
+											: ""
+									}
+								/>
 								<ul className="mt-1 space-y-1 text-sm">
 									{PASSWORD_RULES.map((rule) => {
 										const ok = rule.test(formData.password);
@@ -268,6 +291,40 @@ export function SignupForm({
 									})}
 								</ul>
 							</Field>
+
+							<Field>
+								<FieldLabel htmlFor="confirmPassword">
+									{t("confirmPassword")}
+								</FieldLabel>
+								<Input
+									id="confirmPassword"
+									type="password"
+									required
+									value={formData.confirmPassword}
+									onChange={handleChange}
+									disabled={registerMutation.isPending}
+									className={cn(
+										fieldErrors.confirmPassword?.length && "border-destructive",
+										confirmPasswordMatch &&
+											!fieldErrors.confirmPassword?.length &&
+											"border-green-600",
+									)}
+								/>
+								{fieldErrors.confirmPassword &&
+									fieldErrors.confirmPassword.length > 0 && (
+										<p className="text-sm text-destructive">
+											{fieldErrors.confirmPassword[0]}
+										</p>
+									)}
+								{confirmPasswordMatch &&
+									!fieldErrors.confirmPassword?.length && (
+										<p className="flex items-center gap-1.5 text-sm text-green-600">
+											<Check className="h-3.5 w-3.5 shrink-0" />
+											{tValidation("confirmPassword.match")}
+										</p>
+									)}
+							</Field>
+
 							<Field>
 								<Button type="submit" disabled={registerMutation.isPending}>
 									{registerMutation.isPending && (

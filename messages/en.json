@@ -988,7 +988,6 @@
 			"requestNew": "Request New Link",
 			"passwordsNotMatch": "Passwords do not match"
 		},
-		"pleaseFixErrors": "Please fix the errors below",
 		"validation": {
 			"fullName": {
 				"required": "Full name is required",
@@ -1001,14 +1000,15 @@
 				"invalid": "Please enter a valid email address"
 			},
 			"password": {
-				"min": "Password must be at least 8 characters",
-				"uppercase": "Password must contain at least one uppercase letter",
-				"lowercase": "Password must contain at least one lowercase letter",
-				"number": "Password must contain at least one number"
+				"min": "At least 8 characters",
+				"uppercase": "At least one uppercase letter",
+				"lowercase": "At least one lowercase letter",
+				"number": "At least one number"
 			},
 			"confirmPassword": {
 				"required": "Please confirm your password",
-				"mismatch": "Passwords do not match"
+				"mismatch": "Passwords do not match",
+				"match": "Passwords match"
 			}
 		}
 	},
