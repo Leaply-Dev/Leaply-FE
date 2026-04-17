@@ -28,14 +28,15 @@ bunx shadcn@latest add   # Install shadcn component
 ### API Layer
 - **Backend**: `NEXT_PUBLIC_API_URL` (client-side fetching only, no SSR data fetching)
 - **Code generation**: Orval generates React Query hooks from OpenAPI spec at `https://api.leaply.ai.vn/api/api-docs`
-- **Custom fetch**: `lib/api/mutator.ts` handles auth headers, token refresh, and 401 retries
+- **Custom fetch**: `lib/api/mutator.ts` — sends `credentials: "include"` so browser attaches `SESSION` cookie automatically; on 401 calls `performLogout({ redirect: "/?expired=true" })` (no refresh endpoint)
 - **Response format**: All Orval hooks return `{ data, status, headers }` wrapper
 
 ### Authentication Flow
-- **Cookie**: `leaply-auth-state` (synced from Zustand for middleware)
-- **Store**: `useUserStore` in `lib/store/userStore.ts` (persisted to localStorage)
-- **Tokens**: Access + refresh tokens, auto-refresh on 401
-- **Route protection**: `proxy.ts` middleware checks cookie, redirects unauthenticated users
+- **`SESSION` cookie** (HttpOnly, set by backend Spring Session JDBC): actual auth credential, browser sends it automatically on every API call — never read by JS
+- **`leaply-auth-state` cookie** (non-HttpOnly, set by Zustand `userStore`): routing signal only — Next.js middleware reads this to protect routes, since it cannot read `SESSION`
+- **Store**: `useUserStore` in `lib/store/userStore.ts` — tracks UI state (profile, onboarding status); no tokens stored; persisted to localStorage
+- **On 401**: session expired → logout and redirect to `/?expired=true`; no silent refresh (Spring Session is server-managed)
+- **Route protection**: `proxy.ts` middleware checks `leaply-auth-state`, redirects unauthenticated users to `/login`
 
 ### Route Groups
 - `(auth)` - Login, register pages

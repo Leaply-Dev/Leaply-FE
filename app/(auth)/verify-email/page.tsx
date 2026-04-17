@@ -5,7 +5,7 @@
 
 "use client";
 
-import { CheckCircle2, Loader2, Mail, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -40,8 +40,8 @@ export default function VerifyEmailPage() {
 
 	// Mutation for resending verification
 	const resendMutation = useResendVerification();
-
-	const [countdown, setCountdown] = useState(0);
+    
+	const [countdown, setCountdown] = useState(60);
 
 	// Countdown timer for resend
 	useEffect(() => {
@@ -173,15 +173,16 @@ export default function VerifyEmailPage() {
 			);
 		}
 
-		// Default prompt state
+		// Default state: email was already sent during registration — prompt user to
+		// check inbox. Resend is a secondary action gated by the cooldown.
 		return (
 			<div className="flex flex-col items-center gap-4 py-6">
-				<div className="rounded-full bg-primary/10 p-3">
-					<Mail className="h-12 w-12 text-primary" />
+				<div className="rounded-full bg-green-100 p-3">
+					<CheckCircle2 className="h-12 w-12 text-green-600" />
 				</div>
 				<div className="text-center">
-					<h3 className="text-xl font-semibold">{t("promptTitle")}</h3>
-					<p className="mt-2 text-muted-foreground">{t("promptSubtitle")}</p>
+					<h3 className="text-xl font-semibold">{t("emailSent")}</h3>
+					<p className="mt-2 text-muted-foreground">{t("checkInbox")}</p>
 					{profile?.email && (
 						<p className="mt-1 text-sm font-medium">{profile.email}</p>
 					)}
@@ -194,14 +195,19 @@ export default function VerifyEmailPage() {
 				) : null}
 				<div className="mt-4 flex w-full flex-col gap-2">
 					<Button
-						onClick={handleSendVerification}
-						disabled={resendMutation.isPending}
+						onClick={handleResend}
+						variant="outline"
+						disabled={countdown > 0 || resendMutation.isPending}
 						className="w-full"
 					>
 						{resendMutation.isPending && (
 							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 						)}
-						{resendMutation.isPending ? t("sending") : t("sendVerification")}
+						{countdown > 0
+							? `${t("resendIn")} ${countdown}s`
+							: resendMutation.isPending
+								? t("sending")
+								: t("resend")}
 					</Button>
 					<Button onClick={handleSkip} variant="ghost" className="w-full">
 						{t("skipForNow")}

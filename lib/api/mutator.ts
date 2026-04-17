@@ -2,42 +2,9 @@ import { performLogout } from "../auth/logout";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
-// Track refresh state to prevent multiple simultaneous refresh attempts
-let isRefreshing = false;
-let refreshPromise: Promise<boolean> | null = null;
-
-/**
- * Attempt to refresh authentication via cookie-based endpoint.
- * Returns true if refresh succeeded, false otherwise.
- */
-async function refreshAuth(): Promise<boolean> {
-	// Deduplicate concurrent refresh attempts
-	if (isRefreshing && refreshPromise) {
-		return refreshPromise;
-	}
-
-	isRefreshing = true;
-	refreshPromise = (async () => {
-		try {
-			const response = await fetch(`${API_URL}/oauth/refresh`, {
-				method: "POST",
-				credentials: "include",
-			});
-			return response.ok;
-		} catch {
-			return false;
-		} finally {
-			isRefreshing = false;
-			refreshPromise = null;
-		}
-	})();
-
-	return refreshPromise;
-}
-
 /**
  * Custom fetch instance for Orval-generated hooks.
- * Uses cookie-based authentication with automatic refresh on 401.
+ * On 401, session has expired — redirect to login.
  */
 export const customInstance = async <T>(
 	url: string,
@@ -90,23 +57,13 @@ export const customInstance = async <T>(
 
 	let response = await fetch(fullUrl, fetchConfig);
 
-	// Handle 401 with silent refresh.
-	// Skip for auth endpoints (e.g. /v1/auth/login) — a 401 there means bad
-	// credentials, NOT an expired session, so we must NOT redirect to /?expired=true.
+	// Handle 401 - bad credentials.
 	const isAuthEndpoint = url.includes("/v1/auth/");
 	if (response.status === 401 && !isAuthEndpoint) {
-		const refreshed = await refreshAuth();
-
-		if (refreshed) {
-			// Retry original request with fresh cookies
-			response = await fetch(fullUrl, fetchConfig);
-		} else {
-			// Refresh failed → session expired
-			if (typeof window !== "undefined") {
-				performLogout({ redirect: "/?expired=true" });
-			}
-			throw new Error("Session expired");
+		if (typeof window !== "undefined") {
+			performLogout({ redirect: "/?expired=true" });
 		}
+		throw new Error("Failed to continue session. Logging out.");
 	}
 
 	if (!response.ok) {
