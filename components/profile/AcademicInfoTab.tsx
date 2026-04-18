@@ -13,7 +13,7 @@ import {
 	X,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useId, useState } from "react";
+import { type FormEvent, type ReactNode, useId, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,20 +44,18 @@ import { useUserStore } from "@/lib/store/userStore";
 import { type ProfileFormData, profileSchema } from "@/lib/validations/profile";
 
 const EDUCATION_LEVELS = [
-	{ value: "high_school", labelKey: "highSchool" },
-	{ value: "undergrad", labelKey: "undergraduate" },
-	{ value: "graduate", labelKey: "graduate" },
-	{ value: "working", labelKey: "working" },
+	{ value: "HIGH_SCHOOL", labelKey: "highSchool" },
+	{ value: "UNDERGRADUATE", labelKey: "undergraduate" },
+	{ value: "GRADUATE", labelKey: "graduate" },
+	{ value: "WORKING", labelKey: "working" },
 ];
 
 const TARGET_DEGREES = [
-	{ value: "bachelors", labelKey: "bachelors" },
-	{ value: "masters", labelKey: "masters" },
-	{ value: "mba", labelKey: "mba" },
-	{ value: "phd", labelKey: "phd" },
+	{ value: "BACHELOR", labelKey: "bachelors" },
+	{ value: "MASTERS", labelKey: "masters" },
+	{ value: "PHD", labelKey: "phd" },
 ];
 
-// PrerequisiteMajor enum values from backend
 const CURRENT_MAJORS = [
 	{ value: "computer_science", labelKey: "computerScience" },
 	{ value: "engineering", labelKey: "engineering" },
@@ -73,6 +71,27 @@ const CURRENT_MAJORS = [
 ];
 
 const TEST_TYPES = ["IELTS", "TOEFL", "GRE", "GMAT"] as const;
+type TestType = (typeof TEST_TYPES)[number];
+
+const TEST_SCORE_CONFIG: Record<
+	TestType,
+	{ step: string; min: string; max: string; placeholder: string }
+> = {
+	IELTS: { step: "0.5", min: "0", max: "9", placeholder: "7.0" },
+	TOEFL: { step: "1", min: "0", max: "120", placeholder: "100" },
+	GRE: { step: "1", min: "0", max: "340", placeholder: "320" },
+	GMAT: { step: "10", min: "200", max: "800", placeholder: "700" },
+};
+
+const stringFromForm = (form: FormData, key: string): string =>
+	(form.get(key) as string | null)?.trim() ?? "";
+
+const numberFromForm = (form: FormData, key: string): number | undefined => {
+	const raw = stringFromForm(form, key);
+	if (raw === "") return undefined;
+	const parsed = Number(raw);
+	return Number.isFinite(parsed) ? parsed : undefined;
+};
 
 interface AcademicInfoTabProps {
 	initialEditMode?: boolean;
@@ -83,31 +102,16 @@ export function AcademicInfoTab({
 }: AcademicInfoTabProps) {
 	const t = useTranslations("profile");
 	const queryClient = useQueryClient();
-	const { updateProfile: updateStoreProfile } = useUserStore();
+	const updateStoreProfile = useUserStore((state) => state.updateProfile);
 
-	// React Query
 	const { data: response, isLoading } = useGetMe();
 	const userData = unwrapResponse<UserMeResponse>(response);
-
-	const updateProfileMutation = useUpdateProfile({
-		mutation: {
-			onSuccess: () => {
-				queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
-				toast.success(t("updateSuccess"));
-				setIsEditing(false);
-			},
-			onError: () => {
-				toast.error(t("updateError"));
-			},
-		},
-	});
 
 	const [isEditing, setIsEditing] = useState(initialEditMode);
 	const [fieldErrors, setFieldErrors] = useState<
 		Partial<Record<keyof ProfileFormData, string>>
 	>({});
 
-	// Generate unique IDs for form fields
 	const fullNameId = useId();
 	const educationLevelId = useId();
 	const currentMajorId = useId();
@@ -116,33 +120,18 @@ export function AcademicInfoTab({
 	const gpaScaleId = useId();
 	const workExpId = useId();
 
-	// Form state - initialize from userData when available
-	const [formData, setFormData] = useState({
-		fullName: "",
-		currentEducationLevel: "",
-		currentMajor: "",
-		targetDegree: "",
-		gpa: "",
-		gpaScale: "4.0",
-		workExperienceYears: "",
-		testScores: {} as Record<string, string>,
+	const updateProfileMutation = useUpdateProfile({
+		mutation: {
+			onSuccess: () => {
+				void queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+				toast.success(t("updateSuccess"));
+				setIsEditing(false);
+			},
+			onError: () => {
+				toast.error(t("updateError"));
+			},
+		},
 	});
-
-	// Sync form data with userData when it loads
-	const syncFormData = () => {
-		if (userData) {
-			setFormData({
-				fullName: userData.fullName || "",
-				currentEducationLevel: userData.currentEducationLevel || "",
-				currentMajor: userData.currentMajor || "",
-				targetDegree: userData.targetDegree || "",
-				gpa: userData.gpa?.toString() || "",
-				gpaScale: userData.gpaScale?.toString() || "4.0",
-				workExperienceYears: userData.workExperienceYears?.toString() || "",
-				testScores: (userData.testScores as Record<string, string>) || {},
-			});
-		}
-	};
 
 	const getEducationLabel = (value?: string) => {
 		const level = EDUCATION_LEVELS.find((l) => l.value === value);
@@ -159,66 +148,68 @@ export function AcademicInfoTab({
 		return major ? t(`currentMajors.${major.labelKey}`) : t("noData");
 	};
 
-	const handleTestScoreChange = (type: string, value: string) => {
-		setFormData((prev) => ({
-			...prev,
-			testScores: {
-				...prev.testScores,
-				[type]: value,
-			},
-		}));
-	};
-
-	const handleSave = async () => {
+	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
 		setFieldErrors({});
+
+		const form = new FormData(event.currentTarget);
+
+		const testScores: Record<string, string> = {};
+		for (const type of TEST_TYPES) {
+			const score = stringFromForm(form, `testScore_${type}`);
+			if (score !== "") testScores[type] = score;
+		}
 
 		try {
 			const validatedData = profileSchema.parse({
-				...formData,
-				gpa: formData.gpa === "" ? undefined : Number(formData.gpa),
-				gpaScale: formData.gpaScale === "" ? 4.0 : Number(formData.gpaScale),
-				workExperienceYears:
-					formData.workExperienceYears === ""
-						? undefined
-						: Number(formData.workExperienceYears),
+				fullName: stringFromForm(form, "fullName"),
+				currentEducationLevel:
+					stringFromForm(form, "currentEducationLevel") || undefined,
+				currentMajor: stringFromForm(form, "currentMajor") || undefined,
+				targetDegree: stringFromForm(form, "targetDegree") || undefined,
+				gpa: numberFromForm(form, "gpa"),
+				gpaScale: numberFromForm(form, "gpaScale") ?? 4.0,
+				workExperienceYears: numberFromForm(form, "workExperienceYears"),
+				testScores: Object.keys(testScores).length > 0 ? testScores : undefined,
 			});
 
-			const updateData = {
-				fullName: validatedData.fullName,
-				currentEducationLevel: validatedData.currentEducationLevel,
-				currentMajor: formData.currentMajor || undefined,
-				targetDegree: validatedData.targetDegree,
-				gpa:
-					typeof validatedData.gpa === "number" ? validatedData.gpa : undefined,
-				gpaScale: validatedData.gpaScale as 4 | 10,
-				workExperienceYears:
-					typeof validatedData.workExperienceYears === "number"
-						? validatedData.workExperienceYears
-						: undefined,
-				testScores:
-					Object.keys(formData.testScores).length > 0
-						? formData.testScores
-						: undefined,
-			};
-
-			await updateProfileMutation.mutateAsync({ data: updateData });
+			await updateProfileMutation.mutateAsync({
+				data: {
+					fullName: validatedData.fullName,
+					currentEducationLevel: validatedData.currentEducationLevel,
+					currentMajor: validatedData.currentMajor,
+					targetDegree: validatedData.targetDegree,
+					gpa:
+						typeof validatedData.gpa === "number"
+							? validatedData.gpa
+							: undefined,
+					gpaScale: validatedData.gpaScale as 4 | 10,
+					workExperienceYears:
+						typeof validatedData.workExperienceYears === "number"
+							? validatedData.workExperienceYears
+							: undefined,
+					testScores: validatedData.testScores,
+				},
+			});
 
 			if (validatedData.fullName) {
 				updateStoreProfile({ fullName: validatedData.fullName });
 			}
 		} catch (error) {
-			if (error && typeof error === "object" && "errors" in error) {
+			if (error && typeof error === "object" && "issues" in error) {
 				const zodError = error as {
-					errors: Array<{ path: string[]; message: string }>;
+					issues: Array<{ path: PropertyKey[]; message: string }>;
 				};
 				const errors: Partial<Record<keyof ProfileFormData, string>> = {};
-				zodError.errors.forEach((err) => {
+				zodError.issues.forEach((err) => {
 					const field = err.path[err.path.length - 1] as keyof ProfileFormData;
-					if (field) {
-						errors[field] = err.message;
-					}
+					if (field) errors[field] = err.message;
 				});
 				setFieldErrors(errors);
+				toast.error(t("updateError"));
+			} else {
+				console.error("Profile save failed:", error);
+				toast.error(t("updateError"));
 			}
 		}
 	};
@@ -226,27 +217,11 @@ export function AcademicInfoTab({
 	const handleCancel = () => {
 		setIsEditing(false);
 		setFieldErrors({});
-		syncFormData();
 	};
 
 	const handleEdit = () => {
-		syncFormData();
+		setFieldErrors({});
 		setIsEditing(true);
-	};
-
-	const getTestScoreConfig = (type: string) => {
-		switch (type) {
-			case "IELTS":
-				return { step: "0.5", min: "0", max: "9", placeholder: "7.0" };
-			case "TOEFL":
-				return { step: "1", min: "0", max: "120", placeholder: "100" };
-			case "GRE":
-				return { step: "1", min: "0", max: "340", placeholder: "320" };
-			case "GMAT":
-				return { step: "10", min: "200", max: "800", placeholder: "700" };
-			default:
-				return { step: "1", min: "0", max: "999", placeholder: "" };
-		}
 	};
 
 	if (isLoading) {
@@ -294,221 +269,64 @@ export function AcademicInfoTab({
 		);
 	}
 
-	return (
-		<div className="space-y-6">
-			{/* Personal Information Card */}
-			<Card>
-				<CardHeader className="flex flex-row items-center justify-between">
-					<div>
-						<CardTitle className="flex items-center gap-2">
-							<User className="h-5 w-5 text-muted-foreground" />
-							{t("personalInformation")}
-						</CardTitle>
-						<CardDescription>
-							{isEditing
-								? "Edit your academic credentials"
-								: "Your academic credentials and background"}
-						</CardDescription>
-					</div>
-					{!isEditing ? (
-						<Button variant="outline" size="sm" onClick={handleEdit}>
-							<Edit2 className="h-4 w-4 mr-2" />
-							{t("editProfile")}
-						</Button>
-					) : (
-						<div className="flex gap-2">
-							<Button variant="ghost" size="sm" onClick={handleCancel}>
-								<X className="h-4 w-4 mr-2" />
-								{t("cancel")}
-							</Button>
-							<Button
-								size="sm"
-								onClick={handleSave}
-								disabled={updateProfileMutation.isPending}
-							>
-								{updateProfileMutation.isPending ? (
-									<>
-										<Loader2 className="h-4 w-4 mr-2 animate-spin" />
-										{t("saving")}
-									</>
-								) : (
-									<>
-										<Check className="h-4 w-4 mr-2" />
-										{t("saveChanges")}
-									</>
-								)}
-							</Button>
-						</div>
-					)}
-				</CardHeader>
-				<CardContent>
-					{isEditing ? (
-						<div className="grid gap-6 sm:grid-cols-2">
-							<div className="space-y-2">
-								<Label htmlFor={fullNameId}>{t("fullName")}</Label>
-								<Input
-									id={fullNameId}
-									value={formData.fullName}
-									onChange={(e) =>
-										setFormData((prev) => ({
-											...prev,
-											fullName: e.target.value,
-										}))
-									}
-									placeholder={t("fullNamePlaceholder")}
-									className={fieldErrors.fullName ? "border-destructive" : ""}
-								/>
-								{fieldErrors.fullName && (
-									<p className="text-sm text-destructive">
-										{fieldErrors.fullName}
-									</p>
-								)}
-							</div>
+	const personalHeader = (
+		<CardHeader className="flex flex-row items-center justify-between">
+			<div>
+				<CardTitle className="flex items-center gap-2">
+					<User className="h-5 w-5 text-muted-foreground" />
+					{t("personalInformation")}
+				</CardTitle>
+				<CardDescription>
+					{isEditing
+						? "Edit your academic credentials"
+						: "Your academic credentials and background"}
+				</CardDescription>
+			</div>
+			{!isEditing ? (
+				<Button variant="outline" size="sm" onClick={handleEdit}>
+					<Edit2 className="h-4 w-4 mr-2" />
+					{t("editProfile")}
+				</Button>
+			) : (
+				<div className="flex gap-2">
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						onClick={handleCancel}
+					>
+						<X className="h-4 w-4 mr-2" />
+						{t("cancel")}
+					</Button>
+					<Button
+						type="submit"
+						form="academic-info-form"
+						size="sm"
+						disabled={updateProfileMutation.isPending}
+					>
+						{updateProfileMutation.isPending ? (
+							<>
+								<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+								{t("saving")}
+							</>
+						) : (
+							<>
+								<Check className="h-4 w-4 mr-2" />
+								{t("saveChanges")}
+							</>
+						)}
+					</Button>
+				</div>
+			)}
+		</CardHeader>
+	);
 
-							<div className="space-y-2">
-								<Label htmlFor={educationLevelId}>{t("educationLevel")}</Label>
-								<Select
-									value={formData.currentEducationLevel}
-									onValueChange={(value) =>
-										setFormData((prev) => ({
-											...prev,
-											currentEducationLevel: value,
-										}))
-									}
-								>
-									<SelectTrigger id={educationLevelId}>
-										<SelectValue placeholder={t("selectLevel")} />
-									</SelectTrigger>
-									<SelectContent>
-										{EDUCATION_LEVELS.map((level) => (
-											<SelectItem key={level.value} value={level.value}>
-												{t(level.labelKey)}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</div>
-
-							<div className="space-y-2">
-								<Label htmlFor={currentMajorId}>{t("currentMajor")}</Label>
-								<Select
-									value={formData.currentMajor}
-									onValueChange={(value) =>
-										setFormData((prev) => ({
-											...prev,
-											currentMajor: value,
-										}))
-									}
-								>
-									<SelectTrigger id={currentMajorId}>
-										<SelectValue placeholder={t("selectMajor")} />
-									</SelectTrigger>
-									<SelectContent>
-										{CURRENT_MAJORS.map((major) => (
-											<SelectItem key={major.value} value={major.value}>
-												{t(`currentMajors.${major.labelKey}`)}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</div>
-
-							<div className="space-y-2">
-								<Label htmlFor={targetDegreeId}>{t("targetDegree")}</Label>
-								<Select
-									value={formData.targetDegree}
-									onValueChange={(value) =>
-										setFormData((prev) => ({
-											...prev,
-											targetDegree: value,
-										}))
-									}
-								>
-									<SelectTrigger id={targetDegreeId}>
-										<SelectValue placeholder={t("selectLevel")} />
-									</SelectTrigger>
-									<SelectContent>
-										{TARGET_DEGREES.map((degree) => (
-											<SelectItem key={degree.value} value={degree.value}>
-												{t(degree.labelKey)}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</div>
-
-							<div className="space-y-2">
-								<Label htmlFor={gpaId}>{t("gpa")}</Label>
-								<div className="flex gap-2">
-									<Input
-										id={gpaId}
-										type="number"
-										step="0.01"
-										min="0"
-										max="10"
-										value={formData.gpa}
-										onChange={(e) =>
-											setFormData((prev) => ({
-												...prev,
-												gpa: e.target.value,
-											}))
-										}
-										placeholder="3.5"
-										className={`flex-1 ${fieldErrors.gpa ? "border-destructive" : ""}`}
-									/>
-									<span className="flex items-center text-muted-foreground">
-										/
-									</span>
-									<Input
-										id={gpaScaleId}
-										type="number"
-										step="0.1"
-										min="1"
-										max="10"
-										value={formData.gpaScale}
-										onChange={(e) =>
-											setFormData((prev) => ({
-												...prev,
-												gpaScale: e.target.value,
-											}))
-										}
-										placeholder="4.0"
-										className={`w-20 ${fieldErrors.gpaScale ? "border-destructive" : ""}`}
-									/>
-								</div>
-								{fieldErrors.gpa && (
-									<p className="text-sm text-destructive">{fieldErrors.gpa}</p>
-								)}
-							</div>
-
-							<div className="space-y-2">
-								<Label htmlFor={workExpId}>{t("workExperience")}</Label>
-								<div className="flex gap-2 items-center">
-									<Input
-										id={workExpId}
-										type="number"
-										min="0"
-										max="50"
-										value={formData.workExperienceYears}
-										onChange={(e) =>
-											setFormData((prev) => ({
-												...prev,
-												workExperienceYears: e.target.value,
-											}))
-										}
-										placeholder="0"
-										className={`w-24 ${fieldErrors.workExperienceYears ? "border-destructive" : ""}`}
-									/>
-									<span className="text-muted-foreground">{t("years")}</span>
-								</div>
-								{fieldErrors.workExperienceYears && (
-									<p className="text-sm text-destructive">
-										{fieldErrors.workExperienceYears}
-									</p>
-								)}
-							</div>
-						</div>
-					) : (
+	if (!isEditing) {
+		return (
+			<div className="space-y-6">
+				<Card>
+					{personalHeader}
+					<CardContent>
 						<div className="grid gap-4 sm:grid-cols-2">
 							<InfoItem
 								icon={<User className="h-4 w-4" />}
@@ -549,88 +367,247 @@ export function AcademicInfoTab({
 								}
 							/>
 						</div>
-					)}
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between">
+						<div>
+							<CardTitle className="flex items-center gap-2">
+								<BookOpen className="h-5 w-5 text-muted-foreground" />
+								{t("testScores")}
+							</CardTitle>
+							<CardDescription>
+								Your standardized test scores (IELTS, TOEFL, GRE, GMAT)
+							</CardDescription>
+						</div>
+						{userData?.testScores &&
+							Object.keys(userData.testScores).length > 0 && (
+								<Button variant="outline" size="sm" onClick={handleEdit}>
+									<Edit2 className="h-4 w-4 mr-2" />
+									{t("editTestScores")}
+								</Button>
+							)}
+					</CardHeader>
+					<CardContent>
+						{userData?.testScores &&
+						Object.keys(userData.testScores).length > 0 ? (
+							<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+								{Object.entries(userData.testScores).map(
+									([type, score]: [string, unknown]) => (
+										<div
+											key={type}
+											className="p-4 rounded-lg bg-muted/50 text-center"
+										>
+											<p className="text-sm text-muted-foreground mb-1">
+												{type}
+											</p>
+											<p className="text-2xl font-bold text-foreground">
+												{String(score)}
+											</p>
+										</div>
+									),
+								)}
+							</div>
+						) : (
+							<div className="text-center py-8 text-muted-foreground">
+								<BookOpen className="h-12 w-12 mx-auto mb-3 opacity-50" />
+								<p>{t("noTestScores")}</p>
+								<Button
+									variant="outline"
+									size="sm"
+									className="mt-4"
+									onClick={handleEdit}
+								>
+									{t("addTestScore")}
+								</Button>
+							</div>
+						)}
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
+
+	return (
+		<form
+			id="academic-info-form"
+			key={userData?.userId ?? "no-user"}
+			onSubmit={handleSubmit}
+			className="space-y-6"
+		>
+			<Card>
+				{personalHeader}
+				<CardContent>
+					<div className="grid gap-6 sm:grid-cols-2">
+						<div className="space-y-2">
+							<Label htmlFor={fullNameId}>{t("fullName")}</Label>
+							<Input
+								id={fullNameId}
+								name="fullName"
+								defaultValue={userData?.fullName ?? ""}
+								placeholder={t("fullNamePlaceholder")}
+								className={fieldErrors.fullName ? "border-destructive" : ""}
+							/>
+							{fieldErrors.fullName && (
+								<p className="text-sm text-destructive">
+									{fieldErrors.fullName}
+								</p>
+							)}
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor={educationLevelId}>{t("educationLevel")}</Label>
+							<Select
+								name="currentEducationLevel"
+								defaultValue={userData?.currentEducationLevel ?? ""}
+							>
+								<SelectTrigger id={educationLevelId}>
+									<SelectValue placeholder={t("selectLevel")} />
+								</SelectTrigger>
+								<SelectContent>
+									{EDUCATION_LEVELS.map((level) => (
+										<SelectItem key={level.value} value={level.value}>
+											{t(level.labelKey)}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor={currentMajorId}>{t("currentMajor")}</Label>
+							<Select
+								name="currentMajor"
+								defaultValue={userData?.currentMajor ?? ""}
+							>
+								<SelectTrigger id={currentMajorId}>
+									<SelectValue placeholder={t("selectMajor")} />
+								</SelectTrigger>
+								<SelectContent>
+									{CURRENT_MAJORS.map((major) => (
+										<SelectItem key={major.value} value={major.value}>
+											{t(`currentMajors.${major.labelKey}`)}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor={targetDegreeId}>{t("targetDegree")}</Label>
+							<Select
+								name="targetDegree"
+								defaultValue={userData?.targetDegree ?? ""}
+							>
+								<SelectTrigger id={targetDegreeId}>
+									<SelectValue placeholder={t("selectLevel")} />
+								</SelectTrigger>
+								<SelectContent>
+									{TARGET_DEGREES.map((degree) => (
+										<SelectItem key={degree.value} value={degree.value}>
+											{t(degree.labelKey)}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor={gpaId}>{t("gpa")}</Label>
+							<div className="flex gap-2">
+								<Input
+									id={gpaId}
+									name="gpa"
+									type="number"
+									step="0.01"
+									min="0"
+									max="10"
+									defaultValue={userData?.gpa?.toString() ?? ""}
+									placeholder="3.5"
+									className={`flex-1 ${fieldErrors.gpa ? "border-destructive" : ""}`}
+								/>
+								<span className="flex items-center text-muted-foreground">
+									/
+								</span>
+								<Input
+									id={gpaScaleId}
+									name="gpaScale"
+									type="number"
+									step="0.1"
+									min="1"
+									max="10"
+									defaultValue={userData?.gpaScale?.toString() ?? "4.0"}
+									placeholder="4.0"
+									className={`w-20 ${fieldErrors.gpaScale ? "border-destructive" : ""}`}
+								/>
+							</div>
+							{fieldErrors.gpa && (
+								<p className="text-sm text-destructive">{fieldErrors.gpa}</p>
+							)}
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor={workExpId}>{t("workExperience")}</Label>
+							<div className="flex gap-2 items-center">
+								<Input
+									id={workExpId}
+									name="workExperienceYears"
+									type="number"
+									min="0"
+									max="50"
+									defaultValue={userData?.workExperienceYears?.toString() ?? ""}
+									placeholder="0"
+									className={`w-24 ${fieldErrors.workExperienceYears ? "border-destructive" : ""}`}
+								/>
+								<span className="text-muted-foreground">{t("years")}</span>
+							</div>
+							{fieldErrors.workExperienceYears && (
+								<p className="text-sm text-destructive">
+									{fieldErrors.workExperienceYears}
+								</p>
+							)}
+						</div>
+					</div>
 				</CardContent>
 			</Card>
 
-			{/* Test Scores Card */}
 			<Card>
-				<CardHeader className="flex flex-row items-center justify-between">
-					<div>
-						<CardTitle className="flex items-center gap-2">
-							<BookOpen className="h-5 w-5 text-muted-foreground" />
-							{t("testScores")}
-						</CardTitle>
-						<CardDescription>
-							Your standardized test scores (IELTS, TOEFL, GRE, GMAT)
-						</CardDescription>
-					</div>
-					{!isEditing &&
-						userData?.testScores &&
-						Object.keys(userData.testScores).length > 0 && (
-							<Button variant="outline" size="sm" onClick={handleEdit}>
-								<Edit2 className="h-4 w-4 mr-2" />
-								{t("editTestScores")}
-							</Button>
-						)}
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<BookOpen className="h-5 w-5 text-muted-foreground" />
+						{t("testScores")}
+					</CardTitle>
+					<CardDescription>
+						Your standardized test scores (IELTS, TOEFL, GRE, GMAT)
+					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					{isEditing ? (
-						<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-							{TEST_TYPES.map((testType) => {
-								const config = getTestScoreConfig(testType);
-								return (
-									<div key={testType} className="space-y-2">
-										<Label>{testType}</Label>
-										<Input
-											type="number"
-											step={config.step}
-											min={config.min}
-											max={config.max}
-											value={formData.testScores[testType] || ""}
-											onChange={(e) =>
-												handleTestScoreChange(testType, e.target.value)
-											}
-											placeholder={config.placeholder}
-										/>
-									</div>
-								);
-							})}
-						</div>
-					) : userData?.testScores &&
-						Object.keys(userData.testScores).length > 0 ? (
-						<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-							{Object.entries(userData.testScores).map(
-								([type, score]: [string, unknown]) => (
-									<div
-										key={type}
-										className="p-4 rounded-lg bg-muted/50 text-center"
-									>
-										<p className="text-sm text-muted-foreground mb-1">{type}</p>
-										<p className="text-2xl font-bold text-foreground">
-											{String(score)}
-										</p>
-									</div>
-								),
-							)}
-						</div>
-					) : (
-						<div className="text-center py-8 text-muted-foreground">
-							<BookOpen className="h-12 w-12 mx-auto mb-3 opacity-50" />
-							<p>{t("noTestScores")}</p>
-							<Button
-								variant="outline"
-								size="sm"
-								className="mt-4"
-								onClick={handleEdit}
-							>
-								{t("addTestScore")}
-							</Button>
-						</div>
-					)}
+					<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+						{TEST_TYPES.map((testType) => {
+							const config = TEST_SCORE_CONFIG[testType];
+							const existing = (
+								userData?.testScores as Record<string, string> | undefined
+							)?.[testType];
+							return (
+								<div key={testType} className="space-y-2">
+									<Label>{testType}</Label>
+									<Input
+										name={`testScore_${testType}`}
+										type="number"
+										step={config.step}
+										min={config.min}
+										max={config.max}
+										defaultValue={existing ?? ""}
+										placeholder={config.placeholder}
+									/>
+								</div>
+							);
+						})}
+					</div>
 				</CardContent>
 			</Card>
-		</div>
+		</form>
 	);
 }
 
@@ -639,7 +616,7 @@ function InfoItem({
 	label,
 	value,
 }: {
-	icon: React.ReactNode;
+	icon: ReactNode;
 	label: string;
 	value: string;
 }) {
