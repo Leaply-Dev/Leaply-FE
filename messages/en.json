@@ -561,7 +561,7 @@
 		"filters": {
 			"loading": "Loading...",
 			"showingResults": "Showing {count} of {total} results",
-			"searchPrograms": "Search universities, programs...",
+			"searchPrograms": "Search schools, programs...",
 			"searchScholarships": "Search scholarships...",
 			"filters": "Filters",
 			"moreFilters": "More Filters",
@@ -622,7 +622,7 @@
 			"daysLeft": "{days} days left",
 			"closed": "Closed",
 			"na": "N/A",
-			"safe": "Safe",
+			"safe": "Safety",
 			"target": "Target",
 			"reach": "Reach",
 			"strongFit": "Strong Fit",
@@ -892,7 +892,10 @@
 		"daysAgo": "days ago",
 		"hoursAgo": "hours ago",
 		"minutesAgo": "minutes ago",
-		"justNow": "Just now"
+		"justNow": "Just now",
+		"programsAndScholarships": "Programs / Scholarships",
+		"status": "Status",
+		"action": "Action"
 	},
 	"auth": {
 		"signupTitle": "Create your account",

@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle, FileText } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import {
 	Card,
 	CardContent,
@@ -15,6 +16,8 @@ import { formatSopStatus } from "@/lib/utils/displayFormatters";
 interface InfoTabProps {
 	application: ApplicationResponse;
 }
+
+type Locale = "en" | "vi";
 
 const gapSeverityConfig: Record<
 	string,
@@ -35,6 +38,9 @@ const gapSeverityConfig: Record<
 };
 
 export function InfoTab({ application }: InfoTabProps) {
+	const t = useTranslations("applications");
+	const locale = useLocale();
+	
 	return (
 		<div className="space-y-6">
 			{/* SOP Status */}
@@ -46,11 +52,11 @@ export function InfoTab({ application }: InfoTabProps) {
 							aria-hidden="true"
 						/>
 						<span className="text-xs font-medium text-muted-foreground">
-							Trạng thái SOP
+							{t("sopStatus")}
 						</span>
 					</div>
 					<p className="text-lg font-semibold text-foreground">
-						{formatSopStatus(application.sopStatus)}
+						{formatSopStatus(application.sopStatus, locale as Locale)}
 					</p>
 				</CardContent>
 			</Card>

@@ -561,7 +561,7 @@
 		"filters": {
 			"loading": "Đang tải...",
 			"showingResults": "Hiện {count} trong {total} kết quả",
-			"searchPrograms": "Tìm kiếm trường, program...",
+			"searchPrograms": "Tìm kiếm trường, chương trình...",
 			"searchScholarships": "Tìm học bổng...",
 			"filters": "Bộ lọc",
 			"moreFilters": "Thêm bộ lọc",
@@ -892,7 +892,10 @@
 		"daysAgo": "ngày trước",
 		"hoursAgo": "giờ trước",
 		"minutesAgo": "phút trước",
-		"justNow": "Vừa xong"
+		"justNow": "Vừa xong",
+		"programsAndScholarships": "Chương trình / Học bổng",
+		"status": "Trạng thái",
+		"action": "Hành động"
 	},
 	"auth": {
 		"signupTitle": "Tạo tài khoản",

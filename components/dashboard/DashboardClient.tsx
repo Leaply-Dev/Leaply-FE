@@ -44,6 +44,7 @@ const URGENT_DAYS = 7;
 
 export function DashboardClient() {
 	const tHome = useTranslations("home");
+	const tStatus = useTranslations("scholarships.status");
 	const { profile } = useUserStore();
 	const { data: homeData, isLoading } = useGetHomeData();
 	const { data: partsProgressData, isLoading: isPartsLoading } =
@@ -301,10 +302,10 @@ export function DashboardClient() {
 												<TableHeader className="bg-muted/30">
 													<TableRow className="hover:bg-transparent">
 														<TableHead className="w-[50%]">
-															University & Program
+															{tHome('programsAndScholarships')}
 														</TableHead>
-														<TableHead>Status</TableHead>
-														<TableHead className="text-right">Action</TableHead>
+														<TableHead>{tHome('status')}</TableHead>
+														<TableHead className="text-right">{tHome('action')}</TableHead>
 													</TableRow>
 												</TableHeader>
 												<TableBody>
@@ -340,9 +341,9 @@ export function DashboardClient() {
 																				? "default"
 																				: "secondary"
 																		}
-																		className="text-[10px] px-2.5 py-0.5 capitalize shadow-none font-medium"
+																		className="text-[10px] px-2.5 py-0.5 shadow-none font-medium"
 																	>
-																		{app.status}
+																		{tStatus(app.status ?? "planning")}
 																	</Badge>
 																</TableCell>
 																<TableCell className="text-right py-3">
