@@ -212,15 +212,6 @@ export function ScholarshipDashboard({
 									<Info className="w-4 h-4" />
 									{t("tabs.overview")}
 								</TabsTrigger>
-								<TabsTrigger value="documents" className="gap-2">
-									<FileText className="w-4 h-4" />
-									{t("tabs.documents")}
-									{documentsList.length > 0 && (
-										<span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded-full">
-											{documentsList.length}
-										</span>
-									)}
-								</TabsTrigger>
 								<TabsTrigger value="essay" className="gap-2">
 									<PenLine className="w-4 h-4" />
 									{t("tabs.essay")}
@@ -275,25 +266,6 @@ export function ScholarshipDashboard({
 								application={application}
 								onUpdateStatus={handleUpdateStatus}
 							/>
-						</TabsContent>
-
-						<TabsContent value="documents" className="mt-0">
-							{isLoadingDocuments ? (
-								<div className="space-y-4 pt-4">
-									{[1, 2, 3].map((i) => (
-										<Skeleton key={i} className="h-20 w-full rounded-lg" />
-									))}
-								</div>
-							) : (
-								<DocumentsTab
-									applicationId={applicationId}
-									documents={
-										documentsList as Parameters<
-											typeof DocumentsTab
-										>[0]["documents"]
-									}
-								/>
-							)}
 						</TabsContent>
 
 						<TabsContent value="essay" className="mt-0">
