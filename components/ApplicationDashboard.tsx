@@ -4,7 +4,6 @@ import {
 	Award,
 	ExternalLink,
 	FileText,
-	Info,
 	MoreVertical,
 	School,
 	Trash2,
@@ -13,7 +12,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { InfoTab } from "@/components/applications/tabs/InfoTab";
 import { SopTab } from "@/components/applications/tabs/SopTab";
 import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { Button } from "@/components/ui/button";
@@ -32,7 +30,6 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FEATURED_UNIVERSITIES } from "@/lib/data/marketing-config";
 import type { ApplicationResponse } from "@/lib/generated/api/models";
 
@@ -49,7 +46,6 @@ export function ApplicationDashboard({
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [isProgramDrawerOpen, setIsProgramDrawerOpen] = useState(false);
-	const [activeTab, setActiveTab] = useState<"info" | "sop">("info");
 
 	if (!application) {
 		return (
@@ -182,56 +178,14 @@ export function ApplicationDashboard({
 						</div>
 					</div>
 
-					{/* Tabs */}
-					<Tabs
-						value={activeTab}
-						onValueChange={(value) => setActiveTab(value as "info" | "sop")}
-						className="flex-1 flex flex-col min-h-0"
-					>
-						<div className="flex items-center justify-between shrink-0 mb-6">
-							<TabsList>
-								<TabsTrigger value="info" className="gap-2">
-									<Info className="w-4 h-4" />
-									{t("tabs.overview")}
-								</TabsTrigger>
-								<TabsTrigger value="sop" className="gap-2">
-									<Award className="w-4 h-4" />
-									{t("tabs.sop")}
-								</TabsTrigger>
-							</TabsList>
-						</div>
-
-						<div className="flex-1 min-h-0 relative">
-							{/* Info Tab */}
-							<TabsContent value="info" className="mt-0 h-full overflow-y-auto">
-								<InfoTab application={application} />
-								<div className="text-xs text-muted-foreground text-center mt-8 pb-8">
-									{t("addedOn")}{" "}
-									{new Date(application.createdAt ?? "").toLocaleDateString(
-										"vi-VN",
-									)}
-									{application.updatedAt !== application.createdAt && (
-										<>
-											{" "}
-											• {t("lastUpdated")}{" "}
-											{new Date(application.updatedAt ?? "").toLocaleDateString(
-												"vi-VN",
-											)}
-										</>
-									)}
-								</div>
-							</TabsContent>
-
-							{/* SOP Tab */}
-							<TabsContent value="sop" className="mt-0 h-full">
-								<SopTab
-									applicationId={application.id ?? ""}
-									programName={application.program?.programName}
-									universityName={application.program?.universityName}
-								/>
-							</TabsContent>
-						</div>
-					</Tabs>
+					{/* Essay editor */}
+					<div className="flex-1 min-h-0">
+						<SopTab
+							applicationId={application.id ?? ""}
+							programName={application.program?.programName}
+							universityName={application.program?.universityName}
+						/>
+					</div>
 				</div>
 			</div>
 

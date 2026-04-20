@@ -1,7 +1,7 @@
 /**
- * @fileoverview Applications client component with outer tabs for Programs and Scholarships.
- * Each tab has its own sidebar and dashboard views.
- * Layout: Desktop (sidebar + dashboard), Mobile (sidebar only).
+ * @fileoverview Applications client component — unified essay sidebar + dashboard.
+ * One sidebar lists program + scholarship essays together. Dashboard renders
+ * whichever kind matches the current selection.
  *
  * This component is wrapped in Suspense by the page to handle useSearchParams() properly.
  */
@@ -9,17 +9,15 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Award, ChevronLeft, ChevronRight, GraduationCap } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { ApplicationDashboard } from "@/components/ApplicationDashboard";
-import { ApplicationSidebar } from "@/components/ApplicationSidebar";
-import { ScholarshipApplicationList } from "@/components/scholarships/ScholarshipApplicationList";
+import { type EssayItemKind, EssayList } from "@/components/essays/EssayList";
 import { ScholarshipDashboard } from "@/components/scholarships/ScholarshipDashboard";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	Tooltip,
 	TooltipContent,
@@ -51,20 +49,9 @@ export function ApplicationsClient() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 
-	// Get tab from URL, default to "programs"
-	const mainTab = (searchParams.get("tab") as MainTab) || "programs";
+	const urlTab = searchParams.get("tab") as MainTab | null;
+	const urlApplicationId = searchParams.get("id");
 
-	// Handle tab change by updating URL
-	// Use replace instead of push to avoid history stack issues and re-render flashes
-	const handleTabChange = (value: string) => {
-		const params = new URLSearchParams(searchParams.toString());
-		params.set("tab", value);
-		router.replace(`/dashboard/applications?${params.toString()}`, {
-			scroll: false,
-		});
-	};
-
-	// Program applications state
 	const {
 		selectedApplicationId,
 		setSelectedApplicationId,
@@ -72,37 +59,37 @@ export function ApplicationsClient() {
 		toggleSidebar,
 	} = useApplicationStore();
 
-	// Scholarship applications state
 	const {
 		selectedApplicationId: selectedScholarshipId,
 		setSelectedApplicationId: setSelectedScholarshipId,
 	} = useScholarshipApplicationStore();
 
-	// Fetch program applications
 	const {
 		data: applicationsResponse,
 		isLoading: isLoadingPrograms,
 		error: programsError,
 	} = useGetApplications1();
 
-	// Fetch scholarship applications
 	const {
 		data: scholarshipAppsResponse,
 		isLoading: isLoadingScholarships,
 		error: scholarshipsError,
 	} = useGetScholarshipApplications();
 
-	// Parse program applications
 	const appsData =
 		unwrapResponse<ApplicationListResponse>(applicationsResponse);
-	const applications = appsData?.applications ?? [];
+	const applications = useMemo(
+		() => appsData?.applications ?? [],
+		[appsData?.applications],
+	);
 
-	// Parse scholarship applications
 	const scholarshipAppsData =
 		unwrapResponse<ScholarshipApplicationListResponse>(scholarshipAppsResponse);
-	const scholarshipApplications = scholarshipAppsData?.applications ?? [];
+	const scholarshipApplications = useMemo(
+		() => scholarshipAppsData?.applications ?? [],
+		[scholarshipAppsData?.applications],
+	);
 
-	// Helper to check if any scholarship application needs tips polling (created <60s ago, no tips)
 	const hasPendingTips = useMemo(() => {
 		const now = Date.now();
 		return scholarshipApplications.some(
@@ -113,16 +100,13 @@ export function ApplicationsClient() {
 		);
 	}, [scholarshipApplications]);
 
-	// Poll for tips updates when there are pending applications
 	useEffect(() => {
 		if (!hasPendingTips) return;
-
 		const interval = setInterval(() => {
 			queryClient.invalidateQueries({
 				queryKey: getScholarshipApplicationsQueryKey(),
 			});
 		}, 5000);
-
 		return () => clearInterval(interval);
 	}, [hasPendingTips, queryClient]);
 
@@ -130,53 +114,89 @@ export function ApplicationsClient() {
 	const { mutateAsync: deleteScholarshipApp } =
 		useDeleteScholarshipApplication();
 
-	// Get application id from URL param (for deep linking from dashboard)
-	const urlApplicationId = searchParams.get("id");
+	// Determine current kind: URL `tab` wins, fall back to whichever store has an id,
+	// and default to program when both lists are empty.
+	const activeKind: EssayItemKind = useMemo(() => {
+		if (urlTab === "scholarships") return "scholarship";
+		if (urlTab === "programs") return "program";
+		if (selectedScholarshipId && !selectedApplicationId) return "scholarship";
+		return "program";
+	}, [urlTab, selectedScholarshipId, selectedApplicationId]);
 
-	// Auto-select application: prioritize URL param, then first application
+	const selectedId =
+		activeKind === "program" ? selectedApplicationId : selectedScholarshipId;
+
+	const updateUrl = useCallback(
+		(kind: EssayItemKind, id: string | null) => {
+			const params = new URLSearchParams(searchParams.toString());
+			params.set("tab", kind === "program" ? "programs" : "scholarships");
+			if (id) params.set("id", id);
+			else params.delete("id");
+			router.replace(`/dashboard/applications?${params.toString()}`, {
+				scroll: false,
+			});
+		},
+		[router, searchParams],
+	);
+
+	const handleSelect = useCallback(
+		(id: string, kind: EssayItemKind) => {
+			if (kind === "program") {
+				setSelectedApplicationId(id);
+				setSelectedScholarshipId(null);
+			} else {
+				setSelectedScholarshipId(id);
+				setSelectedApplicationId(null);
+			}
+			updateUrl(kind, id);
+		},
+		[setSelectedApplicationId, setSelectedScholarshipId, updateUrl],
+	);
+
+	// Honour URL deep-link on mount / navigation
 	useEffect(() => {
-		if (applications.length === 0) return;
-
-		// If URL has id param and it exists in applications, select it
-		if (
-			urlApplicationId &&
-			applications.find((app) => app.id === urlApplicationId)
-		) {
+		if (!urlApplicationId) return;
+		if (applications.find((app) => app.id === urlApplicationId)) {
 			if (selectedApplicationId !== urlApplicationId) {
 				setSelectedApplicationId(urlApplicationId);
+				setSelectedScholarshipId(null);
 			}
 			return;
 		}
-
-		// Otherwise auto-select first if none selected or current selection invalid
-		if (
-			!selectedApplicationId ||
-			!applications.find((app) => app.id === selectedApplicationId)
-		) {
-			setSelectedApplicationId(applications[0].id ?? null);
+		if (scholarshipApplications.find((app) => app.id === urlApplicationId)) {
+			if (selectedScholarshipId !== urlApplicationId) {
+				setSelectedScholarshipId(urlApplicationId);
+				setSelectedApplicationId(null);
+			}
 		}
 	}, [
-		applications,
-		selectedApplicationId,
-		setSelectedApplicationId,
 		urlApplicationId,
+		applications,
+		scholarshipApplications,
+		selectedApplicationId,
+		selectedScholarshipId,
+		setSelectedApplicationId,
+		setSelectedScholarshipId,
 	]);
 
-	// Auto-select first scholarship application if none selected
+	// Auto-select first item when nothing is selected yet
 	useEffect(() => {
-		if (
-			scholarshipApplications.length > 0 &&
-			(!selectedScholarshipId ||
-				!scholarshipApplications.find(
-					(app) => app.id === selectedScholarshipId,
-				))
-		) {
-			setSelectedScholarshipId(scholarshipApplications[0].id ?? null);
+		if (urlApplicationId) return;
+		if (selectedApplicationId || selectedScholarshipId) return;
+		if (applications.length > 0) {
+			const firstId = applications[0].id ?? null;
+			if (firstId) handleSelect(firstId, "program");
+		} else if (scholarshipApplications.length > 0) {
+			const firstId = scholarshipApplications[0].id ?? null;
+			if (firstId) handleSelect(firstId, "scholarship");
 		}
 	}, [
+		urlApplicationId,
+		applications,
 		scholarshipApplications,
+		selectedApplicationId,
 		selectedScholarshipId,
-		setSelectedScholarshipId,
+		handleSelect,
 	]);
 
 	const selectedApplication =
@@ -186,6 +206,7 @@ export function ApplicationsClient() {
 		if (selectedApplication?.id) {
 			try {
 				await deleteApp({ id: selectedApplication.id });
+				setSelectedApplicationId(null);
 				await queryClient.invalidateQueries({
 					queryKey: getGetApplications1QueryKey(),
 				});
@@ -215,230 +236,111 @@ export function ApplicationsClient() {
 		return false;
 	};
 
+	const handleCreated = ({
+		applicationId,
+		kind,
+	}: {
+		applicationId: string;
+		kind: EssayItemKind;
+	}) => {
+		handleSelect(applicationId, kind);
+	};
+
 	const apiError = programsError || scholarshipsError;
+	const isLoading = isLoadingPrograms || isLoadingScholarships;
 
 	return (
 		<>
-			<Tabs value={mainTab} onValueChange={handleTabChange}>
-				<div className="p-4 lg:p-0">
-					<div className="flex min-h-[calc(100vh-16rem)]">
-						{/* Desktop Sidebar - Unified sticky container */}
-						<div
-							className={`shrink-0 hidden lg:block h-[calc(100vh-5rem)] sticky top-0 transition-all duration-300 ${
-								sidebarCollapsed ? "w-16" : "w-full lg:w-80 xl:w-96"
-							}`}
-						>
-							<div className="flex flex-col h-full bg-card border-r border-border relative">
-								{/* Collapse Toggle Button */}
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<Button
-											variant="ghost"
-											size="icon"
-											onClick={toggleSidebar}
-											className="absolute -right-3 top-6 z-10 h-6 w-6 rounded-full border bg-background shadow-sm hover:bg-muted"
-										>
-											{sidebarCollapsed ? (
-												<ChevronRight className="h-3 w-3" />
-											) : (
-												<ChevronLeft className="h-3 w-3" />
-											)}
-										</Button>
-									</TooltipTrigger>
-									<TooltipContent side="right">
-										{sidebarCollapsed
-											? t("sidebar.expand")
-											: t("sidebar.collapse")}
-									</TooltipContent>
-								</Tooltip>
+			<div className="p-4 lg:p-0">
+				<div className="flex min-h-[calc(100vh-16rem)]">
+					{/* Desktop Sidebar */}
+					<div
+						className={`shrink-0 hidden lg:block h-[calc(100vh-5rem)] sticky top-0 transition-all duration-300 ${
+							sidebarCollapsed ? "w-16" : "w-full lg:w-80 xl:w-96"
+						}`}
+					>
+						<div className="flex flex-col h-full bg-card border-r border-border relative">
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										variant="ghost"
+										size="icon"
+										onClick={toggleSidebar}
+										className="absolute -right-3 top-6 z-10 h-6 w-6 rounded-full border bg-background shadow-sm hover:bg-muted"
+									>
+										{sidebarCollapsed ? (
+											<ChevronRight className="h-3 w-3" />
+										) : (
+											<ChevronLeft className="h-3 w-3" />
+										)}
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent side="right">
+									{sidebarCollapsed
+										? t("sidebar.expand")
+										: t("sidebar.collapse")}
+								</TooltipContent>
+							</Tooltip>
 
-								{sidebarCollapsed ? (
-									/* Collapsed Sidebar */
-									<div className="flex flex-col items-center py-4 gap-2">
-										{/* Tab Icons */}
-										<Tooltip>
-											<TooltipTrigger asChild>
-												<Button
-													variant={
-														mainTab === "programs" ? "secondary" : "ghost"
-													}
-													size="icon"
-													onClick={() => handleTabChange("programs")}
-													className="relative"
-												>
-													<GraduationCap className="h-4 w-4" />
-													{applications.length > 0 && (
-														<span className="absolute -top-1 -right-1 text-[10px] bg-primary text-primary-foreground px-1 rounded-full min-w-[16px]">
-															{applications.length}
-														</span>
-													)}
-												</Button>
-											</TooltipTrigger>
-											<TooltipContent side="right">
-												{t("sidebar.programs")}
-											</TooltipContent>
-										</Tooltip>
-
-										<Tooltip>
-											<TooltipTrigger asChild>
-												<Button
-													variant={
-														mainTab === "scholarships" ? "secondary" : "ghost"
-													}
-													size="icon"
-													onClick={() => handleTabChange("scholarships")}
-													className="relative"
-												>
-													<Award className="h-4 w-4" />
-													{scholarshipApplications.length > 0 && (
-														<span className="absolute -top-1 -right-1 text-[10px] bg-primary text-primary-foreground px-1 rounded-full min-w-[16px]">
-															{scholarshipApplications.length}
-														</span>
-													)}
-												</Button>
-											</TooltipTrigger>
-											<TooltipContent side="right">
-												{t("sidebar.scholarships")}
-											</TooltipContent>
-										</Tooltip>
-
-										<div className="w-8 border-t border-border my-2" />
-
-										{/* Mini Application List */}
-										<div className="flex-1 overflow-y-auto w-full px-2">
-											{mainTab === "programs" ? (
-												<ApplicationSidebar
-													collapsed
-													withWrapper={false}
-													applications={applications}
-													selectedId={selectedApplicationId}
-													onSelectApplication={setSelectedApplicationId}
-													isLoading={isLoadingPrograms}
-												/>
-											) : (
-												<ScholarshipApplicationList
-													collapsed
-													withWrapper={false}
-													applications={scholarshipApplications}
-													selectedId={selectedScholarshipId}
-													onSelectApplication={setSelectedScholarshipId}
-													isLoading={isLoadingScholarships}
-												/>
-											)}
-										</div>
+							{sidebarCollapsed ? (
+								<div className="flex flex-col items-center py-4 gap-2">
+									<div className="flex-1 overflow-y-auto w-full px-2">
+										<EssayList
+											collapsed
+											withWrapper={false}
+											applications={applications}
+											scholarshipApplications={scholarshipApplications}
+											selectedId={selectedId}
+											onSelect={handleSelect}
+											isLoading={isLoading}
+										/>
 									</div>
-								) : (
-									/* Expanded Sidebar */
-									<>
-										{/* Tabs Header */}
-										<div className="p-4 border-b border-border">
-											<TabsList className="w-full grid grid-cols-2">
-												<TabsTrigger value="programs" className="gap-2">
-													<GraduationCap className="w-4 h-4" />
-													{t("sidebar.programs")}
-													{applications.length > 0 && (
-														<span className="ml-1 text-xs bg-primary/10 px-1.5 py-0.5 rounded-full">
-															{applications.length}
-														</span>
-													)}
-												</TabsTrigger>
-												<TabsTrigger value="scholarships" className="gap-2">
-													<Award className="w-4 h-4" />
-													{t("sidebar.scholarships")}
-													{scholarshipApplications.length > 0 && (
-														<span className="ml-1 text-xs bg-primary/10 px-1.5 py-0.5 rounded-full">
-															{scholarshipApplications.length}
-														</span>
-													)}
-												</TabsTrigger>
-											</TabsList>
-										</div>
-
-										{/* Sidebar Content - Conditional */}
-										<div className="flex-1 min-h-0 flex flex-col">
-											{mainTab === "programs" ? (
-												<ApplicationSidebar
-													withWrapper={false}
-													applications={applications}
-													selectedId={selectedApplicationId}
-													onSelectApplication={setSelectedApplicationId}
-													isLoading={isLoadingPrograms}
-												/>
-											) : (
-												<ScholarshipApplicationList
-													withWrapper={false}
-													applications={scholarshipApplications}
-													selectedId={selectedScholarshipId}
-													onSelectApplication={setSelectedScholarshipId}
-													isLoading={isLoadingScholarships}
-												/>
-											)}
-										</div>
-									</>
-								)}
-							</div>
-						</div>
-
-						{/* Mobile - Full width with tabs */}
-						<div className="lg:hidden w-full">
-							<div className="p-4 border-b border-border bg-card">
-								<TabsList className="w-full grid grid-cols-2">
-									<TabsTrigger value="programs" className="gap-2">
-										<GraduationCap className="w-4 h-4" />
-										{t("sidebar.programs")}
-										{applications.length > 0 && (
-											<span className="ml-1 text-xs bg-primary/10 px-1.5 py-0.5 rounded-full">
-												{applications.length}
-											</span>
-										)}
-									</TabsTrigger>
-									<TabsTrigger value="scholarships" className="gap-2">
-										<Award className="w-4 h-4" />
-										{t("sidebar.scholarships")}
-										{scholarshipApplications.length > 0 && (
-											<span className="ml-1 text-xs bg-primary/10 px-1.5 py-0.5 rounded-full">
-												{scholarshipApplications.length}
-											</span>
-										)}
-									</TabsTrigger>
-								</TabsList>
-							</div>
-							{mainTab === "programs" ? (
-								<ApplicationSidebar
-									applications={applications}
-									selectedId={selectedApplicationId}
-									onSelectApplication={setSelectedApplicationId}
-									isLoading={isLoadingPrograms}
-								/>
+								</div>
 							) : (
-								<ScholarshipApplicationList
-									applications={scholarshipApplications}
-									selectedId={selectedScholarshipId}
-									onSelectApplication={setSelectedScholarshipId}
-									isLoading={isLoadingScholarships}
-								/>
-							)}
-						</div>
-
-						{/* Dashboard - Desktop only */}
-						<div className="hidden lg:block flex-1">
-							{mainTab === "programs" ? (
-								<ApplicationDashboard
-									application={selectedApplication}
-									onDelete={handleDelete}
-								/>
-							) : (
-								<ScholarshipDashboard
-									applicationId={selectedScholarshipId}
-									onDelete={handleDeleteScholarship}
-								/>
+								<div className="flex-1 min-h-0 flex flex-col">
+									<EssayList
+										withWrapper={false}
+										applications={applications}
+										scholarshipApplications={scholarshipApplications}
+										selectedId={selectedId}
+										onSelect={handleSelect}
+										isLoading={isLoading}
+										onCreated={handleCreated}
+									/>
+								</div>
 							)}
 						</div>
 					</div>
-				</div>
-			</Tabs>
 
-			{/* Error Toast */}
+					{/* Mobile */}
+					<div className="lg:hidden w-full">
+						<EssayList
+							applications={applications}
+							scholarshipApplications={scholarshipApplications}
+							selectedId={selectedId}
+							onSelect={handleSelect}
+							isLoading={isLoading}
+							onCreated={handleCreated}
+						/>
+					</div>
+
+					{/* Dashboard - Desktop only */}
+					<div className="hidden lg:block flex-1">
+						{activeKind === "program" ? (
+							<ApplicationDashboard
+								application={selectedApplication}
+								onDelete={handleDelete}
+							/>
+						) : (
+							<ScholarshipDashboard
+								applicationId={selectedScholarshipId}
+								onDelete={handleDeleteScholarship}
+							/>
+						)}
+					</div>
+				</div>
+			</div>
+
 			{apiError ? (
 				<div className="fixed bottom-4 right-4 bg-destructive text-destructive-foreground px-4 py-2 rounded-lg shadow-lg">
 					{apiError instanceof Error ? apiError.message : t("toast.loadFailed")}

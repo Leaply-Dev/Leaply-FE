@@ -33,18 +33,24 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 	const savePromptMutation = useSavePrompt();
 	const [currentPhase, setCurrentPhase] = useState<SopPhase>("not_started");
 
-	// Sync phase from server
+	// Sync phase from server.
+	// If the prompt is already captured (e.g. created via the NewEssayDialog),
+	// skip the ideation gate and go straight to writing so users land in the editor.
 	useEffect(() => {
-		if (status?.sopPhase) {
-			// Map old phases to new simplified phases
-			const phase = status.sopPhase;
-			if (phase === "outlining" || phase === "writing" || phase === "review") {
-				setCurrentPhase("writing");
-			} else {
-				setCurrentPhase(phase);
-			}
+		if (!status) return;
+		const phase = status.sopPhase;
+		const hasPrompt = !!status.sopPrompt?.trim();
+		if (phase === "completed") {
+			setCurrentPhase("completed");
+			return;
 		}
-	}, [status?.sopPhase]);
+		if (phase === "not_started" && !hasPrompt) {
+			setCurrentPhase("not_started");
+			return;
+		}
+		// Any other server phase with a prompt available → writing.
+		setCurrentPhase("writing");
+	}, [status]);
 
 	const handlePhaseChange = (newPhase: SopPhase) => {
 		setCurrentPhase(newPhase);
@@ -63,7 +69,7 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 			has_prompt: !!prompt,
 			word_limit: wordLimit,
 		});
-		handlePhaseChange("ideation");
+		handlePhaseChange("writing");
 	};
 
 	if (isLoading) {
@@ -125,7 +131,7 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 				{currentPhase === "writing" && (
 					<WritingWorkspace
 						applicationId={applicationId}
-						onBack={() => handlePhaseChange("ideation")}
+						onBack={() => handlePhaseChange("not_started")}
 						onComplete={() => {
 							posthog.capture("sop_completed", {
 								application_id: applicationId,

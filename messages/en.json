@@ -424,6 +424,49 @@
 			"programs": "Programs",
 			"scholarships": "Scholarships"
 		},
+		"kind": {
+			"program": "Program",
+			"scholarship": "Scholarship"
+		},
+		"prompt": {
+			"header": "Essay prompt",
+			"empty": "No prompt yet. Click \"Edit\" to add the prompt and word limit.",
+			"edit": "Edit prompt",
+			"editTitle": "Edit essay prompt",
+			"editDescription": "Update the prompt and word limit for this essay.",
+			"save": "Save",
+			"saving": "Saving...",
+			"wordLimitLabel": "Word limit",
+			"wordLimitSuffix": "words"
+		},
+		"newEssayDialog": {
+			"trigger": "New essay",
+			"title": "Create new essay",
+			"description": "Pick a target and drop in the prompt — you'll land straight in the editor.",
+			"targetTypeLabel": "Target type",
+			"targetType": {
+				"program": "Program",
+				"scholarship": "Scholarship"
+			},
+			"searchLabel": "Search target",
+			"searchProgramPlaceholder": "Search programs by name or university...",
+			"searchScholarshipPlaceholder": "Search scholarships by name or sponsor...",
+			"searchEmpty": "No results found",
+			"searchHint": "Type at least 2 characters to search",
+			"selected": "Selected",
+			"change": "Change",
+			"promptLabel": "Essay prompt",
+			"promptPlaceholder": "Paste the essay prompt or requirements here...",
+			"promptHint": "You can leave this blank and add it later.",
+			"wordLimitLabel": "Word limit",
+			"wordLimitPlaceholder": "500",
+			"wordLimitSuffix": "words",
+			"cancel": "Cancel",
+			"submit": "Create essay",
+			"submitting": "Creating...",
+			"errorCreate": "Failed to create essay. Please try again.",
+			"errorAlreadyExists": "An essay for this target already exists."
+		},
 		"toast": {
 			"statusUpdateFailed": "Failed to update status",
 			"deleteFailed": "Failed to delete application",

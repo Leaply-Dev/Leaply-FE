@@ -424,6 +424,49 @@
 			"programs": "Chương trình",
 			"scholarships": "Học bổng"
 		},
+		"kind": {
+			"program": "Chương trình",
+			"scholarship": "Học bổng"
+		},
+		"prompt": {
+			"header": "Đề bài luận",
+			"empty": "Chưa có đề bài. Nhấn \"Chỉnh sửa\" để thêm đề bài và giới hạn số từ.",
+			"edit": "Chỉnh sửa đề bài",
+			"editTitle": "Chỉnh sửa đề bài luận",
+			"editDescription": "Cập nhật đề bài và giới hạn số từ cho bài luận này.",
+			"save": "Lưu",
+			"saving": "Đang lưu...",
+			"wordLimitLabel": "Giới hạn số từ",
+			"wordLimitSuffix": "từ"
+		},
+		"newEssayDialog": {
+			"trigger": "Bài luận mới",
+			"title": "Tạo bài luận mới",
+			"description": "Chọn mục tiêu và thêm đề bài để bắt đầu viết ngay lập tức.",
+			"targetTypeLabel": "Loại mục tiêu",
+			"targetType": {
+				"program": "Chương trình",
+				"scholarship": "Học bổng"
+			},
+			"searchLabel": "Tìm kiếm mục tiêu",
+			"searchProgramPlaceholder": "Tìm chương trình theo tên hoặc trường...",
+			"searchScholarshipPlaceholder": "Tìm học bổng theo tên hoặc nhà tài trợ...",
+			"searchEmpty": "Không tìm thấy kết quả nào",
+			"searchHint": "Nhập ít nhất 2 ký tự để tìm kiếm",
+			"selected": "Đã chọn",
+			"change": "Đổi",
+			"promptLabel": "Đề bài luận",
+			"promptPlaceholder": "Dán đề bài hoặc yêu cầu viết luận ở đây...",
+			"promptHint": "Bạn có thể bỏ trống nếu chưa có đề bài — sẽ thêm sau.",
+			"wordLimitLabel": "Giới hạn số từ",
+			"wordLimitPlaceholder": "500",
+			"wordLimitSuffix": "từ",
+			"cancel": "Hủy",
+			"submit": "Tạo bài luận",
+			"submitting": "Đang tạo...",
+			"errorCreate": "Không thể tạo bài luận. Vui lòng thử lại.",
+			"errorAlreadyExists": "Bài luận cho mục tiêu này đã tồn tại."
+		},
 		"toast": {
 			"statusUpdateFailed": "Cập nhật trạng thái thất bại",
 			"deleteFailed": "Xóa đơn thất bại",

@@ -45,6 +45,7 @@ import {
 	getGetCoverageQueryKey,
 	getGetGraphQueryKey,
 	getGetPersonaStateQueryKey,
+	getStartConversationQueryKey,
 	useGenerateArchetype,
 	useResetConversation,
 	useSendGraphMessage,
@@ -323,6 +324,9 @@ export function ChatSidebar() {
 				}
 				clearApiGraph();
 				queryClient.invalidateQueries({ queryKey: getGetCoverageQueryKey() });
+				queryClient.invalidateQueries({
+					queryKey: getStartConversationQueryKey(),
+				});
 			},
 		});
 	}, [

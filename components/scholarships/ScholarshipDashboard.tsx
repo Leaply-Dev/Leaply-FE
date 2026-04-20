@@ -1,20 +1,11 @@
 "use client";
 
-import {
-	Award,
-	ExternalLink,
-	FileText,
-	Info,
-	PenLine,
-	Trash2,
-} from "lucide-react";
+import { Award, ExternalLink, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { toast } from "sonner";
 import { ScholarshipDetailDrawer } from "@/components/explore/scholarship/ScholarshipDetailDrawer";
 import { EssayTab } from "@/components/scholarships/tabs/EssayTab";
-import { OverviewTab } from "@/components/scholarships/tabs/OverviewTab";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -26,18 +17,12 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	useGetApplication,
 	useGetDocuments,
-	useUpdateApplication,
 } from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
-import type {
-	ScholarshipApplicationResponse,
-	UpdateScholarshipApplicationRequestStatus,
-} from "@/lib/generated/api/models";
-import { useScholarshipApplicationStore } from "@/lib/store/scholarshipApplicationStore";
+import type { ScholarshipApplicationResponse } from "@/lib/generated/api/models";
 
 interface ScholarshipDashboardProps {
 	applicationId: string | null;
@@ -49,32 +34,24 @@ export function ScholarshipDashboard({
 	onDelete,
 }: ScholarshipDashboardProps) {
 	const t = useTranslations("scholarships");
-	const { activeTab, setActiveTab } = useScholarshipApplicationStore();
 	const [isScholarshipDrawerOpen, setIsScholarshipDrawerOpen] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
 	// Fetch application details
-	const {
-		data: applicationResponse,
-		isLoading: isLoadingApplication,
-		refetch: refetchApplication,
-	} = useGetApplication(applicationId ?? "", {
-		query: {
-			enabled: !!applicationId,
-		},
-	});
-
-	// Fetch documents
-	const { data: documentsResponse, isLoading: isLoadingDocuments } =
-		useGetDocuments(applicationId ?? "", {
+	const { data: applicationResponse, isLoading: isLoadingApplication } =
+		useGetApplication(applicationId ?? "", {
 			query: {
 				enabled: !!applicationId,
 			},
 		});
 
-	// Update mutation
-	const { mutateAsync: updateApplication } = useUpdateApplication();
+	// Fetch documents
+	const { data: documentsResponse } = useGetDocuments(applicationId ?? "", {
+		query: {
+			enabled: !!applicationId,
+		},
+	});
 
 	const application =
 		unwrapResponse<ScholarshipApplicationResponse>(applicationResponse);
@@ -84,22 +61,6 @@ export function ScholarshipDashboard({
 	const documentsList = Array.isArray(documents)
 		? documents
 		: (documents?.documents ?? []);
-
-	// Handle status update
-	const handleUpdateStatus = async (status: string): Promise<boolean> => {
-		if (!applicationId) return false;
-		try {
-			await updateApplication({
-				applicationId,
-				data: { status: status as UpdateScholarshipApplicationRequestStatus },
-			});
-			await refetchApplication();
-			return true;
-		} catch {
-			toast.error("Failed to update status");
-			return false;
-		}
-	};
 
 	// Handle delete
 	const handleDelete = async () => {
@@ -186,38 +147,16 @@ export function ScholarshipDashboard({
 								{application.scholarship?.sourceName}
 							</p>
 						</div>
-						<Button
-							variant="outline"
-							size="sm"
-							className="shrink-0 ml-4"
-							onClick={() => setIsScholarshipDrawerOpen(true)}
-						>
-							<ExternalLink className="w-4 h-4 mr-2" aria-hidden="true" />
-							{t("viewDetails")}
-						</Button>
-					</div>
+						<div className="flex items-center gap-2 ml-4 shrink-0">
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setIsScholarshipDrawerOpen(true)}
+							>
+								<ExternalLink className="w-4 h-4 mr-2" aria-hidden="true" />
+								{t("viewDetails")}
+							</Button>
 
-					{/* Tabs */}
-					<Tabs
-						value={activeTab}
-						onValueChange={(value) =>
-							setActiveTab(value as "overview" | "documents" | "essay")
-						}
-						className="space-y-6"
-					>
-						<div className="flex items-center justify-between">
-							<TabsList>
-								<TabsTrigger value="overview" className="gap-2">
-									<Info className="w-4 h-4" />
-									{t("tabs.overview")}
-								</TabsTrigger>
-								<TabsTrigger value="essay" className="gap-2">
-									<PenLine className="w-4 h-4" />
-									{t("tabs.essay")}
-								</TabsTrigger>
-							</TabsList>
-
-							{/* Delete Button */}
 							<Dialog
 								open={deleteDialogOpen}
 								onOpenChange={setDeleteDialogOpen}
@@ -259,23 +198,20 @@ export function ScholarshipDashboard({
 								</DialogContent>
 							</Dialog>
 						</div>
+					</div>
 
-						<TabsContent value="overview" className="mt-0">
-							<OverviewTab
-								application={application}
-								onUpdateStatus={handleUpdateStatus}
-							/>
-						</TabsContent>
-
-						<TabsContent value="essay" className="mt-0">
-							<EssayTab
-								applicationId={applicationId}
-								documents={
-									documentsList as Parameters<typeof EssayTab>[0]["documents"]
-								}
-							/>
-						</TabsContent>
-					</Tabs>
+					<EssayTab
+						applicationId={applicationId}
+						documents={
+							documentsList as Parameters<typeof EssayTab>[0]["documents"]
+						}
+						application={
+							application as unknown as {
+								essayPrompt?: string;
+								essayWordLimit?: number;
+							}
+						}
+					/>
 
 					{/* Timestamps */}
 					<div className="text-xs text-muted-foreground text-center mt-8">

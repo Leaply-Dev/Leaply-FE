@@ -5,6 +5,7 @@ import { ClipboardList, FileEdit, Lightbulb, Sparkles } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { TipTapEditor } from "@/components/editor/TipTapEditor";
+import { EssayPromptHeader } from "@/components/essays/EssayPromptHeader";
 import {
 	Card,
 	CardContent,
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSaveScholarshipEssayPrompt } from "@/lib/api/scholarship-essay";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	getGetApplicationQueryKey,
@@ -28,9 +30,17 @@ import {
 } from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
 import type { DocumentDto } from "@/lib/generated/api/models";
 
+// Fields may be missing until the backend rolls out the
+// PATCH /v1/scholarship-applications/{id}/essay-prompt endpoint.
+interface ScholarshipEssayFields {
+	essayPrompt?: string;
+	essayWordLimit?: number;
+}
+
 interface EssayTabProps {
 	applicationId: string;
 	documents: DocumentDto[];
+	application?: ScholarshipEssayFields;
 }
 
 /**
@@ -61,7 +71,11 @@ function EssayFeedbackPlaceholder() {
 	);
 }
 
-export function EssayTab({ applicationId, documents }: EssayTabProps) {
+export function EssayTab({
+	applicationId,
+	documents,
+	application,
+}: EssayTabProps) {
 	const queryClient = useQueryClient();
 
 	// Find the current essay document
@@ -82,6 +96,14 @@ export function EssayTab({ applicationId, documents }: EssayTabProps) {
 	const essayContent = unwrapResponse<string>(essayContentResponse) ?? "";
 
 	const saveEssayMutation = useSaveEssayContent();
+	const { mutateAsync: saveEssayPrompt } = useSaveScholarshipEssayPrompt();
+
+	const handleSavePrompt = useCallback(
+		async (values: { prompt?: string; wordLimit?: number }) => {
+			await saveEssayPrompt({ applicationId, data: values });
+		},
+		[applicationId, saveEssayPrompt],
+	);
 
 	const handleSave = useCallback(
 		async (content: string) => {
@@ -151,6 +173,12 @@ export function EssayTab({ applicationId, documents }: EssayTabProps) {
 		<div className="flex gap-6 h-full">
 			{/* Left Column - Editor */}
 			<div className="flex-1 flex flex-col min-w-0 space-y-4">
+				<EssayPromptHeader
+					prompt={application?.essayPrompt}
+					wordLimit={application?.essayWordLimit}
+					onSave={handleSavePrompt}
+				/>
+
 				{/* Collapsible Writing Tips */}
 				<Collapsible defaultOpen={false}>
 					<Card>

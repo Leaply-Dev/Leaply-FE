@@ -392,6 +392,13 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						(m) => m.status !== "sending",
 					);
 
+					if (localSentMessages.length === 0 && serverMessages.length > 0) {
+						return {
+							graphMessages: [...serverMessages, ...pendingMessages],
+							...archetypeUpdates,
+						};
+					}
+
 					// Simple check: IDs of last confirmed message
 					const serverLastId =
 						serverMessages.length > 0
