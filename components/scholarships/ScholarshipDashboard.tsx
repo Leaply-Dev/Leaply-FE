@@ -205,12 +205,7 @@ export function ScholarshipDashboard({
 						documents={
 							documentsList as Parameters<typeof EssayTab>[0]["documents"]
 						}
-						application={
-							application as unknown as {
-								essayPrompt?: string;
-								essayWordLimit?: number;
-							}
-						}
+						application={application}
 					/>
 
 					{/* Timestamps */}

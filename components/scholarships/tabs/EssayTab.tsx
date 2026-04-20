@@ -28,19 +28,15 @@ import {
 	useGetEssayContent,
 	useSaveEssayContent,
 } from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
-import type { DocumentDto } from "@/lib/generated/api/models";
-
-// Fields may be missing until the backend rolls out the
-// PATCH /v1/scholarship-applications/{id}/essay-prompt endpoint.
-interface ScholarshipEssayFields {
-	essayPrompt?: string;
-	essayWordLimit?: number;
-}
+import type {
+	DocumentDto,
+	ScholarshipApplicationResponse,
+} from "@/lib/generated/api/models";
 
 interface EssayTabProps {
 	applicationId: string;
 	documents: DocumentDto[];
-	application?: ScholarshipEssayFields;
+	application?: ScholarshipApplicationResponse;
 }
 
 /**

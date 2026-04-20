@@ -1,51 +1,35 @@
 /**
  * Scholarship essay prompt API hook.
- * Manual implementation while backend endpoint ships — mirrors `useSavePrompt`
- * from `lib/api/sop-workspace.ts` for the program-side SOP prompt.
+ * Thin wrapper around the generated `useUpdateEssayPrompt` mutation that
+ * also invalidates the application + list query keys, matching the pattern
+ * of `useSavePrompt` on the program side (`lib/api/sop-workspace.ts`).
  *
  * Backend contract: PATCH /v1/scholarship-applications/{applicationId}/essay-prompt
- * Body: { prompt?: string; wordLimit?: number }
- * See Leaply-BE/docs/PLAN_essay_prompt_for_scholarship.md.
  */
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
 	getGetApplicationQueryKey,
 	getGetApplicationsQueryKey,
+	useUpdateEssayPrompt,
 } from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
-import customFetch from "./mutator";
+import type { UpdateScholarshipEssayPromptRequest } from "@/lib/generated/api/models";
 
-export interface SaveScholarshipEssayPromptRequest {
-	prompt?: string;
-	wordLimit?: number;
-}
+export type SaveScholarshipEssayPromptRequest =
+	UpdateScholarshipEssayPromptRequest;
 
 export function useSaveScholarshipEssayPrompt() {
 	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: async ({
-			applicationId,
-			data,
-		}: {
-			applicationId: string;
-			data: SaveScholarshipEssayPromptRequest;
-		}) => {
-			await customFetch(
-				`/v1/scholarship-applications/${applicationId}/essay-prompt`,
-				{
-					method: "PATCH",
-					body: JSON.stringify(data),
-					headers: { "Content-Type": "application/json" },
-				},
-			);
-		},
-		onSuccess: (_, { applicationId }) => {
-			queryClient.invalidateQueries({
-				queryKey: getGetApplicationQueryKey(applicationId),
-			});
-			queryClient.invalidateQueries({
-				queryKey: getGetApplicationsQueryKey(),
-			});
+	return useUpdateEssayPrompt({
+		mutation: {
+			onSuccess: (_, { applicationId }) => {
+				queryClient.invalidateQueries({
+					queryKey: getGetApplicationQueryKey(applicationId),
+				});
+				queryClient.invalidateQueries({
+					queryKey: getGetApplicationsQueryKey(),
+				});
+			},
 		},
 	});
 }
