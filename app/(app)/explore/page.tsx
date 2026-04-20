@@ -8,7 +8,8 @@
 import { Award, GraduationCap } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { useTranslations } from "next-intl";
+import { Suspense, useEffect, useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -117,10 +118,32 @@ function ExplorePageSkeleton() {
 	);
 }
 
+function FlippingWord({ words }: { words: string[] }) {
+	const [index, setIndex] = useState(0);
+
+	useEffect(() => {
+		if (words.length < 2) return;
+		const interval = setInterval(() => {
+			setIndex((i) => (i + 1) % words.length);
+		}, 2000);
+		return () => clearInterval(interval);
+	}, [words.length]);
+
+	return (
+		<span
+			key={words[index]}
+			className="inline-block bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent animate-in fade-in duration-500 leading-[1.15] pb-1"
+		>
+			{words[index]}
+		</span>
+	);
+}
+
 function ExplorePageContent() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const activeTab = searchParams.get("tab") || "programs";
+	const t = useTranslations("explore");
 
 	const handleTabChange = (value: string) => {
 		const params = new URLSearchParams(searchParams.toString());
@@ -130,41 +153,48 @@ function ExplorePageContent() {
 
 	return (
 		<PageTransition className="flex flex-col min-h-screen">
-			{/* Top-Level Tabs: Programs | Scholarships */}
-			<div className="border-b border-border bg-background sticky top-0 z-40">
-				<div className="container mx-auto px-6">
-					<Tabs
-						value={activeTab}
-						onValueChange={handleTabChange}
-						className="w-full"
-					>
-						<TabsList className="h-14 w-full justify-start gap-1 bg-transparent p-0 rounded-none border-b-0">
-							<TabsTrigger
-								value="programs"
-								className="relative h-14 rounded-none border-b-2 border-transparent px-6 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none gap-2 font-semibold"
-							>
-								<GraduationCap className="w-5 h-5" />
-								<span>Programs</span>
-							</TabsTrigger>
-							<TabsTrigger
-								value="scholarships"
-								className="relative h-14 rounded-none border-b-2 border-transparent px-6 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none gap-2 font-semibold"
-							>
-								<Award className="w-5 h-5" />
-								<span>Scholarships</span>
-							</TabsTrigger>
-						</TabsList>
+			<Tabs
+				value={activeTab}
+				onValueChange={handleTabChange}
+				className="w-full"
+			>
+				{/* Hero header with animated title + centered tab switcher */}
+				<div className="border-b border-border bg-background">
+					<div className="container mx-auto px-6 pt-10 pb-5">
+						<h1 className="text-center text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-[1.2] pb-1">
+							{t("heroTitle")}{" "}
+							<FlippingWord words={[t("heroProgram"), t("heroScholarship")]} />
+						</h1>
 
-						<TabsContent value="programs" className="mt-0 border-0 p-0">
-							<ExploreClient />
-						</TabsContent>
-
-						<TabsContent value="scholarships" className="mt-0 border-0 p-0">
-							<ScholarshipExploreClient />
-						</TabsContent>
-					</Tabs>
+						<div className="mt-8 flex justify-center">
+							<TabsList className="h-11 gap-1 bg-muted/60 p-1 rounded-full">
+								<TabsTrigger
+									value="programs"
+									className="h-9 rounded-full px-5 data-[state=active]:bg-card data-[state=active]:shadow-sm gap-2 font-medium text-sm"
+								>
+									<GraduationCap className="w-4 h-4" />
+									<span>Programs</span>
+								</TabsTrigger>
+								<TabsTrigger
+									value="scholarships"
+									className="h-9 rounded-full px-5 data-[state=active]:bg-card data-[state=active]:shadow-sm gap-2 font-medium text-sm"
+								>
+									<Award className="w-4 h-4" />
+									<span>Scholarships</span>
+								</TabsTrigger>
+							</TabsList>
+						</div>
+					</div>
 				</div>
-			</div>
+
+				<TabsContent value="programs" className="mt-0 border-0 p-0">
+					<ExploreClient />
+				</TabsContent>
+
+				<TabsContent value="scholarships" className="mt-0 border-0 p-0">
+					<ScholarshipExploreClient />
+				</TabsContent>
+			</Tabs>
 		</PageTransition>
 	);
 }

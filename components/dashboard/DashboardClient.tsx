@@ -302,10 +302,12 @@ export function DashboardClient() {
 												<TableHeader className="bg-muted/30">
 													<TableRow className="hover:bg-transparent">
 														<TableHead className="w-[50%]">
-															{tHome('programsAndScholarships')}
+															{tHome("programsAndScholarships")}
 														</TableHead>
-														<TableHead>{tHome('status')}</TableHead>
-														<TableHead className="text-right">{tHome('action')}</TableHead>
+														<TableHead>{tHome("status")}</TableHead>
+														<TableHead className="text-right">
+															{tHome("action")}
+														</TableHead>
 													</TableRow>
 												</TableHeader>
 												<TableBody>

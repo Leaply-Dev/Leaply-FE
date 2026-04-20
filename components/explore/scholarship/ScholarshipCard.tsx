@@ -34,7 +34,10 @@ interface ScholarshipCardProps {
 	scholarship: ScholarshipListItemResponse;
 	onClick?: (scholarship: ScholarshipListItemResponse) => void;
 	isSelected?: boolean;
-	onToggleSelection?: (id: string) => void;
+	onToggleSelection?: (
+		id: string,
+		scholarship?: ScholarshipListItemResponse,
+	) => void;
 	isMaxReached?: boolean;
 	onAddToDashboard?: (id: string) => void;
 	isInDashboard?: boolean;
@@ -78,7 +81,7 @@ export function ScholarshipCard({
 					onClick?.(scholarship);
 				}
 			}}
-			className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:border-primary/30 cursor-pointer w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+			className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:border-primary/30 cursor-pointer w-full h-full flex flex-col text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 			onClick={() => onClick?.(scholarship)}
 		>
 			{/* Header */}
@@ -212,7 +215,7 @@ export function ScholarshipCard({
 			</div>
 
 			{/* Fit Gaps */}
-			{scholarship.fitGaps && scholarship.fitGaps.length > 0 && (
+			{/* {scholarship.fitGaps && scholarship.fitGaps.length > 0 && (
 				<div className="px-4 pb-3">
 					<div className="bg-destructive/5 rounded-lg p-3 border border-destructive/20">
 						<div className="flex items-center gap-2 mb-2">
@@ -234,10 +237,10 @@ export function ScholarshipCard({
 						</ul>
 					</div>
 				</div>
-			)}
+			)} */}
 
 			{/* Footer Actions */}
-			<div className="px-4 pb-4 flex gap-2">
+			<div className="mt-auto px-4 pb-4 flex gap-2">
 				<Button
 					variant={isSelected ? "secondary" : "outline"}
 					size="sm"
@@ -249,7 +252,7 @@ export function ScholarshipCard({
 					disabled={!isSelected && isMaxReached}
 					onClick={(e) => {
 						e.stopPropagation();
-						scholarship.id && onToggleSelection?.(scholarship.id);
+						scholarship.id && onToggleSelection?.(scholarship.id, scholarship);
 					}}
 				>
 					{isSelected ? (

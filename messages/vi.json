@@ -558,11 +558,16 @@
 	},
 	"explore": {
 		"title": "Tìm trường phù hợp với bạn",
+		"heroTitle": "Tìm kiếm giấc mơ",
+		"heroProgram": "Chương trình",
+		"heroScholarship": "Học bổng",
 		"filters": {
 			"loading": "Đang tải...",
 			"showingResults": "Hiện {count} trong {total} kết quả",
 			"searchPrograms": "Tìm kiếm trường, chương trình...",
 			"searchScholarships": "Tìm học bổng...",
+			"searchByUniversity": "Tìm theo tên trường đại học...",
+			"searchAction": "Tìm kiếm",
 			"filters": "Bộ lọc",
 			"moreFilters": "Thêm bộ lọc",
 			"lessFilters": "Ẩn bộ lọc",

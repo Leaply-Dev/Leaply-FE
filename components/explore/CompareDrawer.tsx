@@ -31,7 +31,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ProgramListItemResponse } from "@/lib/generated/api/models";
 import {
-	type DeadlineInfo,
 	formatCountryName,
 	formatDeliveryMode,
 	formatDuration,

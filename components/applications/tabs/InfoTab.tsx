@@ -40,7 +40,7 @@ const gapSeverityConfig: Record<
 export function InfoTab({ application }: InfoTabProps) {
 	const t = useTranslations("applications");
 	const locale = useLocale();
-	
+
 	return (
 		<div className="space-y-6">
 			{/* SOP Status */}

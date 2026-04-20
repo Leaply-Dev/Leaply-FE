@@ -55,7 +55,7 @@ export const customInstance = async <T>(
 		}
 	}
 
-	let response = await fetch(fullUrl, fetchConfig);
+	const response = await fetch(fullUrl, fetchConfig);
 
 	// Handle 401 - bad credentials.
 	const isAuthEndpoint = url.includes("/v1/auth/");

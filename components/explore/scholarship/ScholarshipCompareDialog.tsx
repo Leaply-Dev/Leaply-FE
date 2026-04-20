@@ -29,11 +29,9 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ScholarshipListItemResponse } from "@/lib/generated/api/models";
 import {
-	type DeadlineInfo,
 	formatCoverageAmount,
 	formatCoverageDuration,
 	formatCoverageType,
-	formatDate,
 	formatEligibilityType,
 	formatScholarshipDegreeLevel,
 	getDeadlineInfo,

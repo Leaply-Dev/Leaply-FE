@@ -13,7 +13,6 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ScholarshipDetailDrawer } from "@/components/explore/scholarship/ScholarshipDetailDrawer";
-import { DocumentsTab } from "@/components/scholarships/tabs/DocumentsTab";
 import { EssayTab } from "@/components/scholarships/tabs/EssayTab";
 import { OverviewTab } from "@/components/scholarships/tabs/OverviewTab";
 import { Button } from "@/components/ui/button";

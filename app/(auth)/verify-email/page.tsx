@@ -40,7 +40,7 @@ export default function VerifyEmailPage() {
 
 	// Mutation for resending verification
 	const resendMutation = useResendVerification();
-    
+
 	const [countdown, setCountdown] = useState(60);
 
 	// Countdown timer for resend

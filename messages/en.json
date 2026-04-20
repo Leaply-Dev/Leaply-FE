@@ -558,11 +558,16 @@
 	},
 	"explore": {
 		"title": "Discover Your Perfect Match",
+		"heroTitle": "Find your dream",
+		"heroProgram": "Program",
+		"heroScholarship": "Scholarship",
 		"filters": {
 			"loading": "Loading...",
 			"showingResults": "Showing {count} of {total} results",
 			"searchPrograms": "Search schools, programs...",
 			"searchScholarships": "Search scholarships...",
+			"searchByUniversity": "Search by University Name...",
+			"searchAction": "Search",
 			"filters": "Filters",
 			"moreFilters": "More Filters",
 			"lessFilters": "Less Filters",

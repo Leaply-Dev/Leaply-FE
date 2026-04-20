@@ -2,32 +2,27 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import {
-	ArrowRight,
 	Calendar,
+	Check,
 	DollarSign,
 	GraduationCap,
 	Loader2,
 	Search,
-	Settings2,
 	Sparkles,
 	X,
 } from "lucide-react";
-// Note: Sparkles is still used in QuickFilterChips for "Scholarship Available"
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-	DeadlineWithinFilter,
-	FilterPanel,
+	type PillFilter,
+	PillOptionList,
+	PillSearchBar,
 	QuickFilterChips,
-	RegionFilter,
-	TuitionMaxFilter,
 	useRegionOptions,
 } from "@/components/explore/filters";
+import { ProgramCard } from "@/components/explore/ProgramCard";
 import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import { useGetCurrentUser } from "@/lib/generated/api/endpoints/authentication/authentication";
@@ -36,94 +31,15 @@ import {
 	listPrograms,
 } from "@/lib/generated/api/endpoints/explore/explore";
 import type {
-	BudgetGapStatus,
-	EnglishGapStatus,
 	ListProgramsParams,
 	ProgramListItemResponse,
 	ProgramListResponse,
 } from "@/lib/generated/api/models";
-import {
-	formatCountryName,
-	formatDate,
-	formatTuitionRange,
-	getDeadlineUrgency,
-} from "@/lib/utils/displayFormatters";
 
 const PAGE_SIZE = 20;
 
 // Quick filter types for programs
 type ProgramQuickFilter = "budget" | "testscore" | "deadline" | "scholarship";
-
-/**
- * Compact gap indicator for list view
- * Shows status icons for English, GPA, Budget gaps
- */
-function GapIndicators({ program }: { program: ProgramListItemResponse }) {
-	const indicators: { label: string; status: string; icon: string }[] = [];
-
-	// English gap indicator
-	if (program.englishGap?.status && program.englishGap.status !== "unknown") {
-		const status = program.englishGap.status as EnglishGapStatus;
-		indicators.push({
-			label: "IELTS",
-			status,
-			icon: status === "exceeds" || status === "meets" ? "\u2713" : "!",
-		});
-	}
-
-	// GPA gap indicator
-	if (program.gpaGap?.status && program.gpaGap.status !== "unknown") {
-		const status = program.gpaGap.status;
-		indicators.push({
-			label: "GPA",
-			status,
-			icon: status === "exceeds" || status === "meets" ? "\u2713" : "!",
-		});
-	}
-
-	// Budget gap indicator
-	if (program.budgetGap?.status && program.budgetGap.status !== "unknown") {
-		const status = program.budgetGap.status as BudgetGapStatus;
-		indicators.push({
-			label: "Budget",
-			status,
-			icon: status === "within" ? "\u2713" : status === "stretch" ? "~" : "!",
-		});
-	}
-
-	if (indicators.length === 0) return null;
-
-	const getStatusColor = (status: string) => {
-		switch (status) {
-			case "exceeds":
-			case "meets":
-			case "within":
-				return "text-green-600";
-			case "stretch":
-				return "text-yellow-600";
-			case "gap":
-			case "over":
-				return "text-orange-600";
-			default:
-				return "text-muted-foreground";
-		}
-	};
-
-	return (
-		<div className="flex items-center justify-center gap-2 mt-1.5 text-xs">
-			{indicators.slice(0, 3).map((ind) => (
-				<span
-					key={ind.label}
-					className={`${getStatusColor(ind.status)} font-medium`}
-					title={`${ind.label}: ${ind.status}`}
-				>
-					{ind.label}
-					{ind.icon}
-				</span>
-			))}
-		</div>
-	);
-}
 
 interface ManualModeProps {
 	selectedPrograms: Set<string>;
@@ -135,246 +51,33 @@ interface ManualModeProps {
 	addingProgramId?: string | null;
 }
 
-/**
- * Program table row component
- */
-function ProgramTableRow({
-	program,
-	selected,
-	onSelect,
-	onClick,
-	onAddToDashboard,
-	isMaxReached,
-	isInDashboard,
-	isAdding,
-	onManage,
-	t,
-}: {
-	program: ProgramListItemResponse;
-	selected: boolean;
-	onSelect: () => void;
-	onClick: () => void;
-	onAddToDashboard: (id: string) => void;
-	isMaxReached: boolean;
-	isInDashboard?: boolean;
-	isAdding?: boolean;
-	onManage?: (id: string) => void;
-	t: ReturnType<typeof useTranslations<"explore">>;
-}) {
-	const getDeadlineDisplay = (deadline?: string) => {
-		const urgency = getDeadlineUrgency(deadline);
-
-		if (urgency.daysUntil === null) {
-			return { color: "text-muted-foreground", label: t("table.na") };
-		}
-
-		if (urgency.level === "passed") {
-			return { color: urgency.color, label: t("table.closed") };
-		}
-
-		if (urgency.level === "urgent" || urgency.level === "soon") {
-			return {
-				color: urgency.color,
-				label: t("table.daysLeft", { days: urgency.daysUntil }),
-			};
-		}
-
-		return {
-			color: urgency.color,
-			label: formatDate(deadline, { short: true }),
-		};
-	};
-
-	const getFitBadge = (category?: string) => {
-		switch (category) {
-			case "safety":
-				return (
-					<Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100">
-						{t("table.safe")}
-					</Badge>
-				);
-			case "target":
-				return (
-					<Badge className="bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-100">
-						{t("table.target")}
-					</Badge>
-				);
-			case "reach":
-				return (
-					<Badge className="bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-100">
-						{t("table.reach")}
-					</Badge>
-				);
-			default:
-				return null;
-		}
-	};
-
-	const getRankingBadge = (rankingDisplay?: string, label?: string) => {
-		if (!rankingDisplay) return null;
-
-		// Parse ranking display to determine color tier
-		const rankNum = Number.parseInt(rankingDisplay.replace(/[^0-9]/g, ""), 10);
-		let colorClass = "bg-gray-100 text-gray-700 border-gray-200";
-
-		if (label === "Times") {
-			colorClass = "bg-amber-100 text-amber-700 border-amber-200";
-		} else if (!Number.isNaN(rankNum)) {
-			if (rankNum <= 50) {
-				colorClass = "bg-purple-100 text-purple-700 border-purple-200";
-			} else if (rankNum <= 100) {
-				colorClass = "bg-blue-100 text-blue-700 border-blue-200";
-			} else if (rankNum <= 200) {
-				colorClass = "bg-slate-100 text-slate-700 border-slate-200";
-			}
-		}
-
-		return (
-			<Badge className={`${colorClass} hover:${colorClass} font-num`}>
-				{label && `${label} `}#{rankingDisplay}
-			</Badge>
-		);
-	};
-
-	const deadline = getDeadlineDisplay(program.nextDeadline);
-
+function ProgramCardSkeleton() {
 	return (
-		<tr
-			className="border-b border-border hover:bg-muted/30 transition-colors cursor-pointer"
-			onClick={(e) => {
-				// Don't trigger row click if clicking checkbox or action buttons
-				if ((e.target as HTMLElement).closest("input, button")) return;
-				onClick();
-			}}
-		>
-			{/* Checkbox */}
-			<td className="p-4 text-center align-middle">
-				<div className="flex items-center justify-center">
-					<input
-						type="checkbox"
-						checked={selected}
-						onChange={onSelect}
-						onClick={(e) => e.stopPropagation()}
-						disabled={isMaxReached && !selected}
-						className="w-5 h-5 rounded border-border text-primary focus:ring-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-					/>
+		<div className="bg-card border border-border rounded-xl p-4 space-y-3">
+			<div className="flex items-start gap-3">
+				<Skeleton className="h-16 w-16 rounded-lg shrink-0" />
+				<div className="flex-1 space-y-2">
+					<Skeleton className="h-5 w-3/4" />
+					<Skeleton className="h-4 w-1/2" />
+					<Skeleton className="h-3 w-1/3" />
 				</div>
-			</td>
-
-			{/* University + Program */}
-			<td className="p-4">
-				<div className="flex items-start gap-3">
-					<div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden">
-						{program.universityLogoUrl ? (
-							<Image
-								src={program.universityLogoUrl}
-								alt={program.universityName || "University"}
-								width={48}
-								height={48}
-								className="object-contain"
-							/>
-						) : (
-							<span className="text-xs font-bold text-primary">
-								{(program.universityName || "U").substring(0, 2).toUpperCase()}
-							</span>
-						)}
-					</div>
-					<div className="flex-1 min-w-0">
-						<h3
-							className="font-semibold text-foreground text-sm mb-1 line-clamp-1"
-							title={program.displayName || program.programName}
-						>
-							{program.displayName || program.programName}
-						</h3>
-						<div className="flex items-center gap-2 text-sm text-muted-foreground">
-							<span>{program.universityName}</span>
-							<span>-</span>
-							<span>{formatCountryName(program.universityCountry)}</span>
-						</div>
-					</div>
-				</div>
-			</td>
-
-			{/* Ranking */}
-			<td className="p-4 text-center">
-				{program.rankingQsDisplay ? (
-					<div className="flex flex-col items-center gap-1.5">
-						{getRankingBadge(program.rankingQsDisplay, "QS")}
-					</div>
-				) : (
-					<span className="text-muted-foreground">{t("table.na")}</span>
-				)}
-			</td>
-
-			{/* Cost */}
-			<td className="p-4 text-center">
-				{program.tuitionAnnualMin ? (
-					<div className="flex flex-col items-center gap-1">
-						<span className="font-semibold text-foreground font-num">
-							{formatTuitionRange(
-								program.tuitionAnnualMin,
-								program.tuitionAnnualMax,
-								program.tuitionCurrency || "USD",
-							)}
-						</span>
-						{program.scholarshipAvailable && (
-							<span className="text-xs text-green-600">
-								{t("filters.hasScholarship")}
-							</span>
-						)}
-					</div>
-				) : (
-					<span className="text-muted-foreground">{t("table.na")}</span>
-				)}
-			</td>
-
-			{/* Deadline */}
-			<td className="p-4 text-center">
-				<span className={`text-sm font-medium font-num ${deadline.color}`}>
-					{deadline.label}
-				</span>
-			</td>
-
-			{/* Fit Badge + Gap Indicators */}
-			<td className="p-4 text-center">
-				{getFitBadge(program.fitCategory)}
-				<GapIndicators program={program} />
-			</td>
-
-			{/* Quick Action */}
-			<td className="p-4 text-center">
-				<Button
-					size="sm"
-					disabled={isAdding}
-					onClick={(e) => {
-						e.stopPropagation();
-						if (isInDashboard && onManage) {
-							program.id && onManage(program.id);
-						} else if (!isAdding) {
-							program.id && onAddToDashboard(program.id);
-						}
-					}}
-					className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-				>
-					{isAdding ? (
-						<>
-							<Loader2 className="w-4 h-4 animate-spin" />
-							{t("table.adding")}
-						</>
-					) : isInDashboard ? (
-						<>
-							<Settings2 className="w-4 h-4" />
-							{t("table.manage")}
-						</>
-					) : (
-						<>
-							{t("table.apply")}
-							<ArrowRight className="w-4 h-4" />
-						</>
-					)}
-				</Button>
-			</td>
-		</tr>
+			</div>
+			<div className="flex flex-wrap gap-1.5">
+				<Skeleton className="h-5 w-16 rounded-full" />
+				<Skeleton className="h-5 w-20 rounded-full" />
+				<Skeleton className="h-5 w-16 rounded-full" />
+			</div>
+			<div className="grid grid-cols-2 gap-2">
+				<Skeleton className="h-3 w-full" />
+				<Skeleton className="h-3 w-full" />
+				<Skeleton className="h-3 w-full" />
+				<Skeleton className="h-3 w-full" />
+			</div>
+			<div className="flex gap-2 pt-2">
+				<Skeleton className="h-9 flex-1" />
+				<Skeleton className="h-9 flex-1" />
+			</div>
+		</div>
 	);
 }
 
@@ -388,8 +91,8 @@ interface ServerFilterState {
 }
 
 /**
- * Manual Mode - Table view with server-side pagination and infinite scroll
- * Shows ALL programs (not limited by AI filters) with optional filtering
+ * Manual Mode - Card grid view with server-side pagination and infinite scroll
+ * Shows ALL programs with optional filtering
  */
 export function ManualMode({
 	selectedPrograms,
@@ -488,11 +191,6 @@ export function ManualMode({
 			params.deadlineWithin = filters.deadlineWithin;
 		}
 
-		// Note: "budget" and "testscore" quick filters require backend support
-		// These are UI-only for now and will be enabled when the API supports them
-		// if (filters.quickFilters.includes("budget")) { params.withinBudget = true; }
-		// if (filters.quickFilters.includes("testscore")) { params.meetTestReq = true; }
-
 		return params;
 	}, [sortBy, debouncedSearch, filters]);
 
@@ -529,13 +227,6 @@ export function ManualMode({
 		});
 	}, [data]);
 
-	// Get total count from first page
-	const totalCount = useMemo(() => {
-		if (!data?.pages?.[0]) return 0;
-		const result = unwrapResponse<ProgramListResponse>(data.pages[0]);
-		return result?.pagination?.total ?? 0;
-	}, [data]);
-
 	// Infinite scroll - intersection observer
 	const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -561,6 +252,113 @@ export function ManualMode({
 		};
 	}, [handleObserver]);
 
+	// Selected region values (multi-select)
+	const selectedRegions = useMemo(
+		() => (filters.regions ? filters.regions.split(",").filter(Boolean) : []),
+		[filters.regions],
+	);
+
+	const toggleRegion = (value: string) => {
+		const next = selectedRegions.includes(value)
+			? selectedRegions.filter((r) => r !== value)
+			: [...selectedRegions, value];
+		setFilters({ ...filters, regions: next.join(",") });
+	};
+
+	const regionActiveLabel = useMemo(() => {
+		if (selectedRegions.length === 0) return undefined;
+		if (selectedRegions.length === 1) {
+			return regionOptions.find((o) => o.value === selectedRegions[0])?.label;
+		}
+		return `${selectedRegions.length} ${t("filters.region").toLowerCase()}`;
+	}, [selectedRegions, regionOptions, t]);
+
+	const tuitionOptions = useMemo(
+		() => [
+			{ label: "\u2264 $20,000/year", value: 20000 },
+			{ label: "\u2264 $30,000/year", value: 30000 },
+			{ label: "\u2264 $50,000/year", value: 50000 },
+			{ label: "\u2264 $70,000/year", value: 70000 },
+		],
+		[],
+	);
+	const tuitionActiveLabel = filters.tuitionMax
+		? tuitionOptions.find((o) => o.value === filters.tuitionMax)?.label
+		: undefined;
+
+	const deadlineOptions = useMemo(
+		() => [
+			{ label: t("filters.within30Days"), value: 30 },
+			{ label: t("filters.within60Days"), value: 60 },
+			{ label: t("filters.within90Days"), value: 90 },
+		],
+		[t],
+	);
+	const deadlineActiveLabel = filters.deadlineWithin
+		? deadlineOptions.find((o) => o.value === filters.deadlineWithin)?.label
+		: undefined;
+
+	const pillFilters: PillFilter[] = [
+		{
+			id: "region",
+			label: t("filters.region"),
+			activeLabel: regionActiveLabel,
+			popoverClassName: "w-64 p-2",
+			content: (
+				<div className="flex flex-col gap-0.5">
+					{regionOptions.map((opt) => {
+						const active = selectedRegions.includes(opt.value);
+						return (
+							<button
+								key={opt.value}
+								type="button"
+								onClick={() => toggleRegion(opt.value)}
+								className={`flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-md transition-colors text-left ${
+									active
+										? "bg-primary/10 text-primary font-medium"
+										: "hover:bg-muted"
+								}`}
+							>
+								<span>{opt.label}</span>
+								{active && <Check className="w-4 h-4" />}
+							</button>
+						);
+					})}
+				</div>
+			),
+		},
+		{
+			id: "tuition",
+			label: t("filters.tuitionMax"),
+			activeLabel: tuitionActiveLabel,
+			content: (
+				<PillOptionList
+					options={tuitionOptions}
+					value={filters.tuitionMax}
+					onChange={(v) =>
+						setFilters({ ...filters, tuitionMax: v as number | undefined })
+					}
+					allLabel={t("filters.noLimit")}
+				/>
+			),
+		},
+		{
+			id: "deadline",
+			label: t("filters.deadlineWithin"),
+			activeLabel: deadlineActiveLabel,
+			content: (
+				<PillOptionList
+					options={deadlineOptions}
+					value={filters.deadlineWithin}
+					onChange={(v) =>
+						setFilters({ ...filters, deadlineWithin: v as number | undefined })
+					}
+					allLabel={t("filters.all")}
+				/>
+			),
+		},
+	];
+
 	// Check if any filters are active
 	const hasActiveFilters =
 		filters.regions ||
@@ -580,34 +378,33 @@ export function ManualMode({
 	};
 
 	return (
-		<div className="space-y-6">
-			{/* Search Bar */}
-			<div className="flex items-center gap-4">
-				<p className="text-sm text-muted-foreground">
-					{isLoading
-						? t("filters.loading")
-						: t("filters.showingResults", {
-								count: programs.length,
-								total: totalCount,
-							})}
-				</p>
-				<div className="relative">
-					<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-					<Input
-						type="text"
-						placeholder={t("filters.searchPrograms")}
-						value={searchQuery}
-						onChange={(e) => setSearchQuery(e.target.value)}
-						onFocus={(e) => e.target.select()}
-						className="pl-9 w-64"
-					/>
-				</div>
+		<div className="space-y-4">
+			{/* Pill Search Bar */}
+			<PillSearchBar
+				searchValue={searchQuery}
+				onSearchChange={setSearchQuery}
+				searchPlaceholder={t("filters.searchByUniversity")}
+				searchLabel={t("filters.searchAction")}
+				onSearch={() => setDebouncedSearch(searchQuery)}
+				filters={pillFilters}
+			/>
+
+			{/* Quick Filters Row */}
+			<div className="flex flex-wrap items-center gap-2">
+				<QuickFilterChips
+					filters={quickFilterOptions}
+					activeFilters={filters.quickFilters}
+					onFiltersChange={(newFilters) =>
+						setFilters({ ...filters, quickFilters: newFilters })
+					}
+					disabled={!isAuthenticated}
+				/>
 				{hasActiveFilters && (
 					<Button
 						variant="ghost"
 						size="sm"
 						onClick={clearAllFilters}
-						className="text-muted-foreground hover:text-foreground gap-1.5"
+						className="ml-auto text-muted-foreground hover:text-foreground gap-1.5"
 					>
 						<X className="w-3.5 h-3.5" />
 						{t("filters.clearAll")}
@@ -615,181 +412,60 @@ export function ManualMode({
 				)}
 			</div>
 
-			{/* Beautiful Filter Panel */}
-			<FilterPanel
-				expandLabel={t("filters.moreFilters")}
-				collapseLabel={t("filters.lessFilters")}
-				quickFilters={
-					<QuickFilterChips
-						filters={quickFilterOptions}
-						activeFilters={filters.quickFilters}
-						onFiltersChange={(newFilters) =>
-							setFilters({ ...filters, quickFilters: newFilters })
-						}
-						disabled={!isAuthenticated}
-					/>
-				}
-				advancedFilters={
-					<>
-						<div className="space-y-2 col-span-2">
-							<span className="text-sm font-medium text-muted-foreground">
-								{t("filters.region")}
-							</span>
-							<RegionFilter
-								value={filters.regions}
-								onChange={(regions) => setFilters({ ...filters, regions })}
-								options={regionOptions}
-								placeholder={t("filters.allRegions")}
-							/>
-						</div>
-
-						<div className="space-y-2">
-							<span className="text-sm font-medium text-muted-foreground">
-								{t("filters.tuitionMax")}
-							</span>
-							<TuitionMaxFilter
-								value={filters.tuitionMax}
-								onChange={(tuitionMax) =>
-									setFilters({ ...filters, tuitionMax })
-								}
-								t={(key) => t(`filters.${key}`)}
-							/>
-						</div>
-
-						<div className="space-y-2">
-							<span className="text-sm font-medium text-muted-foreground">
-								{t("filters.deadlineWithin")}
-							</span>
-							<DeadlineWithinFilter
-								value={filters.deadlineWithin}
-								onChange={(deadlineWithin) =>
-									setFilters({ ...filters, deadlineWithin })
-								}
-								t={(key) => t(`filters.${key}`)}
-							/>
-						</div>
-					</>
-				}
-			/>
-
-			{/* Table */}
-			<div className="border border-border rounded-lg overflow-hidden">
-				{isLoading ? (
-					<div className="w-full">
-						<div className="bg-muted/50 border-b border-border h-12 w-full" />
-						{[1, 2, 3, 4, 5].map((i) => (
-							<div
-								key={i}
-								className="flex items-center p-4 border-b border-border"
-							>
-								<div className="w-12 flex justify-center">
-									<Skeleton className="h-5 w-5 rounded" />
-								</div>
-								<div className="flex-1 flex gap-3">
-									<Skeleton className="h-12 w-12 rounded-lg shrink-0" />
-									<div className="space-y-2 flex-1 max-w-md">
-										<Skeleton className="h-4 w-3/4" />
-										<Skeleton className="h-3 w-1/2" />
-									</div>
-								</div>
-								<div className="w-32 flex justify-center">
-									<Skeleton className="h-6 w-16" />
-								</div>
-								<div className="w-32 flex justify-center">
-									<Skeleton className="h-6 w-24" />
-								</div>
-								<div className="w-32 flex justify-center">
-									<Skeleton className="h-6 w-20" />
-								</div>
-								<div className="w-32 flex justify-center">
-									<Skeleton className="h-6 w-20" />
-								</div>
-								<div className="w-32 flex justify-center">
-									<Skeleton className="h-9 w-24" />
-								</div>
-							</div>
-						))}
+			{/* Card Grid */}
+			{isLoading ? (
+				<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr gap-4">
+					{[1, 2, 3, 4, 5, 6].map((i) => (
+						<ProgramCardSkeleton key={i} />
+					))}
+				</div>
+			) : isError ? (
+				<div className="flex flex-col items-center justify-center py-16 px-4 border border-border rounded-lg">
+					<div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+						<span className="text-2xl">!</span>
 					</div>
-				) : isError ? (
-					<div className="flex flex-col items-center justify-center py-16 px-4">
-						<div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
-							<span className="text-2xl">!</span>
-						</div>
-						<h3 className="text-lg font-semibold text-foreground mb-2">
-							{t("filters.failedToLoad")}
-						</h3>
-						<p className="text-sm text-muted-foreground text-center max-w-md">
-							{error instanceof Error
-								? error.message
-								: t("filters.failedToLoad")}
-						</p>
+					<h3 className="text-lg font-semibold text-foreground mb-2">
+						{t("filters.failedToLoad")}
+					</h3>
+					<p className="text-sm text-muted-foreground text-center max-w-md">
+						{error instanceof Error ? error.message : t("filters.failedToLoad")}
+					</p>
+				</div>
+			) : programs.length > 0 ? (
+				<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr gap-4">
+					{programs.map((program) => (
+						<ProgramCard
+							key={program.id}
+							program={program}
+							isSelected={selectedPrograms.has(program.id || "")}
+							onToggleSelection={onToggleSelection}
+							isMaxReached={isMaxReached}
+							onClick={(p) => {
+								setSelectedProgram(p);
+								setIsDetailDrawerOpen(true);
+							}}
+							onAddToDashboard={onAddToDashboard}
+							isInDashboard={
+								program.id ? isProgramInDashboard?.(program.id) : false
+							}
+							isAdding={addingProgramId === program.id}
+							onManage={onManageApplication}
+						/>
+					))}
+				</div>
+			) : (
+				<div className="flex flex-col items-center justify-center py-16 px-4 border border-border rounded-lg">
+					<div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+						<Search className="w-8 h-8 text-muted-foreground" />
 					</div>
-				) : programs.length > 0 ? (
-					<table className="w-full">
-						<thead className="bg-muted/50">
-							<tr className="border-b border-border">
-								<th className="p-4 text-center font-semibold text-sm text-foreground w-30">
-									{t("table.compare")}
-								</th>
-								<th className="p-4 text-left font-semibold text-sm text-foreground">
-									{t("table.program")}
-								</th>
-								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									{t("table.ranking")}
-								</th>
-								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									{t("table.cost")}
-								</th>
-								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									{t("table.deadline")}
-								</th>
-								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									{t("table.fit")}
-								</th>
-								<th className="p-4 text-center font-semibold text-sm text-foreground">
-									{t("table.action")}
-								</th>
-							</tr>
-						</thead>
-						<tbody>
-							{programs.map((program) => (
-								<ProgramTableRow
-									key={program.id}
-									program={program}
-									selected={selectedPrograms.has(program.id || "")}
-									onSelect={() => onToggleSelection(program.id || "", program)}
-									onClick={() => {
-										setSelectedProgram(program);
-										setIsDetailDrawerOpen(true);
-									}}
-									onAddToDashboard={() => {
-										program.id && onAddToDashboard?.(program.id);
-									}}
-									isMaxReached={isMaxReached}
-									isInDashboard={
-										program.id ? isProgramInDashboard?.(program.id) : false
-									}
-									isAdding={addingProgramId === program.id}
-									onManage={onManageApplication}
-									t={t}
-								/>
-							))}
-						</tbody>
-					</table>
-				) : (
-					<div className="flex flex-col items-center justify-center py-16 px-4">
-						<div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-							<Search className="w-8 h-8 text-muted-foreground" />
-						</div>
-						<h3 className="text-lg font-semibold text-foreground mb-2">
-							{t("filters.noPrograms")}
-						</h3>
-						<p className="text-sm text-muted-foreground text-center max-w-md">
-							{t("filters.noProgramsDesc")}
-						</p>
-					</div>
-				)}
-			</div>
+					<h3 className="text-lg font-semibold text-foreground mb-2">
+						{t("filters.noPrograms")}
+					</h3>
+					<p className="text-sm text-muted-foreground text-center max-w-md">
+						{t("filters.noProgramsDesc")}
+					</p>
+				</div>
+			)}
 
 			{/* Infinite scroll trigger + Loading indicator */}
 			{hasNextPage && (
