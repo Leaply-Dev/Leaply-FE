@@ -54,6 +54,7 @@ function ProgramCardSkeleton() {
 	);
 }
 
+import posthog from "posthog-js";
 import { useGetCurrentUser } from "@/lib/generated/api/endpoints/authentication/authentication";
 import { useGetMatchedPrograms } from "@/lib/generated/api/endpoints/explore/explore";
 import { usePrograms, useSaveProgram } from "@/lib/hooks/usePrograms";
@@ -109,6 +110,14 @@ export function ExploreClient() {
 	};
 
 	const handleAddToDashboard = (programId: string) => {
+		const program = programs.find(
+			(p: ProgramListItemResponse) => p.id === programId,
+		);
+		posthog.capture("program_added_to_dashboard", {
+			program_id: programId,
+			program_name: program?.programName,
+			university_name: program?.universityName,
+		});
 		setAddingProgramId(programId);
 		createApplication(
 			{
@@ -240,7 +249,10 @@ export function ExploreClient() {
 							<Button
 								variant="ghost"
 								size="sm"
-								onClick={() => setActiveMode("ai")}
+								onClick={() => {
+									posthog.capture("explore_mode_switched", { mode: "ai" });
+									setActiveMode("ai");
+								}}
 								className={cn(
 									"h-9 px-4 rounded-md gap-2",
 									activeMode === "ai"
@@ -254,7 +266,10 @@ export function ExploreClient() {
 							<Button
 								variant="ghost"
 								size="sm"
-								onClick={() => setActiveMode("manual")}
+								onClick={() => {
+									posthog.capture("explore_mode_switched", { mode: "manual" });
+									setActiveMode("manual");
+								}}
 								className={cn(
 									"h-9 px-4 rounded-md gap-2",
 									activeMode === "manual"
@@ -350,6 +365,13 @@ export function ExploreClient() {
 									userProfile={unwrapResponse<UserContextResponse>(userProfile)}
 									onSaveToggle={handleSaveToggle}
 									onProgramClick={(program) => {
+										posthog.capture("program_viewed", {
+											program_id: program.id,
+											program_name: program.programName,
+											university_name: program.universityName,
+											fit_score: program.fitScore,
+											mode: "ai",
+										});
 										setSelectedProgram(program);
 										setIsDetailDrawerOpen(true);
 									}}
@@ -387,7 +409,12 @@ export function ExploreClient() {
 				selectedProgramsList={selectedProgramsList}
 				onRemoveProgram={toggleProgramSelection}
 				onClearAll={() => setSelectedProgramsMap(new Map())}
-				onCompare={() => setIsCompareDialogOpen(true)}
+				onCompare={() => {
+					posthog.capture("program_compare_opened", {
+						program_count: selectedCount,
+					});
+					setIsCompareDialogOpen(true);
+				}}
 			/>
 
 			{/* Compare Dialog */}

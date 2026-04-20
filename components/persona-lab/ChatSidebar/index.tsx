@@ -3,6 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { RotateCcw } from "lucide-react";
 import { useTranslations } from "next-intl";
+import posthog from "posthog-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -216,6 +217,11 @@ export function ChatSidebar() {
 			// With cookie-based auth, token freshness is handled automatically
 			// Browser sends cookies, backend refreshes if needed via /oauth/refresh
 
+			posthog.capture("persona_lab_message_sent", {
+				message_length: content.length,
+				story_node_count: storyNodeCount,
+			});
+
 			// Track when we started thinking
 			const startTime = Date.now();
 			setThinkingStartTime(startTime);
@@ -339,6 +345,10 @@ export function ChatSidebar() {
 									guidedData.archetype.personalizedSummary,
 									guidedData.archetype.rarity,
 								);
+								posthog.capture("archetype_revealed", {
+									archetype_type: guidedData.archetype.type,
+									rarity: guidedData.archetype.rarity,
+								});
 								toast.success(t("archetypeRevealed"), {
 									description: t("archetypeRevealedDesc"),
 								});
@@ -388,6 +398,7 @@ export function ChatSidebar() {
 			setPartsProgress,
 			setConversationState,
 			setArchetype,
+			storyNodeCount,
 		],
 	);
 

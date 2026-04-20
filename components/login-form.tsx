@@ -4,6 +4,7 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { GoogleLoginButton } from "@/components/GoogleLoginButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -85,6 +86,14 @@ export function LoginForm({
 			// Backend now sets HttpOnly cookies - we just update UI state
 			login(userProfile, authResponse.onboardingCompleted ?? false);
 
+			posthog.identify(userProfile.id, {
+				email: userProfile.email,
+			});
+			posthog.capture("user_logged_in", {
+				email: userProfile.email,
+				onboarding_completed: authResponse.onboardingCompleted ?? false,
+			});
+
 			// Wait for Zustand persist to complete
 			await new Promise((resolve) => setTimeout(resolve, 200));
 
@@ -95,6 +104,7 @@ export function LoginForm({
 			}
 		} catch (err) {
 			console.error("Login failed", err);
+			posthog.captureException(err);
 
 			// Handle Zod validation errors
 			if (err && typeof err === "object" && "errors" in err) {

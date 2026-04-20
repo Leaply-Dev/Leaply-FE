@@ -2,6 +2,7 @@
 
 import { FileEdit, Loader2, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
+import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,6 +58,11 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 				data: { prompt, wordLimit },
 			});
 		}
+		posthog.capture("sop_started", {
+			application_id: applicationId,
+			has_prompt: !!prompt,
+			word_limit: wordLimit,
+		});
 		handlePhaseChange("ideation");
 	};
 
@@ -120,7 +126,12 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 					<WritingWorkspace
 						applicationId={applicationId}
 						onBack={() => handlePhaseChange("ideation")}
-						onComplete={() => handlePhaseChange("completed")}
+						onComplete={() => {
+							posthog.capture("sop_completed", {
+								application_id: applicationId,
+							});
+							handlePhaseChange("completed");
+						}}
 						sopPrompt={status?.sopPrompt}
 					/>
 				)}

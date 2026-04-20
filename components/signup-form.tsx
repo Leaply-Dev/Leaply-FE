@@ -4,6 +4,7 @@ import { AlertCircle, Check, Circle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import posthog from "posthog-js";
 import { useMemo, useState } from "react";
 import { GoogleLoginButton } from "@/components/GoogleLoginButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -167,9 +168,22 @@ export function SignupForm({
 			};
 
 			login(userProfile, authResponse.onboardingCompleted ?? false);
+
+			posthog.identify(userProfile.id, {
+				email: userProfile.email,
+				name: userProfile.fullName,
+			});
+			posthog.capture("user_signed_up", {
+				email: userProfile.email,
+				name: userProfile.fullName,
+				method: "email",
+			});
+
+			// Redirect to verify-email page for email verification prompt
 			router.push("/verify-email");
 		} catch (err) {
 			console.error("Registration failed", err);
+			posthog.captureException(err);
 			setServerError(
 				err instanceof Error ? err.message : "Failed to create account",
 			);

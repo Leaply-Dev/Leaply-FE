@@ -2,6 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import posthog from "posthog-js";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ export function GoogleLoginButton({
 
 	const handleGoogleLogin = async () => {
 		setIsLoading(true);
+		posthog.capture("google_oauth_initiated", { variant });
 
 		try {
 			const response = await fetch(`${API_URL}/oauth/google/url`, {

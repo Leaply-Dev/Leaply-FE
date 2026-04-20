@@ -3,6 +3,7 @@
 import { AnimatePresence } from "framer-motion";
 import { AlertCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { OnboardingProgress } from "@/components/OnboardingProgress";
 import { PageTransition } from "@/components/PageTransition";
@@ -198,6 +199,10 @@ export function OnboardingClient({
 					| "phd",
 			});
 
+			posthog.capture("onboarding_step_completed", {
+				step: 1,
+				step_name: "basic_info",
+			});
 			setCurrentStep(1);
 			setError(null);
 		} catch (error) {
@@ -225,6 +230,10 @@ export function OnboardingClient({
 				targetRegions: regionKeys,
 			});
 
+			posthog.capture("onboarding_step_completed", {
+				step: 2,
+				step_name: "preferences",
+			});
 			setCurrentStep(2);
 			setError(null);
 		} catch (error) {
@@ -254,6 +263,10 @@ export function OnboardingClient({
 				budgetRange: budgetKey,
 			});
 
+			posthog.capture("onboarding_step_completed", {
+				step: 3,
+				step_name: "plan",
+			});
 			setCurrentStep(3);
 			setError(null);
 		} catch (error) {
@@ -285,6 +298,7 @@ export function OnboardingClient({
 			});
 
 			completeOnboarding();
+			posthog.capture("onboarding_completed", { journey_type: type });
 			setCurrentStep(4);
 			setError(null);
 		} catch (error) {

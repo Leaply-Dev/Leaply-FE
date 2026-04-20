@@ -7,6 +7,7 @@
 
 import { Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { useUserStore } from "@/lib/store/userStore";
 
@@ -48,6 +49,15 @@ export default function OAuthSuccessPage() {
 					// Backend sets HttpOnly cookies - we just update UI state
 					login(userProfile, userContext.user.isOnboardingComplete);
 
+					posthog.identify(userProfile.id, {
+						email: userProfile.email,
+						name: userProfile.fullName,
+					});
+					posthog.capture("google_oauth_completed", {
+						email: userProfile.email,
+						onboarding_completed: userContext.user.isOnboardingComplete,
+					});
+
 					if (userContext.preferences) {
 						updatePreferences({
 							fieldOfInterest: userContext.preferences.fieldOfInterest,
@@ -74,6 +84,7 @@ export default function OAuthSuccessPage() {
 				}
 			} catch (error) {
 				console.error("OAuth verification failed:", error);
+				posthog.captureException(error);
 				setStatus("error");
 				// Redirect to login with error after a short delay
 				setTimeout(() => {
