@@ -392,6 +392,19 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						(m) => m.status !== "sending",
 					);
 
+					// Sync archetype from server if available
+					const archetypeUpdates: Partial<PersonaStoreState> = {};
+					if (data.archetype?.type && !state.archetypeRevealed) {
+						const archetypeKey = data.archetype.type as ArchetypeKey;
+						const archetypeConfig = getArchetypeConfig(archetypeKey);
+						archetypeUpdates.archetypeType = archetypeKey;
+						archetypeUpdates.archetypePersonalizedSummary =
+							data.archetype.personalizedSummary ?? null;
+						// Get rarity from config since ArchetypeDto may not have it
+						archetypeUpdates.archetypeRarity = archetypeConfig?.rarity ?? null;
+						archetypeUpdates.archetypeRevealed = true;
+					}
+
 					if (localSentMessages.length === 0 && serverMessages.length > 0) {
 						return {
 							graphMessages: [...serverMessages, ...pendingMessages],
@@ -412,19 +425,6 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					const isServerDifferent =
 						serverLastId !== localLastSentId ||
 						serverMessages.length !== localSentMessages.length;
-
-					// Sync archetype from server if available
-					const archetypeUpdates: Partial<PersonaStoreState> = {};
-					if (data.archetype?.type && !state.archetypeRevealed) {
-						const archetypeKey = data.archetype.type as ArchetypeKey;
-						const archetypeConfig = getArchetypeConfig(archetypeKey);
-						archetypeUpdates.archetypeType = archetypeKey;
-						archetypeUpdates.archetypePersonalizedSummary =
-							data.archetype.personalizedSummary ?? null;
-						// Get rarity from config since ArchetypeDto may not have it
-						archetypeUpdates.archetypeRarity = archetypeConfig?.rarity ?? null;
-						archetypeUpdates.archetypeRevealed = true;
-					}
 
 					if (isServerDifferent) {
 						return {
