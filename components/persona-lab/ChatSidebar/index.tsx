@@ -25,18 +25,19 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
+import {
+	useGetPillarCoverage,
+	useGetTierProgress,
+} from "@/lib/api/personaLab/hooks";
+import type {
+	PillarCoverageDto,
+	TierProgressDto,
+} from "@/lib/api/personaLab/types";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import type { ArchetypeKey } from "@/lib/config/archetypeConfig";
-import type { PartKey, PartsProgress } from "@/lib/config/partsConfig";
 import {
-	areAllPartsComplete,
-	DEFAULT_PARTS_PROGRESS,
-} from "@/lib/config/partsConfig";
-import {
-	type GuidedConversationState as ApiGuidedConversationState,
 	type CanvasActionDto,
-	type GuidedMessageResponse,
-	type PartsStatus,
+	type GraphMessageResponse,
 	type PersonaNodeDto,
 	PersonaNodeDtoType,
 } from "@/lib/generated/api/models";
@@ -45,19 +46,17 @@ import {
 	getGetGraphQueryKey,
 	getGetPersonaStateQueryKey,
 	useGenerateArchetype,
-	useResetGuidedConversation,
-	useSendGuidedMessage,
-	useStartGuidedConversation,
+	useResetConversation,
+	useSendGraphMessage,
+	useStartConversation,
 } from "@/lib/hooks/persona";
 import { useIsHydrated } from "@/lib/hooks/useStoresHydrated";
-import type {
-	StarStructureKey,
-	GuidedConversationState as StoreGuidedConversationState,
-} from "@/lib/store/personaStore";
+import type { StarStructureKey } from "@/lib/store/personaStore";
 import {
 	type ConversationMessage,
 	selectApiGraphNodes,
-	selectPartsProgress,
+	selectPillarCoverage,
+	selectTierProgress,
 	usePersonaStore,
 } from "@/lib/store/personaStore";
 import { ArchetypeCelebrationModal } from "../ArchetypeCelebrationModal";
@@ -65,56 +64,19 @@ import { ChatHeader } from "./ChatHeader";
 import { ChatMessage, TypingIndicator } from "./ChatMessage";
 import { MessageInput } from "./MessageInput";
 
-/**
- * Convert API PartsStatus to frontend PartsProgress
- */
-const convertPartsStatus = (status: PartsStatus): PartsProgress => ({
-	part1: (status.part1 as PartsProgress["part1"]) || "not_started",
-	part2: (status.part2 as PartsProgress["part2"]) || "not_started",
-	part3: (status.part3 as PartsProgress["part3"]) || "not_started",
-	part4: (status.part4 as PartsProgress["part4"]) || "not_started",
-});
-
-/**
- * Convert API GuidedConversationState to store GuidedConversationState
- */
-const convertConversationState = (
-	state: ApiGuidedConversationState,
-): StoreGuidedConversationState => {
-	// Map currentPart number to PartKey
-	const partKeys: PartKey[] = ["part1", "part2", "part3", "part4"];
-	const currentPart =
-		typeof state.currentPart === "number" && state.currentPart >= 1
-			? partKeys[state.currentPart - 1] || null
-			: null;
-
-	return {
-		phase:
-			(state.phase as string) === "completed"
-				? "completed"
-				: ("questioning" as const),
-		currentPart,
-		currentQuestionId: state.currentQuestionId || null,
-		followUpCount: state.followUpCount || 0,
-	};
-};
-
 export function ChatSidebar() {
 	const t = useTranslations("personaLab");
 	const queryClient = useQueryClient();
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [showResetDialog, setShowResetDialog] = useState(false);
-	// Track when we started waiting for a response (for "Thought in X" display)
 	const [thinkingStartTime, setThinkingStartTime] = useState<number | null>(
 		null,
 	);
-	// Track latest extracted story for display in chat
 	const [_latestStory, setLatestStory] = useState<{
 		node: PersonaNodeDto;
 		gaps: StarStructureKey[];
 	} | null>(null);
 
-	// Get messages from store (persisted to localStorage)
 	const messages = usePersonaStore((state) => state.graphMessages);
 	const addGraphMessage = usePersonaStore((state) => state.addGraphMessage);
 	const updateMessageStatus = usePersonaStore(
@@ -124,86 +86,79 @@ export function ChatSidebar() {
 		(state) => state.clearGraphMessages,
 	);
 
-	// Store actions for graph updates (canvas will subscribe to these)
 	const processGraphUpdate = usePersonaStore(
 		(state) => state.processGraphUpdate,
 	);
 	const clearApiGraph = usePersonaStore((state) => state.clearApiGraph);
 
-	// Parts progress from store
-	const partsProgress = usePersonaStore(selectPartsProgress);
+	const tierProgress = usePersonaStore(selectTierProgress);
+	const pillarCoverage = usePersonaStore(selectPillarCoverage);
+	const setTierProgress = usePersonaStore((state) => state.setTierProgress);
+	const setPillarCoverage = usePersonaStore((state) => state.setPillarCoverage);
 
-	// Archetype state
 	const archetypeRevealed = usePersonaStore((state) => state.archetypeRevealed);
 	const completionReady = usePersonaStore((state) => state.completionReady);
 
-	// Mock mode state (development only)
 	const mockMode = usePersonaStore((state) => state.mockMode);
 	const mockScenario = usePersonaStore((state) => state.mockScenario);
 	const setMockMode = usePersonaStore((state) => state.setMockMode);
 	const setMockScenario = usePersonaStore((state) => state.setMockScenario);
 
-	// Consolidated hydration check - waits for ALL stores
 	const isHydrated = useIsHydrated();
 
-	// Fetch opening message when no messages exist (for new users or after reset)
-	// Only enabled when messages array is empty to avoid re-fetching on refresh
 	const shouldFetchOpening = isHydrated && messages.length === 0;
 
-	// Store actions for parts progress
-	const setPartsProgress = usePersonaStore((state) => state.setPartsProgress);
-	const setConversationState = usePersonaStore(
-		(state) => state.setConversationState,
-	);
 	const setArchetype = usePersonaStore((state) => state.setArchetype);
 
 	const { data: conversationStart, isLoading: isLoadingOpening } =
-		useStartGuidedConversation({
+		useStartConversation({
 			query: { enabled: shouldFetchOpening },
 		});
 
-	// Add opening message to store when received
-	// biome-ignore lint/correctness/useExhaustiveDependencies: We only want to run this when conversationStart changes and messages is empty
-	useEffect(() => {
-		const guidedData = unwrapResponse<GuidedMessageResponse>(conversationStart);
+	const { data: tierProgressResponse } = useGetTierProgress({
+		query: { enabled: isHydrated },
+	});
+	const { data: pillarCoverageResponse } = useGetPillarCoverage({
+		query: { enabled: isHydrated },
+	});
 
-		if (guidedData?.message && messages.length === 0) {
+	// biome-ignore lint/correctness/useExhaustiveDependencies: sync on response change
+	useEffect(() => {
+		const data = unwrapResponse<TierProgressDto>(tierProgressResponse);
+		if (data) setTierProgress(data);
+	}, [tierProgressResponse]);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: sync on response change
+	useEffect(() => {
+		const data = unwrapResponse<PillarCoverageDto>(pillarCoverageResponse);
+		if (data) setPillarCoverage(data);
+	}, [pillarCoverageResponse]);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: only run when conversationStart changes and no messages exist
+	useEffect(() => {
+		const graphData = unwrapResponse<GraphMessageResponse>(conversationStart);
+
+		if (graphData?.message && messages.length === 0) {
 			const openingMessage: ConversationMessage = {
-				id: guidedData.message.id || `assistant-${Date.now()}`,
+				id: graphData.message.id || `assistant-${Date.now()}`,
 				role: "assistant",
 				type: "text",
-				content: guidedData.message.content || "",
-				timestamp: guidedData.message.timestamp || new Date().toISOString(),
+				content: graphData.message.content || "",
+				timestamp: graphData.message.timestamp || new Date().toISOString(),
 			};
 			addGraphMessage(openingMessage);
-
-			// Sync parts progress from server
-			if (guidedData.partsProgress) {
-				setPartsProgress(convertPartsStatus(guidedData.partsProgress));
-			}
-			// Sync conversation state
-			if (guidedData.conversationState) {
-				setConversationState(
-					convertConversationState(guidedData.conversationState),
-				);
-			}
 		}
 	}, [conversationStart]);
 
-	const sendMessageMutation = useSendGuidedMessage();
-	const resetMutation = useResetGuidedConversation();
+	const sendMessageMutation = useSendGraphMessage();
+	const resetMutation = useResetConversation();
 	const generateArchetypeMutation = useGenerateArchetype();
 
-	// Computed state from store
 	const apiGraphNodes = usePersonaStore(selectApiGraphNodes);
 	const storyNodeCount = apiGraphNodes.filter(
 		(n) => n.type === PersonaNodeDtoType.key_story,
 	).length;
 
-	// Check if all parts are complete
-	const allPartsComplete = areAllPartsComplete(partsProgress);
-
-	// Scroll to bottom on new messages
 	const messageCount = messages.length;
 	// biome-ignore lint/correctness/useExhaustiveDependencies: messageCount is intentionally used as a trigger
 	useEffect(() => {
@@ -214,19 +169,14 @@ export function ChatSidebar() {
 
 	const handleSendMessage = useCallback(
 		async (content: string) => {
-			// With cookie-based auth, token freshness is handled automatically
-			// Browser sends cookies, backend refreshes if needed via /oauth/refresh
-
 			posthog.capture("persona_lab_message_sent", {
 				message_length: content.length,
 				story_node_count: storyNodeCount,
 			});
 
-			// Track when we started thinking
 			const startTime = Date.now();
 			setThinkingStartTime(startTime);
 
-			// Add user message to store immediately (persisted)
 			const userMessage: ConversationMessage = {
 				id: `user-${Date.now()}`,
 				role: "user",
@@ -237,67 +187,39 @@ export function ChatSidebar() {
 			};
 			addGraphMessage(userMessage);
 
-			// Send to API (guided flow)
 			sendMessageMutation.mutate(
 				{ data: { content } },
 				{
 					onSuccess: (response) => {
-						// Calculate thinking duration
 						const thinkingDuration = Date.now() - startTime;
 						setThinkingStartTime(null);
 
-						// Mark user message as sent (prevents duplication in syncWithServer)
 						updateMessageStatus(userMessage.id, "sent");
 
-						// Unwrap response - now GuidedMessageResponse
-						const guidedData = unwrapResponse<GuidedMessageResponse>(response);
+						const graphData = unwrapResponse<GraphMessageResponse>(response);
 
-						// Add assistant response to store (persisted)
-						if (guidedData?.message) {
+						if (graphData?.message) {
 							const assistantMessage: ConversationMessage = {
-								id: guidedData.message.id || `assistant-${Date.now()}`,
+								id: graphData.message.id || `assistant-${Date.now()}`,
 								role:
-									(guidedData.message.role as "user" | "assistant") ||
+									(graphData.message.role as "user" | "assistant") ||
 									"assistant",
 								type:
-									(guidedData.message.type as ConversationMessage["type"]) ||
+									(graphData.message.type as ConversationMessage["type"]) ||
 									"text",
-								content: guidedData.message.content || "",
+								content: graphData.message.content || "",
 								timestamp:
-									guidedData.message.timestamp || new Date().toISOString(),
+									graphData.message.timestamp || new Date().toISOString(),
 								thinkingDuration,
 								status: "sent",
 							};
 							addGraphMessage(assistantMessage);
 						}
 
-						// Update parts progress from response
-						if (guidedData?.partsProgress) {
-							setPartsProgress(convertPartsStatus(guidedData.partsProgress));
-						}
+						if (graphData?.nodesCreated && graphData.nodesCreated.length > 0) {
+							processGraphUpdate(graphData);
 
-						// Update conversation state
-						if (guidedData?.conversationState) {
-							setConversationState(
-								convertConversationState(guidedData.conversationState),
-							);
-						}
-
-						// Process nodes created (for graph visualization)
-						if (
-							guidedData?.nodesCreated &&
-							guidedData.nodesCreated.length > 0
-						) {
-							// Update store with graph data (canvas subscribes to this)
-							processGraphUpdate({
-								nodesCreated: guidedData.nodesCreated,
-								totalNodeCount: guidedData.totalNodeCount,
-								completionReady: guidedData.completionReady,
-								// biome-ignore lint/suspicious/noExplicitAny: Partial graph update
-							} as any);
-
-							// Check if a key_story was extracted - show it in chat
-							const nodesCreated = guidedData.nodesCreated;
+							const nodesCreated = graphData.nodesCreated;
 							const storyNode = nodesCreated.find(
 								(n: PersonaNodeDto) => n.type === "key_story",
 							);
@@ -307,7 +229,6 @@ export function ChatSidebar() {
 								setLatestStory(null);
 							}
 
-							// Show toast notification for created nodes
 							const storyCount = nodesCreated.filter(
 								(n: PersonaNodeDto) => n.type === "key_story",
 							).length;
@@ -326,9 +247,7 @@ export function ChatSidebar() {
 							}
 						}
 
-						// If completion is ready, handle archetype from response
-						if (guidedData?.completionReady) {
-							// Add completion message
+						if (graphData?.completionReady) {
 							const completionMessage: ConversationMessage = {
 								id: `completion-${Date.now()}`,
 								role: "assistant",
@@ -338,42 +257,28 @@ export function ChatSidebar() {
 							};
 							addGraphMessage(completionMessage);
 
-							// Archetype is now auto-generated by backend and included in response
-							if (guidedData.archetype?.type) {
-								setArchetype(
-									guidedData.archetype.type as ArchetypeKey,
-									guidedData.archetype.personalizedSummary,
-									guidedData.archetype.rarity,
-								);
-								posthog.capture("archetype_revealed", {
-									archetype_type: guidedData.archetype.type,
-									rarity: guidedData.archetype.rarity,
-								});
-								toast.success(t("archetypeRevealed"), {
-									description: t("archetypeRevealedDesc"),
-								});
-							} else {
-								// Fallback: call generate archetype mutation if not in response
-								generateArchetypeMutation.mutate(undefined, {
-									onSuccess: (archetypeResponse) => {
-										const archetypeData =
-											unwrapResponse<CanvasActionDto>(archetypeResponse);
-										if (archetypeData?.archetype?.type) {
-											setArchetype(
-												archetypeData.archetype.type as ArchetypeKey,
-												archetypeData.archetype.personalizedSummary,
-												archetypeData.archetype.rarity,
-											);
-											toast.success(t("archetypeRevealed"), {
-												description: t("archetypeRevealedDesc"),
-											});
-										}
-									},
-								});
-							}
+							generateArchetypeMutation.mutate(undefined, {
+								onSuccess: (archetypeResponse) => {
+									const archetypeData =
+										unwrapResponse<CanvasActionDto>(archetypeResponse);
+									if (archetypeData?.archetype?.type) {
+										setArchetype(
+											archetypeData.archetype.type as ArchetypeKey,
+											archetypeData.archetype.personalizedSummary,
+											archetypeData.archetype.rarity,
+										);
+										posthog.capture("archetype_revealed", {
+											archetype_type: archetypeData.archetype.type,
+											rarity: archetypeData.archetype.rarity,
+										});
+										toast.success(t("archetypeRevealed"), {
+											description: t("archetypeRevealedDesc"),
+										});
+									}
+								},
+							});
 						}
 
-						// Invalidate queries to refresh data from server
 						queryClient.invalidateQueries({
 							queryKey: getGetCoverageQueryKey(),
 						});
@@ -395,8 +300,6 @@ export function ChatSidebar() {
 			updateMessageStatus,
 			queryClient,
 			generateArchetypeMutation,
-			setPartsProgress,
-			setConversationState,
 			setArchetype,
 			storyNodeCount,
 		],
@@ -406,26 +309,19 @@ export function ChatSidebar() {
 		setShowResetDialog(false);
 		resetMutation.mutate(undefined, {
 			onSuccess: (response) => {
-				// Clear messages and add new opening message
 				clearGraphMessages();
-				const guidedData = unwrapResponse<GuidedMessageResponse>(response);
-				if (guidedData?.message) {
+				const graphData = unwrapResponse<GraphMessageResponse>(response);
+				if (graphData?.message) {
 					const assistantMessage: ConversationMessage = {
-						id: guidedData.message.id || `assistant-${Date.now()}`,
+						id: graphData.message.id || `assistant-${Date.now()}`,
 						role: "assistant",
 						type: "text",
-						content: guidedData.message.content || "",
-						timestamp: guidedData.message.timestamp || new Date().toISOString(),
+						content: graphData.message.content || "",
+						timestamp: graphData.message.timestamp || new Date().toISOString(),
 					};
 					addGraphMessage(assistantMessage);
 				}
-				// Reset parts progress from response or to defaults
-				if (guidedData?.partsProgress) {
-					setPartsProgress(convertPartsStatus(guidedData.partsProgress));
-				}
-				// Clear graph data in store (also resets parts progress)
 				clearApiGraph();
-				// Invalidate coverage query to refresh progress bar
 				queryClient.invalidateQueries({ queryKey: getGetCoverageQueryKey() });
 			},
 		});
@@ -435,13 +331,11 @@ export function ChatSidebar() {
 		clearGraphMessages,
 		addGraphMessage,
 		queryClient,
-		setPartsProgress,
 	]);
 
 	const isSending = sendMessageMutation.isPending || resetMutation.isPending;
 	const error = sendMessageMutation.error?.message;
 
-	// Show loading skeleton while fetching opening message or sending first message
 	if (
 		!isHydrated ||
 		isLoadingOpening ||
@@ -450,7 +344,8 @@ export function ChatSidebar() {
 		return (
 			<div className="flex flex-col h-full">
 				<ChatHeader
-					partsProgress={DEFAULT_PARTS_PROGRESS}
+					tierProgress={tierProgress}
+					pillarCoverage={pillarCoverage}
 					completionReady={false}
 				/>
 				<div className="flex-1 min-h-0 p-4 space-y-4">
@@ -464,17 +359,15 @@ export function ChatSidebar() {
 
 	return (
 		<div className="flex flex-col h-full min-h-0 overflow-hidden">
-			{/* Archetype celebration modal */}
 			<ArchetypeCelebrationModal />
 
-			{/* Header with parts progress */}
 			<ChatHeader
-				partsProgress={partsProgress}
+				tierProgress={tierProgress}
+				pillarCoverage={pillarCoverage}
 				storyNodeCount={storyNodeCount}
-				completionReady={completionReady || allPartsComplete}
+				completionReady={completionReady}
 			/>
 
-			{/* Mock Mode Controls (Development Only) */}
 			{process.env.NODE_ENV === "development" && (
 				<div className="border-b bg-muted/50 p-2">
 					<div className="flex items-center justify-between gap-3">
@@ -511,7 +404,6 @@ export function ChatSidebar() {
 				</div>
 			)}
 
-			{/* Reset button with confirmation dialog */}
 			<div className="px-3 py-2 border-b border-border flex justify-end">
 				<Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
 					<DialogTrigger asChild>
@@ -547,17 +439,14 @@ export function ChatSidebar() {
 				</Dialog>
 			</div>
 
-			{/* Messages */}
 			<ScrollArea className="flex-1 p-3" type="always">
 				<div className="space-y-3">
 					{messages.map((message, index) => (
 						<ChatMessage key={`${message.id}-${index}`} message={message} />
 					))}
 
-					{/* Typing indicator */}
 					{isSending && <TypingIndicator startTime={thinkingStartTime} />}
 
-					{/* Error message */}
 					{error && (
 						<div className="text-xs text-destructive bg-destructive/10 px-3 py-2 rounded-lg">
 							{error}
@@ -568,9 +457,8 @@ export function ChatSidebar() {
 				</div>
 			</ScrollArea>
 
-			{/* Input or completion message when done */}
 			<div className="shrink-0">
-				{(completionReady || allPartsComplete) && archetypeRevealed ? (
+				{completionReady && archetypeRevealed ? (
 					<MessageInput
 						onSend={handleSendMessage}
 						disabled={true}
@@ -588,7 +476,6 @@ export function ChatSidebar() {
 	);
 }
 
-// Re-export components for external use
 export { ChatHeader } from "./ChatHeader";
 export { ChatMessage, TypingIndicator } from "./ChatMessage";
 export { MessageInput } from "./MessageInput";

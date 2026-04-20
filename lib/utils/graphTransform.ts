@@ -46,6 +46,8 @@ export interface ForceGraphLink {
 
 export interface ApiForceGraphNode extends ForceGraphNode {
 	layer: number;
+	/** 2-Pillar scope: pillar1 (applicant), pillar2 (essay), origin (Tier 1). */
+	pillar: "pillar1" | "pillar2" | "origin" | null;
 	nodeData: PersonaNodeDto;
 	// D3 simulation adds/updates these properties
 	x?: number;
@@ -169,6 +171,16 @@ export function transformApiGraphData(
 			initialY = radius * Math.sin(angle);
 		}
 
+		// pillar is carried on the node DTO but isn't in the legacy generated type.
+		// Read it defensively so the badge still renders before the Orval regen lands.
+		const rawPillar = (node as unknown as { pillar?: string | null }).pillar;
+		const pillar =
+			rawPillar === "pillar1" ||
+			rawPillar === "pillar2" ||
+			rawPillar === "origin"
+				? rawPillar
+				: null;
+
 		return {
 			id: nodeId,
 			type: nodeType,
@@ -178,6 +190,7 @@ export function transformApiGraphData(
 			data: node,
 			// Extended properties
 			layer: layer,
+			pillar,
 			nodeData: node,
 			// Initial position for better distribution
 			x: initialX,

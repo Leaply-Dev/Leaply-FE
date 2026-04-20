@@ -28,12 +28,12 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { useGetTierProgress } from "@/lib/api/personaLab/hooks";
+import type { TierProgressDto } from "@/lib/api/personaLab/types";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import { useGetHomeData } from "@/lib/generated/api/endpoints/home/home";
-import { useGetPartsProgress } from "@/lib/generated/api/endpoints/persona-lab/persona-lab";
 import type {
 	HomeResponse,
-	PartsStatus,
 	RecentApplicationDto,
 	UpcomingDeadlineDto,
 } from "@/lib/generated/api/models";
@@ -47,8 +47,8 @@ export function DashboardClient() {
 	const tStatus = useTranslations("scholarships.status");
 	const { profile } = useUserStore();
 	const { data: homeData, isLoading } = useGetHomeData();
-	const { data: partsProgressData, isLoading: isPartsLoading } =
-		useGetPartsProgress();
+	const { data: tierProgressResponse, isLoading: isTierLoading } =
+		useGetTierProgress();
 
 	// Time-dependent state - computed only on client to prevent hydration mismatch
 	const [greeting, setGreeting] = useState<string>("");
@@ -68,7 +68,8 @@ export function DashboardClient() {
 	// Memoize derived values from homeData to prevent unnecessary recalculations
 	const dashboardData = useMemo(() => {
 		const data = unwrapResponse<HomeResponse>(homeData);
-		const partsProgress = unwrapResponse<PartsStatus>(partsProgressData);
+		const tier = unwrapResponse<TierProgressDto>(tierProgressResponse);
+		const tier1 = tier?.tier1Anchor ?? { completed: 0, total: 5 };
 		if (!data) {
 			return {
 				profileCompletion: 0,
@@ -78,7 +79,8 @@ export function DashboardClient() {
 				suggestedAction: null,
 				recentApplications: [] as RecentApplicationDto[],
 				firstName: null,
-				discoveryCompletedCount: partsProgress?.completedCount ?? 0,
+				tier1Completed: tier1.completed,
+				tier1Total: tier1.total,
 			};
 		}
 
@@ -89,9 +91,10 @@ export function DashboardClient() {
 			suggestedAction: data.suggestedAction,
 			recentApplications: data.recentApplications ?? [],
 			firstName: data.firstName,
-			discoveryCompletedCount: partsProgress?.completedCount ?? 0,
+			tier1Completed: tier1.completed,
+			tier1Total: tier1.total,
 		};
-	}, [homeData, partsProgressData]);
+	}, [homeData, tierProgressResponse]);
 
 	const {
 		profileCompletion,
@@ -100,7 +103,8 @@ export function DashboardClient() {
 		suggestedAction,
 		recentApplications,
 		firstName,
-		discoveryCompletedCount,
+		tier1Completed,
+		tier1Total,
 	} = dashboardData;
 
 	return (
@@ -172,10 +176,10 @@ export function DashboardClient() {
 											{tHome("discovery")}
 										</span>
 										<span className="font-bold text-sm">
-											{isLoading || isPartsLoading ? (
+											{isLoading || isTierLoading ? (
 												<Skeleton className="h-5 w-8" />
 											) : (
-												`${discoveryCompletedCount}/4`
+												`${tier1Completed}/${tier1Total}`
 											)}
 										</span>
 									</div>

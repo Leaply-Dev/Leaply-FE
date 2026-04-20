@@ -813,12 +813,22 @@
 			"complete": "Tuyệt vời! Câu chuyện có đủ các yếu tố STAR",
 			"storyExtracted": "Đã lưu câu chuyện! Chúng tôi tìm thấy:"
 		},
-		"partsProgress": "Tiến độ các phần",
-		"partsComplete": "{count}/4 Phần hoàn thành",
-		"part1Name": "Đặc điểm",
-		"part2Name": "Quá khứ",
-		"part3Name": "Hiện tại",
-		"part4Name": "Tương lai",
+		"tier1Anchor": "Tier 1 · Neo",
+		"tier1AnchorProgress": "{completed}/{total}",
+		"pillar1Name": "Trụ cột 1 · Ứng viên",
+		"pillar2Name": "Trụ cột 2 · Bài luận",
+		"originName": "Nguồn gốc",
+		"pillarBadges": "Phù hiệu trụ cột",
+		"coverageLabel": "Đã bao phủ {percent}%",
+		"subKnowledge": "Kiến thức",
+		"subSkill": "Kỹ năng",
+		"subNetwork": "Mạng lưới",
+		"subFunds": "Tài chính",
+		"subOpportunities": "Cơ hội",
+		"subArea": "Lĩnh vực",
+		"subAspect": "Góc nhìn",
+		"subBeneficiaries": "Đối tượng thụ hưởng",
+		"subIdea": "Ý tưởng",
 		"archetypeUnlocked": "Archetype của bạn đã được khám phá!",
 		"essayStrengths": "Điểm mạnh cho Essay",
 		"archetype_innovator": "Người Tiên Phong",
@@ -832,7 +842,67 @@
 		"stories": "câu chuyện",
 		"story": "câu chuyện",
 		"ready": "Sẵn sàng!",
-		"onlyPercent": "Chỉ {percent}% học sinh có archetype này"
+		"onlyPercent": "Chỉ {percent}% học sinh có archetype này",
+		"intake": {
+			"title": "Thiết lập Persona Lab",
+			"subtitle": "Vài câu hỏi để AI hiểu bạn rõ hơn trước khi bắt đầu",
+			"editSetup": "Chỉnh sửa thiết lập",
+			"back": "Quay lại",
+			"next": "Tiếp theo",
+			"finish": "Hoàn tất",
+			"step": {
+				"scope": "Phạm vi & Khát vọng",
+				"track": "Loại essay",
+				"impact": "Tác động & Trải nghiệm"
+			},
+			"sectionHint": {
+				"1": "Thu hẹp lĩnh vực bạn quan tâm để các câu hỏi tiếp theo bám sát bạn hơn.",
+				"2": "Chọn hướng essay để Persona Lab tập trung đúng loại câu chuyện.",
+				"3": "Chỉ dành cho hồ sơ học bổng — mô tả lĩnh vực tác động bạn muốn đóng góp."
+			},
+			"autosave": {
+				"saving": "Đang lưu...",
+				"saved": "Đã lưu",
+				"error": "Lỗi khi lưu, thử lại"
+			},
+			"sectionScope": {
+				"subFieldLabel": "Sub-field bạn định theo đuổi",
+				"subFieldHelp": "Hãy cụ thể hơn ngành chính — điều này giúp Tier 1 đặt câu hỏi đúng chỗ.",
+				"subFieldPlaceholder": "Chọn sub-field",
+				"subFieldFreeTextPlaceholder": "Mô tả sub-field bạn muốn theo đuổi (1 câu)",
+				"subFieldOtherPlaceholder": "Ghi rõ sub-field của bạn",
+				"roleTypeLabel": "Vai trò bạn muốn trở thành",
+				"roleTypeHelp": "Sau 5-10 năm, bạn thấy mình làm gì mỗi ngày?",
+				"roleTypePlaceholder": "Chọn vai trò",
+				"roleTypeOtherPlaceholder": "Mô tả vai trò của bạn",
+				"timelineLabel": "Khung thời gian",
+				"timelineHelp": "Bạn đang lên kế hoạch trong tầm nhìn nào?",
+				"timelinePlaceholder": "Chọn khung thời gian",
+				"other": "Khác: ghi cụ thể"
+			},
+			"sectionTrack": {
+				"label": "Bạn đang chuẩn bị loại essay nào?",
+				"help": "Persona Lab sẽ hỏi khác nhau tùy loại essay.",
+				"desc": {
+					"scholarship": "Tập trung vào đóng góp xã hội và lĩnh vực tác động.",
+					"general": "Tập trung vào bản thân, hành trình và mục tiêu học thuật.",
+					"both": "Chuẩn bị song song cả hai — câu hỏi sẽ bao phủ cả hai khía cạnh."
+				}
+			},
+			"sectionImpact": {
+				"impactAreasLabel": "Lĩnh vực tác động bạn quan tâm",
+				"impactAreasHelp": "Chọn tối đa {max} lĩnh vực — càng cụ thể, Persona Lab càng đi sâu được.",
+				"impactAreaOtherPlaceholder": "Mô tả lĩnh vực tác động của bạn",
+				"socialAspectLabel": "Lăng kính tác động",
+				"socialAspectHelp": "Nhóm đối tượng hoặc góc nhìn bạn muốn tập trung?",
+				"socialAspectPlaceholder": "Chọn lăng kính",
+				"socialAspectOtherPlaceholder": "Mô tả lăng kính của bạn",
+				"priorExposureLabel": "Trải nghiệm thực tế",
+				"priorExposureHelp": "Bạn đã có trải nghiệm với lĩnh vực này chưa?",
+				"priorExposurePlaceholder": "Chọn mức độ trải nghiệm",
+				"other": "Khác"
+			}
+		}
 	},
 	"home": {
 		"greeting": {

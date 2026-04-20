@@ -813,12 +813,22 @@
 			"complete": "Great! Your story has all STAR elements",
 			"storyExtracted": "Story captured! We found:"
 		},
-		"partsProgress": "Parts Progress",
-		"partsComplete": "{count}/4 Parts Complete",
-		"part1Name": "Characteristics",
-		"part2Name": "Past",
-		"part3Name": "Present",
-		"part4Name": "Future",
+		"tier1Anchor": "Tier 1 · Anchor",
+		"tier1AnchorProgress": "{completed}/{total}",
+		"pillar1Name": "Pillar 1 · Applicant",
+		"pillar2Name": "Pillar 2 · Essay",
+		"originName": "Origin",
+		"pillarBadges": "Pillar Badges",
+		"coverageLabel": "{percent}% covered",
+		"subKnowledge": "Knowledge",
+		"subSkill": "Skill",
+		"subNetwork": "Network",
+		"subFunds": "Funds",
+		"subOpportunities": "Opportunities",
+		"subArea": "Area",
+		"subAspect": "Aspect",
+		"subBeneficiaries": "Beneficiaries",
+		"subIdea": "Idea",
 		"archetypeUnlocked": "Your Archetype Revealed!",
 		"essayStrengths": "Essay Strengths",
 		"archetype_innovator": "The Innovator",
@@ -832,7 +842,67 @@
 		"stories": "stories",
 		"story": "story",
 		"ready": "Ready!",
-		"onlyPercent": "Only {percent}% of students share this archetype"
+		"onlyPercent": "Only {percent}% of students share this archetype",
+		"intake": {
+			"title": "Persona Lab setup",
+			"subtitle": "A few questions so the AI knows where to start.",
+			"editSetup": "Edit setup",
+			"back": "Back",
+			"next": "Next",
+			"finish": "Finish",
+			"step": {
+				"scope": "Scope & Aspiration",
+				"track": "Essay track",
+				"impact": "Impact & Exposure"
+			},
+			"sectionHint": {
+				"1": "Narrow down your field so Tier 1 questions can stay on target.",
+				"2": "Pick an essay track — Persona Lab will focus on the right story types.",
+				"3": "Scholarship-only — describe the impact area you want to contribute to."
+			},
+			"autosave": {
+				"saving": "Saving...",
+				"saved": "Saved",
+				"error": "Failed to save — retry"
+			},
+			"sectionScope": {
+				"subFieldLabel": "Sub-field you're targeting",
+				"subFieldHelp": "Be more specific than the main field — this anchors every Tier 1 question.",
+				"subFieldPlaceholder": "Select a sub-field",
+				"subFieldFreeTextPlaceholder": "Describe the sub-field you plan to pursue (1 sentence)",
+				"subFieldOtherPlaceholder": "Specify your sub-field",
+				"roleTypeLabel": "Role archetype you see yourself in",
+				"roleTypeHelp": "In 5-10 years, what does your day look like?",
+				"roleTypePlaceholder": "Select a role",
+				"roleTypeOtherPlaceholder": "Describe your role",
+				"timelineLabel": "Aspiration horizon",
+				"timelineHelp": "Which horizon are you planning against?",
+				"timelinePlaceholder": "Select a horizon",
+				"other": "Other: specify"
+			},
+			"sectionTrack": {
+				"label": "Which essay are you preparing for?",
+				"help": "Persona Lab asks different questions per track.",
+				"desc": {
+					"scholarship": "Focus on social contribution and impact areas.",
+					"general": "Focus on yourself, your journey, and academic goals.",
+					"both": "Prepare both — questions cover both dimensions."
+				}
+			},
+			"sectionImpact": {
+				"impactAreasLabel": "Impact areas you care about",
+				"impactAreasHelp": "Pick up to {max} — the more specific, the deeper Persona Lab can go.",
+				"impactAreaOtherPlaceholder": "Describe your impact area",
+				"socialAspectLabel": "Contribution lens",
+				"socialAspectHelp": "Which population or angle do you want to focus on?",
+				"socialAspectPlaceholder": "Select a lens",
+				"socialAspectOtherPlaceholder": "Describe your lens",
+				"priorExposureLabel": "Real-world exposure",
+				"priorExposureHelp": "Do you already have experience with this area?",
+				"priorExposurePlaceholder": "Select exposure level",
+				"other": "Other"
+			}
+		}
 	},
 	"home": {
 		"greeting": {

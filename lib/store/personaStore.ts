@@ -7,16 +7,19 @@
  * - Persisted chat messages (graphMessages)
  * - Real-time graph data from mutations (apiGraphNodes/Edges)
  * - STAR gaps tracking
- * - Parts progress (guided flow)
+ * - 2-Pillar tier + coverage snapshots
  * - Archetype reveal state
  */
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import type {
+	PillarCoverageDto,
+	TierProgressDto,
+} from "@/lib/api/personaLab/types";
 import {
 	type ArchetypeKey,
 	getArchetypeConfig,
 } from "@/lib/config/archetypeConfig";
-import type { PartKey, PartsProgress } from "@/lib/config/partsConfig";
 import type {
 	CoverageMetrics,
 	GraphMessageResponse,
@@ -57,14 +60,6 @@ export type ConversationScenario =
 	| "tension-discovery"
 	| "completion-ready";
 
-// Guided conversation state (from backend)
-export interface GuidedConversationState {
-	phase: "questioning" | "completed";
-	currentPart: PartKey | null;
-	currentQuestionId: string | null;
-	followUpCount: number;
-}
-
 // Store State
 interface PersonaStoreState {
 	// === UI State ===
@@ -82,9 +77,9 @@ interface PersonaStoreState {
 	totalNodeCount: number;
 	starGapsMap: Record<string, StarStructureKey[]>; // nodeId -> missing STAR elements
 
-	// === Parts Progress (Guided Flow) ===
-	partsProgress: PartsProgress;
-	conversationState: GuidedConversationState | null;
+	// === 2-Pillar Tier State ===
+	tierProgress: TierProgressDto | null;
+	pillarCoverage: PillarCoverageDto | null;
 
 	// === Archetype State ===
 	archetypeType: ArchetypeKey | null;
@@ -113,10 +108,9 @@ interface PersonaStoreState {
 	clearApiGraph: () => void;
 	getStarGapsForNode: (nodeId: string) => StarStructureKey[];
 
-	// Parts progress actions (guided flow)
-	setPartsProgress: (progress: PartsProgress) => void;
-	setConversationState: (state: GuidedConversationState | null) => void;
-	updatePartStatus: (part: PartKey, status: PartsProgress[PartKey]) => void;
+	// 2-Pillar tier actions
+	setTierProgress: (progress: TierProgressDto | null) => void;
+	setPillarCoverage: (coverage: PillarCoverageDto | null) => void;
 
 	// Archetype actions
 	setArchetype: (
@@ -140,14 +134,6 @@ interface PersonaStoreState {
 	_hasHydrated: boolean;
 	setHasHydrated: (state: boolean) => void;
 }
-
-// Default parts progress
-const defaultPartsProgress: PartsProgress = {
-	part1: "not_started",
-	part2: "not_started",
-	part3: "not_started",
-	part4: "not_started",
-};
 
 // Initial state
 const initialState = {
@@ -174,9 +160,9 @@ const initialState = {
 	totalNodeCount: 0,
 	starGapsMap: {} as Record<string, StarStructureKey[]>,
 
-	// Parts progress (guided flow)
-	partsProgress: defaultPartsProgress,
-	conversationState: null as GuidedConversationState | null,
+	// 2-Pillar tier state
+	tierProgress: null as TierProgressDto | null,
+	pillarCoverage: null as PillarCoverageDto | null,
 
 	// Archetype state
 	archetypeType: null as ArchetypeKey | null,
@@ -285,8 +271,8 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					completionReady: false,
 					totalNodeCount: 0,
 					starGapsMap: {},
-					partsProgress: defaultPartsProgress,
-					conversationState: null,
+					tierProgress: null,
+					pillarCoverage: null,
 					archetypeType: null,
 					archetypePersonalizedSummary: null,
 					archetypeRarity: null,
@@ -299,22 +285,12 @@ export const usePersonaStore = create<PersonaStoreState>()(
 				return get().starGapsMap[nodeId] || [];
 			},
 
-			// === Parts Progress Actions (Guided Flow) ===
+			// === 2-Pillar Tier Actions ===
+			setTierProgress: (progress: TierProgressDto | null) =>
+				set({ tierProgress: progress }),
 
-			setPartsProgress: (progress: PartsProgress) =>
-				set({ partsProgress: progress }),
-
-			setConversationState: (state: GuidedConversationState | null) =>
-				set({ conversationState: state }),
-
-			updatePartStatus: (part: PartKey, status: PartsProgress[PartKey]) => {
-				set((state) => ({
-					partsProgress: {
-						...state.partsProgress,
-						[part]: status,
-					},
-				}));
-			},
+			setPillarCoverage: (coverage: PillarCoverageDto | null) =>
+				set({ pillarCoverage: coverage }),
 
 			// === Archetype Actions ===
 
@@ -498,8 +474,9 @@ export const usePersonaStore = create<PersonaStoreState>()(
 				totalNodeCount: state.totalNodeCount,
 				starGapsMap: state.starGapsMap,
 				graphMessages: state.graphMessages,
-				// New fields for guided flow
-				partsProgress: state.partsProgress,
+				// 2-Pillar tier state
+				tierProgress: state.tierProgress,
+				pillarCoverage: state.pillarCoverage,
 				archetypeType: state.archetypeType,
 				archetypePersonalizedSummary: state.archetypePersonalizedSummary,
 				archetypeRarity: state.archetypeRarity,
@@ -541,11 +518,11 @@ export const selectStarGapsMap = (state: PersonaStoreState) =>
 export const selectGraphMessages = (state: PersonaStoreState) =>
 	state.graphMessages;
 
-// New selectors for guided flow
-export const selectPartsProgress = (state: PersonaStoreState) =>
-	state.partsProgress;
-export const selectConversationState = (state: PersonaStoreState) =>
-	state.conversationState;
+// 2-Pillar tier selectors
+export const selectTierProgress = (state: PersonaStoreState) =>
+	state.tierProgress;
+export const selectPillarCoverage = (state: PersonaStoreState) =>
+	state.pillarCoverage;
 export const selectArchetypeType = (state: PersonaStoreState) =>
 	state.archetypeType;
 export const selectArchetypePersonalizedSummary = (state: PersonaStoreState) =>
@@ -557,8 +534,6 @@ export const selectArchetypeRevealed = (state: PersonaStoreState) =>
 export const selectShowArchetypeModal = (state: PersonaStoreState) =>
 	state.showArchetypeModal;
 
-// Re-export Parts types
-export type { PartKey, PartsProgress } from "@/lib/config/partsConfig";
 // Re-export generated types for convenience
 export type {
 	CoverageMetrics,

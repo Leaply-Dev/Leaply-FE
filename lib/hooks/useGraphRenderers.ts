@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import type { LinkObject, NodeObject } from "react-force-graph-2d";
 import { GRAPH_EDGE_CONFIG, getNodeConfig } from "@/lib/config/graphConfig";
+import { PILLARS_CONFIG } from "@/lib/config/pillarsConfig";
 import type {
 	ApiForceGraphNode,
 	ForceGraphLink,
@@ -117,6 +118,36 @@ export function useGraphRenderers({
 					ctx.lineWidth = 2 / globalScale;
 					ctx.stroke();
 				}
+			}
+
+			// Pillar badge — small coloured circle + letter in top-right.
+			// Profile summary (the centre) never gets a pillar; skip.
+			if (
+				!isSkeleton &&
+				graphNode.pillar &&
+				graphNode.type !== "profile_summary"
+			) {
+				const pillarConfig = PILLARS_CONFIG[graphNode.pillar];
+				const badgeRadius = Math.max(4, graphNode.size * 0.45);
+				// 45° from centre (top-right) — ~ (r·cos(-45°), r·sin(-45°))
+				const offset = graphNode.size * 0.75;
+				const cx = (node.x || 0) + offset;
+				const cy = (node.y || 0) - offset;
+
+				ctx.beginPath();
+				ctx.arc(cx, cy, badgeRadius, 0, 2 * Math.PI);
+				ctx.fillStyle = pillarConfig.badgeColor;
+				ctx.fill();
+				ctx.strokeStyle = "rgba(255,255,255,0.9)";
+				ctx.lineWidth = Math.max(0.75, 1 / globalScale);
+				ctx.stroke();
+
+				const letterSize = Math.max(6, badgeRadius * 1.4);
+				ctx.font = `bold ${letterSize}px Inter, sans-serif`;
+				ctx.textAlign = "center";
+				ctx.textBaseline = "middle";
+				ctx.fillStyle = pillarConfig.badgeTextColor;
+				ctx.fillText(pillarConfig.badgeLetter, cx, cy);
 			}
 
 			// Reset alpha

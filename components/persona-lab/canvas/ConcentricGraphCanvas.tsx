@@ -14,6 +14,7 @@ import { useTranslations } from "next-intl";
 import ForceGraph2D from "react-force-graph-2d";
 import { Button } from "@/components/ui/button";
 import { getNodeConfig } from "@/lib/config/graphConfig";
+import { PILLARS_CONFIG } from "@/lib/config/pillarsConfig";
 import type { PersonaNodeDto } from "@/lib/generated/api/models";
 import { useExpandNode } from "@/lib/hooks/persona";
 import { useMockGraphData } from "@/lib/hooks/persona/useMockGraphData";
@@ -289,6 +290,34 @@ export function ConcentricGraphCanvas({
 								</button>
 							);
 						})}
+					</div>
+
+					{/* Pillar badges section */}
+					<div className="mt-4 pt-3 border-t border-border">
+						<div className="text-[11px] font-semibold text-foreground mb-2">
+							{t("pillarBadges")}
+						</div>
+						<div className="space-y-1.5">
+							{(["pillar1", "pillar2", "origin"] as const).map((p) => {
+								const cfg = PILLARS_CONFIG[p];
+								return (
+									<div key={p} className="flex items-center gap-2">
+										<div
+											className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
+											style={{
+												backgroundColor: cfg.badgeColor,
+												color: cfg.badgeTextColor,
+											}}
+										>
+											{cfg.badgeLetter}
+										</div>
+										<span className="text-[11px] text-foreground">
+											{cfg.label}
+										</span>
+									</div>
+								);
+							})}
+						</div>
 					</div>
 
 					<div className="mt-4 pt-3 border-t border-border">

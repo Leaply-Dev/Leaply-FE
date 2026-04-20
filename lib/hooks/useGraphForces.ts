@@ -64,6 +64,7 @@ export function useGraphForces() {
 					label: "Your Profile",
 					type: "profile_summary",
 					layer: 0,
+					pillar: null,
 					size: 24,
 					color: "#f59e0b",
 					data: skeletonNodeData,

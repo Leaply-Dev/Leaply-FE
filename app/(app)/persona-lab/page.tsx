@@ -9,13 +9,18 @@
 import { m } from "framer-motion";
 import { ChevronLeft, LayoutGrid, List, MessageSquare } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
 import { ChatSidebar } from "@/components/persona-lab/ChatSidebar";
+import { EditPersonaSetupButton } from "@/components/persona-lab/EditPersonaSetupButton";
 import { PersonaStateSync } from "@/components/persona-lab/PersonaStateSync";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import { useGetIntake } from "@/lib/generated/api/endpoints/persona-lab-intake/persona-lab-intake";
+import type { PersonaIntakeResponse } from "@/lib/generated/api/models";
 import { usePersonaStore } from "@/lib/store/personaStore";
 import { cn } from "@/lib/utils";
 
@@ -74,9 +79,34 @@ function useIsMobile(breakpoint = 768) {
 
 export default function PersonaLabPage() {
 	const t = useTranslations("personaLab");
+	const router = useRouter();
 	const { viewMode, setViewMode } = usePersonaStore();
 	const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 	const isMobile = useIsMobile(768);
+
+	const { data: intakeData, isLoading: isLoadingIntake } = useGetIntake();
+	const intake = intakeData
+		? unwrapResponse<PersonaIntakeResponse>(intakeData)
+		: null;
+	const intakeComplete = intake?.complete === true;
+
+	useEffect(() => {
+		if (isLoadingIntake) return;
+		if (!intakeComplete) {
+			router.replace("/persona-lab/intake");
+		}
+	}, [intakeComplete, isLoadingIntake, router]);
+
+	if (isLoadingIntake || !intakeComplete) {
+		return (
+			<div className="flex-1 flex items-center justify-center min-h-[60vh]">
+				<div className="text-center space-y-4">
+					<Skeleton className="w-32 h-32 rounded-full mx-auto" />
+					<Skeleton className="w-24 h-3 mx-auto" />
+				</div>
+			</div>
+		);
+	}
 
 	const renderContent = () => {
 		if (isMobile) {
@@ -156,40 +186,43 @@ export default function PersonaLabPage() {
 								</p>
 							</div>
 
-							{/* View Mode Toggle */}
-							<div className="flex items-center bg-muted rounded-lg p-1">
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={() => setViewMode("canvas")}
-									className={cn(
-										"h-8 px-3 rounded-md gap-1.5",
-										viewMode === "canvas"
-											? "bg-background shadow-sm"
-											: "hover:bg-transparent",
-									)}
-								>
-									<LayoutGrid className="w-4 h-4" />
-									<span className="hidden sm:inline text-sm">
-										{t("viewCanvas")}
-									</span>
-								</Button>
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={() => setViewMode("list")}
-									className={cn(
-										"h-8 px-3 rounded-md gap-1.5",
-										viewMode === "list"
-											? "bg-background shadow-sm"
-											: "hover:bg-transparent",
-									)}
-								>
-									<List className="w-4 h-4" />
-									<span className="hidden sm:inline text-sm">
-										{t("viewList")}
-									</span>
-								</Button>
+							<div className="flex items-center gap-2">
+								<EditPersonaSetupButton />
+								{/* View Mode Toggle */}
+								<div className="flex items-center bg-muted rounded-lg p-1">
+									<Button
+										variant="ghost"
+										size="sm"
+										onClick={() => setViewMode("canvas")}
+										className={cn(
+											"h-8 px-3 rounded-md gap-1.5",
+											viewMode === "canvas"
+												? "bg-background shadow-sm"
+												: "hover:bg-transparent",
+										)}
+									>
+										<LayoutGrid className="w-4 h-4" />
+										<span className="hidden sm:inline text-sm">
+											{t("viewCanvas")}
+										</span>
+									</Button>
+									<Button
+										variant="ghost"
+										size="sm"
+										onClick={() => setViewMode("list")}
+										className={cn(
+											"h-8 px-3 rounded-md gap-1.5",
+											viewMode === "list"
+												? "bg-background shadow-sm"
+												: "hover:bg-transparent",
+										)}
+									>
+										<List className="w-4 h-4" />
+										<span className="hidden sm:inline text-sm">
+											{t("viewList")}
+										</span>
+									</Button>
+								</div>
 							</div>
 						</div>
 					</div>

@@ -2,29 +2,29 @@
 
 import { Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
-import {
-	getCompletedPartsCount,
-	type PartsProgress,
-} from "@/lib/config/partsConfig";
+import type {
+	PillarCoverageDto,
+	TierProgressDto,
+} from "@/lib/api/personaLab/types";
 import type { CoverageMetrics } from "@/lib/generated/api/models";
-import { PartsProgress as PartsProgressComponent } from "./PartsProgress";
+import { PillarProgress } from "../PillarProgress";
 
 interface ChatHeaderProps {
-	partsProgress: PartsProgress;
-	coverage?: CoverageMetrics; // Keep for backward compatibility
+	tierProgress: TierProgressDto | null;
+	pillarCoverage: PillarCoverageDto | null;
+	coverage?: CoverageMetrics;
 	completionReady?: boolean;
 	storyNodeCount?: number;
 	totalNodeCount?: number;
 }
 
 export function ChatHeader({
-	partsProgress,
+	tierProgress,
+	pillarCoverage,
 	completionReady = false,
 	storyNodeCount = 0,
 }: ChatHeaderProps) {
 	const t = useTranslations("personaLab");
-	const completedParts = getCompletedPartsCount(partsProgress);
-	const allPartsComplete = completedParts === 4;
 
 	return (
 		<div className="px-4 py-3 border-b border-border shrink-0">
@@ -40,7 +40,7 @@ export function ChatHeader({
 							{storyNodeCount}{" "}
 							{storyNodeCount === 1 ? t("story") : t("stories")}
 						</span>
-						{(completionReady || allPartsComplete) && (
+						{completionReady && (
 							<span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-medium">
 								{t("ready")}
 							</span>
@@ -49,8 +49,11 @@ export function ChatHeader({
 				</div>
 			</div>
 
-			{/* Parts progress indicator */}
-			<PartsProgressComponent progress={partsProgress} showLabels={true} />
+			{/* 2-Pillar tier + coverage progress */}
+			<PillarProgress
+				tierProgress={tierProgress}
+				pillarCoverage={pillarCoverage}
+			/>
 		</div>
 	);
 }
