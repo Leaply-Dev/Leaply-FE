@@ -26,6 +26,7 @@ export interface AngleDto {
 	relevantTags?: string[];
 	fitScore?: number;
 	fitReason?: string;
+	matchLevel?: "STRONG" | "MODERATE" | "WEAK";
 }
 
 export interface IdeationResponse {

@@ -7,7 +7,6 @@ import {
 	DollarSign,
 	FileText,
 } from "lucide-react";
-import { ImprovementTipsCard } from "@/components/applications/ImprovementTipsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Select,
@@ -217,16 +216,6 @@ export function OverviewTab({ application, onUpdateStatus }: OverviewTabProps) {
 					</CardContent>
 				</Card>
 			)}
-
-			{/* Improvement Tips */}
-			<ImprovementTipsCard
-				tips={application.improvementTips}
-				isLoading={
-					!application.improvementTips?.tips?.length &&
-					!!application.createdAt &&
-					Date.now() - new Date(application.createdAt).getTime() < 60000
-				}
-			/>
 		</div>
 	);
 }

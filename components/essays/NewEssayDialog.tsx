@@ -10,6 +10,7 @@ import {
 	PenSquare,
 	Search,
 } from "lucide-react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -37,12 +38,14 @@ import {
 	useCreateApplication1,
 } from "@/lib/generated/api/endpoints/applications/applications";
 import { useListPrograms } from "@/lib/generated/api/endpoints/explore/explore";
+import { useGetIntake } from "@/lib/generated/api/endpoints/persona-lab-intake/persona-lab-intake";
 import {
 	getGetApplicationsQueryKey,
 	useCreateApplication,
 } from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
 import { useListScholarships } from "@/lib/generated/api/endpoints/scholarship-explore/scholarship-explore";
 import type {
+	PersonaIntakeResponse,
 	ProgramListItemResponse,
 	ScholarshipListItemResponse,
 } from "@/lib/generated/api/models";
@@ -150,7 +153,14 @@ export function NewEssayDialog({ onCreated, trigger }: NewEssayDialogProps) {
 	const { mutateAsync: saveScholarshipPrompt } =
 		useSaveScholarshipEssayPrompt();
 
-	const canSubmit = !!selected && !isSubmitting;
+	const { data: intakeData } = useGetIntake();
+	const intake = intakeData
+		? unwrapResponse<PersonaIntakeResponse>(intakeData)
+		: null;
+	const intakeComplete = intake?.complete === true;
+	const programNeedsPersonaLab = kind === "program" && !intakeComplete;
+
+	const canSubmit = !!selected && !isSubmitting && !programNeedsPersonaLab;
 
 	const handleSubmit = async () => {
 		if (!selected) return;
@@ -335,6 +345,22 @@ export function NewEssayDialog({ onCreated, trigger }: NewEssayDialogProps) {
 						</span>
 					</div>
 				</div>
+
+				{/* Persona Lab gate banner — program path only */}
+				{programNeedsPersonaLab && (
+					<div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
+						<p className="font-medium text-amber-800">
+							{t("personaLabRequired")}
+						</p>
+						<Button
+							variant="link"
+							asChild
+							className="h-auto p-0 mt-1 text-amber-700"
+						>
+							<Link href="/persona-lab/intake">{t("goToPersonaLab")}</Link>
+						</Button>
+					</div>
+				)}
 
 				<DialogFooter className="pt-2">
 					<Button

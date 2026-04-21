@@ -90,26 +90,6 @@ export function ApplicationsClient() {
 		[scholarshipAppsData?.applications],
 	);
 
-	const hasPendingTips = useMemo(() => {
-		const now = Date.now();
-		return scholarshipApplications.some(
-			(app) =>
-				!app.improvementTips?.tips?.length &&
-				app.createdAt &&
-				now - new Date(app.createdAt).getTime() < 60000,
-		);
-	}, [scholarshipApplications]);
-
-	useEffect(() => {
-		if (!hasPendingTips) return;
-		const interval = setInterval(() => {
-			queryClient.invalidateQueries({
-				queryKey: getScholarshipApplicationsQueryKey(),
-			});
-		}, 5000);
-		return () => clearInterval(interval);
-	}, [hasPendingTips, queryClient]);
-
 	const { mutateAsync: deleteApp } = useDeleteApplication1();
 	const { mutateAsync: deleteScholarshipApp } =
 		useDeleteScholarshipApplication();

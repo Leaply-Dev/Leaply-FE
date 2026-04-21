@@ -465,7 +465,9 @@
 			"submit": "Tạo bài luận",
 			"submitting": "Đang tạo...",
 			"errorCreate": "Không thể tạo bài luận. Vui lòng thử lại.",
-			"errorAlreadyExists": "Bài luận cho mục tiêu này đã tồn tại."
+			"errorAlreadyExists": "Bài luận cho mục tiêu này đã tồn tại.",
+			"personaLabRequired": "Hoàn thành Persona Lab trước khi viết luận chương trình",
+			"goToPersonaLab": "Đến Persona Lab"
 		},
 		"toast": {
 			"statusUpdateFailed": "Cập nhật trạng thái thất bại",
@@ -1233,7 +1235,15 @@
 		"overallScore": "Điểm tổng quan",
 		"strengths": "Điểm mạnh",
 		"improvements": "Cần cải thiện",
-		"completeSop": "Hoàn thành SOP"
+		"completeSop": "Hoàn thành SOP",
+		"matchLevel": {
+			"strong": "Phù hợp cao",
+			"moderate": "Tạm phù hợp",
+			"weak": "Ít phù hợp"
+		},
+		"personaLabRequired": "Cần hoàn thành Persona Lab",
+		"personaLabRequiredDesc": "Bạn cần hoàn thành Persona Lab trước khi tạo góc viết SOP.",
+		"goToPersonaLab": "Đến Persona Lab"
 	},
 	"compare": {
 		"title": "So sánh chương trình",

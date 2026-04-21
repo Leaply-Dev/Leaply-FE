@@ -34,12 +34,11 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 	const [currentPhase, setCurrentPhase] = useState<SopPhase>("not_started");
 
 	// Sync phase from server.
-	// If the prompt is already captured (e.g. created via the NewEssayDialog),
-	// skip the ideation gate and go straight to writing so users land in the editor.
 	useEffect(() => {
 		if (!status) return;
 		const phase = status.sopPhase;
 		const hasPrompt = !!status.sopPrompt?.trim();
+
 		if (phase === "completed") {
 			setCurrentPhase("completed");
 			return;
@@ -48,7 +47,12 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 			setCurrentPhase("not_started");
 			return;
 		}
-		// Any other server phase with a prompt available → writing.
+
+		// Prompt captured but ideation not complete → go to ideation.
+		if (phase === "not_started" || phase === "ideation") {
+			setCurrentPhase("ideation");
+			return;
+		}
 		setCurrentPhase("writing");
 	}, [status]);
 
@@ -69,7 +73,7 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 			has_prompt: !!prompt,
 			word_limit: wordLimit,
 		});
-		handlePhaseChange("writing");
+		handlePhaseChange("ideation");
 	};
 
 	if (isLoading) {

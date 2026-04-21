@@ -465,7 +465,9 @@
 			"submit": "Create essay",
 			"submitting": "Creating...",
 			"errorCreate": "Failed to create essay. Please try again.",
-			"errorAlreadyExists": "An essay for this target already exists."
+			"errorAlreadyExists": "An essay for this target already exists.",
+			"personaLabRequired": "Complete Persona Lab before writing a program essay",
+			"goToPersonaLab": "Go to Persona Lab"
 		},
 		"toast": {
 			"statusUpdateFailed": "Failed to update status",
@@ -1233,7 +1235,15 @@
 		"overallScore": "Overall Score",
 		"strengths": "Strengths",
 		"improvements": "Needs Improvement",
-		"completeSop": "Complete SOP"
+		"completeSop": "Complete SOP",
+		"matchLevel": {
+			"strong": "Strong match",
+			"moderate": "Moderate match",
+			"weak": "Weak match"
+		},
+		"personaLabRequired": "Persona Lab required",
+		"personaLabRequiredDesc": "You need to complete Persona Lab before generating essay angles.",
+		"goToPersonaLab": "Go to Persona Lab"
 	},
 	"compare": {
 		"title": "Compare programs",
