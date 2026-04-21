@@ -6,6 +6,7 @@
  *
  * Add new stores here as they are created.
  */
+import { usePersonaIntakeStore } from "@/lib/store/personaIntakeStore";
 import { usePersonaStore } from "@/lib/store/personaStore";
 
 /**
@@ -13,11 +14,8 @@ import { usePersonaStore } from "@/lib/store/personaStore";
  * Called during logout to ensure no user data persists in browser storage.
  */
 export function clearAllStores(): void {
-	// Reset persona store (clears graphMessages, nodes, edges, coverage, etc.)
 	usePersonaStore.getState().resetPersona();
-
-	// Future stores can be added here:
-	// useExampleStore.getState().reset();
+	usePersonaIntakeStore.getState().resetDraft();
 }
 
 /**
@@ -26,12 +24,9 @@ export function clearAllStores(): void {
  */
 export function clearAllStorageKeys(): void {
 	try {
-		// User store is handled separately to avoid circular imports
 		localStorage.removeItem("leaply-user-store");
-		localStorage.removeItem("leaply-persona-store-v4");
-
-		// Future store keys can be added here:
-		// localStorage.removeItem("leaply-example-store");
+		localStorage.removeItem("leaply-persona-store-v5");
+		localStorage.removeItem("leaply-persona-intake-v1");
 	} catch {
 		// Ignore errors (e.g., localStorage not available)
 	}

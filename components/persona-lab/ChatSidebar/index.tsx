@@ -49,7 +49,6 @@ import {
 	useGenerateArchetype,
 	useResetConversation,
 	useSendGraphMessage,
-	useStartConversation,
 } from "@/lib/hooks/persona";
 import { useIsHydrated } from "@/lib/hooks/useStoresHydrated";
 import type { StarStructureKey } from "@/lib/store/personaStore";
@@ -63,6 +62,7 @@ import {
 import { ArchetypeCelebrationModal } from "../ArchetypeCelebrationModal";
 import { ChatHeader } from "./ChatHeader";
 import { ChatMessage, TypingIndicator } from "./ChatMessage";
+import { GreetingReplyOption } from "./GreetingReplyOption";
 import { MessageInput } from "./MessageInput";
 
 export function ChatSidebar() {
@@ -107,14 +107,7 @@ export function ChatSidebar() {
 
 	const isHydrated = useIsHydrated();
 
-	const shouldFetchOpening = isHydrated && messages.length === 0;
-
 	const setArchetype = usePersonaStore((state) => state.setArchetype);
-
-	const { data: conversationStart, isLoading: isLoadingOpening } =
-		useStartConversation({
-			query: { enabled: shouldFetchOpening },
-		});
 
 	const { data: tierProgressResponse } = useGetTierProgress({
 		query: { enabled: isHydrated },
@@ -135,21 +128,15 @@ export function ChatSidebar() {
 		if (data) setPillarCoverage(data);
 	}, [pillarCoverageResponse]);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: only run when conversationStart changes and no messages exist
-	useEffect(() => {
-		const graphData = unwrapResponse<GraphMessageResponse>(conversationStart);
-
-		if (graphData?.message && messages.length === 0) {
-			const openingMessage: ConversationMessage = {
-				id: graphData.message.id || `assistant-${Date.now()}`,
-				role: "assistant",
-				type: "text",
-				content: graphData.message.content || "",
-				timestamp: graphData.message.timestamp || new Date().toISOString(),
-			};
-			addGraphMessage(openingMessage);
-		}
-	}, [conversationStart]);
+	const greetingMessage: ConversationMessage = {
+		id: "assistant-greeting-static",
+		role: "assistant",
+		type: "text",
+		content: t("greetingMessage"),
+		timestamp: new Date(0).toISOString(),
+	};
+	const hasSentFirstReply = messages.some((m) => m.role === "user");
+	const showGreeting = isHydrated && messages.length === 0;
 
 	const sendMessageMutation = useSendGraphMessage();
 	const resetMutation = useResetConversation();
@@ -309,19 +296,8 @@ export function ChatSidebar() {
 	const handleReset = useCallback(() => {
 		setShowResetDialog(false);
 		resetMutation.mutate(undefined, {
-			onSuccess: (response) => {
+			onSuccess: () => {
 				clearGraphMessages();
-				const graphData = unwrapResponse<GraphMessageResponse>(response);
-				if (graphData?.message) {
-					const assistantMessage: ConversationMessage = {
-						id: graphData.message.id || `assistant-${Date.now()}`,
-						role: "assistant",
-						type: "text",
-						content: graphData.message.content || "",
-						timestamp: graphData.message.timestamp || new Date().toISOString(),
-					};
-					addGraphMessage(assistantMessage);
-				}
 				clearApiGraph();
 				queryClient.invalidateQueries({ queryKey: getGetCoverageQueryKey() });
 				queryClient.invalidateQueries({
@@ -329,22 +305,12 @@ export function ChatSidebar() {
 				});
 			},
 		});
-	}, [
-		resetMutation,
-		clearApiGraph,
-		clearGraphMessages,
-		addGraphMessage,
-		queryClient,
-	]);
+	}, [resetMutation, clearApiGraph, clearGraphMessages, queryClient]);
 
 	const isSending = sendMessageMutation.isPending || resetMutation.isPending;
 	const error = sendMessageMutation.error?.message;
 
-	if (
-		!isHydrated ||
-		isLoadingOpening ||
-		(sendMessageMutation.isPending && messages.length === 0)
-	) {
+	if (!isHydrated) {
 		return (
 			<div className="flex flex-col h-full">
 				<ChatHeader
@@ -445,6 +411,8 @@ export function ChatSidebar() {
 
 			<ScrollArea className="flex-1 p-3" type="always">
 				<div className="space-y-3">
+					{showGreeting && <ChatMessage message={greetingMessage} />}
+
 					{messages.map((message, index) => (
 						<ChatMessage key={`${message.id}-${index}`} message={message} />
 					))}
@@ -467,6 +435,12 @@ export function ChatSidebar() {
 						onSend={handleSendMessage}
 						disabled={true}
 						completionMessage={t("conversationCompleteNote")}
+					/>
+				) : !hasSentFirstReply ? (
+					<GreetingReplyOption
+						label={t("greetingReplyOption")}
+						onSelect={handleSendMessage}
+						disabled={isSending}
 					/>
 				) : (
 					<MessageInput

@@ -26,24 +26,24 @@ export interface PillarConfig {
 
 export const PILLARS_CONFIG: Record<Pillar, PillarConfig> = {
 	pillar1: {
-		label: "Pillar 1 · Applicant",
-		labelVi: "Trụ cột 1 · Ứng viên",
+		label: "About you",
+		labelVi: "Hồ sơ của bạn",
 		badgeColor: "#2563eb", // blue-600
 		badgeTextColor: "#ffffff",
 		badgeLetter: "1",
 		subDimensions: ["knowledge", "skill", "network", "funds", "opportunities"],
 	},
 	pillar2: {
-		label: "Pillar 2 · Essay",
-		labelVi: "Trụ cột 2 · Bài luận",
+		label: "Essay story",
+		labelVi: "Câu chuyện essay",
 		badgeColor: "#16a34a", // green-600
 		badgeTextColor: "#ffffff",
 		badgeLetter: "2",
 		subDimensions: ["area", "aspect", "beneficiaries", "idea"],
 	},
 	origin: {
-		label: "Origin",
-		labelVi: "Nguồn gốc",
+		label: "Background",
+		labelVi: "Thông tin nền",
 		badgeColor: "#7c3aed", // violet-600
 		badgeTextColor: "#ffffff",
 		badgeLetter: "O",

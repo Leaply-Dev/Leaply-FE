@@ -856,13 +856,15 @@
 			"complete": "Great! Your story has all STAR elements",
 			"storyExtracted": "Story captured! We found:"
 		},
-		"tier1Anchor": "Tier 1 · Anchor",
+		"tier1Anchor": "Background",
 		"tier1AnchorProgress": "{completed}/{total}",
-		"pillar1Name": "Pillar 1 · Applicant",
-		"pillar2Name": "Pillar 2 · Essay",
-		"originName": "Origin",
-		"pillarBadges": "Pillar Badges",
-		"coverageLabel": "{percent}% covered",
+		"pillar1Name": "About you",
+		"pillar2Name": "Essay story",
+		"originName": "Background",
+		"pillarBadges": "Discovery badges",
+		"coverageLabel": "{percent}% explored",
+		"greetingMessage": "Hi! I'm your Leaply AI mentor. I'll help you surface the personal stories that can become great essay material. Ready to start?",
+		"greetingReplyOption": "Let's discover my story",
 		"subKnowledge": "Knowledge",
 		"subSkill": "Skill",
 		"subNetwork": "Network",
@@ -888,20 +890,20 @@
 		"onlyPercent": "Only {percent}% of students share this archetype",
 		"intake": {
 			"title": "Persona Lab setup",
-			"subtitle": "A few questions so the AI knows where to start.",
+			"subtitle": "A few quick questions so the AI can tailor the conversation to you.",
 			"editSetup": "Edit setup",
 			"back": "Back",
 			"next": "Next",
 			"finish": "Finish",
 			"step": {
-				"scope": "Scope & Aspiration",
+				"scope": "Your direction",
 				"track": "Essay track",
-				"impact": "Impact & Exposure"
+				"impact": "What you want to contribute"
 			},
 			"sectionHint": {
-				"1": "Narrow down your field so Tier 1 questions can stay on target.",
-				"2": "Pick an essay track — Persona Lab will focus on the right story types.",
-				"3": "Scholarship-only — describe the impact area you want to contribute to."
+				"1": "Quick questions so the AI knows where you're aiming — the clearer you are, the more relevant the conversation.",
+				"2": "Pick the essay you're preparing for — the AI will ask what matters for that path.",
+				"3": "Scholarship only — tell the AI what you want to contribute to, so your story stays on-point."
 			},
 			"autosave": {
 				"saving": "Saving...",
@@ -909,23 +911,23 @@
 				"error": "Failed to save — retry"
 			},
 			"sectionScope": {
-				"subFieldLabel": "Sub-field you're targeting",
-				"subFieldHelp": "Be more specific than the main field — this anchors every Tier 1 question.",
-				"subFieldPlaceholder": "Select a sub-field",
-				"subFieldFreeTextPlaceholder": "Describe the sub-field you plan to pursue (1 sentence)",
-				"subFieldOtherPlaceholder": "Specify your sub-field",
-				"roleTypeLabel": "Role archetype you see yourself in",
+				"subFieldLabel": "The specific field you want to pursue",
+				"subFieldHelp": "The more specific, the more useful the suggestions. E.g. 'behavioral economics' rather than 'economics'.",
+				"subFieldPlaceholder": "Select a field",
+				"subFieldFreeTextPlaceholder": "Describe the field you plan to pursue (1 sentence)",
+				"subFieldOtherPlaceholder": "Specify your field",
+				"roleTypeLabel": "The role you see yourself in",
 				"roleTypeHelp": "In 5-10 years, what does your day look like?",
 				"roleTypePlaceholder": "Select a role",
 				"roleTypeOtherPlaceholder": "Describe your role",
-				"timelineLabel": "Aspiration horizon",
-				"timelineHelp": "Which horizon are you planning against?",
-				"timelinePlaceholder": "Select a horizon",
+				"timelineLabel": "Your planning horizon",
+				"timelineHelp": "Are you planning for the near term or the long run?",
+				"timelinePlaceholder": "Select a timeframe",
 				"other": "Other: specify"
 			},
 			"sectionTrack": {
 				"label": "Which essay are you preparing for?",
-				"help": "Persona Lab asks different questions per track.",
+				"help": "The AI will tailor its questions to the type of essay you pick.",
 				"desc": {
 					"scholarship": "Focus on social contribution and impact areas.",
 					"general": "Focus on yourself, your journey, and academic goals.",
@@ -933,13 +935,13 @@
 				}
 			},
 			"sectionImpact": {
-				"impactAreasLabel": "Impact areas you care about",
-				"impactAreasHelp": "Pick up to {max} — the more specific, the deeper Persona Lab can go.",
-				"impactAreaOtherPlaceholder": "Describe your impact area",
-				"socialAspectLabel": "Contribution lens",
-				"socialAspectHelp": "Which population or angle do you want to focus on?",
-				"socialAspectPlaceholder": "Select a lens",
-				"socialAspectOtherPlaceholder": "Describe your lens",
+				"impactAreasLabel": "Areas you want to contribute to",
+				"impactAreasHelp": "Pick up to {max} — the more specific, the deeper the AI can go into your story.",
+				"impactAreaOtherPlaceholder": "Describe your area",
+				"socialAspectLabel": "The angle you want to focus on",
+				"socialAspectHelp": "Which group or angle do you want to bring out in your essay?",
+				"socialAspectPlaceholder": "Select an angle",
+				"socialAspectOtherPlaceholder": "Describe your angle",
 				"priorExposureLabel": "Real-world exposure",
 				"priorExposureHelp": "Do you already have experience with this area?",
 				"priorExposurePlaceholder": "Select exposure level",
