@@ -1,12 +1,13 @@
 /**
  * Hand-written DTOs for the 2-Pillar persona-lab endpoints.
  *
- * Backend endpoints (Commits 3-4) that aren't yet in the deployed OpenAPI spec:
+ * Backend endpoints:
  *   GET /v1/persona/tier-progress
  *   GET /v1/persona/pillar-coverage
  *   GET /v1/persona/next-question
  *
- * Replace with Orval-generated types once the backend is redeployed.
+ * Replace with Orval-generated types once the backend is redeployed and
+ * the OpenAPI spec is regenerated.
  */
 
 export type Pillar = "pillar1" | "pillar2" | "origin";
@@ -15,7 +16,6 @@ export type SubDimension =
 	| "knowledge"
 	| "skill"
 	| "network"
-	| "funds"
 	| "opportunities"
 	| "area"
 	| "aspect"
@@ -25,32 +25,28 @@ export type SubDimension =
 export type Tier = "TIER_1" | "TIER_2" | "TIER_3";
 
 export interface TierProgressDto {
-	tier1Anchor: { completed: number; total: number };
-	tier2Pillar1: { completed: number; total: number };
-	tier2Pillar2: { completed: number; total: number };
-	pillar2Required: boolean;
-	currentTier: Tier | null;
-}
-
-export interface SubDimensionCoverage {
-	nodeCount: number;
-	coverage: number;
+	currentTier?: string;
+	tier1Completed?: number;
+	tier1Total?: number;
+	tier1Complete?: boolean;
+	answeredQuestionKeys?: string[];
+	nextQuestion?: NextQuestionDto;
 }
 
 export interface PillarCoverageDto {
-	pillar1: Record<string, SubDimensionCoverage>;
-	pillar2: Record<string, SubDimensionCoverage>;
-	origin: Record<string, SubDimensionCoverage>;
-	pillar2Required: boolean;
+	tier1Anchor?: Record<string, number>;
+	pillar1?: Record<string, number>;
+	pillar2?: Record<string, number>;
+	pillar2Required?: boolean;
 }
 
 export interface NextQuestionDto {
-	questionKey: string;
-	tier: Tier;
-	pillar: Pillar | null;
-	subDimension: SubDimension | null;
-	prompt: string;
-	promptVi: string | null;
-	promptEn: string | null;
-	displayOrder: number;
+	questionKey?: string;
+	tier?: string;
+	pillar?: string;
+	subDimension?: string;
+	text?: string;
+	followUp?: string;
+	rawText?: string;
+	rawFollowUp?: string;
 }

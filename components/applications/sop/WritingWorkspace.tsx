@@ -86,19 +86,26 @@ export function WritingWorkspace({
 		}
 	}, [selectedSectionIndex, sections]);
 
-	// Generate outline if not exists (only once)
+	// Generate outline if not exists and ideation is complete (only once)
 	// biome-ignore lint/correctness/useExhaustiveDependencies: mutate function intentionally excluded to prevent infinite loop
 	useEffect(() => {
 		if (
 			!outlineLoading &&
 			!outline &&
 			!generateOutline.isPending &&
-			!hasTriggeredGenerate.current
+			!hasTriggeredGenerate.current &&
+			ideation?.selectedAngleId // Only generate if angle is selected
 		) {
 			hasTriggeredGenerate.current = true;
 			generateOutline.mutate({ applicationId });
 		}
-	}, [applicationId, outline, outlineLoading, generateOutline.isPending]);
+	}, [
+		applicationId,
+		outline,
+		outlineLoading,
+		generateOutline.isPending,
+		ideation?.selectedAngleId,
+	]);
 
 	// Confirm outline after generation (only once)
 	// biome-ignore lint/correctness/useExhaustiveDependencies: mutate function intentionally excluded to prevent infinite loop

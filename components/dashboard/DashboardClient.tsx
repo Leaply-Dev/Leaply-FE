@@ -69,7 +69,6 @@ export function DashboardClient() {
 	const dashboardData = useMemo(() => {
 		const data = unwrapResponse<HomeResponse>(homeData);
 		const tier = unwrapResponse<TierProgressDto>(tierProgressResponse);
-		const tier1 = tier?.tier1Anchor ?? { completed: 0, total: 5 };
 		if (!data) {
 			return {
 				profileCompletion: 0,
@@ -79,8 +78,8 @@ export function DashboardClient() {
 				suggestedAction: null,
 				recentApplications: [] as RecentApplicationDto[],
 				firstName: null,
-				tier1Completed: tier1.completed,
-				tier1Total: tier1.total,
+				tier1Completed: tier?.tier1Completed ?? 0,
+				tier1Total: tier?.tier1Total ?? 5,
 			};
 		}
 
@@ -91,8 +90,8 @@ export function DashboardClient() {
 			suggestedAction: data.suggestedAction,
 			recentApplications: data.recentApplications ?? [],
 			firstName: data.firstName,
-			tier1Completed: tier1.completed,
-			tier1Total: tier1.total,
+			tier1Completed: tier?.tier1Completed ?? 0,
+			tier1Total: tier?.tier1Total ?? 5,
 		};
 	}, [homeData, tierProgressResponse]);
 

@@ -27,10 +27,9 @@ export function PillarProgress({
 	const t = useTranslations("personaLab");
 	const locale = (useLocale() as "vi" | "en") === "vi" ? "vi" : "en";
 
-	const tier1 = tierProgress?.tier1Anchor ?? { completed: 0, total: 5 };
-	const pillar2Required = Boolean(
-		tierProgress?.pillar2Required ?? pillarCoverage?.pillar2Required,
-	);
+	const tier1Completed = tierProgress?.tier1Completed ?? 0;
+	const tier1Total = tierProgress?.tier1Total ?? 5;
+	const pillar2Required = Boolean(pillarCoverage?.pillar2Required);
 
 	const pillar1Avg = averageCoverage(pillarCoverage?.pillar1);
 	const pillar2Avg = averageCoverage(pillarCoverage?.pillar2);
@@ -44,8 +43,8 @@ export function PillarProgress({
 				</span>
 				<span className="text-xs font-medium text-violet-600">
 					{t("tier1AnchorProgress", {
-						completed: tier1.completed,
-						total: tier1.total,
+						completed: tier1Completed,
+						total: tier1Total,
 					})}
 				</span>
 			</div>
@@ -82,9 +81,7 @@ interface PillarRowProps {
 	averageLabel: string;
 	average: number;
 	subDimensions: SubDimension[];
-	pillarMap:
-		| Record<string, { coverage: number; nodeCount: number }>
-		| undefined;
+	pillarMap: Record<string, number> | undefined;
 	barColor: string;
 	locale: "vi" | "en";
 }
@@ -124,7 +121,7 @@ function PillarRow({
 			<div className="flex items-center gap-1">
 				{subDimensions.map((sd) => {
 					const cov = getSubDimensionCoverage(pillarMap, sd);
-					const bucket = coverageBucket(cov?.coverage);
+					const bucket = coverageBucket(cov);
 					return (
 						<div key={sd} className="flex-1 group relative">
 							<div
@@ -140,7 +137,7 @@ function PillarRow({
 							/>
 							<div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
 								<div className="bg-popover text-popover-foreground text-[10px] px-1.5 py-0.5 rounded shadow-md whitespace-nowrap border border-border">
-									{getSubDimensionLabel(sd, locale)} · {cov?.coverage ?? 0}%
+									{getSubDimensionLabel(sd, locale)} · {cov ?? 0}%
 								</div>
 							</div>
 						</div>

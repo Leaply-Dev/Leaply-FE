@@ -11,7 +11,6 @@ export type {
 	Pillar,
 	PillarCoverageDto,
 	SubDimension,
-	SubDimensionCoverage,
 	Tier,
 	TierProgressDto,
 } from "./types";

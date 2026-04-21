@@ -324,11 +324,12 @@ export function useGenerateOutline() {
 			applicationId: string;
 			wordLimit?: number;
 		}) => {
+			const body = wordLimit !== undefined ? { wordLimit } : {};
 			const response = await customFetch<{
 				data: { data: OutlineResponse };
 			}>(`/v1/applications/${applicationId}/sop/outline/generate`, {
 				method: "POST",
-				body: JSON.stringify({ wordLimit }),
+				body: JSON.stringify(body),
 				headers: { "Content-Type": "application/json" },
 			});
 			return response.data.data;

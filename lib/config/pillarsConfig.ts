@@ -1,7 +1,7 @@
 /**
  * Pillar configuration for the 2-Pillar persona flow.
  *
- * Pillar 1 — Applicant: knowledge, skill, network, funds, opportunities
+ * Pillar 1 — Applicant: knowledge, skill, network, opportunities
  * Pillar 2 — Essay (scholarship track only): area, aspect, beneficiaries, idea
  * Origin  — Tier 1 anchor questions (cross-pillar context)
  *
@@ -12,7 +12,6 @@ import type {
 	Pillar,
 	PillarCoverageDto,
 	SubDimension,
-	SubDimensionCoverage,
 } from "@/lib/api/personaLab/types";
 
 export interface PillarConfig {
@@ -31,7 +30,7 @@ export const PILLARS_CONFIG: Record<Pillar, PillarConfig> = {
 		badgeColor: "#2563eb", // blue-600
 		badgeTextColor: "#ffffff",
 		badgeLetter: "1",
-		subDimensions: ["knowledge", "skill", "network", "funds", "opportunities"],
+		subDimensions: ["knowledge", "skill", "network", "opportunities"],
 	},
 	pillar2: {
 		label: "Essay story",
@@ -71,7 +70,6 @@ export function getSubDimensionLabel(
 		knowledge: { vi: "Kiến thức", en: "Knowledge" },
 		skill: { vi: "Kỹ năng", en: "Skill" },
 		network: { vi: "Mạng lưới", en: "Network" },
-		funds: { vi: "Tài chính", en: "Funds" },
 		opportunities: { vi: "Cơ hội", en: "Opportunities" },
 		area: { vi: "Lĩnh vực", en: "Area" },
 		aspect: { vi: "Góc nhìn", en: "Aspect" },
@@ -83,12 +81,12 @@ export function getSubDimensionLabel(
 
 /** Average 0-100 coverage across a pillar's sub-dimension map. */
 export function averageCoverage(
-	pillarMap: Record<string, SubDimensionCoverage> | undefined,
+	pillarMap: Record<string, number> | undefined,
 ): number {
 	if (!pillarMap) return 0;
 	const values = Object.values(pillarMap);
 	if (values.length === 0) return 0;
-	const sum = values.reduce((acc, v) => acc + (v?.coverage ?? 0), 0);
+	const sum = values.reduce((acc, v) => acc + (v ?? 0), 0);
 	return Math.round(sum / values.length);
 }
 
@@ -101,11 +99,11 @@ export function coverageBucket(
 	return "partial";
 }
 
-/** Safely pluck a sub-dimension's coverage from the pillar map (keys are lowercase strings). */
+/** Safely pluck a sub-dimension's coverage (0-100) from the pillar map. */
 export function getSubDimensionCoverage(
-	pillarMap: Record<string, SubDimensionCoverage> | undefined,
+	pillarMap: Record<string, number> | undefined,
 	sd: SubDimension,
-): SubDimensionCoverage | undefined {
+): number | undefined {
 	if (!pillarMap) return undefined;
 	return pillarMap[sd] ?? pillarMap[sd.toUpperCase()];
 }
