@@ -173,14 +173,14 @@ function ExplorePageContent() {
 									className="h-9 rounded-full px-5 data-[state=active]:bg-card data-[state=active]:shadow-sm gap-2 font-medium text-sm"
 								>
 									<GraduationCap className="w-4 h-4" />
-									<span>Programs</span>
+									<span>{t("tabs.programs")}</span>
 								</TabsTrigger>
 								<TabsTrigger
 									value="scholarships"
 									className="h-9 rounded-full px-5 data-[state=active]:bg-card data-[state=active]:shadow-sm gap-2 font-medium text-sm"
 								>
 									<Award className="w-4 h-4" />
-									<span>Scholarships</span>
+									<span>{t("tabs.scholarships")}</span>
 								</TabsTrigger>
 							</TabsList>
 						</div>

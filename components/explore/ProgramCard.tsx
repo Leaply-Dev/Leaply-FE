@@ -16,6 +16,7 @@ import {
 	Settings2,
 } from "lucide-react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type {
@@ -58,6 +59,8 @@ export function ProgramCard({
 	isAdding,
 	onManage,
 }: ProgramCardProps) {
+	const t = useTranslations("explore");
+
 	// Check if deadline exists and is not past
 	const hasValidDeadline =
 		program.nextDeadline && !isDeadlinePast(program.nextDeadline);
@@ -121,7 +124,7 @@ export function ProgramCard({
 
 					{program.fitScore && (
 						<Badge className="bg-primary/10 text-primary border-0 text-xs">
-							{program.fitScore}% Match
+							{program.fitScore}% {t("table.match")}
 						</Badge>
 					)}
 
@@ -137,7 +140,7 @@ export function ProgramCard({
 
 					{program.scholarshipAvailable && (
 						<Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-0 text-xs">
-							Scholarship
+							{t("table.scholarship")}
 						</Badge>
 					)}
 				</div>
@@ -195,7 +198,8 @@ export function ProgramCard({
 						<div className="flex items-center gap-1.5 text-muted-foreground col-span-2">
 							<Calendar className="w-3.5 h-3.5 shrink-0" />
 							<span className="truncate">
-								Deadline: {formatDate(program.nextDeadline, { short: true })}
+								{t("table.deadline")}:{" "}
+								{formatDate(program.nextDeadline, { short: true })}
 							</span>
 						</div>
 					)}
@@ -246,12 +250,12 @@ export function ProgramCard({
 					{isSelected ? (
 						<>
 							<Check className="w-4 h-4" />
-							Added
+							{t("table.added")}
 						</>
 					) : (
 						<>
 							<Plus className="w-4 h-4" />
-							Compare
+							{t("table.compare")}
 						</>
 					)}
 				</Button>
@@ -271,16 +275,16 @@ export function ProgramCard({
 					{isAdding ? (
 						<>
 							<Loader2 className="w-4 h-4 animate-spin" />
-							Adding...
+							{t("table.adding")}
 						</>
 					) : isInDashboard ? (
 						<>
 							<Settings2 className="w-4 h-4" />
-							Manage
+							{t("table.manage")}
 						</>
 					) : (
 						<>
-							Apply
+							{t("table.apply")}
 							<ArrowRight className="w-4 h-4" />
 						</>
 					)}

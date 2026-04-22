@@ -21,6 +21,7 @@ import {
 	TrendingUp,
 } from "lucide-react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -170,19 +171,19 @@ function GapCheckItem({
 						<p className="font-medium text-foreground text-sm">{label}</p>
 						{hasData && userValue !== undefined && (
 							<p className="text-xs text-muted-foreground">
-								{userLabel || "You"}: {userValue}
+								{userLabel}: {userValue}
 								{requiredValue !== undefined && (
 									<>
 										{" "}
 										<span className="text-muted-foreground/60">•</span>{" "}
-										{requiredLabel || "Required"}: {requiredValue}
+										{requiredLabel}: {requiredValue}
 									</>
 								)}
 							</p>
 						)}
 						{!hasData && requiredValue !== undefined && (
 							<p className="text-xs text-muted-foreground">
-								Required: {requiredValue}
+								{requiredLabel}: {requiredValue}
 							</p>
 						)}
 					</div>
@@ -216,11 +217,16 @@ function EnglishGapItem({
 	gap?: EnglishGap;
 	fallbackRequired?: number;
 }) {
+	const t = useTranslations("explore.programDetail");
 	if (!gap || gap.status === "unknown") {
 		// Fallback to showing just the requirement if available
 		if (fallbackRequired) {
 			return (
-				<GapCheckItem label="IELTS" requiredValue={`${fallbackRequired}+`} />
+				<GapCheckItem
+					label="IELTS"
+					requiredValue={`${fallbackRequired}+`}
+					requiredLabel={t("required")}
+				/>
 			);
 		}
 		return null;
@@ -240,11 +246,13 @@ function EnglishGapItem({
 			userValue={userDisplay}
 			requiredValue={requiredDisplay}
 			delta={gap.delta}
+			userLabel={t("you")}
+			requiredLabel={t("required")}
 			note={
 				gap.status === "exceeds"
-					? "Exceeds requirement"
+					? t("exceedsRequirement")
 					: gap.status === "gap"
-						? "Below requirement"
+						? t("belowRequirement")
 						: undefined
 			}
 		/>
@@ -261,10 +269,15 @@ function GpaGapItem({
 	gap?: GpaGap;
 	fallbackRequired?: number;
 }) {
+	const t = useTranslations("explore.programDetail");
 	if (!gap || gap.status === "unknown") {
 		if (fallbackRequired) {
 			return (
-				<GapCheckItem label="GPA" requiredValue={`${fallbackRequired}+`} />
+				<GapCheckItem
+					label="GPA"
+					requiredValue={`${fallbackRequired}+`}
+					requiredLabel={t("required")}
+				/>
 			);
 		}
 		return null;
@@ -286,11 +299,13 @@ function GpaGapItem({
 			userValue={userDisplay}
 			requiredValue={requiredDisplay}
 			delta={gap.delta}
+			userLabel={t("you")}
+			requiredLabel={t("required")}
 			note={
 				gap.status === "exceeds"
-					? "Exceeds requirement"
+					? t("exceedsRequirement")
 					: gap.status === "gap"
-						? "Below requirement"
+						? t("belowRequirement")
 						: undefined
 			}
 		/>
@@ -307,6 +322,7 @@ function BudgetGapItem({
 	gap?: BudgetGap;
 	tuitionAnnual?: number;
 }) {
+	const t = useTranslations("explore.programDetail");
 	if (!gap || gap.status === "unknown") {
 		return null;
 	}
@@ -317,18 +333,20 @@ function BudgetGapItem({
 	};
 
 	const getNote = () => {
-		if (gap.status === "within") return "Within budget";
+		if (gap.status === "within") return t("withinBudget");
 		if (gap.status === "stretch") {
 			return gap.scholarshipAvailable
-				? "Stretch - Scholarships available"
-				: "Stretch budget";
+				? t("stretchBudgetScholarship")
+				: t("stretchBudget");
 		}
 		if (gap.status === "over") {
 			const overAmount = gap.overBudgetUsd
-				? `$${(gap.overBudgetUsd / 1000).toFixed(0)}k over`
-				: "Over budget";
+				? t("overBudgetAmount", {
+						amount: `$${(gap.overBudgetUsd / 1000).toFixed(0)}k`,
+					})
+				: t("overBudget");
 			return gap.scholarshipAvailable
-				? `${overAmount} - Scholarships available`
+				? `${overAmount} - ${t("scholarshipsAvailable")}`
 				: overAmount;
 		}
 		return undefined;
@@ -339,9 +357,9 @@ function BudgetGapItem({
 			label="Budget"
 			status={gap.status}
 			userValue={formatBudget(gap.userBudgetUsd)}
-			userLabel="Your max"
+			userLabel={t("you")}
 			requiredValue={formatBudget(gap.tuitionUsd || tuitionAnnual)}
-			requiredLabel="Tuition"
+			requiredLabel={t("required")}
 			note={getNote()}
 		/>
 	);
@@ -445,6 +463,7 @@ export function ProgramDetailDrawer({
 	onCompare,
 	onAddToDashboard,
 }: ProgramDetailDrawerProps) {
+	const t = useTranslations("explore.programDetail");
 	// TODO: Implement intake expansion UI when backend provides multiple intake periods
 	const [_expandedIntake, _setExpandedIntake] = useState<string | null>(null);
 
@@ -474,9 +493,7 @@ export function ProgramDetailDrawer({
 					<div className="flex-1 flex items-center justify-center">
 						<div className="flex flex-col items-center gap-3">
 							<div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-							<p className="text-sm text-muted-foreground">
-								Loading program details...
-							</p>
+							<p className="text-sm text-muted-foreground">{t("loading")}</p>
 						</div>
 					</div>
 				) : error || !program ? (
@@ -485,14 +502,12 @@ export function ProgramDetailDrawer({
 							<div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
 								<AlertTriangle className="w-6 h-6 text-destructive" />
 							</div>
-							<h3 className="text-lg font-semibold">Failed to load details</h3>
+							<h3 className="text-lg font-semibold">{t("failedToLoad")}</h3>
 							<p className="text-sm text-muted-foreground max-w-xs mx-auto">
-								{error instanceof Error
-									? error.message
-									: "Could not retrieve program information. Please try again."}
+								{error instanceof Error ? error.message : t("failedToLoadDesc")}
 							</p>
 							<Button onClick={() => onOpenChange(false)} variant="outline">
-								Close
+								{t("close")}
 							</Button>
 						</div>
 					</div>
@@ -559,21 +574,27 @@ export function ProgramDetailDrawer({
 								<section className="grid grid-cols-3 gap-3">
 									<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
 										<Clock className="w-5 h-5 text-primary mx-auto mb-2" />
-										<p className="text-xs text-muted-foreground">Duration</p>
+										<p className="text-xs text-muted-foreground">
+											{t("duration")}
+										</p>
 										<p className="font-semibold text-sm text-foreground mt-0.5 font-num">
 											{formatDuration(program.durationMonths)}
 										</p>
 									</div>
 									<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
 										<BookOpen className="w-5 h-5 text-primary mx-auto mb-2" />
-										<p className="text-xs text-muted-foreground">Study Mode</p>
+										<p className="text-xs text-muted-foreground">
+											{t("studyMode")}
+										</p>
 										<p className="font-semibold text-sm text-foreground mt-0.5">
 											{formatDeliveryMode(program.deliveryMode)}
 										</p>
 									</div>
 									<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
 										<Globe className="w-5 h-5 text-primary mx-auto mb-2" />
-										<p className="text-xs text-muted-foreground">Language</p>
+										<p className="text-xs text-muted-foreground">
+											{t("language")}
+										</p>
 										<p className="font-semibold text-sm text-foreground mt-0.5">
 											{formatLanguage(program.language)}
 										</p>
@@ -585,12 +606,14 @@ export function ProgramDetailDrawer({
 									<div className="flex items-center gap-2 mb-3">
 										<DollarSign className="w-5 h-5 text-primary" />
 										<h3 className="font-semibold text-foreground">
-											Tuition Fees
+											{t("tuitionFees")}
 										</h3>
 									</div>
 									<div className="grid grid-cols-3 gap-4">
 										<div>
-											<p className="text-xs text-muted-foreground">Per Year</p>
+											<p className="text-xs text-muted-foreground">
+												{t("perYear")}
+											</p>
 											<p className="text-lg font-bold text-foreground font-num">
 												{formatTuitionRange(
 													program.tuition?.annualMin,
@@ -601,7 +624,7 @@ export function ProgramDetailDrawer({
 										</div>
 										<div>
 											<p className="text-xs text-muted-foreground">
-												Total Program
+												{t("totalProgram")}
 											</p>
 											<p className="text-lg font-bold text-foreground font-num">
 												{program.tuition?.total
@@ -613,7 +636,9 @@ export function ProgramDetailDrawer({
 											</p>
 										</div>
 										<div>
-											<p className="text-xs text-muted-foreground">App Fee</p>
+											<p className="text-xs text-muted-foreground">
+												{t("appFee")}
+											</p>
 											<p className="text-lg font-bold text-foreground font-num">
 												{formatCurrency(program.applicationFeeUsd)}
 											</p>
@@ -626,7 +651,7 @@ export function ProgramDetailDrawer({
 									)}
 									{program.scholarshipAvailable && (
 										<p className="text-xs text-primary mt-2">
-											✓ Scholarship available
+											✓ {t("scholarshipAvailable")}
 										</p>
 									)}
 								</section>
@@ -636,7 +661,7 @@ export function ProgramDetailDrawer({
 									<div className="flex items-center gap-2 mb-3">
 										<CheckCircle2 className="w-5 h-5 text-primary" />
 										<h3 className="font-semibold text-foreground">
-											Entry Requirements
+											{t("entryRequirements")}
 										</h3>
 									</div>
 									<div className="space-y-2">
@@ -686,7 +711,7 @@ export function ProgramDetailDrawer({
 										{req?.documents && req.documents.length > 0 && (
 											<div className="p-3 rounded-lg border border-border bg-muted/50">
 												<p className="font-medium text-foreground text-sm mb-2">
-													Additional Requirements
+													{t("additionalRequirements")}
 												</p>
 												<ul className="text-xs text-muted-foreground space-y-1">
 													{req.documents.map((doc: string) => (
@@ -700,7 +725,7 @@ export function ProgramDetailDrawer({
 										{req?.workExperienceYears && (
 											<div className="flex items-center justify-between p-3 rounded-lg border border-primary/20 bg-primary/5">
 												<p className="font-medium text-foreground text-sm">
-													Work Experience
+													{t("workExperience")}
 												</p>
 												<Badge className="bg-primary text-primary-foreground border-0 font-num">
 													{req.workExperienceYears}+ years
@@ -723,7 +748,7 @@ export function ProgramDetailDrawer({
 										<div className="flex items-center gap-2 mb-3">
 											<Link2 className="w-5 h-5 text-primary" />
 											<h3 className="font-semibold text-foreground">
-												External Links
+												{t("externalLinks")}
 											</h3>
 										</div>
 										<div className="space-y-2">
@@ -737,7 +762,7 @@ export function ProgramDetailDrawer({
 													<div className="flex items-center gap-3">
 														<GraduationCap className="w-5 h-5 text-primary" />
 														<span className="text-sm font-medium text-foreground">
-															Program Page
+															{t("programPage")}
 														</span>
 													</div>
 													<ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -753,7 +778,7 @@ export function ProgramDetailDrawer({
 													<div className="flex items-center gap-3">
 														<CheckCircle2 className="w-5 h-5 text-primary" />
 														<span className="text-sm font-medium text-foreground">
-															Admissions Info
+															{t("admissionsInfo")}
 														</span>
 													</div>
 													<ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -769,7 +794,7 @@ export function ProgramDetailDrawer({
 													<div className="flex items-center gap-3">
 														<Globe className="w-5 h-5 text-primary" />
 														<span className="text-sm font-medium text-foreground">
-															University Website
+															{t("universityWebsite")}
 														</span>
 													</div>
 													<ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -790,14 +815,14 @@ export function ProgramDetailDrawer({
 									onClick={() => program?.id && onCompare?.(program.id)}
 								>
 									<Scale className="w-4 h-4" />
-									Compare
+									{t("compare")}
 								</Button>
 								<Button
 									className="flex-2 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
 									onClick={() => program?.id && onAddToDashboard?.(program.id)}
 								>
 									<Plus className="w-4 h-4" />
-									Nộp học bổng
+									{t("apply")}
 								</Button>
 							</div>
 						</SheetFooter>

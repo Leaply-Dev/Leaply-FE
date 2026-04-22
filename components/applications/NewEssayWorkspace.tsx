@@ -36,7 +36,10 @@ import {
 	getGetApplications1QueryKey,
 	useCreateApplication1,
 } from "@/lib/generated/api/endpoints/applications/applications";
-import { useListPrograms } from "@/lib/generated/api/endpoints/explore/explore";
+import {
+	useGetProgramDetail,
+	useListPrograms,
+} from "@/lib/generated/api/endpoints/explore/explore";
 import { useGetIntake } from "@/lib/generated/api/endpoints/persona-lab-intake/persona-lab-intake";
 import {
 	getGetApplicationsQueryKey,
@@ -45,6 +48,7 @@ import {
 import { useListScholarships } from "@/lib/generated/api/endpoints/scholarship-explore/scholarship-explore";
 import type {
 	PersonaIntakeResponse,
+	ProgramDetailResponse,
 	ProgramListItemResponse,
 	ScholarshipListItemResponse,
 } from "@/lib/generated/api/models";
@@ -63,6 +67,7 @@ interface SelectedTarget {
 interface NewEssayWorkspaceProps {
 	onCreated?: (args: { applicationId: string; kind: TargetKind }) => void;
 	onCancel?: () => void;
+	initialProgramId?: string;
 }
 
 const MIN_SEARCH_CHARS = 2;
@@ -98,6 +103,7 @@ const MOTIF_COLORS: Record<string, string> = {
 export function NewEssayWorkspace({
 	onCreated,
 	onCancel,
+	initialProgramId,
 }: NewEssayWorkspaceProps) {
 	const tDialog = useTranslations("applications.newEssayDialog");
 	const tSetup = useTranslations("sop.setup");
@@ -113,6 +119,33 @@ export function NewEssayWorkspace({
 		null,
 	);
 	const [wordLimit, setWordLimit] = useState("");
+
+	// Pre-select program when coming from Explore "Apply" button
+	const { data: initialProgramData } = useGetProgramDetail(
+		initialProgramId ?? "",
+		{
+			query: {
+				enabled: !!initialProgramId && !selectedTarget,
+				staleTime: 5 * 60 * 1000,
+			},
+		},
+	);
+
+	useEffect(() => {
+		if (!initialProgramId || selectedTarget) return;
+		const program = unwrapResponse<ProgramDetailResponse>(initialProgramData);
+		if (program?.id) {
+			setSelectedTarget({
+				kind: "program",
+				id: program.id,
+				name: program.displayName || program.programName || "",
+				subtitle: [program.universityName, program.universityCountry]
+					.filter(Boolean)
+					.join(" • "),
+				logoUrl: program.universityLogoUrl,
+			});
+		}
+	}, [initialProgramData, initialProgramId, selectedTarget]);
 
 	// Step 2 & 3 State
 	const [selectedEssayType, setSelectedEssayType] = useState<string | null>(

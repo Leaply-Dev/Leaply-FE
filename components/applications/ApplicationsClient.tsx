@@ -52,6 +52,7 @@ export function ApplicationsClient() {
 
 	const urlTab = searchParams.get("tab") as MainTab | null;
 	const urlApplicationId = searchParams.get("id");
+	const urlProgramId = searchParams.get("programId") ?? undefined;
 
 	// Tracks when navigation was triggered internally (via handleSelect) so the
 	// deep-link effect doesn't revert the store before the URL has caught up.
@@ -352,6 +353,7 @@ export function ApplicationsClient() {
 							<NewEssayWorkspace
 								onCreated={handleCreated}
 								onCancel={handleCancelNew}
+								initialProgramId={urlProgramId}
 							/>
 						) : activeKind === "program" ? (
 							<ApplicationDashboard

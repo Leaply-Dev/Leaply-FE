@@ -6,7 +6,6 @@ import {
 	Check,
 	DollarSign,
 	GraduationCap,
-	Loader2,
 	Search,
 	Sparkles,
 	X,
@@ -48,7 +47,6 @@ interface ManualModeProps {
 	onAddToDashboard?: (id: string) => void;
 	isProgramInDashboard?: (id: string) => boolean;
 	onManageApplication?: (id: string) => void;
-	addingProgramId?: string | null;
 }
 
 function ProgramCardSkeleton() {
@@ -101,7 +99,6 @@ export function ManualMode({
 	onAddToDashboard,
 	isProgramInDashboard,
 	onManageApplication,
-	addingProgramId,
 }: ManualModeProps) {
 	const t = useTranslations("explore");
 
@@ -448,7 +445,6 @@ export function ManualMode({
 							isInDashboard={
 								program.id ? isProgramInDashboard?.(program.id) : false
 							}
-							isAdding={addingProgramId === program.id}
 							onManage={onManageApplication}
 						/>
 					))}

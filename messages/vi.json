@@ -610,7 +610,7 @@
 	},
 	"explore": {
 		"title": "Tìm trường phù hợp với bạn",
-		"heroTitle": "Tìm kiếm giấc mơ",
+		"heroTitle": "Tìm kiếm",
 		"heroProgram": "Chương trình",
 		"heroScholarship": "Học bổng",
 		"filters": {
@@ -687,7 +687,9 @@
 			"competitive": "Cạnh tranh",
 			"manage": "Quản lý",
 			"apply": "Apply",
-			"adding": "Đang thêm..."
+			"adding": "Đang thêm...",
+			"added": "Đã thêm",
+			"match": "Phù hợp"
 		},
 		"aiMatch": "AI gợi ý",
 		"match": "Phù hợp",
@@ -723,7 +725,44 @@
 		"showing": "Hiển thị",
 		"results": "kết quả",
 		"noUniversitiesFound": "Không tìm thấy trường nào",
-		"tryAdjustingFilters": "Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm"
+		"tryAdjustingFilters": "Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm",
+		"tabs": {
+			"programs": "Chương trình học",
+			"scholarships": "Học bổng"
+		},
+		"programDetail": {
+			"loading": "Đang tải thông tin...",
+			"failedToLoad": "Không thể tải thông tin",
+			"failedToLoadDesc": "Không thể lấy thông tin chương trình. Vui lòng thử lại.",
+			"close": "Đóng",
+			"duration": "Thời gian",
+			"studyMode": "Hình thức",
+			"language": "Ngôn ngữ",
+			"tuitionFees": "Học phí",
+			"perYear": "/ Năm",
+			"totalProgram": "Tổng cộng",
+			"appFee": "Phí đăng ký",
+			"scholarshipAvailable": "Có học bổng",
+			"entryRequirements": "Yêu cầu đầu vào",
+			"additionalRequirements": "Yêu cầu khác",
+			"workExperience": "Kinh nghiệm làm việc",
+			"externalLinks": "Liên kết ngoài",
+			"programPage": "Trang chương trình",
+			"admissionsInfo": "Thông tin tuyển sinh",
+			"universityWebsite": "Website trường",
+			"compare": "So sánh",
+			"apply": "Nộp hồ sơ",
+			"you": "Bạn",
+			"required": "Yêu cầu",
+			"exceedsRequirement": "Vượt yêu cầu",
+			"belowRequirement": "Dưới yêu cầu",
+			"withinBudget": "Trong ngân sách",
+			"stretchBudget": "Cần cân nhắc",
+			"stretchBudgetScholarship": "Cần cân nhắc - Có học bổng",
+			"overBudget": "Vượt ngân sách",
+			"overBudgetAmount": "{amount} vượt ngân sách",
+			"scholarshipsAvailable": "Có học bổng"
+		}
 	},
 	"personaLab": {
 		"title": "Persona Lab",
@@ -1353,7 +1392,7 @@
 		"english": "Tiếng Anh",
 		"detailedAnalysis": "Phân tích chi tiết",
 		"compareYourProfile": "So sánh hồ sơ của bạn với yêu cầu từng trường",
-		"applyScholarship": "Nộp học bổng",
+		"applyScholarship": "Nộp hồ sơ",
 		"removeFromCompare": "Bỏ khỏi so sánh",
 		"addMorePrograms": "Thêm chương trình khác để so sánh (Tối đa 4)",
 		"comparePrograms": "So sánh chương trình",

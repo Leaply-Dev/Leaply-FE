@@ -1,21 +1,14 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useState } from "react";
-import { toast } from "sonner";
 import { CompareDialog } from "@/components/explore/CompareDrawer";
 import { CompareTray } from "@/components/explore/CompareTray";
 import { ManualMode } from "@/components/explore/ManualMode";
 import { PageTransition } from "@/components/PageTransition";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
-import {
-	getGetApplications1QueryKey,
-	useCreateApplication1,
-	useGetApplications1,
-} from "@/lib/generated/api/endpoints/applications/applications";
-import { getGetHomeDataQueryKey } from "@/lib/generated/api/endpoints/home/home";
+import { useGetApplications1 } from "@/lib/generated/api/endpoints/applications/applications";
 import type {
 	ApplicationListResponse,
 	ProgramListItemResponse,
@@ -23,11 +16,7 @@ import type {
 import { useApplicationStore } from "@/lib/store/applicationStore";
 
 export function ExploreClient() {
-	const [addingProgramId, setAddingProgramId] = useState<string | null>(null);
-
 	const router = useRouter();
-	const queryClient = useQueryClient();
-	const { mutate: createApplication } = useCreateApplication1();
 	const { data: applicationsResponse } = useGetApplications1();
 	const { setSelectedApplicationId } = useApplicationStore();
 
@@ -40,41 +29,11 @@ export function ExploreClient() {
 	);
 
 	const handleAddToDashboard = (programId: string) => {
-		posthog.capture("program_added_to_dashboard", {
+		posthog.capture("program_apply_clicked", {
 			program_id: programId,
 		});
-		setAddingProgramId(programId);
-		createApplication(
-			{
-				data: {
-					programId,
-				},
-			},
-			{
-				onSuccess: async () => {
-					await Promise.all([
-						queryClient.invalidateQueries({
-							queryKey: getGetHomeDataQueryKey(),
-						}),
-						queryClient.invalidateQueries({
-							queryKey: getGetApplications1QueryKey(),
-						}),
-					]);
-
-					toast.success("Application created", {
-						description: "The program has been added to your dashboard.",
-					});
-					router.push("/dashboard/applications");
-				},
-				onError: () => {
-					toast.error("Failed to create application", {
-						description: "Please try again later.",
-					});
-				},
-				onSettled: () => {
-					setAddingProgramId(null);
-				},
-			},
+		router.push(
+			`/dashboard/applications?tab=programs&id=new&programId=${programId}`,
 		);
 	};
 
@@ -127,7 +86,6 @@ export function ExploreClient() {
 					onAddToDashboard={handleAddToDashboard}
 					isProgramInDashboard={isProgramInDashboard}
 					onManageApplication={handleManageApplication}
-					addingProgramId={addingProgramId}
 				/>
 			</div>
 
