@@ -23,6 +23,7 @@ import {
 	Users,
 } from "lucide-react";
 import Image from "next/image";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -39,15 +40,16 @@ import type {
 	GpaGap,
 	ScholarshipDetailResponse,
 } from "@/lib/generated/api/models";
+import type { Locale } from "@/lib/utils/displayFormatters";
 import {
 	formatCoverageAmount,
-	formatCoverageDuration,
-	formatCoverageType,
+	formatCoverageDurationI18n,
+	formatCoverageTypeI18n,
 	formatDate,
-	formatEligibilityFocus,
-	formatEligibilityType,
+	formatEligibilityFocusI18n,
+	formatEligibilityTypeI18n,
 	formatRequiredDocument,
-	formatScholarshipDegreeLevel,
+	formatScholarshipDegreeLevelI18n,
 	formatSourceType,
 } from "@/lib/utils/displayFormatters";
 
@@ -165,19 +167,19 @@ function GapCheckItem({
 						<p className="font-medium text-foreground text-sm">{label}</p>
 						{hasData && userValue !== undefined && (
 							<p className="text-xs text-muted-foreground">
-								{userLabel || "You"}: {userValue}
+								{userLabel}: {userValue}
 								{requiredValue !== undefined && (
 									<>
 										{" "}
 										<span className="text-muted-foreground/60">•</span>{" "}
-										{requiredLabel || "Required"}: {requiredValue}
+										{requiredLabel}: {requiredValue}
 									</>
 								)}
 							</p>
 						)}
 						{!hasData && requiredValue !== undefined && (
 							<p className="text-xs text-muted-foreground">
-								Required: {requiredValue}
+								{requiredLabel}: {requiredValue}
 							</p>
 						)}
 					</div>
@@ -205,10 +207,18 @@ function EnglishGapItem({
 	gap,
 	fallbackIelts,
 	fallbackToefl,
+	youLabel,
+	requiredLabel,
+	exceedsLabel,
+	belowLabel,
 }: {
 	gap?: EnglishGap;
 	fallbackIelts?: number;
 	fallbackToefl?: number;
+	youLabel: string;
+	requiredLabel: string;
+	exceedsLabel: string;
+	belowLabel: string;
 }) {
 	if (!gap || gap.status === "unknown") {
 		if (fallbackIelts || fallbackToefl) {
@@ -219,6 +229,7 @@ function EnglishGapItem({
 				<GapCheckItem
 					label="English"
 					requiredValue={requirements.join(" / ")}
+					requiredLabel={requiredLabel}
 				/>
 			);
 		}
@@ -239,11 +250,13 @@ function EnglishGapItem({
 			userValue={userDisplay}
 			requiredValue={requiredDisplay}
 			delta={gap.delta}
+			userLabel={youLabel}
+			requiredLabel={requiredLabel}
 			note={
 				gap.status === "exceeds"
-					? "Exceeds requirement"
+					? exceedsLabel
 					: gap.status === "gap"
-						? "Below requirement"
+						? belowLabel
 						: undefined
 			}
 		/>
@@ -254,10 +267,18 @@ function GpaGapItem({
 	gap,
 	fallbackRequired,
 	fallbackScale,
+	youLabel,
+	requiredLabel,
+	exceedsLabel,
+	belowLabel,
 }: {
 	gap?: GpaGap;
 	fallbackRequired?: number;
 	fallbackScale?: number;
+	youLabel: string;
+	requiredLabel: string;
+	exceedsLabel: string;
+	belowLabel: string;
 }) {
 	if (!gap || gap.status === "unknown") {
 		if (fallbackRequired) {
@@ -266,6 +287,7 @@ function GpaGapItem({
 				<GapCheckItem
 					label="GPA"
 					requiredValue={`${fallbackRequired}+${scaleDisplay}`}
+					requiredLabel={requiredLabel}
 				/>
 			);
 		}
@@ -288,11 +310,13 @@ function GpaGapItem({
 			userValue={userDisplay}
 			requiredValue={requiredDisplay}
 			delta={gap.delta}
+			userLabel={youLabel}
+			requiredLabel={requiredLabel}
 			note={
 				gap.status === "exceeds"
-					? "Exceeds requirement"
+					? exceedsLabel
 					: gap.status === "gap"
-						? "Below requirement"
+						? belowLabel
 						: undefined
 			}
 		/>
@@ -306,7 +330,9 @@ export function ScholarshipDetailDrawer({
 	onCompare,
 	onAddToDashboard,
 }: ScholarshipDetailDrawerProps) {
-	// Fetch detailed scholarship data
+	const t = useTranslations("explore.scholarshipDetail");
+	const locale = useLocale() as Locale;
+
 	const {
 		data: scholarshipDetail,
 		isLoading,
@@ -314,14 +340,13 @@ export function ScholarshipDetailDrawer({
 	} = useGetScholarshipDetail(scholarshipId || "", {
 		query: {
 			enabled: !!scholarshipId && open,
-			staleTime: 5 * 60 * 1000, // cache for 5 minutes
+			staleTime: 5 * 60 * 1000,
 		},
 	});
 
 	const scholarship =
 		unwrapResponse<ScholarshipDetailResponse>(scholarshipDetail);
 
-	// Format coverage display
 	const coverageDisplay = scholarship ? getCoverageDisplay(scholarship) : null;
 
 	return (
@@ -330,14 +355,12 @@ export function ScholarshipDetailDrawer({
 				side="right"
 				className="w-full sm:max-w-lg p-0 flex flex-col h-full"
 			>
-				<SheetTitle className="sr-only">Scholarship Details</SheetTitle>
+				<SheetTitle className="sr-only">{t("failedToLoad")}</SheetTitle>
 				{isLoading ? (
 					<div className="flex-1 flex items-center justify-center">
 						<div className="flex flex-col items-center gap-3">
 							<div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-							<p className="text-sm text-muted-foreground">
-								Loading scholarship details...
-							</p>
+							<p className="text-sm text-muted-foreground">{t("loading")}</p>
 						</div>
 					</div>
 				) : error || !scholarship ? (
@@ -346,14 +369,12 @@ export function ScholarshipDetailDrawer({
 							<div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
 								<AlertTriangle className="w-6 h-6 text-destructive" />
 							</div>
-							<h3 className="text-lg font-semibold">Failed to load details</h3>
+							<h3 className="text-lg font-semibold">{t("failedToLoad")}</h3>
 							<p className="text-sm text-muted-foreground max-w-xs mx-auto">
-								{error instanceof Error
-									? error.message
-									: "Could not retrieve scholarship information. Please try again."}
+								{error instanceof Error ? error.message : t("failedToLoadDesc")}
 							</p>
 							<Button onClick={() => onOpenChange(false)} variant="outline">
-								Close
+								{t("close")}
 							</Button>
 						</div>
 					</div>
@@ -407,7 +428,7 @@ export function ScholarshipDetailDrawer({
 									<div className="flex flex-wrap gap-2">
 										{scholarship.fitScore && (
 											<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium">
-												{scholarship.fitScore}% Match
+												{scholarship.fitScore}% {t("match")}
 											</Badge>
 										)}
 										{scholarship.coverageType && (
@@ -420,7 +441,10 @@ export function ScholarshipDetailDrawer({
 												}`}
 											>
 												<Sparkles className="w-3 h-3" />
-												{formatCoverageType(scholarship.coverageType)}
+												{formatCoverageTypeI18n(
+													scholarship.coverageType,
+													locale,
+												)}
 											</Badge>
 										)}
 										{scholarship.eligibilityType && (
@@ -429,7 +453,10 @@ export function ScholarshipDetailDrawer({
 												className="px-2.5 py-0.5 text-xs font-medium gap-1"
 											>
 												<Target className="w-3 h-3" />
-												{formatEligibilityType(scholarship.eligibilityType)}
+												{formatEligibilityTypeI18n(
+													scholarship.eligibilityType,
+													locale,
+												)}
 											</Badge>
 										)}
 										{scholarship.sourceType && (
@@ -445,30 +472,38 @@ export function ScholarshipDetailDrawer({
 
 								{/* Info Grid */}
 								<section className="grid grid-cols-3 gap-3">
-									{/* Coverage */}
 									<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
 										<DollarSign className="w-5 h-5 text-primary mx-auto mb-2" />
-										<p className="text-xs text-muted-foreground">Coverage</p>
+										<p className="text-xs text-muted-foreground">
+											{t("coverage")}
+										</p>
 										<p className="font-semibold text-sm text-foreground mt-0.5">
 											{coverageDisplay || "N/A"}
 										</p>
 									</div>
-									{/* Duration */}
 									<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
 										<Calendar className="w-5 h-5 text-primary mx-auto mb-2" />
-										<p className="text-xs text-muted-foreground">Duration</p>
+										<p className="text-xs text-muted-foreground">
+											{t("duration")}
+										</p>
 										<p className="font-semibold text-sm text-foreground mt-0.5">
-											{formatCoverageDuration(scholarship.coverageDuration)}
+											{formatCoverageDurationI18n(
+												scholarship.coverageDuration,
+												locale,
+											)}
 										</p>
 									</div>
-									{/* Degree Levels */}
 									<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
 										<GraduationCap className="w-5 h-5 text-primary mx-auto mb-2" />
-										<p className="text-xs text-muted-foreground">Degree</p>
+										<p className="text-xs text-muted-foreground">
+											{t("degree")}
+										</p>
 										<p className="font-semibold text-sm text-foreground mt-0.5 line-clamp-1">
 											{scholarship.degreeLevels?.length
 												? scholarship.degreeLevels
-														.map(formatScholarshipDegreeLevel)
+														.map((l) =>
+															formatScholarshipDegreeLevelI18n(l, locale),
+														)
 														.join(", ")
 												: "N/A"}
 										</p>
@@ -480,7 +515,9 @@ export function ScholarshipDetailDrawer({
 									<section>
 										<div className="flex items-center gap-2 mb-3">
 											<BookOpen className="w-5 h-5 text-primary" />
-											<h3 className="font-semibold text-foreground">About</h3>
+											<h3 className="font-semibold text-foreground">
+												{t("about")}
+											</h3>
 										</div>
 										<p className="text-sm text-muted-foreground leading-relaxed">
 											{scholarship.description}
@@ -493,16 +530,15 @@ export function ScholarshipDetailDrawer({
 									<div className="flex items-center gap-2 mb-3">
 										<Users className="w-5 h-5 text-primary" />
 										<h3 className="font-semibold text-foreground">
-											Eligibility
+											{t("eligibility")}
 										</h3>
 									</div>
 									<div className="space-y-3">
-										{/* Eligible Fields */}
 										{scholarship.eligibleFields &&
 											scholarship.eligibleFields.length > 0 && (
 												<div className="p-3 rounded-lg border border-border bg-muted/50">
 													<p className="font-medium text-foreground text-sm mb-2">
-														Eligible Fields
+														{t("eligibleFields")}
 													</p>
 													<div className="flex flex-wrap gap-1.5">
 														{scholarship.eligibleFields.map((field) => (
@@ -518,12 +554,11 @@ export function ScholarshipDetailDrawer({
 												</div>
 											)}
 
-										{/* Eligibility Focus */}
 										{scholarship.eligibilityFocus &&
 											scholarship.eligibilityFocus.length > 0 && (
 												<div className="p-3 rounded-lg border border-border bg-muted/50">
 													<p className="font-medium text-foreground text-sm mb-2">
-														Selection Criteria
+														{t("selectionCriteria")}
 													</p>
 													<div className="flex flex-wrap gap-1.5">
 														{scholarship.eligibilityFocus.map((focus) => (
@@ -532,23 +567,22 @@ export function ScholarshipDetailDrawer({
 																variant="secondary"
 																className="text-xs"
 															>
-																{formatEligibilityFocus(focus)}
+																{formatEligibilityFocusI18n(focus, locale)}
 															</Badge>
 														))}
 													</div>
 												</div>
 											)}
 
-										{/* Nationality */}
 										{scholarship.nationalityEligible &&
 											scholarship.nationalityEligible.length > 0 && (
 												<div className="p-3 rounded-lg border border-border bg-muted/50">
 													<p className="font-medium text-foreground text-sm mb-2">
-														Eligible Nationalities
+														{t("eligibleNationalities")}
 													</p>
 													<p className="text-sm text-muted-foreground">
 														{scholarship.nationalityEligible.includes("all")
-															? "All nationalities"
+															? t("allNationalities")
 															: scholarship.nationalityEligible.join(", ")}
 													</p>
 												</div>
@@ -561,65 +595,72 @@ export function ScholarshipDetailDrawer({
 									<div className="flex items-center gap-2 mb-3">
 										<CheckCircle2 className="w-5 h-5 text-primary" />
 										<h3 className="font-semibold text-foreground">
-											Requirements
+											{t("requirements")}
 										</h3>
 									</div>
 									<div className="space-y-2">
-										{/* GPA */}
 										<GpaGapItem
 											gap={scholarship.gpaGap}
 											fallbackRequired={scholarship.minGpa}
 											fallbackScale={scholarship.gpaScale}
+											youLabel={t("you")}
+											requiredLabel={t("required")}
+											exceedsLabel={t("exceedsRequirement")}
+											belowLabel={t("belowRequirement")}
 										/>
 
-										{/* English */}
 										<EnglishGapItem
 											gap={scholarship.englishGap}
 											fallbackIelts={scholarship.minIelts}
 											fallbackToefl={scholarship.minToefl}
+											youLabel={t("you")}
+											requiredLabel={t("required")}
+											exceedsLabel={t("exceedsRequirement")}
+											belowLabel={t("belowRequirement")}
 										/>
 
-										{/* GRE */}
 										{scholarship.minGre && (
 											<GapCheckItem
 												label="GRE"
 												requiredValue={`${scholarship.minGre}+`}
+												requiredLabel={t("required")}
 											/>
 										)}
 
-										{/* GMAT */}
 										{scholarship.minGmat && (
 											<GapCheckItem
 												label="GMAT"
 												requiredValue={`${scholarship.minGmat}+`}
+												requiredLabel={t("required")}
 											/>
 										)}
 
-										{/* Work Experience */}
 										{scholarship.workExperienceRequired && (
 											<div className="flex items-center justify-between p-3 rounded-lg border border-primary/20 bg-primary/5">
 												<div className="flex items-center gap-3">
 													<Briefcase className="w-5 h-5 text-primary" />
 													<p className="font-medium text-foreground text-sm">
-														Work Experience
+														{t("workExperience")}
 													</p>
 												</div>
 												<Badge className="bg-primary text-primary-foreground border-0">
 													{scholarship.minWorkExperienceYears
-														? `${scholarship.minWorkExperienceYears}+ years`
-														: "Required"}
+														? t("yearsRequired").replace(
+																"{years}",
+																String(scholarship.minWorkExperienceYears),
+															)
+														: t("requiredBadge")}
 												</Badge>
 											</div>
 										)}
 
-										{/* Required Documents */}
 										{scholarship.requiredDocuments &&
 											scholarship.requiredDocuments.length > 0 && (
 												<div className="p-3 rounded-lg border border-border bg-muted/50">
 													<div className="flex items-center gap-2 mb-2">
 														<FileText className="w-4 h-4 text-muted-foreground" />
 														<p className="font-medium text-foreground text-sm">
-															Required Documents
+															{t("requiredDocuments")}
 														</p>
 													</div>
 													<ul className="text-xs text-muted-foreground space-y-1">
@@ -635,11 +676,10 @@ export function ScholarshipDetailDrawer({
 												</div>
 											)}
 
-										{/* Other Requirements */}
 										{scholarship.otherRequirements && (
 											<div className="p-3 rounded-lg border border-border bg-muted/50">
 												<p className="font-medium text-foreground text-sm mb-1">
-													Other Requirements
+													{t("otherRequirements")}
 												</p>
 												<p className="text-xs text-muted-foreground">
 													{scholarship.otherRequirements}
@@ -649,18 +689,20 @@ export function ScholarshipDetailDrawer({
 									</div>
 								</section>
 
-								{/* Application Info */}
+								{/* Application Timeline */}
 								<section>
 									<div className="flex items-center gap-2 mb-3">
 										<Calendar className="w-5 h-5 text-primary" />
 										<h3 className="font-semibold text-foreground">
-											Application Timeline
+											{t("applicationTimeline")}
 										</h3>
 									</div>
 									<div className="bg-primary/5 rounded-xl p-4 border border-primary/20">
 										<div className="grid grid-cols-2 gap-4">
 											<div>
-												<p className="text-xs text-muted-foreground">Opens</p>
+												<p className="text-xs text-muted-foreground">
+													{t("opens")}
+												</p>
 												<p className="font-semibold text-sm text-foreground mt-0.5">
 													{scholarship.applicationOpenDate
 														? formatDate(scholarship.applicationOpenDate)
@@ -669,7 +711,7 @@ export function ScholarshipDetailDrawer({
 											</div>
 											<div>
 												<p className="text-xs text-muted-foreground">
-													Deadline
+													{t("deadline")}
 												</p>
 												<p className="font-semibold text-sm text-foreground mt-0.5">
 													{scholarship.applicationDeadline
@@ -682,7 +724,7 @@ export function ScholarshipDetailDrawer({
 											scholarship.intakeSeasons.length > 0 && (
 												<div className="mt-3 pt-3 border-t border-primary/20">
 													<p className="text-xs text-muted-foreground mb-1">
-														Intake Seasons
+														{t("intakeSeasons")}
 													</p>
 													<div className="flex flex-wrap gap-1.5">
 														{scholarship.intakeSeasons.map((season) => (
@@ -699,7 +741,7 @@ export function ScholarshipDetailDrawer({
 											)}
 										{scholarship.applyWithProgram && (
 											<p className="text-xs text-primary mt-3">
-												✓ Applied together with program application
+												✓ {t("applyWithProgram")}
 											</p>
 										)}
 									</div>
@@ -711,38 +753,38 @@ export function ScholarshipDetailDrawer({
 										<div className="flex items-center gap-2 mb-3">
 											<Sparkles className="w-5 h-5 text-primary" />
 											<h3 className="font-semibold text-foreground">
-												Additional Benefits
+												{t("additionalBenefits")}
 											</h3>
 										</div>
 										<div className="space-y-2">
 											{scholarship.additionalBenefits.livingStipend && (
 												<div className="flex items-center gap-2 text-sm text-muted-foreground">
 													<Check className="w-4 h-4 text-green-500" />
-													Living stipend included
+													{t("livingStipend")}
 												</div>
 											)}
 											{scholarship.additionalBenefits.travelAllowance && (
 												<div className="flex items-center gap-2 text-sm text-muted-foreground">
 													<Check className="w-4 h-4 text-green-500" />
-													Travel allowance included
+													{t("travelAllowance")}
 												</div>
 											)}
 											{scholarship.additionalBenefits.healthInsurance && (
 												<div className="flex items-center gap-2 text-sm text-muted-foreground">
 													<Check className="w-4 h-4 text-green-500" />
-													Health insurance included
+													{t("healthInsurance")}
 												</div>
 											)}
 											{scholarship.additionalBenefits.bookAllowance && (
 												<div className="flex items-center gap-2 text-sm text-muted-foreground">
 													<Check className="w-4 h-4 text-green-500" />
-													Book allowance included
+													{t("bookAllowance")}
 												</div>
 											)}
 											{scholarship.additionalBenefits.researchGrant && (
 												<div className="flex items-center gap-2 text-sm text-muted-foreground">
 													<Check className="w-4 h-4 text-green-500" />
-													Research grant included
+													{t("researchGrant")}
 												</div>
 											)}
 											{scholarship.additionalBenefits.other && (
@@ -763,7 +805,7 @@ export function ScholarshipDetailDrawer({
 								{scholarship.coverageNotes && (
 									<section className="p-3 rounded-lg border border-border bg-muted/50">
 										<p className="text-xs text-muted-foreground">
-											<span className="font-medium">Note:</span>{" "}
+											<span className="font-medium">{t("note")}:</span>{" "}
 											{scholarship.coverageNotes}
 										</p>
 									</section>
@@ -775,7 +817,7 @@ export function ScholarshipDetailDrawer({
 										<div className="flex items-center gap-2 mb-3">
 											<Link2 className="w-5 h-5 text-primary" />
 											<h3 className="font-semibold text-foreground">
-												External Links
+												{t("externalLinks")}
 											</h3>
 										</div>
 										<div className="space-y-2">
@@ -789,7 +831,7 @@ export function ScholarshipDetailDrawer({
 													<div className="flex items-center gap-3">
 														<Award className="w-5 h-5 text-primary" />
 														<span className="text-sm font-medium text-foreground">
-															Scholarship Page
+															{t("scholarshipPage")}
 														</span>
 													</div>
 													<ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -805,7 +847,7 @@ export function ScholarshipDetailDrawer({
 													<div className="flex items-center gap-3">
 														<Globe className="w-5 h-5 text-primary" />
 														<span className="text-sm font-medium text-foreground">
-															Application Portal
+															{t("applicationPortal")}
 														</span>
 													</div>
 													<ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -826,7 +868,7 @@ export function ScholarshipDetailDrawer({
 									onClick={() => scholarship?.id && onCompare?.(scholarship.id)}
 								>
 									<Scale className="w-4 h-4" />
-									Compare
+									{t("compare")}
 								</Button>
 								<Button
 									className="flex-2 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
@@ -835,7 +877,7 @@ export function ScholarshipDetailDrawer({
 									}
 								>
 									<Plus className="w-4 h-4" />
-									Apply Now
+									{t("applyNow")}
 								</Button>
 							</div>
 						</SheetFooter>
@@ -855,12 +897,9 @@ function getCoverageDisplay(scholarship: {
 	coverageAmountMax?: number;
 	coverageType?: string;
 }): string | null {
-	// Priority 1: Percentage
 	if (scholarship.coveragePercentage) {
 		return `${scholarship.coveragePercentage}%`;
 	}
-
-	// Priority 2: Amount range
 	if (scholarship.coverageAmountMin || scholarship.coverageAmountMax) {
 		return formatCoverageAmount(
 			scholarship.coverageAmountMin,
@@ -868,11 +907,8 @@ function getCoverageDisplay(scholarship: {
 			{ compact: true },
 		);
 	}
-
-	// Priority 3: Full funded indicator
 	if (scholarship.coverageType?.toLowerCase() === "full_funded") {
 		return "Full tuition";
 	}
-
 	return null;
 }

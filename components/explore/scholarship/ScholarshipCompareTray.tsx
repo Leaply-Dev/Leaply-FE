@@ -1,30 +1,30 @@
 "use client";
 
 import { ArrowRight, X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ScholarshipListItemResponse } from "@/lib/generated/api/models";
-import { formatCoverageType } from "@/lib/utils/displayFormatters";
+import type { Locale } from "@/lib/utils/displayFormatters";
+import { formatCoverageTypeI18n } from "@/lib/utils/displayFormatters";
 
 interface SelectedScholarshipChipProps {
 	scholarship: ScholarshipListItemResponse;
 	onRemove: () => void;
 }
 
-/**
- * Individual chip for a selected scholarship in the compare tray
- */
 export function SelectedScholarshipChip({
 	scholarship,
 	onRemove,
 }: SelectedScholarshipChipProps) {
+	const locale = useLocale() as Locale;
 	return (
 		<Badge variant="secondary" className="gap-2 pr-1 text-sm py-1.5 px-3">
 			<span className="font-medium">
 				{scholarship.name}
 				{scholarship.coverageType && (
 					<span className="text-muted-foreground ml-1">
-						({formatCoverageType(scholarship.coverageType)})
+						({formatCoverageTypeI18n(scholarship.coverageType, locale)})
 					</span>
 				)}
 			</span>
@@ -49,9 +49,6 @@ interface ScholarshipCompareTrayProps {
 	onCompare: () => void;
 }
 
-/**
- * Sticky bottom tray showing selected scholarships for comparison (checkout-style)
- */
 export function ScholarshipCompareTray({
 	selectedCount,
 	maxScholarships,
@@ -60,6 +57,8 @@ export function ScholarshipCompareTray({
 	onClearAll,
 	onCompare,
 }: ScholarshipCompareTrayProps) {
+	const t = useTranslations("compare");
+
 	if (selectedCount === 0) {
 		return null;
 	}
@@ -70,17 +69,15 @@ export function ScholarshipCompareTray({
 				<div className="flex items-center justify-between gap-6">
 					{/* Left: Title + Selected Scholarships */}
 					<div className="flex-1 space-y-3">
-						{/* Title */}
 						<div className="flex items-center gap-2">
 							<h3 className="text-lg font-bold text-foreground">
-								So sanh hoc bong
+								{t("compareScholarships")}
 							</h3>
 							<Badge variant="secondary" className="font-semibold">
 								{selectedCount}/{maxScholarships}
 							</Badge>
 						</div>
 
-						{/* Selected scholarships chips */}
 						<div className="flex items-center gap-3 flex-wrap">
 							<div className="flex items-center gap-2 flex-wrap">
 								{selectedScholarshipsList.map((scholarship) => {
@@ -95,13 +92,12 @@ export function ScholarshipCompareTray({
 								})}
 							</div>
 
-							{/* Clear all button */}
 							<button
 								type="button"
 								onClick={onClearAll}
 								className="text-sm text-muted-foreground hover:text-destructive transition-colors font-medium underline underline-offset-2"
 							>
-								Xoa tat ca
+								{t("clearAll")}
 							</button>
 						</div>
 					</div>
@@ -118,7 +114,7 @@ export function ScholarshipCompareTray({
 							}`}
 							onClick={onCompare}
 						>
-							So sanh ngay
+							{t("compareNow")}
 							<ArrowRight className="w-5 h-5" />
 						</Button>
 					</div>

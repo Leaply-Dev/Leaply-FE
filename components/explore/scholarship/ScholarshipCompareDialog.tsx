@@ -17,6 +17,7 @@ import {
 	TrendingUp,
 } from "lucide-react";
 import Image from "next/image";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,12 +29,13 @@ import {
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ScholarshipListItemResponse } from "@/lib/generated/api/models";
+import type { Locale } from "@/lib/utils/displayFormatters";
 import {
 	formatCoverageAmount,
-	formatCoverageDuration,
-	formatCoverageType,
-	formatEligibilityType,
-	formatScholarshipDegreeLevel,
+	formatCoverageDurationI18n,
+	formatCoverageTypeI18n,
+	formatEligibilityTypeI18n,
+	formatScholarshipDegreeLevelI18n,
 	getDeadlineInfo,
 } from "@/lib/utils/displayFormatters";
 
@@ -50,56 +52,52 @@ interface ScholarshipCompareDialogProps {
 }
 
 // ============================================================================
-// Helper Functions
+// Helper Components (need translations passed in)
 // ============================================================================
 
-function getMatchBadge(fitCategory?: string, fitScore?: number) {
+function getMatchBadge(
+	fitCategory: string | undefined,
+	fitScore: number | undefined,
+	labels: {
+		strongFit: string;
+		goodFit: string;
+		competitive: string;
+		incompleteData: string;
+	},
+) {
 	const score = fitScore ?? 0;
 	switch (fitCategory) {
 		case "safety":
 			return (
 				<Badge className="bg-green-100 text-green-700 border-green-200 gap-1">
 					<CheckCircle2 className="w-3 h-3" />
-					Strong Fit ({score}%)
+					{labels.strongFit} ({score}%)
 				</Badge>
 			);
 		case "target":
 			return (
 				<Badge className="bg-blue-100 text-blue-700 border-blue-200 gap-1">
 					<ThumbsUp className="w-3 h-3" />
-					Good Fit ({score}%)
+					{labels.goodFit} ({score}%)
 				</Badge>
 			);
 		case "reach":
 			return (
 				<Badge className="bg-orange-100 text-orange-700 border-orange-200 gap-1">
 					<TrendingUp className="w-3 h-3" />
-					Competitive ({score}%)
+					{labels.competitive} ({score}%)
 				</Badge>
 			);
 		case "unknown":
 			return (
 				<Badge className="bg-amber-100 text-amber-700 border-amber-200 gap-1">
 					<HelpCircle className="w-3 h-3" />
-					Incomplete Data
+					{labels.incompleteData}
 				</Badge>
 			);
 		default:
 			return null;
 	}
-}
-
-function getCoverageDisplay(scholarship: ScholarshipListItemResponse): string {
-	if (scholarship.coveragePercentage) {
-		return `${scholarship.coveragePercentage}% tuition`;
-	}
-	if (scholarship.coverageAmountMin || scholarship.coverageAmountMax) {
-		return formatCoverageAmount(
-			scholarship.coverageAmountMin,
-			scholarship.coverageAmountMax,
-		);
-	}
-	return formatCoverageType(scholarship.coverageType);
 }
 
 // ============================================================================
@@ -108,8 +106,15 @@ function getCoverageDisplay(scholarship: ScholarshipListItemResponse): string {
 
 function ScholarshipHeaderCell({
 	scholarship,
+	matchLabels,
 }: {
 	scholarship: ScholarshipListItemResponse;
+	matchLabels: {
+		strongFit: string;
+		goodFit: string;
+		competitive: string;
+		incompleteData: string;
+	};
 }) {
 	return (
 		<th className="p-4 text-left border-l border-border min-w-64">
@@ -128,7 +133,11 @@ function ScholarshipHeaderCell({
 							<Award className="w-5 h-5 text-primary" />
 						)}
 					</div>
-					{getMatchBadge(scholarship.fitCategory, scholarship.fitScore)}
+					{getMatchBadge(
+						scholarship.fitCategory,
+						scholarship.fitScore,
+						matchLabels,
+					)}
 				</div>
 
 				<div>
@@ -155,22 +164,37 @@ function ScholarshipHeaderCell({
 
 function CoverageCell({
 	scholarship,
+	locale,
+	fullFundedLabel,
 }: {
 	scholarship: ScholarshipListItemResponse;
+	locale: Locale;
+	fullFundedLabel: string;
 }) {
+	const getCoverageDisplay = () => {
+		if (scholarship.coveragePercentage) {
+			return `${scholarship.coveragePercentage}% tuition`;
+		}
+		if (scholarship.coverageAmountMin || scholarship.coverageAmountMax) {
+			return formatCoverageAmount(
+				scholarship.coverageAmountMin,
+				scholarship.coverageAmountMax,
+			);
+		}
+		return formatCoverageTypeI18n(scholarship.coverageType, locale);
+	};
+
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<div className="space-y-1">
-				<p className="font-semibold text-foreground">
-					{getCoverageDisplay(scholarship)}
-				</p>
+				<p className="font-semibold text-foreground">{getCoverageDisplay()}</p>
 				{scholarship.coverageType?.toLowerCase() === "full_funded" && (
 					<Badge className="bg-green-100 text-green-700 border-0 text-xs">
-						Full Funded
+						{fullFundedLabel}
 					</Badge>
 				)}
 				<p className="text-sm text-muted-foreground">
-					{formatCoverageDuration(scholarship.coverageDuration)}
+					{formatCoverageDurationI18n(scholarship.coverageDuration, locale)}
 				</p>
 			</div>
 		</td>
@@ -179,19 +203,24 @@ function CoverageCell({
 
 function EligibilityCell({
 	scholarship,
+	locale,
+	focusLabel,
 }: {
 	scholarship: ScholarshipListItemResponse;
+	locale: Locale;
+	focusLabel: string;
 }) {
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<div className="space-y-1">
 				<p className="font-semibold text-foreground">
-					{formatEligibilityType(scholarship.eligibilityType)}
+					{formatEligibilityTypeI18n(scholarship.eligibilityType, locale)}
 				</p>
 				{scholarship.eligibilityFocus &&
 					scholarship.eligibilityFocus.length > 0 && (
 						<p className="text-sm text-muted-foreground">
-							Focus: {scholarship.eligibilityFocus.slice(0, 2).join(", ")}
+							{focusLabel}:{" "}
+							{scholarship.eligibilityFocus.slice(0, 2).join(", ")}
 						</p>
 					)}
 			</div>
@@ -201,8 +230,12 @@ function EligibilityCell({
 
 function DegreeLevelsCell({
 	scholarship,
+	locale,
+	naLabel,
 }: {
 	scholarship: ScholarshipListItemResponse;
+	locale: Locale;
+	naLabel: string;
 }) {
 	return (
 		<td className="p-4 border-l border-border align-top">
@@ -210,12 +243,12 @@ function DegreeLevelsCell({
 				<div className="flex flex-wrap gap-1">
 					{scholarship.degreeLevels.map((level) => (
 						<Badge key={level} variant="outline" className="text-xs">
-							{formatScholarshipDegreeLevel(level)}
+							{formatScholarshipDegreeLevelI18n(level, locale)}
 						</Badge>
 					))}
 				</div>
 			) : (
-				<span className="text-muted-foreground">N/A</span>
+				<span className="text-muted-foreground">{naLabel}</span>
 			)}
 		</td>
 	);
@@ -223,8 +256,12 @@ function DegreeLevelsCell({
 
 function FieldsCell({
 	scholarship,
+	nMoreLabel,
+	allFieldsLabel,
 }: {
 	scholarship: ScholarshipListItemResponse;
+	nMoreLabel: (n: number) => string;
+	allFieldsLabel: string;
 }) {
 	return (
 		<td className="p-4 border-l border-border align-top">
@@ -237,13 +274,13 @@ function FieldsCell({
 							{scholarship.eligibleFields.slice(0, 2).join(", ")}
 							<span className="text-muted-foreground">
 								{" "}
-								+{scholarship.eligibleFields.length - 2} more
+								{nMoreLabel(scholarship.eligibleFields.length - 2)}
 							</span>
 						</>
 					)}
 				</div>
 			) : (
-				<span className="text-muted-foreground">All fields</span>
+				<span className="text-muted-foreground">{allFieldsLabel}</span>
 			)}
 		</td>
 	);
@@ -251,10 +288,12 @@ function FieldsCell({
 
 function DeadlineCell({
 	scholarship,
+	locale,
 }: {
 	scholarship: ScholarshipListItemResponse;
+	locale: Locale;
 }) {
-	const deadline = getDeadlineInfo(scholarship.applicationDeadline, "en");
+	const deadline = getDeadlineInfo(scholarship.applicationDeadline, locale);
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<div className="space-y-1">
@@ -270,13 +309,12 @@ function DeadlineCell({
 	);
 }
 
-/**
- * GPA requirements row cell
- */
 function GpaCell({
 	scholarship,
+	notRequiredLabel,
 }: {
 	scholarship: ScholarshipListItemResponse;
+	notRequiredLabel: string;
 }) {
 	if (scholarship.minGpa) {
 		return (
@@ -287,15 +325,17 @@ function GpaCell({
 	}
 	return (
 		<td className="p-4 border-l border-border align-top">
-			<span className="text-muted-foreground">Not required</span>
+			<span className="text-muted-foreground">{notRequiredLabel}</span>
 		</td>
 	);
 }
 
 function EnglishCell({
 	scholarship,
+	notSpecifiedLabel,
 }: {
 	scholarship: ScholarshipListItemResponse;
+	notSpecifiedLabel: string;
 }) {
 	const requirements: string[] = [];
 	if (scholarship.minIelts) requirements.push(`IELTS ${scholarship.minIelts}+`);
@@ -304,7 +344,7 @@ function EnglishCell({
 	if (requirements.length === 0) {
 		return (
 			<td className="p-4 border-l border-border align-top">
-				<span className="text-muted-foreground">Not specified</span>
+				<span className="text-muted-foreground">{notSpecifiedLabel}</span>
 			</td>
 		);
 	}
@@ -320,27 +360,18 @@ function EnglishCell({
 
 function AnalysisCell({
 	scholarship,
+	analysisFn,
 }: {
 	scholarship: ScholarshipListItemResponse;
+	analysisFn: (cat?: string) => string;
 }) {
-	const getFitInsight = () => {
-		switch (scholarship.fitCategory) {
-			case "safety":
-				return "Strong match - You exceed most eligibility requirements";
-			case "target":
-				return "Good fit - You meet the core requirements";
-			case "reach":
-				return "Competitive - Consider strengthening your application";
-			default:
-				return "Not enough data for detailed analysis";
-		}
-	};
-
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<div className="flex items-start gap-2 text-sm">
 				<Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-				<span className="text-muted-foreground">{getFitInsight()}</span>
+				<span className="text-muted-foreground">
+					{analysisFn(scholarship.fitCategory)}
+				</span>
 			</div>
 		</td>
 	);
@@ -350,10 +381,14 @@ function ActionsCell({
 	scholarship,
 	onAddToDashboard,
 	onRemoveScholarship,
+	applyLabel,
+	removeLabel,
 }: {
 	scholarship: ScholarshipListItemResponse;
 	onAddToDashboard: (id: string) => void;
 	onRemoveScholarship: (id: string) => void;
+	applyLabel: string;
+	removeLabel: string;
 }) {
 	return (
 		<td className="p-4 border-l border-border align-top">
@@ -365,14 +400,14 @@ function ActionsCell({
 						scholarship.id && onAddToDashboard(scholarship.id);
 					}}
 				>
-					Apply Now
+					{applyLabel}
 				</Button>
 				<button
 					type="button"
 					onClick={() => onRemoveScholarship(scholarship.id ?? "")}
 					className="w-full text-sm text-muted-foreground hover:text-destructive transition-colors text-center"
 				>
-					Remove from comparison
+					{removeLabel}
 				</button>
 			</div>
 		</td>
@@ -407,34 +442,53 @@ export function ScholarshipCompareDialog({
 	onRemoveScholarship,
 	onAddToDashboard,
 }: ScholarshipCompareDialogProps) {
+	const t = useTranslations("compare");
+	const locale = useLocale() as Locale;
+
+	const matchLabels = {
+		strongFit: t("strongFitLabel"),
+		goodFit: t("goodFitLabel"),
+		competitive: t("competitiveLabel"),
+		incompleteData: t("incompleteDataLabel"),
+	};
+
+	const getFitAnalysis = (cat?: string) => {
+		switch (cat) {
+			case "safety":
+				return t("strongFitAnalysis");
+			case "target":
+				return t("goodFitAnalysis");
+			case "reach":
+				return t("reachAnalysis");
+			default:
+				return t("unknownAnalysis");
+		}
+	};
+
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange}>
 			<DrawerContent className="max-h-[90vh] p-0 gap-0 overflow-hidden">
 				<DrawerHeader className="sr-only">
-					<DrawerTitle>Compare Scholarships</DrawerTitle>
-					<DrawerDescription>
-						Compare selected scholarships side by side
-					</DrawerDescription>
+					<DrawerTitle>{t("compareScholarships")}</DrawerTitle>
+					<DrawerDescription>{t("compareScholarshipsDesc")}</DrawerDescription>
 				</DrawerHeader>
 
 				<ScrollArea className="max-h-[90vh] overflow-y-auto">
 					<div className="p-6">
-						{/* Comparison Table */}
 						<div className="border border-border rounded-lg overflow-hidden">
 							<table className="w-full">
 								<thead>
 									<tr className="border-b border-border bg-muted/30">
-										{/* Label Column */}
 										<th className="p-4 text-left font-medium text-sm text-muted-foreground w-40 align-top">
 											<span className="uppercase tracking-wide text-xs">
-												Comparison Criteria
+												{t("comparisonCriteria")}
 											</span>
 										</th>
-										{/* Scholarship Columns */}
 										{selectedScholarshipsList.map((scholarship) => (
 											<ScholarshipHeaderCell
 												key={scholarship.id}
 												scholarship={scholarship}
+												matchLabels={matchLabels}
 											/>
 										))}
 									</tr>
@@ -442,87 +496,107 @@ export function ScholarshipCompareDialog({
 								<tbody>
 									{/* Coverage Row */}
 									<tr className="border-b border-border">
-										<RowLabel icon={DollarSign} label="Coverage" />
+										<RowLabel icon={DollarSign} label={t("coverage")} />
 										{selectedScholarshipsList.map((scholarship) => (
 											<CoverageCell
 												key={scholarship.id}
 												scholarship={scholarship}
+												locale={locale}
+												fullFundedLabel={t("fullFunded")}
 											/>
 										))}
 									</tr>
 
 									{/* Eligibility Type Row */}
 									<tr className="border-b border-border">
-										<RowLabel icon={Award} label="Eligibility Type" />
+										<RowLabel icon={Award} label={t("eligibilityType")} />
 										{selectedScholarshipsList.map((scholarship) => (
 											<EligibilityCell
 												key={scholarship.id}
 												scholarship={scholarship}
+												locale={locale}
+												focusLabel={t("focus")}
 											/>
 										))}
 									</tr>
 
 									{/* Degree Levels Row */}
 									<tr className="border-b border-border">
-										<RowLabel icon={GraduationCap} label="Degree Levels" />
+										<RowLabel icon={GraduationCap} label={t("degreeLevels")} />
 										{selectedScholarshipsList.map((scholarship) => (
 											<DegreeLevelsCell
 												key={scholarship.id}
 												scholarship={scholarship}
+												locale={locale}
+												naLabel="N/A"
 											/>
 										))}
 									</tr>
 
 									{/* Eligible Fields Row */}
 									<tr className="border-b border-border">
-										<RowLabel icon={FileText} label="Eligible Fields" />
+										<RowLabel icon={FileText} label={t("eligibleFields")} />
 										{selectedScholarshipsList.map((scholarship) => (
 											<FieldsCell
 												key={scholarship.id}
 												scholarship={scholarship}
+												nMoreLabel={(n) => t("nMore").replace("{n}", String(n))}
+												allFieldsLabel={t("allFields")}
 											/>
 										))}
 									</tr>
 
 									{/* Deadline Row */}
 									<tr className="border-b border-border">
-										<RowLabel icon={Calendar} label="Application Deadline" />
+										<RowLabel
+											icon={Calendar}
+											label={t("applicationDeadline")}
+										/>
 										{selectedScholarshipsList.map((scholarship) => (
 											<DeadlineCell
 												key={scholarship.id}
 												scholarship={scholarship}
+												locale={locale}
 											/>
 										))}
 									</tr>
 
 									{/* GPA Requirements Row */}
 									<tr className="border-b border-border">
-										<RowLabel icon={GraduationCap} label="Min GPA" />
+										<RowLabel icon={GraduationCap} label={t("minGpa")} />
 										{selectedScholarshipsList.map((scholarship) => (
-											<GpaCell key={scholarship.id} scholarship={scholarship} />
+											<GpaCell
+												key={scholarship.id}
+												scholarship={scholarship}
+												notRequiredLabel={t("notRequired")}
+											/>
 										))}
 									</tr>
 
 									{/* English Requirements Row */}
 									<tr className="border-b border-border">
-										<RowLabel icon={Languages} label="English Requirement" />
+										<RowLabel
+											icon={Languages}
+											label={t("englishRequirement")}
+										/>
 										{selectedScholarshipsList.map((scholarship) => (
 											<EnglishCell
 												key={scholarship.id}
 												scholarship={scholarship}
+												notSpecifiedLabel={t("notSpecified")}
 											/>
 										))}
 									</tr>
 
-									{/* Detailed Analysis Row */}
+									{/* Fit Analysis Row */}
 									<tr className="border-b border-border bg-blue-50/50 dark:bg-blue-950/20">
 										<td className="p-4 align-top">
 											<div className="flex items-start gap-2 text-sm font-medium text-primary">
 												<Info className="w-4 h-4 mt-0.5" />
 												<div>
-													<p>Fit Analysis</p>
+													<p>{t("fitAnalysis")}</p>
 													<p className="font-normal text-xs text-muted-foreground mt-1">
-														Based on your profile
+														{t("basedOnYourProfile")}
 													</p>
 												</div>
 											</div>
@@ -531,6 +605,7 @@ export function ScholarshipCompareDialog({
 											<AnalysisCell
 												key={scholarship.id}
 												scholarship={scholarship}
+												analysisFn={getFitAnalysis}
 											/>
 										))}
 									</tr>
@@ -544,6 +619,8 @@ export function ScholarshipCompareDialog({
 												scholarship={scholarship}
 												onAddToDashboard={onAddToDashboard}
 												onRemoveScholarship={onRemoveScholarship}
+												applyLabel={t("applyNow")}
+												removeLabel={t("removeFromComparison")}
 											/>
 										))}
 									</tr>
@@ -551,7 +628,7 @@ export function ScholarshipCompareDialog({
 							</table>
 						</div>
 
-						{/* Add More Scholarships CTA */}
+						{/* Add More CTA */}
 						{selectedScholarshipsList.length < 4 && (
 							<div className="mt-6 flex justify-center">
 								<Button
@@ -560,7 +637,7 @@ export function ScholarshipCompareDialog({
 									className="gap-2"
 								>
 									<Plus className="w-4 h-4" />
-									Add more scholarships to compare (Max 4)
+									{t("addMoreScholarships")}
 								</Button>
 							</div>
 						)}

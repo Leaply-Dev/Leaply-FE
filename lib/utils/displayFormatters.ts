@@ -640,6 +640,38 @@ export function formatEligibilityFocus(focus?: string | null): string {
 	);
 }
 
+const ELIGIBILITY_FOCUS_LABELS_I18N: Record<Locale, Record<string, string>> = {
+	en: {
+		academic: "Academic",
+		holistic: "Holistic",
+		leadership: "Leadership",
+		research: "Research",
+		community_service: "Community Service",
+	},
+	vi: {
+		academic: "Học thuật",
+		holistic: "Toàn diện",
+		leadership: "Lãnh đạo",
+		research: "Nghiên cứu",
+		community_service: "Phục vụ cộng đồng",
+	},
+};
+
+/**
+ * Format eligibility focus with locale support
+ * @example formatEligibilityFocusI18n("leadership", "vi") → "Lãnh đạo"
+ */
+export function formatEligibilityFocusI18n(
+	focus?: string | null,
+	locale: Locale = "en",
+): string {
+	if (!focus) return "N/A";
+	return (
+		ELIGIBILITY_FOCUS_LABELS_I18N[locale][focus.toLowerCase()] ||
+		formatSnakeCase(focus)
+	);
+}
+
 // -----------------------------------------------------------------------------
 // Scholarship Degree Level
 // -----------------------------------------------------------------------------
