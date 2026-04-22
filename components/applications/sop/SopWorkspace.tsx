@@ -201,6 +201,7 @@ function StartPrompt({
 						placeholder={t("promptPlaceholder")}
 						className="min-h-[80px] resize-none text-sm"
 					/>
+					<p className="text-xs text-muted-foreground">{t("promptRequired")}</p>
 				</div>
 
 				{/* Word Limit Input */}
@@ -222,7 +223,7 @@ function StartPrompt({
 				{/* Start Button */}
 				<Button
 					onClick={handleStart}
-					disabled={isLoading}
+					disabled={isLoading || !promptText.trim()}
 					className="w-full"
 					size="lg"
 				>

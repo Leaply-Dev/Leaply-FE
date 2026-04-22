@@ -1192,11 +1192,21 @@
 	},
 	"sop": {
 		"title": "Write SOP",
-		"pastePrompt": "Paste SOP prompt (optional)",
+		"pastePrompt": "Paste SOP prompt",
 		"promptPlaceholder": "E.g.: Describe your purpose for pursuing this graduate program...",
 		"wordLimit": "Word limit:",
 		"words": "words",
 		"start": "Start",
+		"promptRequired": "Required — AI uses this to generate relevant angle suggestions",
+		"writingTone": "Writing tone",
+		"toneAcademic": "Academic",
+		"tonePassionate": "Passionate",
+		"toneDirect": "Direct",
+		"toneDesc": {
+			"academic": "Formal, analytical, research-focused",
+			"passionate": "Emotional, story-driven, personal",
+			"direct": "Clear, concise, action-oriented"
+		},
 		"selectAngle": "Select writing angle",
 		"aiAnalyzing": "AI will analyze Persona Lab and suggest suitable writing angles.",
 		"generating": "Analyzing...",

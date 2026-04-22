@@ -1192,11 +1192,21 @@
 	},
 	"sop": {
 		"title": "Viết SOP",
-		"pastePrompt": "Dán đề bài SOP (tùy chọn)",
+		"pastePrompt": "Dán đề bài SOP",
 		"promptPlaceholder": "VD: Describe your purpose for pursuing this graduate program...",
 		"wordLimit": "Giới hạn từ:",
 		"words": "từ",
 		"start": "Bắt đầu",
+		"promptRequired": "Bắt buộc — AI dùng đề bài để tạo gợi ý phù hợp",
+		"writingTone": "Giọng văn",
+		"toneAcademic": "Học thuật",
+		"tonePassionate": "Đam mê",
+		"toneDirect": "Trực tiếp",
+		"toneDesc": {
+			"academic": "Chính thức, phân tích, hướng nghiên cứu",
+			"passionate": "Cảm xúc, kể chuyện cá nhân",
+			"direct": "Rõ ràng, súc tích, định hướng hành động"
+		},
 		"selectAngle": "Chọn góc viết",
 		"aiAnalyzing": "AI sẽ phân tích Persona Lab và đề xuất các góc viết phù hợp.",
 		"generating": "Đang phân tích...",
