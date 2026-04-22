@@ -338,6 +338,10 @@ export function ChatSidebar() {
 			onSuccess: () => {
 				clearGraphMessages();
 				clearApiGraph();
+				// Remove persona state cache entirely so the stale cached messages
+				// can't be replayed into the store by the PersonaStateSync effect
+				// (which re-fires when coverage/graph invalidations settle).
+				queryClient.removeQueries({ queryKey: getGetPersonaStateQueryKey() });
 				queryClient.invalidateQueries({ queryKey: getGetCoverageQueryKey() });
 				queryClient.invalidateQueries({
 					queryKey: getStartConversationQueryKey(),
