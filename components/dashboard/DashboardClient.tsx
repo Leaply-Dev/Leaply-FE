@@ -13,6 +13,7 @@ import {
 	Target,
 	User,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
@@ -461,13 +462,24 @@ export function DashboardClient() {
 															>
 																<TableCell className="py-3">
 																	<div className="flex items-center gap-3">
-																		<Avatar className="h-9 w-9 border">
-																			<AvatarFallback className="text-[10px] text-muted-foreground">
-																				{(app.universityName ?? "")
-																					.substring(0, 2)
-																					.toUpperCase()}
-																			</AvatarFallback>
-																		</Avatar>
+																		{app.universityLogoUrl ? (
+																			<div className="relative h-9 w-9 rounded-md border overflow-hidden bg-white">
+																				<Image
+																					src={app.universityLogoUrl}
+																					alt={app.universityName || ""}
+																					fill
+																					className="object-contain p-1"
+																				/>
+																			</div>
+																		) : (
+																			<Avatar className="h-9 w-9 border">
+																				<AvatarFallback className="text-[10px] text-muted-foreground">
+																					{(app.universityName ?? "")
+																						.substring(0, 2)
+																						.toUpperCase()}
+																				</AvatarFallback>
+																			</Avatar>
+																		)}
 																		<div className="flex flex-col">
 																			<span className="font-medium text-sm leading-none mb-1">
 																				{app.universityName}

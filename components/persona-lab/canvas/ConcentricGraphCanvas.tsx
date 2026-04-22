@@ -394,29 +394,30 @@ export function ConcentricGraphCanvas({
 						</Button>
 					</div>
 
-						{/* Unified minimal node content — all types share the same layout */}
-						<div className="space-y-3">
-							{selectedGraphNode && (
-								<>
-									{/* Content */}
-									<div className="p-3 bg-muted/50 rounded-md">
-										<p className="text-xs leading-relaxed">
-											{selectedGraphNode.content || "No content"}
-										</p>
-									</div>
+					{/* Unified minimal node content — all types share the same layout */}
+					<div className="space-y-3">
+						{selectedGraphNode && (
+							<>
+								{/* Content */}
+								<div className="p-3 bg-muted/50 rounded-md">
+									<p className="text-xs leading-relaxed">
+										{selectedGraphNode.content || "No content"}
+									</p>
+								</div>
 
-									{/* Takeaway / CTA (from essayAngle) */}
-									{selectedGraphNode.essayAngle && (
-										<div className="p-3 bg-amber-500/5 rounded-md border border-amber-500/15">
+								{/* Takeaway / CTA (from essayAngle) */}
+								{selectedGraphNode.essayAngle && (
+									<div className="p-3 bg-amber-500/5 rounded-md border border-amber-500/15">
 										<p className="text-xs text-amber-700 leading-relaxed">
 											<span className="mr-1">💡</span>
 											{selectedGraphNode.essayAngle}
 										</p>
 									</div>
-									)}
+								)}
 
-									{/* Expand Button for story nodes with gaps */}
-									{selectedNode.type === "key_story" && selectedNodeStarGaps.length > 0 && (
+								{/* Expand Button for story nodes with gaps */}
+								{selectedNode.type === "key_story" &&
+									selectedNodeStarGaps.length > 0 && (
 										<Button
 											variant="outline"
 											size="sm"
@@ -439,26 +440,25 @@ export function ConcentricGraphCanvas({
 										</Button>
 									)}
 
-									{/* Tags */}
-									{selectedGraphNode.tags &&
-										selectedGraphNode.tags.length > 0 && (
-											<div className="flex flex-wrap gap-1">
-												{selectedGraphNode.tags.map((tag) => (
-													<span
-														key={tag}
-														className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground"
-													>
-														{tag}
-													</span>
-												))}
-											</div>
-										)}
-								</>
-								)}
-						</div>
-
+								{/* Tags */}
+								{selectedGraphNode.tags &&
+									selectedGraphNode.tags.length > 0 && (
+										<div className="flex flex-wrap gap-1">
+											{selectedGraphNode.tags.map((tag) => (
+												<span
+													key={tag}
+													className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground"
+												>
+													{tag}
+												</span>
+											))}
+										</div>
+									)}
+							</>
+						)}
 					</div>
-				)}
+				</div>
+			)}
 			{/* Stats Badge - only show when there are nodes */}
 			{!isEmpty && (
 				<div className="absolute bottom-4 right-4 bg-card/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg">

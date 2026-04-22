@@ -56,6 +56,7 @@ function buildItems(
 			title: app.program?.universityName ?? "",
 			subtitle: app.program?.programName ?? "",
 			universityName: app.program?.universityName,
+			logoUrl: app.program?.universityLogoUrl,
 			status: app.status,
 			sopStatus: app.sopStatus,
 			deadline: app.program?.nextDeadline,

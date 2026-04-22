@@ -37,9 +37,7 @@ export function useGraphForces() {
 			refetchInterval: () => {
 				const msgs = usePersonaStore.getState().graphMessages;
 				if (msgs.length === 0) return false;
-				const lastTime = new Date(
-					msgs[msgs.length - 1].timestamp,
-				).getTime();
+				const lastTime = new Date(msgs[msgs.length - 1].timestamp).getTime();
 				const elapsed = Date.now() - lastTime;
 				return elapsed < 30000 ? 2000 : false;
 			},

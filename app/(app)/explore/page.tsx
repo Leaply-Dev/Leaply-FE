@@ -151,8 +151,7 @@ function ExplorePageContent() {
 				<div className="border-b border-border bg-background">
 					<div className="container mx-auto px-6 pt-10 pb-5">
 						<h1 className="text-center text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-[1.2] pb-1">
-							{t("heroTitle")}{" "}
-							<FlippingWord activeTab={activeTab} />
+							{t("heroTitle")} <FlippingWord activeTab={activeTab} />
 						</h1>
 
 						<div className="mt-8 flex justify-center">
