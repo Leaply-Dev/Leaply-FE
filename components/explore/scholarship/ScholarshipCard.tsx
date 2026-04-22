@@ -18,15 +18,17 @@ import {
 	Users,
 } from "lucide-react";
 import Image from "next/image";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ScholarshipListItemResponse } from "@/lib/generated/api/models";
+import type { Locale } from "@/lib/utils/displayFormatters";
 import {
 	formatCoverageAmount,
-	formatCoverageType,
+	formatCoverageTypeI18n,
 	formatDate,
-	formatEligibilityType,
-	formatScholarshipDegreeLevel,
+	formatEligibilityTypeI18n,
+	formatScholarshipDegreeLevelI18n,
 	isDeadlinePast,
 } from "@/lib/utils/displayFormatters";
 
@@ -56,18 +58,21 @@ export function ScholarshipCard({
 	onManage,
 	isAdding,
 }: ScholarshipCardProps) {
+	const t = useTranslations("explore");
+	const locale = useLocale() as Locale;
+
 	// Check if deadline exists and is not past
 	const hasValidDeadline =
 		scholarship.applicationDeadline &&
 		!isDeadlinePast(scholarship.applicationDeadline);
 
 	// Format coverage display
-	const coverageDisplay = getCoverageDisplay(scholarship);
+	const coverageDisplay = getCoverageDisplay(scholarship, locale, t);
 
 	// Get degree levels display
 	const degreeLevelsDisplay = scholarship.degreeLevels
 		?.slice(0, 2)
-		.map((level) => formatScholarshipDegreeLevel(level))
+		.map((level) => formatScholarshipDegreeLevelI18n(level, locale))
 		.join(", ");
 
 	return (
@@ -127,7 +132,7 @@ export function ScholarshipCard({
 				<div className="flex flex-wrap gap-1.5 mb-3">
 					{scholarship.fitScore && (
 						<Badge className="bg-primary/10 text-primary border-0 text-xs">
-							{scholarship.fitScore}% Match
+							{scholarship.fitScore}% {t("table.match")}
 						</Badge>
 					)}
 
@@ -140,7 +145,7 @@ export function ScholarshipCard({
 							}`}
 						>
 							<Sparkles className="w-3 h-3" />
-							{formatCoverageType(scholarship.coverageType)}
+							{formatCoverageTypeI18n(scholarship.coverageType, locale)}
 						</Badge>
 					)}
 
@@ -150,7 +155,7 @@ export function ScholarshipCard({
 							className="text-xs gap-1 border-muted-foreground/30"
 						>
 							<Target className="w-3 h-3" />
-							{formatEligibilityType(scholarship.eligibilityType)}
+							{formatEligibilityTypeI18n(scholarship.eligibilityType, locale)}
 						</Badge>
 					)}
 
@@ -183,7 +188,9 @@ export function ScholarshipCard({
 								<span className="truncate">
 									{scholarship.eligibleFields.length === 1
 										? scholarship.eligibleFields[0]
-										: `${scholarship.eligibleFields.length} fields`}
+										: t("card.nFields", {
+												count: scholarship.eligibleFields.length,
+											})}
 								</span>
 							</div>
 						)}
@@ -195,8 +202,10 @@ export function ScholarshipCard({
 								<Users className="w-3.5 h-3.5 shrink-0" />
 								<span className="truncate">
 									{scholarship.nationalityEligible.includes("all")
-										? "All nationalities"
-										: `${scholarship.nationalityEligible.length} countries`}
+										? t("card.allNationalities")
+										: t("card.nCountries", {
+												count: scholarship.nationalityEligible.length,
+											})}
 								</span>
 							</div>
 						)}
@@ -206,7 +215,7 @@ export function ScholarshipCard({
 						<div className="flex items-center gap-1.5 text-muted-foreground col-span-2">
 							<Calendar className="w-3.5 h-3.5 shrink-0" />
 							<span className="truncate">
-								Deadline:{" "}
+								{t("table.deadline")}:{" "}
 								{formatDate(scholarship.applicationDeadline, { short: true })}
 							</span>
 						</div>
@@ -258,12 +267,12 @@ export function ScholarshipCard({
 					{isSelected ? (
 						<>
 							<Check className="w-4 h-4" />
-							Added
+							{t("table.added")}
 						</>
 					) : (
 						<>
 							<Plus className="w-4 h-4" />
-							Compare
+							{t("table.compare")}
 						</>
 					)}
 				</Button>
@@ -283,16 +292,16 @@ export function ScholarshipCard({
 					{isInDashboard ? (
 						<>
 							<Settings2 className="w-4 h-4" />
-							Manage
+							{t("table.manage")}
 						</>
 					) : isAdding ? (
 						<>
 							<Loader2 className="w-4 h-4 animate-spin" />
-							Adding...
+							{t("table.adding")}
 						</>
 					) : (
 						<>
-							Apply
+							{t("table.apply")}
 							<ArrowRight className="w-4 h-4" />
 						</>
 					)}
@@ -307,10 +316,14 @@ export function ScholarshipCard({
  */
 function getCoverageDisplay(
 	scholarship: ScholarshipListItemResponse,
+	locale: Locale,
+	t: ReturnType<typeof useTranslations<"explore">>,
 ): string | null {
 	// Priority 1: Percentage (for partial scholarships)
 	if (scholarship.coveragePercentage) {
-		return `${scholarship.coveragePercentage}% tuition`;
+		return t("card.percentTuition", {
+			percent: scholarship.coveragePercentage,
+		});
 	}
 
 	// Priority 2: Amount range
@@ -324,7 +337,7 @@ function getCoverageDisplay(
 
 	// Priority 3: Full funded indicator
 	if (scholarship.coverageType?.toLowerCase() === "full_funded") {
-		return "Full tuition";
+		return t("card.fullTuition");
 	}
 
 	return null;

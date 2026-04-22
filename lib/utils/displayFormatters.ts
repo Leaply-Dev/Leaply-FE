@@ -63,6 +63,19 @@ const DELIVERY_MODE_LABELS: Record<string, string> = {
 	hybrid: "Hybrid",
 };
 
+const DELIVERY_MODE_LABELS_I18N: Record<Locale, Record<string, string>> = {
+	en: {
+		on_campus: "On Campus",
+		online: "Online",
+		hybrid: "Hybrid",
+	},
+	vi: {
+		on_campus: "Học tại cơ sở",
+		online: "Trực tuyến",
+		hybrid: "Kết hợp",
+	},
+};
+
 /**
  * Format delivery mode enum to display label
  * @example "on_campus" → "On Campus"
@@ -70,6 +83,21 @@ const DELIVERY_MODE_LABELS: Record<string, string> = {
 export function formatDeliveryMode(mode?: string | null): string {
 	if (!mode) return "N/A";
 	return DELIVERY_MODE_LABELS[mode.toLowerCase()] || formatSnakeCase(mode);
+}
+
+/**
+ * Format delivery mode enum with locale support
+ * @example formatDeliveryModeI18n("on_campus", "vi") → "Học tại cơ sở"
+ */
+export function formatDeliveryModeI18n(
+	mode?: string | null,
+	locale: Locale = "en",
+): string {
+	if (!mode) return "N/A";
+	return (
+		DELIVERY_MODE_LABELS_I18N[locale][mode.toLowerCase()] ||
+		formatSnakeCase(mode)
+	);
 }
 
 // =============================================================================
@@ -176,12 +204,15 @@ export function formatTuitionRange(
 	min?: number | null,
 	max?: number | null,
 	currency = "USD",
+	locale: Locale = "en",
 ): string {
 	if (min === null && max === null) return "N/A";
 	if (min === undefined && max === undefined) return "N/A";
 
 	const symbol = CURRENCY_SYMBOLS[currency.toUpperCase()] || "";
 	const currencyCode = currency.toUpperCase();
+	const yearSuffix = locale === "vi" ? "/năm" : "/yr";
+	const upToLabel = locale === "vi" ? "Tối đa" : "Up to";
 
 	const formatValue = (val: number) =>
 		new Intl.NumberFormat("en-US", {
@@ -190,17 +221,17 @@ export function formatTuitionRange(
 
 	// Only min exists, or min equals max
 	if (min && (!max || min === max)) {
-		return `${symbol}${formatValue(min)} ${currencyCode}/yr`;
+		return `${symbol}${formatValue(min)} ${currencyCode}${yearSuffix}`;
 	}
 
 	// Only max exists
 	if (!min && max) {
-		return `Up to ${symbol}${formatValue(max)} ${currencyCode}/yr`;
+		return `${upToLabel} ${symbol}${formatValue(max)} ${currencyCode}${yearSuffix}`;
 	}
 
 	// Both min and max exist and are different
 	if (min && max && min !== max) {
-		return `${symbol}${formatValue(min)} - ${symbol}${formatValue(max)} ${currencyCode}/yr`;
+		return `${symbol}${formatValue(min)} - ${symbol}${formatValue(max)} ${currencyCode}${yearSuffix}`;
 	}
 
 	return "N/A";
@@ -251,6 +282,36 @@ export function formatDuration(months?: number | null): string {
 		return `${years}.5 years`;
 	}
 
+	return `${years}y ${remainingMonths}m`;
+}
+
+/**
+ * Format duration in months with locale support
+ * @example formatDurationI18n(24, "vi") → "2 năm"
+ * @example formatDurationI18n(18, "vi") → "1.5 năm"
+ * @example formatDurationI18n(135, "vi") → "11 năm 3 tháng"
+ */
+export function formatDurationI18n(
+	months?: number | null,
+	locale: Locale = "en",
+): string {
+	if (!months) return "N/A";
+
+	const years = Math.floor(months / 12);
+	const remainingMonths = months % 12;
+
+	if (locale === "vi") {
+		if (years === 0) return `${remainingMonths} tháng`;
+		if (remainingMonths === 0) return `${years} năm`;
+		if (remainingMonths >= 5 && remainingMonths <= 7) return `${years}.5 năm`;
+		return `${years} năm ${remainingMonths} tháng`;
+	}
+
+	// en
+	if (years === 0)
+		return `${remainingMonths} month${remainingMonths !== 1 ? "s" : ""}`;
+	if (remainingMonths === 0) return `${years} year${years > 1 ? "s" : ""}`;
+	if (remainingMonths >= 5 && remainingMonths <= 7) return `${years}.5 years`;
 	return `${years}y ${remainingMonths}m`;
 }
 
@@ -599,6 +660,37 @@ export function formatScholarshipDegreeLevel(level?: string | null): string {
 	if (!level) return "N/A";
 	return (
 		SCHOLARSHIP_DEGREE_LEVEL_LABELS[level.toLowerCase()] ||
+		formatSnakeCase(level)
+	);
+}
+
+const SCHOLARSHIP_DEGREE_LEVEL_LABELS_I18N: Record<
+	Locale,
+	Record<string, string>
+> = {
+	en: {
+		bachelor: "Bachelor's",
+		master: "Master's",
+		phd: "PhD",
+	},
+	vi: {
+		bachelor: "Cử nhân",
+		master: "Thạc sĩ",
+		phd: "Tiến sĩ",
+	},
+};
+
+/**
+ * Format scholarship degree level with locale support
+ * @example formatScholarshipDegreeLevelI18n("master", "vi") → "Thạc sĩ"
+ */
+export function formatScholarshipDegreeLevelI18n(
+	level?: string | null,
+	locale: Locale = "en",
+): string {
+	if (!level) return "N/A";
+	return (
+		SCHOLARSHIP_DEGREE_LEVEL_LABELS_I18N[locale][level.toLowerCase()] ||
 		formatSnakeCase(level)
 	);
 }

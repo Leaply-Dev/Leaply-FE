@@ -16,19 +16,20 @@ import {
 	Settings2,
 } from "lucide-react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type {
 	ProgramListItemResponse,
 	UserContextResponse,
 } from "@/lib/generated/api/models";
+import type { Locale } from "@/lib/utils/displayFormatters";
 import {
 	formatCountryName,
 	formatDate,
 	formatDegreeType,
-	formatDeliveryMode,
-	formatDuration,
+	formatDeliveryModeI18n,
+	formatDurationI18n,
 	formatIeltsRequirement,
 	formatTuitionRange,
 	isDeadlinePast,
@@ -60,6 +61,7 @@ export function ProgramCard({
 	onManage,
 }: ProgramCardProps) {
 	const t = useTranslations("explore");
+	const locale = useLocale() as Locale;
 
 	// Check if deadline exists and is not past
 	const hasValidDeadline =
@@ -156,6 +158,7 @@ export function ProgramCard({
 									program.tuitionAnnualMin,
 									program.tuitionAnnualMax,
 									program.tuitionCurrency || "USD",
+									locale,
 								)}
 							</span>
 						</div>
@@ -166,7 +169,7 @@ export function ProgramCard({
 						<div className="flex items-center gap-1.5 text-muted-foreground">
 							<Clock className="w-3.5 h-3.5 shrink-0" />
 							<span className="truncate">
-								{formatDuration(program.durationMonths)}
+								{formatDurationI18n(program.durationMonths, locale)}
 							</span>
 						</div>
 					)}
@@ -176,7 +179,7 @@ export function ProgramCard({
 						<div className="flex items-center gap-1.5 text-muted-foreground">
 							<Laptop className="w-3.5 h-3.5 shrink-0" />
 							<span className="truncate">
-								{formatDeliveryMode(program.deliveryMode)}
+								{formatDeliveryModeI18n(program.deliveryMode, locale)}
 							</span>
 						</div>
 					)}

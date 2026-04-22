@@ -762,6 +762,13 @@
       "overBudget": "Over budget",
       "overBudgetAmount": "{amount} over",
       "scholarshipsAvailable": "Scholarships available"
+    },
+    "card": {
+      "nFields": "{count} fields",
+      "nCountries": "{count} countries",
+      "allNationalities": "All nationalities",
+      "fullTuition": "Full tuition",
+      "percentTuition": "{percent}% tuition"
     }
   },
   "personaLab": {

@@ -18,7 +18,7 @@ import {
 	Trophy,
 } from "lucide-react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,10 +30,11 @@ import {
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ProgramListItemResponse } from "@/lib/generated/api/models";
+import type { Locale } from "@/lib/utils/displayFormatters";
 import {
 	formatCountryName,
-	formatDeliveryMode,
-	formatDuration,
+	formatDeliveryModeI18n,
+	formatDurationI18n,
 	formatTuitionRange,
 	getDeadlineInfo,
 } from "@/lib/utils/displayFormatters";
@@ -165,6 +166,7 @@ function ProgramHeaderCell({ program }: { program: ProgramListItemResponse }) {
 
 function TuitionCell({ program }: { program: ProgramListItemResponse }) {
 	const t = useTranslations("compare");
+	const locale = useLocale() as Locale;
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<div className="space-y-1">
@@ -174,6 +176,7 @@ function TuitionCell({ program }: { program: ProgramListItemResponse }) {
 								program.tuitionAnnualMin,
 								program.tuitionAnnualMax,
 								program.tuitionCurrency || "USD",
+								locale,
 							)
 						: "N/A"}
 				</p>
@@ -223,12 +226,16 @@ function RankingCell({ program }: { program: ProgramListItemResponse }) {
 	);
 }
 function DegreeDeliveryCell({ program }: { program: ProgramListItemResponse }) {
+	const locale = useLocale() as Locale;
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<div className="space-y-1">
 				<div className="flex items-center gap-2 text-sm text-muted-foreground">
 					<span>
-						{[program.degreeName, formatDeliveryMode(program.deliveryMode)]
+						{[
+							program.degreeName,
+							formatDeliveryModeI18n(program.deliveryMode, locale),
+						]
 							.filter((v) => v && v !== "N/A")
 							.join(" • ")}
 					</span>
@@ -239,10 +246,11 @@ function DegreeDeliveryCell({ program }: { program: ProgramListItemResponse }) {
 }
 
 function DurationCell({ program }: { program: ProgramListItemResponse }) {
+	const locale = useLocale() as Locale;
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<span className="text-foreground">
-				{formatDuration(program.durationMonths)}
+				{formatDurationI18n(program.durationMonths, locale)}
 			</span>
 		</td>
 	);

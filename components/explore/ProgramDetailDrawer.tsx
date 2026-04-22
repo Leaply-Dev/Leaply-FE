@@ -21,7 +21,7 @@ import {
 	TrendingUp,
 } from "lucide-react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,9 +42,11 @@ import type {
 	ProgramIntakeResponse,
 	ProgramListItemResponse,
 } from "@/lib/generated/api/models";
+import type { Locale } from "@/lib/utils/displayFormatters";
 import {
 	formatCurrencyWithCode,
-	formatDeliveryMode,
+	formatDeliveryModeI18n,
+	formatDurationI18n,
 	formatLanguage,
 	formatTuitionRange,
 } from "@/lib/utils/displayFormatters";
@@ -374,15 +376,6 @@ function formatCurrency(value?: number): string {
 	}).format(value);
 }
 
-function formatDuration(months?: number): string {
-	if (!months) return "N/A";
-	const years = Math.floor(months / 12);
-	const remainingMonths = months % 12;
-	if (years === 0) return `${remainingMonths} months`;
-	if (remainingMonths === 0) return `${years} year${years > 1 ? "s" : ""}`;
-	return `${years}y ${remainingMonths}m`;
-}
-
 // TODO: Enable IntakeCard when backend supports detailed intake data (seasons, deadlines, etc.)
 function _IntakeCard({
 	intake,
@@ -464,6 +457,7 @@ export function ProgramDetailDrawer({
 	onAddToDashboard,
 }: ProgramDetailDrawerProps) {
 	const t = useTranslations("explore.programDetail");
+	const locale = useLocale() as Locale;
 	// TODO: Implement intake expansion UI when backend provides multiple intake periods
 	const [_expandedIntake, _setExpandedIntake] = useState<string | null>(null);
 
@@ -578,7 +572,7 @@ export function ProgramDetailDrawer({
 											{t("duration")}
 										</p>
 										<p className="font-semibold text-sm text-foreground mt-0.5 font-num">
-											{formatDuration(program.durationMonths)}
+											{formatDurationI18n(program.durationMonths, locale)}
 										</p>
 									</div>
 									<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
@@ -587,7 +581,7 @@ export function ProgramDetailDrawer({
 											{t("studyMode")}
 										</p>
 										<p className="font-semibold text-sm text-foreground mt-0.5">
-											{formatDeliveryMode(program.deliveryMode)}
+											{formatDeliveryModeI18n(program.deliveryMode, locale)}
 										</p>
 									</div>
 									<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
@@ -619,6 +613,7 @@ export function ProgramDetailDrawer({
 													program.tuition?.annualMin,
 													program.tuition?.annualMax,
 													program.tuition?.currency || "USD",
+													locale,
 												)}
 											</p>
 										</div>

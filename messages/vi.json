@@ -180,7 +180,7 @@
 		"step2Title": "Nhận gợi ý phù hợp",
 		"step2Quote": "Có QUÁ nhiều trường... trường nào mới phù hợp với mình?",
 		"step2Desc": "AI của chúng mình phân tích và tìm ra những trường phù hợp với profile, ngân sách và mục tiêu của bạn. Mỗi gợi ý đều có điểm match và insights thực tế.",
-		"step3Title": "Apply không stress",
+		"step3Title": "Nộp hồ sơ không stress",
 		"step3Quote": "Làm sao nhớ hết mấy cái deadline này?!",
 		"step3Desc": "Chúng mình hỗ trợ bạn. Nhắc deadline, checklist giấy tờ, theo dõi tiến độ — tất cả một chỗ. Không còn hỗn loạn Excel.",
 		"step4Title": "Tỏa sáng",
@@ -243,7 +243,7 @@
 		"heroTitleHighlight": "vị trí của bạn",
 		"heroSubtitle": "Chúng mình là một nhóm sinh viên và cựu sinh viên Việt Nam đã tự trải qua quá trình du học. Mình biết nó có thể khó hiểu đến mức nào. Đó là lý do mình tạo ra Leaply.",
 		"missionTitle": "Tại sao chúng mình làm điều này",
-		"missionText": "Apply du học không nên giống như đi trong mê cung bịt mắt. Chúng mình nhớ những đêm khuya google tìm thông tin, lo lắng về deadline, những essay viết đi viết lại cả trăm lần. Chúng mình xây Leaply để trở thành người bạn mà chúng mình ước gì mình có — một người thực sự hiểu và có thể giúp bạn tìm ra mọi thứ.",
+		"missionText": "Nộp hồ sơ du học không nên giống như đi trong mê cung bịt mắt. Chúng mình nhớ những đêm khuya google tìm thông tin, lo lắng về deadline, những essay viết đi viết lại cả trăm lần. Chúng mình xây Leaply để trở thành người bạn mà chúng mình ước gì mình có — một người thực sự hiểu và có thể giúp bạn tìm ra mọi thứ.",
 		"value1Title": "Chúng mình quan tâm thật sự",
 		"value1Desc": "Đây không chỉ là sản phẩm với chúng mình. Mỗi bạn dùng Leaply là người chúng mình thực sự muốn thấy thành công.",
 		"value2Title": "Công nghệ có trái tim",
@@ -686,7 +686,7 @@
 			"goodFit": "Phù hợp",
 			"competitive": "Cạnh tranh",
 			"manage": "Quản lý",
-			"apply": "Apply",
+			"apply": "Nộp hồ sơ",
 			"adding": "Đang thêm...",
 			"added": "Đã thêm",
 			"match": "Phù hợp"
@@ -762,6 +762,13 @@
 			"overBudget": "Vượt ngân sách",
 			"overBudgetAmount": "{amount} vượt ngân sách",
 			"scholarshipsAvailable": "Có học bổng"
+		},
+		"card": {
+			"nFields": "{count} ngành",
+			"nCountries": "{count} quốc gia",
+			"allNationalities": "Tất cả quốc gia",
+			"fullTuition": "Toàn phần học phí",
+			"percentTuition": "{percent}% học phí"
 		}
 	},
 	"personaLab": {
