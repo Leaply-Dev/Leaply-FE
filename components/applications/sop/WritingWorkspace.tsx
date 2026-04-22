@@ -361,14 +361,14 @@ export function WritingWorkspace({
 										</>
 									)}
 								</span>
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={() => setShowFullEssay(true)}
-								>
-									<FileText className="w-4 h-4 mr-2" />
-									View Full Essay
-								</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => setShowFullEssay(true)}
+						>
+							<FileText className="w-4 h-4 mr-2" />
+							{t("viewFullEssay")}
+						</Button>
 							</div>
 						</div>
 					</CardHeader>
@@ -567,10 +567,10 @@ export function WritingWorkspace({
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
 							<FileText className="w-5 h-5 text-primary" />
-							Full Essay
+							{t("fullEssay")}
 						</DialogTitle>
 						<DialogDescription>
-							Preview of your essay across all sections
+							{t("fullEssayPreview")}
 						</DialogDescription>
 					</DialogHeader>
 					<div className="space-y-6 py-4 prose prose-sm max-w-none dark:prose-invert">
@@ -590,8 +590,7 @@ export function WritingWorkspace({
 										/>
 									) : (
 										<p className="text-muted-foreground italic">
-											[{outlineSections[idx]?.title || t("section")} not started
-											yet]
+											[{outlineSections[idx]?.title || t("section")} {t("sectionNotStarted")}]
 										</p>
 									)}
 								</div>

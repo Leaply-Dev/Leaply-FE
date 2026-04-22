@@ -14,11 +14,9 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
-	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
@@ -84,6 +82,17 @@ const MOTIFS_BY_ESSAY_TYPE: Record<string, string[]> = {
 		"CULTURAL_IDENTITY",
 	],
 	sop: ["DEEP_SPECIALIST", "CAREER_CHANGER", "VISIONARY_BUILDER"],
+};
+
+const MOTIF_COLORS: Record<string, string> = {
+	NARRATIVE_DRIVEN: "#F59E0B",
+	REFLECTIVE: "#6366F1",
+	METAPHORICAL: "#14B8A6",
+	GROWTH: "#10B981",
+	CULTURAL_IDENTITY: "#F43F5E",
+	DEEP_SPECIALIST: "#3B82F6",
+	CAREER_CHANGER: "#F97316",
+	VISIONARY_BUILDER: "#8B5CF6",
 };
 
 export function NewEssayWorkspace({
@@ -264,20 +273,26 @@ export function NewEssayWorkspace({
 		}
 	};
 
-	return (
-		<div className="flex-1 overflow-y-auto bg-muted/30 p-8 h-full">
-			{step === 1 && (
-				<div className="max-w-2xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-300">
-					<div className="text-center space-y-2">
-						<h2 className="text-3xl font-bold tracking-tight">
-							Create New Essay
-						</h2>
-						<p className="text-muted-foreground">
-							Select your target school or scholarship to get started.
-						</p>
-					</div>
+	// Shared step layout classes
+	const stepContainer = "flex flex-col items-center min-h-[60vh] max-w-4xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-300 py-4";
+	const stepHeading = (
+		title: string,
+		subtitle: string,
+	) => (
+		<div className="text-center space-y-2 w-full">
+			<h2 className="text-3xl font-bold tracking-tight">{title}</h2>
+			<p className="text-muted-foreground">{subtitle}</p>
+		</div>
+	);
 
-					<Card className="p-6">
+	return (
+		<div className="flex-1 overflow-y-auto bg-muted/30 p-6 lg:p-8 h-full">
+			{/* ── Step 1: Target & word limit ── */}
+			{step === 1 && (
+				<div className={stepContainer}>
+					{stepHeading(tDialog("step1Title"), tDialog("step1Subtitle"))}
+
+					<Card className="w-full p-6">
 						<div className="space-y-6">
 							<div className="space-y-2">
 								<Label className="text-sm font-medium">
@@ -379,44 +394,26 @@ export function NewEssayWorkspace({
 									</Button>
 								</div>
 							)}
-
-							<div className="pt-4 flex justify-end gap-3">
-								<Button
-									variant="outline"
-									onClick={onCancel}
-									disabled={isSubmitting}
-								>
-									{tDialog("cancel")}
-								</Button>
-								<Button
-									onClick={handleNext}
-									disabled={!canProceedToStep2 || isSubmitting}
-								>
-									{isSubmitting ? (
-										<>
-											<Loader2 className="w-4 h-4 mr-2 animate-spin" />
-											{tDialog("submitting")}
-										</>
-									) : (
-										"Next"
-									)}
-								</Button>
-							</div>
 						</div>
 					</Card>
+
+					<StepFooter
+						onBack={onCancel}
+						backLabel={tDialog("cancel")}
+						onNext={handleNext}
+						nextLabel={tDialog("next")}
+						nextDisabled={!canProceedToStep2 || isSubmitting}
+						isSubmitting={isSubmitting}
+					/>
 				</div>
 			)}
 
+			{/* ── Step 2: Essay type ── */}
 			{step === 2 && (
-				<div className="flex flex-col items-center justify-center min-h-[60vh] max-w-4xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-300">
-					<div className="text-center space-y-2">
-						<h2 className="text-3xl font-bold tracking-tight">
-							{tSetup("step1Title")}
-						</h2>
-						<p className="text-muted-foreground">{tSetup("step1Desc")}</p>
-					</div>
+				<div className={stepContainer}>
+					{stepHeading(tSetup("step1Title"), tSetup("step1Desc"))}
 
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-8">
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
 						{["ps", "sop"].map((type) => (
 							<Card
 								key={type}
@@ -443,86 +440,52 @@ export function NewEssayWorkspace({
 							</Card>
 						))}
 					</div>
-					<Button variant="ghost" onClick={() => setStep(1)} className="mt-8">
-						Back
-					</Button>
+
+					<StepFooter
+						onBack={() => setStep(1)}
+						backLabel={tSetup("back")}
+					/>
 				</div>
 			)}
 
+			{/* ── Step 3: Narrative motif ── */}
 			{step === 3 && (
-				<div className="flex flex-col items-center justify-center min-h-[60vh] max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-right-8 duration-300">
-					<div className="text-center space-y-2">
-						<h2 className="text-3xl font-bold tracking-tight">
-							{tSetup("step2Title")}
-						</h2>
-						<p className="text-muted-foreground">{tSetup("step2Desc")}</p>
-					</div>
+				<div className="flex flex-col items-center min-h-[60vh] max-w-6xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-300 py-4">
+					{stepHeading(tSetup("step2Title"), tSetup("step2Desc"))}
 
 					<div
 						className={cn(
-							"grid grid-cols-1 gap-4 w-full mt-6 items-stretch",
+							"grid grid-cols-1 gap-4 w-full items-stretch",
 							selectedEssayType === "sop"
 								? "md:grid-cols-3"
-								: "md:grid-cols-3 lg:grid-cols-5",
+								: "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5",
 						)}
 					>
 						{(MOTIFS_BY_ESSAY_TYPE[selectedEssayType ?? "ps"] ?? []).map(
 							(motif) => (
-								<Card
+								<MotifCard
 									key={motif}
-									className={cn(
-										"cursor-pointer transition-all hover:border-primary/50 flex flex-col",
-										selectedMotif === motif
-											? "border-primary ring-1 ring-primary bg-primary/5"
-											: "",
-									)}
-									onClick={() => setSelectedMotif(motif)}
-								>
-									<CardHeader className="pb-3 flex-grow">
-										<CardTitle className="text-lg mb-2">
-											{tSetup(`motif.${motif}` as Parameters<typeof tSetup>[0])}
-										</CardTitle>
-										<CardDescription className="text-sm">
-											{tSetup(
-												`motif.${motif}_desc` as Parameters<typeof tSetup>[0],
-											)}
-										</CardDescription>
-									</CardHeader>
-									<CardContent className="pt-0 mt-auto">
-										<Badge
-											variant="secondary"
-											className="font-normal w-full justify-start text-left whitespace-normal leading-tight"
-										>
-											{tSetup(
-												`motif.${motif}_for` as Parameters<typeof tSetup>[0],
-											)}
-										</Badge>
-									</CardContent>
-								</Card>
+									motif={motif}
+									isSelected={selectedMotif === motif}
+									onSelect={() => setSelectedMotif(motif)}
+									tSetup={tSetup}
+								/>
 							),
 						)}
 					</div>
 
-					<div className="flex gap-4 pt-8">
-						<Button variant="outline" onClick={() => setStep(2)}>
-							Back
-						</Button>
-						<Button
-							size="lg"
-							className="min-w-[120px]"
-							disabled={!selectedMotif || isSubmitting}
-							onClick={handleSubmit}
-						>
-							{isSubmitting ? (
-								<Loader2 className="w-4 h-4 animate-spin mr-2" />
-							) : (
-								"Complete Setup"
-							)}
-						</Button>
-					</div>
+					<StepFooter
+						onBack={() => setStep(2)}
+						backLabel={tSetup("back")}
+						onNext={handleSubmit}
+						nextLabel={tSetup("startWriting")}
+						nextDisabled={!selectedMotif || isSubmitting}
+						isSubmitting={isSubmitting}
+					/>
 				</div>
 			)}
 
+			{/* ── Step 4: Generating ── */}
 			{step === 4 && (
 				<div className="flex items-center justify-center h-full min-h-[60vh]">
 					<div className="text-center max-w-sm">
@@ -533,14 +496,54 @@ export function NewEssayWorkspace({
 							</div>
 						</div>
 						<h3 className="text-lg font-semibold text-foreground mb-2">
-							Setting up your workspace…
+							{tSetup("settingUpTitle")}
 						</h3>
 						<p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
 							<Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
-							Analysing your profile and crafting essay angles
+							{tSetup("settingUpDesc")}
 						</p>
 					</div>
 				</div>
+			)}
+		</div>
+	);
+}
+
+function StepFooter({
+	onBack,
+	backLabel,
+	onNext,
+	nextLabel,
+	nextDisabled,
+	isSubmitting,
+}: {
+	onBack?: () => void;
+	backLabel: string;
+	onNext?: () => void;
+	nextLabel?: string;
+	nextDisabled?: boolean;
+	isSubmitting?: boolean;
+}) {
+	return (
+		<div className="flex items-center gap-3 w-full pt-2">
+			{onBack && (
+				<Button size="lg" variant="outline" onClick={onBack} disabled={isSubmitting}>
+					{backLabel}
+				</Button>
+			)}
+			{onNext && nextLabel && (
+				<Button
+					size="lg"
+					className="ml-auto min-w-[140px]"
+					onClick={onNext}
+					disabled={nextDisabled || isSubmitting}
+				>
+					{isSubmitting ? (
+						<Loader2 className="w-4 h-4 animate-spin mr-2" />
+					) : (
+						nextLabel
+					)}
+				</Button>
 			)}
 		</div>
 	);
@@ -585,6 +588,138 @@ function SelectedTargetCard({
 				{changeLabel}
 			</Button>
 		</div>
+	);
+}
+
+function MotifCard({
+	motif,
+	isSelected,
+	onSelect,
+	tSetup,
+}: {
+	motif: string;
+	isSelected: boolean;
+	onSelect: () => void;
+	tSetup: ReturnType<typeof useTranslations<"sop.setup">>;
+}) {
+	const color = MOTIF_COLORS[motif] ?? "#6B7280";
+
+	return (
+		<button
+			type="button"
+			onClick={onSelect}
+			className={cn(
+				"group relative flex flex-col text-left rounded-xl border-2 transition-all duration-200 overflow-hidden w-full",
+				"hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+				isSelected
+					? "border-transparent shadow-lg scale-[1.01]"
+					: "border-border bg-card hover:border-border/80",
+			)}
+			style={
+				isSelected
+					? {
+							borderColor: color,
+							boxShadow: `0 0 0 3px ${color}25, 0 4px 16px ${color}20`,
+						}
+					: undefined
+			}
+		>
+			{/* Accent top bar */}
+			<div
+				className="h-1 w-full shrink-0 transition-all duration-200"
+				style={{ backgroundColor: color }}
+			/>
+
+			{/* Header */}
+			<div className="px-4 pt-4 pb-3">
+				<div className="flex items-start gap-2.5 mb-2">
+					<div
+						className="w-2 h-2 rounded-full mt-1.5 shrink-0"
+						style={{ backgroundColor: color }}
+					/>
+					<h3 className="font-semibold text-sm leading-snug text-foreground">
+						{tSetup(`motif.${motif}` as Parameters<typeof tSetup>[0])}
+					</h3>
+					{isSelected && (
+						<div
+							className="ml-auto w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+							style={{ backgroundColor: color }}
+						>
+						<svg
+							viewBox="0 0 12 12"
+							className="w-2.5 h-2.5 text-white"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth={2.5}
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							aria-hidden="true"
+						>
+							<polyline points="2,6 5,9 10,3" />
+						</svg>
+						</div>
+					)}
+				</div>
+				<p className="text-xs text-muted-foreground leading-relaxed pl-4">
+					{tSetup(`motif.${motif}_desc` as Parameters<typeof tSetup>[0])}
+				</p>
+			</div>
+
+			{/* Divider */}
+			<div className="mx-4 h-px bg-border" />
+
+			{/* Good fit */}
+			<div className="px-4 py-3 space-y-1">
+				<div className="flex items-center gap-1.5 mb-1">
+				<svg
+					viewBox="0 0 12 12"
+					className="w-3 h-3 shrink-0"
+					fill="none"
+					stroke="#16A34A"
+					strokeWidth={2.5}
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					aria-hidden="true"
+				>
+					<polyline points="2,6 5,9 10,3" />
+				</svg>
+					<span className="text-[10px] font-semibold uppercase tracking-wide text-green-700">
+						{tSetup("motifGoodFit")}
+					</span>
+				</div>
+				<p className="text-xs text-muted-foreground leading-relaxed pl-4">
+					{tSetup(`motif.${motif}_for` as Parameters<typeof tSetup>[0])}
+				</p>
+			</div>
+
+			{/* Divider */}
+			<div className="mx-4 h-px bg-border" />
+
+			{/* Not for */}
+			<div className="px-4 py-3 mt-auto space-y-1">
+				<div className="flex items-center gap-1.5 mb-1">
+				<svg
+					viewBox="0 0 12 12"
+					className="w-3 h-3 shrink-0"
+					fill="none"
+					stroke="#DC2626"
+					strokeWidth={2.5}
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					aria-hidden="true"
+				>
+					<line x1="2" y1="2" x2="10" y2="10" />
+					<line x1="10" y1="2" x2="2" y2="10" />
+				</svg>
+					<span className="text-[10px] font-semibold uppercase tracking-wide text-red-600">
+						{tSetup("motifSkipIf")}
+					</span>
+				</div>
+				<p className="text-xs text-muted-foreground leading-relaxed pl-4">
+					{tSetup(`motif.${motif}_not_for` as Parameters<typeof tSetup>[0])}
+				</p>
+			</div>
+		</button>
 	);
 }
 
