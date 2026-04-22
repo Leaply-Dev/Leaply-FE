@@ -158,8 +158,8 @@ export function Navbar() {
 											}
 											alt={profile?.fullName}
 										/>
-										<AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
-											{getInitials(profile?.fullName)}
+										<AvatarFallback className="bg-primary/10 text-primary">
+											<User className="w-4 h-4" />
 										</AvatarFallback>
 									</Avatar>
 									<ChevronDown
@@ -269,8 +269,8 @@ export function Navbar() {
 													}
 													alt={profile?.fullName}
 												/>
-												<AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
-													{getInitials(profile?.fullName)}
+												<AvatarFallback className="bg-primary/10 text-primary">
+													<User className="w-4 h-4" />
 												</AvatarFallback>
 											</Avatar>
 											<div className="flex-1 min-w-0">

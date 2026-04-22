@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -93,8 +93,8 @@ export function OnboardingHeader() {
 										}
 										alt={profile?.fullName || "User"}
 									/>
-									<AvatarFallback className="bg-primary/10 text-primary font-medium">
-										{getInitials(profile?.fullName)}
+									<AvatarFallback className="bg-primary/10 text-primary">
+										<User className="w-5 h-5" />
 									</AvatarFallback>
 								</Avatar>
 							</button>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Mail, Pencil } from "lucide-react";
+import { Check, Mail, Pencil, User } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -125,8 +125,8 @@ export function ProfileHeader({ userData, isLoading }: ProfileHeaderProps) {
 								{avatarSrc ? (
 									<AvatarImage src={avatarSrc} alt="Avatar" />
 								) : null}
-								<AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
-									{getInitials(userData?.fullName)}
+								<AvatarFallback className="bg-primary text-primary-foreground">
+									<User className="w-8 h-8" />
 								</AvatarFallback>
 							</Avatar>
 							<Button
