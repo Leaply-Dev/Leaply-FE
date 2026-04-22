@@ -1033,7 +1033,18 @@
 		"justNow": "Vừa xong",
 		"programsAndScholarships": "Chương trình / Học bổng",
 		"status": "Trạng thái",
-		"action": "Hành động"
+		"action": "Hành động",
+		"personaLabWidget": {
+			"title": "Persona Lab",
+			"descriptionStart": "Khám phá điểm mạnh của bạn và tìm chương trình phù hợp.",
+			"descriptionProgress": "Đã hoàn thành {completed}/{total} tracks",
+			"descriptionComplete": "Hồ sơ persona của bạn đã sẵn sàng.",
+			"ctaStart": "Bắt đầu khám phá",
+			"ctaResume": "Tiếp tục",
+			"ctaReview": "Xem hồ sơ"
+		},
+		"daysShort": "Ngày",
+		"noUpcomingDeadlines": "Không có deadline sắp tới"
 	},
 	"auth": {
 		"signupTitle": "Tạo tài khoản",

@@ -1033,7 +1033,18 @@
 		"justNow": "Just now",
 		"programsAndScholarships": "Programs / Scholarships",
 		"status": "Status",
-		"action": "Action"
+		"action": "Action",
+		"personaLabWidget": {
+			"title": "Persona Lab",
+			"descriptionStart": "Discover your strengths and find the perfect program match.",
+			"descriptionProgress": "{completed}/{total} tracks completed",
+			"descriptionComplete": "Your persona profile is ready.",
+			"ctaStart": "Start discovering",
+			"ctaResume": "Resume",
+			"ctaReview": "Review profile"
+		},
+		"daysShort": "Days",
+		"noUpcomingDeadlines": "No upcoming deadlines"
 	},
 	"auth": {
 		"signupTitle": "Create your account",

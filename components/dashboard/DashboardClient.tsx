@@ -4,6 +4,8 @@ import { m } from "framer-motion";
 import {
 	ArrowRight,
 	Calendar,
+	Check,
+	ChevronRight,
 	Compass,
 	FolderOpen,
 	School,
@@ -19,6 +21,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
@@ -33,6 +36,7 @@ import type { TierProgressDto } from "@/lib/api/personaLab/types";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import { useGetHomeData } from "@/lib/generated/api/endpoints/home/home";
 import type {
+	DiscoveryProgressDto,
 	HomeResponse,
 	RecentApplicationDto,
 	UpcomingDeadlineDto,
@@ -41,6 +45,22 @@ import { useUserStore } from "@/lib/store/userStore";
 
 // Deadline urgency thresholds
 const URGENT_DAYS = 7;
+
+function formatTierLabel(tier?: string | null): string {
+	if (!tier) return "";
+	switch (tier) {
+		case "TIER_1":
+			return "Tier 1";
+		case "TIER_2_PILLAR_1":
+			return "Pillar 1";
+		case "TIER_2_PILLAR_2":
+			return "Pillar 2";
+		case "COMPLETE":
+			return "Complete";
+		default:
+			return tier.replace(/_/g, " ");
+	}
+}
 
 export function DashboardClient() {
 	const tHome = useTranslations("home");
@@ -78,8 +98,11 @@ export function DashboardClient() {
 				suggestedAction: null,
 				recentApplications: [] as RecentApplicationDto[],
 				firstName: null,
+				discovery: null as DiscoveryProgressDto | null,
+				currentTier: tier?.currentTier ?? null,
 				tier1Completed: tier?.tier1Completed ?? 0,
 				tier1Total: tier?.tier1Total ?? 5,
+				tier1Complete: tier?.tier1Complete ?? false,
 			};
 		}
 
@@ -90,8 +113,11 @@ export function DashboardClient() {
 			suggestedAction: data.suggestedAction,
 			recentApplications: data.recentApplications ?? [],
 			firstName: data.firstName,
+			discovery: data.discovery ?? null,
+			currentTier: tier?.currentTier ?? null,
 			tier1Completed: tier?.tier1Completed ?? 0,
 			tier1Total: tier?.tier1Total ?? 5,
+			tier1Complete: tier?.tier1Complete ?? false,
 		};
 	}, [homeData, tierProgressResponse]);
 
@@ -102,9 +128,27 @@ export function DashboardClient() {
 		suggestedAction,
 		recentApplications,
 		firstName,
+		discovery,
+		currentTier,
 		tier1Completed,
 		tier1Total,
+		tier1Complete,
 	} = dashboardData;
+
+	// Persona Lab widget state
+	const personaLabState = useMemo(() => {
+		const completedTracks = discovery?.completedTracks ?? tier1Completed;
+		const totalTracks = discovery?.totalTracks ?? tier1Total;
+		const archetypeRevealed = discovery?.archetypeRevealed ?? false;
+
+		if (archetypeRevealed || currentTier === "COMPLETE" || tier1Complete) {
+			return { phase: "complete" as const, completedTracks, totalTracks };
+		}
+		if (completedTracks > 0 || tier1Completed > 0) {
+			return { phase: "progress" as const, completedTracks, totalTracks };
+		}
+		return { phase: "start" as const, completedTracks, totalTracks };
+	}, [discovery, tier1Completed, tier1Total, currentTier, tier1Complete]);
 
 	return (
 		<PageTransition>
@@ -174,9 +218,16 @@ export function DashboardClient() {
 										<span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
 											{tHome("discovery")}
 										</span>
-										<span className="font-bold text-sm">
+										<span className="font-bold text-sm flex items-center gap-1">
 											{isLoading || isTierLoading ? (
-												<Skeleton className="h-5 w-8" />
+												<Skeleton className="h-5 w-16" />
+											) : currentTier ? (
+												<>
+													{formatTierLabel(currentTier)}
+													{(tier1Complete || discovery?.archetypeRevealed) && (
+														<Check className="w-3 h-3 text-emerald-500" />
+													)}
+												</>
 											) : (
 												`${tier1Completed}/${tier1Total}`
 											)}
@@ -200,65 +251,153 @@ export function DashboardClient() {
 									{isLoading ? (
 										<Skeleton className="h-24 w-full rounded-xl" />
 									) : suggestedAction ? (
-										(suggestedAction.type as string) === "persona" ||
-										(suggestedAction.type as string) === "writing" ? (
-											<div className="relative overflow-hidden rounded-xl border bg-linear-to-r from-primary/10 via-background to-background p-1">
-												<div className="flex items-center gap-4 bg-background/80 backdrop-blur-sm p-4 rounded-lg">
-													<div className="flex-1">
-														<div className="flex items-center gap-2 mb-1">
-															<Badge
-																variant="secondary"
-																className="bg-primary/10 text-primary hover:bg-primary/20 text-[10px] px-2 py-0 h-5"
+										(() => {
+											const type = suggestedAction.type as string;
+
+											// Deadline — urgent red styling
+											if (type === "deadline") {
+												return (
+													<div className="relative overflow-hidden rounded-xl border bg-linear-to-r from-red-50 via-background to-background dark:from-red-950/20 p-1">
+														<div className="flex items-center gap-4 bg-background/80 backdrop-blur-sm p-4 rounded-lg">
+															<div className="flex-1">
+																<div className="flex items-center gap-2 mb-1">
+																	<Badge
+																		variant="secondary"
+																		className="bg-red-100 text-red-700 hover:bg-red-200 text-[10px] px-2 py-0 h-5 dark:bg-red-900/30 dark:text-red-400"
+																	>
+																		{tHome("suggestedForYou")}
+																	</Badge>
+																	<h3 className="font-semibold text-sm">
+																		{tHome(`suggestedActions.${type}.title`)}
+																	</h3>
+																</div>
+																<p className="text-sm text-muted-foreground line-clamp-1">
+																	{tHome(
+																		`suggestedActions.${type}.description`,
+																	)}
+																</p>
+															</div>
+															<Button
+																size="sm"
+																variant="destructive"
+																asChild
+																className="shrink-0"
 															>
-																{tHome("suggestedForYou")}
-															</Badge>
-															<h3 className="font-semibold text-sm">
-																{tHome(
-																	`suggestedActions.${suggestedAction.type}.title`,
-																)}
-															</h3>
+																<Link
+																	href={
+																		suggestedAction?.link ||
+																		"/dashboard/applications"
+																	}
+																>
+																	{tHome(`suggestedActions.${type}.cta`)}
+																	<ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+																</Link>
+															</Button>
 														</div>
-														<p className="text-sm text-muted-foreground line-clamp-1">
-															{tHome(
-																`suggestedActions.${suggestedAction.type}.description`,
-															)}
-														</p>
 													</div>
-													<Button size="sm" asChild className="shrink-0">
-														<Link
-															href={suggestedAction?.link || "/persona-lab"}
-														>
-															{tHome(
-																`suggestedActions.${suggestedAction.type}.cta`,
-															)}
+												);
+											}
+
+											// Profile — blue styling
+											if (type === "profile") {
+												return (
+													<div className="relative overflow-hidden rounded-xl border bg-linear-to-r from-blue-50 via-background to-background dark:from-blue-950/20 p-1">
+														<div className="flex items-center gap-4 bg-background/80 backdrop-blur-sm p-4 rounded-lg">
+															<div className="flex-1">
+																<div className="flex items-center gap-2 mb-1">
+																	<Badge
+																		variant="secondary"
+																		className="bg-blue-100 text-blue-700 hover:bg-blue-200 text-[10px] px-2 py-0 h-5 dark:bg-blue-900/30 dark:text-blue-400"
+																	>
+																		{tHome("suggestedForYou")}
+																	</Badge>
+																	<h3 className="font-semibold text-sm">
+																		{tHome(`suggestedActions.${type}.title`)}
+																	</h3>
+																</div>
+																<p className="text-sm text-muted-foreground line-clamp-1">
+																	{tHome(
+																		`suggestedActions.${type}.description`,
+																	)}
+																</p>
+															</div>
+															<Button size="sm" asChild className="shrink-0">
+																<Link
+																	href={
+																		suggestedAction?.link ||
+																		"/dashboard/profile"
+																	}
+																>
+																	{tHome(`suggestedActions.${type}.cta`)}
+																	<ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+																</Link>
+															</Button>
+														</div>
+													</div>
+												);
+											}
+
+											// Persona / Writing — existing green gradient
+											if (type === "persona" || type === "writing") {
+												return (
+													<div className="relative overflow-hidden rounded-xl border bg-linear-to-r from-primary/10 via-background to-background p-1">
+														<div className="flex items-center gap-4 bg-background/80 backdrop-blur-sm p-4 rounded-lg">
+															<div className="flex-1">
+																<div className="flex items-center gap-2 mb-1">
+																	<Badge
+																		variant="secondary"
+																		className="bg-primary/10 text-primary hover:bg-primary/20 text-[10px] px-2 py-0 h-5"
+																	>
+																		{tHome("suggestedForYou")}
+																	</Badge>
+																	<h3 className="font-semibold text-sm">
+																		{tHome(`suggestedActions.${type}.title`)}
+																	</h3>
+																</div>
+																<p className="text-sm text-muted-foreground line-clamp-1">
+																	{tHome(
+																		`suggestedActions.${type}.description`,
+																	)}
+																</p>
+															</div>
+															<Button size="sm" asChild className="shrink-0">
+																<Link
+																	href={suggestedAction?.link || "/persona-lab"}
+																>
+																	{tHome(`suggestedActions.${type}.cta`)}
+																	<ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+																</Link>
+															</Button>
+														</div>
+													</div>
+												);
+											}
+
+											// Fallback / Generic
+											return (
+												<div className="relative overflow-hidden rounded-xl border bg-linear-to-r from-muted/50 to-background p-4 flex items-center justify-between gap-4">
+													<div className="flex items-center gap-4">
+														<div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+															<Sparkles className="w-5 h-5 text-foreground" />
+														</div>
+														<div>
+															<h3 className="font-semibold text-sm">
+																{tHome("suggestedActions.explore.title")}
+															</h3>
+															<p className="text-sm text-muted-foreground">
+																{tHome("suggestedActions.explore.description")}
+															</p>
+														</div>
+													</div>
+													<Button variant="outline" size="sm" asChild>
+														<Link href={suggestedAction?.link || "/explore"}>
+															{tHome("suggestedActions.explore.cta")}
 															<ArrowRight className="w-3.5 h-3.5 ml-1.5" />
 														</Link>
 													</Button>
 												</div>
-											</div>
-										) : (
-											// Fallback/Generic Suggested Action
-											<div className="relative overflow-hidden rounded-xl border bg-linear-to-r from-muted/50 to-background p-4 flex items-center justify-between gap-4">
-												<div className="flex items-center gap-4">
-													<div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-														<Sparkles className="w-5 h-5 text-foreground" />
-													</div>
-													<div>
-														<h3 className="font-semibold text-sm">
-															{tHome("suggestedActions.explore.title")}
-														</h3>
-														<p className="text-sm text-muted-foreground">
-															{tHome("suggestedActions.explore.description")}
-														</p>
-													</div>
-												</div>
-												<Button variant="outline" size="sm" asChild>
-													<Link href={suggestedAction?.link || "/explore"}>
-														Go <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
-													</Link>
-												</Button>
-											</div>
-										)
+											);
+										})()
 									) : null}
 								</m.div>
 							</SlideUp>
@@ -425,7 +564,7 @@ export function DashboardClient() {
 																	{deadline.daysRemaining}
 																</span>
 																<span className="text-[9px] uppercase leading-none mt-0.5">
-																	Days
+																	{tHome("daysShort")}
 																</span>
 															</div>
 															<div className="min-w-0 flex-1">
@@ -442,7 +581,7 @@ export function DashboardClient() {
 											) : (
 												<div className="p-8 text-center">
 													<p className="text-sm text-muted-foreground">
-														No upcoming deadlines
+														{tHome("noUpcomingDeadlines")}
 													</p>
 												</div>
 											)}
@@ -451,7 +590,7 @@ export function DashboardClient() {
 								</div>
 							</SlideUp>
 
-							{/* Help / Resources Widget (Example) */}
+							{/* Persona Lab Widget — Dynamic State */}
 							<SlideUp delay={0.4}>
 								<Card className="bg-primary/5 border-primary/10 overflow-hidden">
 									<CardContent className="p-5">
@@ -459,21 +598,53 @@ export function DashboardClient() {
 											<div className="p-2 bg-background rounded-lg shadow-xs">
 												<Target className="w-5 h-5 text-primary" />
 											</div>
-											<div>
+											<div className="flex-1 min-w-0">
 												<h3 className="font-semibold text-sm mb-1">
-													Persona Lab
+													{tHome("personaLabWidget.title")}
 												</h3>
-												<p className="text-xs text-muted-foreground mb-3">
-													Discover your strengths and find the perfect program
-													match.
-												</p>
+												{personaLabState.phase === "start" && (
+													<p className="text-xs text-muted-foreground mb-3">
+														{tHome("personaLabWidget.descriptionStart")}
+													</p>
+												)}
+												{personaLabState.phase === "progress" && (
+													<div className="mb-3 space-y-1.5">
+														<p className="text-xs text-muted-foreground">
+															{tHome("personaLabWidget.descriptionProgress", {
+																completed: personaLabState.completedTracks,
+																total: personaLabState.totalTracks,
+															})}
+														</p>
+														<Progress
+															value={
+																(personaLabState.completedTracks /
+																	Math.max(1, personaLabState.totalTracks)) *
+																100
+															}
+															className="h-1.5"
+														/>
+													</div>
+												)}
+												{personaLabState.phase === "complete" && (
+													<p className="text-xs text-muted-foreground mb-3">
+														{tHome("personaLabWidget.descriptionComplete")}
+													</p>
+												)}
 												<Button
 													variant="outline"
 													size="sm"
 													className="h-7 text-xs bg-background hover:bg-background/90"
 													asChild
 												>
-													<Link href="/persona-lab">Resume</Link>
+													<Link href="/persona-lab">
+														{personaLabState.phase === "start" &&
+															tHome("personaLabWidget.ctaStart")}
+														{personaLabState.phase === "progress" &&
+															tHome("personaLabWidget.ctaResume")}
+														{personaLabState.phase === "complete" &&
+															tHome("personaLabWidget.ctaReview")}
+														<ChevronRight className="w-3.5 h-3.5 ml-1" />
+													</Link>
 												</Button>
 											</div>
 										</div>
