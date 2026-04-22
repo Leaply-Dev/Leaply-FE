@@ -49,6 +49,7 @@ import {
 	useGenerateArchetype,
 	useResetConversation,
 	useSendGraphMessage,
+	useStartConversation,
 } from "@/lib/hooks/persona";
 import { useIsHydrated } from "@/lib/hooks/useStoresHydrated";
 import type { StarStructureKey } from "@/lib/store/personaStore";
@@ -135,12 +136,17 @@ export function ChatSidebar() {
 		content: t("greetingMessage"),
 		timestamp: new Date(0).toISOString(),
 	};
-	const hasSentFirstReply = messages.some((m) => m.role === "user");
+	// Conversation has started if any message exists (user bubble OR assistant opener)
+	const hasSentFirstReply = messages.length > 0;
 	const showGreeting = isHydrated && messages.length === 0;
 
 	const sendMessageMutation = useSendGraphMessage();
 	const resetMutation = useResetConversation();
 	const generateArchetypeMutation = useGenerateArchetype();
+	const { refetch: triggerStartConversation, isFetching: isStarting } =
+		useStartConversation({
+			query: { enabled: false, staleTime: Number.POSITIVE_INFINITY },
+		});
 
 	const apiGraphNodes = usePersonaStore(selectApiGraphNodes);
 	const storyNodeCount = apiGraphNodes.filter(
@@ -293,6 +299,39 @@ export function ChatSidebar() {
 		],
 	);
 
+	const handleStartConversation = useCallback(async () => {
+		// Show user bubble immediately (cosmetic only — never POSTed to the backend)
+		addGraphMessage({
+			id: `user-start-${Date.now()}`,
+			role: "user",
+			type: "text",
+			content: t("greetingReplyOption"),
+			timestamp: new Date().toISOString(),
+			status: "sent",
+		});
+
+		const startTime = Date.now();
+		setThinkingStartTime(startTime);
+
+		const { data } = await triggerStartConversation();
+		setThinkingStartTime(null);
+
+		const graphData = unwrapResponse<GraphMessageResponse>(data);
+		if (graphData?.message) {
+			addGraphMessage({
+				id: graphData.message.id || `assistant-${Date.now()}`,
+				role: "assistant",
+				type:
+					(graphData.message.type as ConversationMessage["type"]) || "text",
+				content: graphData.message.content || "",
+				timestamp: graphData.message.timestamp || new Date().toISOString(),
+				status: "sent",
+			});
+		}
+
+		queryClient.invalidateQueries({ queryKey: getGetPersonaStateQueryKey() });
+	}, [triggerStartConversation, addGraphMessage, t, queryClient]);
+
 	const handleReset = useCallback(() => {
 		setShowResetDialog(false);
 		resetMutation.mutate(undefined, {
@@ -307,7 +346,8 @@ export function ChatSidebar() {
 		});
 	}, [resetMutation, clearApiGraph, clearGraphMessages, queryClient]);
 
-	const isSending = sendMessageMutation.isPending || resetMutation.isPending;
+	const isSending =
+		sendMessageMutation.isPending || resetMutation.isPending || isStarting;
 	const error = sendMessageMutation.error?.message;
 
 	if (!isHydrated) {
@@ -439,7 +479,7 @@ export function ChatSidebar() {
 				) : !hasSentFirstReply ? (
 					<GreetingReplyOption
 						label={t("greetingReplyOption")}
-						onSelect={handleSendMessage}
+						onSelect={handleStartConversation}
 						disabled={isSending}
 					/>
 				) : (

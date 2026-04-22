@@ -2,10 +2,12 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { ClipboardList, FileEdit, Lightbulb, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { TipTapEditor } from "@/components/editor/TipTapEditor";
 import { EssayPromptHeader } from "@/components/essays/EssayPromptHeader";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -39,10 +41,6 @@ interface EssayTabProps {
 	application?: ScholarshipApplicationResponse;
 }
 
-/**
- * Placeholder component for AI Feedback panel
- * Will be connected to backend when essay feedback endpoint is available
- */
 function EssayFeedbackPlaceholder() {
 	return (
 		<Card className="h-full flex flex-col">
@@ -167,7 +165,7 @@ export function EssayTab({
 
 	return (
 		<div className="flex gap-6 h-full">
-			{/* Left Column - Editor */}
+			{/* Editor - Hidden: Legacy view, waiting for unified SOP */}
 			<div className="flex-1 flex flex-col min-w-0 space-y-4">
 				<EssayPromptHeader
 					prompt={application?.essayPrompt}
@@ -175,82 +173,49 @@ export function EssayTab({
 					onSave={handleSavePrompt}
 				/>
 
-				{/* Collapsible Writing Tips */}
-				<Collapsible defaultOpen={false}>
-					<Card>
-						<CollapsibleTrigger asChild>
-							<CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-								<CardTitle className="text-base flex items-center gap-2">
-									<ClipboardList className="w-4 h-4" />
-									Mẹo viết bài luận
-								</CardTitle>
-							</CardHeader>
-						</CollapsibleTrigger>
-						<CollapsibleContent>
-							<CardContent className="pt-0">
-								<ul className="space-y-2 text-sm text-muted-foreground">
-									<li className="flex items-start gap-2">
-										<span className="text-primary font-bold">1.</span>
-										<span>
-											Bắt đầu bằng một câu chuyện hoặc ví dụ cụ thể để thu hút
-											sự chú ý
-										</span>
-									</li>
-									<li className="flex items-start gap-2">
-										<span className="text-primary font-bold">2.</span>
-										<span>
-											Giải thích rõ ràng lý do bạn phù hợp với học bổng này
-										</span>
-									</li>
-									<li className="flex items-start gap-2">
-										<span className="text-primary font-bold">3.</span>
-										<span>
-											Nêu bật thành tựu và kinh nghiệm liên quan đến tiêu chí
-											xét tuyển
-										</span>
-									</li>
-									<li className="flex items-start gap-2">
-										<span className="text-primary font-bold">4.</span>
-										<span>
-											Chia sẻ kế hoạch tương lai và cách học bổng sẽ giúp bạn
-											đạt được mục tiêu
-										</span>
-									</li>
-									<li className="flex items-start gap-2">
-										<span className="text-primary font-bold">5.</span>
-										<span>Kiểm tra lỗi chính tả và ngữ pháp trước khi nộp</span>
-									</li>
-								</ul>
-							</CardContent>
-						</CollapsibleContent>
-					</Card>
-				</Collapsible>
-
-				{/* Editor Card */}
+				{/* Coming Soon - Unified SOP Workspace */}
 				<Card className="flex-1 flex flex-col">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<FileEdit className="w-5 h-5" />
+							<Sparkles className="w-5 h-5" />
 							Viết bài luận
 						</CardTitle>
 						<CardDescription>
-							Nội dung sẽ tự động được lưu sau 2 giây khi bạn ngừng gõ.
+							Tính năng AI đang được phát triển. Sử dụng Persona Lab để xây dựng
+							câu chuyện trước.
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="flex-1">
-						<ScrollArea className="h-[calc(100vh-24rem)]">
-							<TipTapEditor
-								initialContent={essayContent}
-								onSave={handleSave}
-								placeholder="Bắt đầu viết bài luận của bạn tại đây..."
-								debounceMs={2000}
-							/>
-						</ScrollArea>
+						<div className="text-center py-8">
+							<Lightbulb className="w-16 h-16 text-primary mx-auto mb-4" />
+							<p className="text-lg font-medium mb-2">
+								Xây dựng câu chuyện của bạn
+							</p>
+							<p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
+								Kể câu chuyện cá nhân tại Persona Lab để AI tạo gợi ý và nội
+								dung bài luận xứng đáng với học bổng
+							</p>
+							<div className="flex justify-center gap-3">
+								<Button asChild>
+									<Link href="/persona-lab">
+										<Sparkles className="w-4 h-4 mr-2" />
+										Mở Persona Lab
+									</Link>
+								</Button>
+								<Button
+									variant="outline"
+									onClick={() => window.location.reload()}
+								>
+									<FileEdit className="w-4 h-4 mr-2" />
+									Thử lại sau
+								</Button>
+							</div>
+						</div>
 					</CardContent>
 				</Card>
 			</div>
 
-			{/* Right Column - AI Feedback Panel */}
+			{/* Right Column - Link to Persona Lab */}
 			<div className="w-80 shrink-0">
 				<div className="sticky top-4">
 					<EssayFeedbackPlaceholder />
