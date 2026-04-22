@@ -13,9 +13,9 @@ import {
 import { useTranslations } from "next-intl";
 import ForceGraph2D from "react-force-graph-2d";
 import { Button } from "@/components/ui/button";
+import type { PersonaNodeDto } from "@/lib/api/personaLab/types";
 import { getNodeConfig } from "@/lib/config/graphConfig";
 import { PILLARS_CONFIG } from "@/lib/config/pillarsConfig";
-import type { PersonaNodeDto } from "@/lib/generated/api/models";
 import { useExpandNode } from "@/lib/hooks/persona";
 import { useMockGraphData } from "@/lib/hooks/persona/useMockGraphData";
 import { useContainerDimensions } from "@/lib/hooks/useContainerDimensions";
@@ -383,6 +383,11 @@ export function ConcentricGraphCanvas({
 								</span>
 							</div>
 							<h3 className="font-bold text-base">{selectedNode.label}</h3>
+							{selectedGraphNode?.servesPillar && (
+								<div className="text-sm text-muted-foreground mt-1">
+									Serves: {selectedGraphNode.servesPillar}
+								</div>
+							)}
 						</div>
 						<Button
 							variant="ghost"

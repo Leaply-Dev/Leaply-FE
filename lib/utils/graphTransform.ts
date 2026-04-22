@@ -2,11 +2,9 @@
 // Data Transformation
 // ============================================================================
 
+import type { PersonaNodeDto } from "@/lib/api/personaLab/types";
 import { GRAPH_EDGE_CONFIG, GRAPH_NODE_CONFIG } from "@/lib/config/graphConfig";
-import type {
-	PersonaEdgeDto,
-	PersonaNodeDto,
-} from "@/lib/generated/api/models";
+import type { PersonaEdgeDto } from "@/lib/generated/api/models";
 
 // Node type for the graph (from API)
 type GraphNodeType = "profile_summary" | "essay_angle" | "key_story" | "detail";
@@ -171,9 +169,8 @@ export function transformApiGraphData(
 			initialY = radius * Math.sin(angle);
 		}
 
-		// pillar is carried on the node DTO but isn't in the legacy generated type.
-		// Read it defensively so the badge still renders before the Orval regen lands.
-		const rawPillar = (node as unknown as { pillar?: string | null }).pillar;
+		// pillar is now part of the extended PersonaNodeDto type
+		const rawPillar = node.pillar;
 		const pillar =
 			rawPillar === "pillar1" ||
 			rawPillar === "pillar2" ||

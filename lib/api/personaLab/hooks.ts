@@ -8,6 +8,7 @@
 import { type UseQueryOptions, useQuery } from "@tanstack/react-query";
 import { customInstance } from "@/lib/api/mutator";
 import type {
+	MilestonesResponse,
 	NextQuestionDto,
 	PillarCoverageDto,
 	TierProgressDto,
@@ -28,6 +29,7 @@ export const getPillarCoverageQueryKey = () =>
 	["/v1/persona/pillar-coverage"] as const;
 export const getNextQuestionQueryKey = () =>
 	["/v1/persona/next-question"] as const;
+export const getMilestonesQueryKey = () => ["/v1/persona/milestones"] as const;
 
 // === Raw fetchers ===
 const fetchTierProgress = (): Promise<Wrapped<TierProgressDto>> =>
@@ -42,6 +44,11 @@ const fetchPillarCoverage = (): Promise<Wrapped<PillarCoverageDto>> =>
 
 const fetchNextQuestion = (): Promise<Wrapped<NextQuestionDto>> =>
 	customInstance<Wrapped<NextQuestionDto>>("/v1/persona/next-question", {
+		method: "GET",
+	});
+
+const fetchMilestones = (): Promise<Wrapped<MilestonesResponse>> =>
+	customInstance<Wrapped<MilestonesResponse>>("/v1/persona/milestones", {
 		method: "GET",
 	});
 
@@ -81,6 +88,19 @@ export function useGetNextQuestion<
 	return useQuery<Wrapped<NextQuestionDto>, TError, TData>({
 		queryKey: getNextQuestionQueryKey(),
 		queryFn: fetchNextQuestion,
+		...options?.query,
+	});
+}
+
+export function useGetMilestones<
+	TData = Wrapped<MilestonesResponse>,
+	TError = unknown,
+>(options?: {
+	query?: Partial<UseQueryOptions<Wrapped<MilestonesResponse>, TError, TData>>;
+}) {
+	return useQuery<Wrapped<MilestonesResponse>, TError, TData>({
+		queryKey: getMilestonesQueryKey(),
+		queryFn: fetchMilestones,
 		...options?.query,
 	});
 }

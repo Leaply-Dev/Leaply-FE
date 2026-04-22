@@ -12,7 +12,7 @@ import {
 	Target,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { PersonaNodeDto } from "@/lib/generated/api/models";
+import type { PersonaNodeDto } from "@/lib/api/personaLab/types";
 import { LAYOUT_CONFIG } from "@/lib/hooks/useForceLayout";
 import { usePersonaStore } from "@/lib/store/personaStore";
 import { cn } from "@/lib/utils";
@@ -328,6 +328,29 @@ function NodeListItem({
 					{node.essayAngle}
 				</div>
 			)}
+
+			{/* Pillar / subDimension / servesPillar */}
+			{isSelected &&
+				(node.pillar || node.subDimension || node.servesPillar) && (
+					<div className="mt-2 space-y-1">
+						{node.pillar && (
+							<div className="text-[10px] text-muted-foreground">
+								<span className="font-medium">Pillar:</span> {node.pillar}
+							</div>
+						)}
+						{node.subDimension && (
+							<div className="text-[10px] text-muted-foreground">
+								<span className="font-medium">Dimension:</span>{" "}
+								{node.subDimension}
+							</div>
+						)}
+						{node.servesPillar && (
+							<div className="text-[10px] text-muted-foreground">
+								<span className="font-medium">Serves:</span> {node.servesPillar}
+							</div>
+						)}
+					</div>
+				)}
 
 			{/* Tags */}
 			{isSelected && node.tags && node.tags.length > 0 && (

@@ -105,6 +105,22 @@ export function useGraphRenderers({
 					isSelected || isHovered ? config.hoverColor : graphNode.color;
 				ctx.fill();
 
+				// Pillar-colored border ring (subtle 2px)
+				if (graphNode.pillar && graphNode.type !== "profile_summary") {
+					const pillarConfig = PILLARS_CONFIG[graphNode.pillar];
+					ctx.beginPath();
+					ctx.arc(
+						node.x || 0,
+						node.y || 0,
+						graphNode.size + 2 / globalScale,
+						0,
+						2 * Math.PI,
+					);
+					ctx.strokeStyle = pillarConfig.badgeColor;
+					ctx.lineWidth = 2 / globalScale;
+					ctx.stroke();
+				}
+
 				// Selection ring
 				if (isSelected) {
 					ctx.strokeStyle = config.hoverColor;

@@ -958,7 +958,14 @@
 				"priorExposurePlaceholder": "Select exposure level",
 				"other": "Other"
 			}
-		}
+		},
+		"tierLabel": "Tier: {tier}",
+		"nextQuestionLabel": "Next: {intent}",
+		"milestoneDraftAngle": "Draft angle ready",
+		"milestonePillar1Outline": "Pillar 1 outline ready",
+		"milestoneFullSop": "Full SOP ready",
+		"milestoneDeepCoverage": "Persona complete",
+		"transitionBanner": "You have advanced to {tier}!"
 	},
 	"home": {
 		"greeting": {

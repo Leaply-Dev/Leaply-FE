@@ -958,7 +958,14 @@
 				"priorExposurePlaceholder": "Chọn mức độ trải nghiệm",
 				"other": "Khác"
 			}
-		}
+		},
+		"tierLabel": "Cấp độ: {tier}",
+		"nextQuestionLabel": "Tiếp theo: {intent}",
+		"milestoneDraftAngle": "Góc nhìn draft đã sẵn sàng",
+		"milestonePillar1Outline": "Dàn bài Pillar 1 đã sẵn sàng",
+		"milestoneFullSop": "Bài SOP hoàn chỉnh đã sẵn sàng",
+		"milestoneDeepCoverage": "Persona đã hoàn thành",
+		"transitionBanner": "Bạn đã tiến lên {tier}!"
 	},
 	"home": {
 		"greeting": {

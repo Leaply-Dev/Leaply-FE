@@ -13,6 +13,11 @@
  * @see lib/generated/api/endpoints/persona-lab/persona-lab.ts
  */
 
+// === Hand-written persona-lab hooks (temporary until Orval regen) ===
+export {
+	getMilestonesQueryKey,
+	useGetMilestones,
+} from "@/lib/api/personaLab/hooks";
 // === Conversation (Chat Interface) ===
 export {
 	getStartConversationQueryKey,
@@ -41,7 +46,6 @@ export {
 	useGetCoverage,
 	useGetGraph,
 } from "./graph";
-
 // === Profile & Synthesis ===
 export {
 	getGetPersonaStateQueryKey,

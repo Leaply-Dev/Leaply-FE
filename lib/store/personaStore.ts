@@ -13,6 +13,8 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type {
+	GraphMessageResponse,
+	PersonaNodeDto,
 	PillarCoverageDto,
 	TierProgressDto,
 } from "@/lib/api/personaLab/types";
@@ -22,9 +24,7 @@ import {
 } from "@/lib/config/archetypeConfig";
 import type {
 	CoverageMetrics,
-	GraphMessageResponse,
 	PersonaEdgeDto,
-	PersonaNodeDto,
 	PersonaStateResponse,
 } from "@/lib/generated/api/models";
 
@@ -81,6 +81,12 @@ interface PersonaStoreState {
 	tierProgress: TierProgressDto | null;
 	pillarCoverage: PillarCoverageDto | null;
 
+	// === v2 Server-Computed State ===
+	currentTier: string | null;
+	lastTransitionMessage: string | null;
+	unlockedMilestones: string[];
+	nextQuestionIntent: string | null;
+
 	// === Archetype State ===
 	archetypeType: ArchetypeKey | null;
 	archetypePersonalizedSummary: string | null; // LLM-generated personalized comment
@@ -111,6 +117,12 @@ interface PersonaStoreState {
 	// 2-Pillar tier actions
 	setTierProgress: (progress: TierProgressDto | null) => void;
 	setPillarCoverage: (coverage: PillarCoverageDto | null) => void;
+
+	// v2 server-computed state actions
+	setCurrentTier: (tier: string | null) => void;
+	setLastTransitionMessage: (message: string | null) => void;
+	setUnlockedMilestones: (milestones: string[]) => void;
+	setNextQuestionIntent: (intent: string | null) => void;
 
 	// Archetype actions
 	setArchetype: (
@@ -163,6 +175,12 @@ const initialState = {
 	// 2-Pillar tier state
 	tierProgress: null as TierProgressDto | null,
 	pillarCoverage: null as PillarCoverageDto | null,
+
+	// v2 Server-Computed State
+	currentTier: null as string | null,
+	lastTransitionMessage: null as string | null,
+	unlockedMilestones: [] as string[],
+	nextQuestionIntent: null as string | null,
 
 	// Archetype state
 	archetypeType: null as ArchetypeKey | null,
@@ -234,6 +252,13 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						completionReady: response.completionReady ?? state.completionReady,
 						totalNodeCount: response.totalNodeCount ?? state.totalNodeCount,
 						starGapsMap,
+						currentTier: response.currentTier ?? state.currentTier,
+						lastTransitionMessage:
+							response.transitionMessage ?? state.lastTransitionMessage,
+						unlockedMilestones:
+							response.unlockedMilestones ?? state.unlockedMilestones,
+						nextQuestionIntent:
+							response.nextQuestionIntent ?? state.nextQuestionIntent,
 					};
 				});
 			},
@@ -273,6 +298,10 @@ export const usePersonaStore = create<PersonaStoreState>()(
 					starGapsMap: {},
 					tierProgress: null,
 					pillarCoverage: null,
+					currentTier: null,
+					lastTransitionMessage: null,
+					unlockedMilestones: [],
+					nextQuestionIntent: null,
 					archetypeType: null,
 					archetypePersonalizedSummary: null,
 					archetypeRarity: null,
@@ -291,6 +320,15 @@ export const usePersonaStore = create<PersonaStoreState>()(
 
 			setPillarCoverage: (coverage: PillarCoverageDto | null) =>
 				set({ pillarCoverage: coverage }),
+
+			// === v2 Server-Computed State Actions ===
+			setCurrentTier: (tier: string | null) => set({ currentTier: tier }),
+			setLastTransitionMessage: (message: string | null) =>
+				set({ lastTransitionMessage: message }),
+			setUnlockedMilestones: (milestones: string[]) =>
+				set({ unlockedMilestones: milestones }),
+			setNextQuestionIntent: (intent: string | null) =>
+				set({ nextQuestionIntent: intent }),
 
 			// === Archetype Actions ===
 
@@ -484,6 +522,11 @@ export const usePersonaStore = create<PersonaStoreState>()(
 				// 2-Pillar tier state
 				tierProgress: state.tierProgress,
 				pillarCoverage: state.pillarCoverage,
+				// v2 Server-Computed State
+				currentTier: state.currentTier,
+				lastTransitionMessage: state.lastTransitionMessage,
+				unlockedMilestones: state.unlockedMilestones,
+				nextQuestionIntent: state.nextQuestionIntent,
 				archetypeType: state.archetypeType,
 				archetypePersonalizedSummary: state.archetypePersonalizedSummary,
 				archetypeRarity: state.archetypeRarity,
@@ -530,6 +573,17 @@ export const selectTierProgress = (state: PersonaStoreState) =>
 	state.tierProgress;
 export const selectPillarCoverage = (state: PersonaStoreState) =>
 	state.pillarCoverage;
+
+// v2 server-computed selectors
+export const selectCurrentTier = (state: PersonaStoreState) =>
+	state.currentTier;
+export const selectLastTransitionMessage = (state: PersonaStoreState) =>
+	state.lastTransitionMessage;
+export const selectUnlockedMilestones = (state: PersonaStoreState) =>
+	state.unlockedMilestones;
+export const selectNextQuestionIntent = (state: PersonaStoreState) =>
+	state.nextQuestionIntent;
+
 export const selectArchetypeType = (state: PersonaStoreState) =>
 	state.archetypeType;
 export const selectArchetypePersonalizedSummary = (state: PersonaStoreState) =>
@@ -541,10 +595,13 @@ export const selectArchetypeRevealed = (state: PersonaStoreState) =>
 export const selectShowArchetypeModal = (state: PersonaStoreState) =>
 	state.showArchetypeModal;
 
-// Re-export generated types for convenience
+// Re-export extended types from hand-written file
+export type {
+	GraphMessageResponse,
+	PersonaNodeDto,
+} from "@/lib/api/personaLab/types";
+// Re-export generated types for convenience (keep CoverageMetrics / PersonaEdgeDto)
 export type {
 	CoverageMetrics,
-	GraphMessageResponse,
 	PersonaEdgeDto,
-	PersonaNodeDto,
 } from "@/lib/generated/api/models";

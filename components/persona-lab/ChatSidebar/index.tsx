@@ -30,6 +30,8 @@ import {
 	useGetTierProgress,
 } from "@/lib/api/personaLab/hooks";
 import type {
+	GraphMessageResponse,
+	PersonaNodeDto,
 	PillarCoverageDto,
 	TierProgressDto,
 } from "@/lib/api/personaLab/types";
@@ -37,8 +39,6 @@ import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import type { ArchetypeKey } from "@/lib/config/archetypeConfig";
 import {
 	type CanvasActionDto,
-	type GraphMessageResponse,
-	type PersonaNodeDto,
 	PersonaNodeDtoType,
 } from "@/lib/generated/api/models";
 import {
@@ -56,8 +56,11 @@ import type { StarStructureKey } from "@/lib/store/personaStore";
 import {
 	type ConversationMessage,
 	selectApiGraphNodes,
+	selectCurrentTier,
+	selectNextQuestionIntent,
 	selectPillarCoverage,
 	selectTierProgress,
+	selectUnlockedMilestones,
 	usePersonaStore,
 } from "@/lib/store/personaStore";
 import { ArchetypeCelebrationModal } from "../ArchetypeCelebrationModal";
@@ -100,6 +103,10 @@ export function ChatSidebar() {
 
 	const archetypeRevealed = usePersonaStore((state) => state.archetypeRevealed);
 	const completionReady = usePersonaStore((state) => state.completionReady);
+
+	const currentTier = usePersonaStore(selectCurrentTier);
+	const nextQuestionIntent = usePersonaStore(selectNextQuestionIntent);
+	const unlockedMilestones = usePersonaStore(selectUnlockedMilestones);
 
 	const mockMode = usePersonaStore((state) => state.mockMode);
 	const mockScenario = usePersonaStore((state) => state.mockScenario);
@@ -193,6 +200,11 @@ export function ChatSidebar() {
 						const graphData = unwrapResponse<GraphMessageResponse>(response);
 
 						if (graphData?.message) {
+							// Prepend transition message if present
+							const messageContent = graphData.transitionMessage
+								? `${graphData.transitionMessage}\n\n${graphData.message.content || ""}`
+								: graphData.message.content || "";
+
 							const assistantMessage: ConversationMessage = {
 								id: graphData.message.id || `assistant-${Date.now()}`,
 								role:
@@ -201,7 +213,7 @@ export function ChatSidebar() {
 								type:
 									(graphData.message.type as ConversationMessage["type"]) ||
 									"text",
-								content: graphData.message.content || "",
+								content: messageContent,
 								timestamp:
 									graphData.message.timestamp || new Date().toISOString(),
 								thinkingDuration,
@@ -210,10 +222,12 @@ export function ChatSidebar() {
 							addGraphMessage(assistantMessage);
 						}
 
-						if (graphData?.nodesCreated && graphData.nodesCreated.length > 0) {
+						// Always process graph update to store v2 fields (tier, milestones, etc.)
+						// even when nodesCreated is empty (async extraction)
+						if (graphData) {
 							processGraphUpdate(graphData);
 
-							const nodesCreated = graphData.nodesCreated;
+							const nodesCreated = graphData.nodesCreated ?? [];
 							const storyNode = nodesCreated.find(
 								(n: PersonaNodeDto) => n.type === "key_story",
 							);
@@ -240,6 +254,13 @@ export function ChatSidebar() {
 								});
 							}
 						}
+
+						// Delayed graph refetch to catch async-extracted nodes
+						setTimeout(() => {
+							queryClient.invalidateQueries({
+								queryKey: getGetGraphQueryKey(),
+							});
+						}, 2500);
 
 						if (graphData?.completionReady) {
 							const completionMessage: ConversationMessage = {
@@ -360,6 +381,9 @@ export function ChatSidebar() {
 					tierProgress={tierProgress}
 					pillarCoverage={pillarCoverage}
 					completionReady={false}
+					currentTier={currentTier}
+					nextQuestionIntent={nextQuestionIntent}
+					unlockedMilestones={unlockedMilestones}
 				/>
 				<div className="flex-1 min-h-0 p-4 space-y-4">
 					<div className="h-16 bg-muted/50 rounded-lg animate-pulse" />
@@ -379,6 +403,9 @@ export function ChatSidebar() {
 				pillarCoverage={pillarCoverage}
 				storyNodeCount={storyNodeCount}
 				completionReady={completionReady}
+				currentTier={currentTier}
+				nextQuestionIntent={nextQuestionIntent}
+				unlockedMilestones={unlockedMilestones}
 			/>
 
 			{process.env.NODE_ENV === "development" && (

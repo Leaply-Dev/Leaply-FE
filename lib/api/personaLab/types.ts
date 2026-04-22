@@ -5,10 +5,16 @@
  *   GET /v1/persona/tier-progress
  *   GET /v1/persona/pillar-coverage
  *   GET /v1/persona/next-question
+ *   GET /v1/persona/milestones
  *
  * Replace with Orval-generated types once the backend is redeployed and
  * the OpenAPI spec is regenerated.
  */
+
+import type {
+	GraphMessageResponse as GeneratedGraphMessageResponse,
+	PersonaNodeDto as GeneratedPersonaNodeDto,
+} from "@/lib/generated/api/models";
 
 export type Pillar = "pillar1" | "pillar2" | "origin";
 
@@ -49,4 +55,38 @@ export interface NextQuestionDto {
 	followUp?: string;
 	rawText?: string;
 	rawFollowUp?: string;
+}
+
+// ============================================================================
+// v2 Extensions — add new fields from backend handoff until Orval regenerates
+// ============================================================================
+
+/** Extended PersonaNodeDto with pillar traceability fields. */
+export type PersonaNodeDto = GeneratedPersonaNodeDto & {
+	/** Pillar tag: pillar1 / pillar2 / origin. Null if not pillar-scoped. */
+	pillar?: string;
+	/** Sub-dimension tag: knowledge/skill/network/.../beneficiaries/idea. Null if cross-pillar. */
+	subDimension?: string;
+	/** Human-readable label for hover (e.g., "Pillar 1 / Skill -- dung cho Why This Field essay"). */
+	servesPillar?: string;
+};
+
+/** Extended GraphMessageResponse with v2 server-computed state fields. */
+export type GraphMessageResponse = GeneratedGraphMessageResponse & {
+	/** Current tier the user is in. */
+	currentTier?: string;
+	/** Transition message when tier just changed (null otherwise). */
+	transitionMessage?: string;
+	/** Milestones unlocked this turn. */
+	unlockedMilestones?: string[];
+	/** What the next question is about (for progress bar). */
+	nextQuestionIntent?: string;
+};
+
+/** Response from GET /api/v1/persona/milestones */
+export interface MilestonesResponse {
+	currentTier?: string;
+	unlocked?: string[];
+	totalNodes?: number;
+	keyStoryCount?: number;
 }
