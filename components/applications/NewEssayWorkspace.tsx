@@ -274,11 +274,9 @@ export function NewEssayWorkspace({
 	};
 
 	// Shared step layout classes
-	const stepContainer = "flex flex-col items-center min-h-[60vh] max-w-4xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-300 py-4";
-	const stepHeading = (
-		title: string,
-		subtitle: string,
-	) => (
+	const stepContainer =
+		"flex flex-col items-center min-h-[60vh] max-w-4xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-300 py-4";
+	const stepHeading = (title: string, subtitle: string) => (
 		<div className="text-center space-y-2 w-full">
 			<h2 className="text-3xl font-bold tracking-tight">{title}</h2>
 			<p className="text-muted-foreground">{subtitle}</p>
@@ -441,10 +439,7 @@ export function NewEssayWorkspace({
 						))}
 					</div>
 
-					<StepFooter
-						onBack={() => setStep(1)}
-						backLabel={tSetup("back")}
-					/>
+					<StepFooter onBack={() => setStep(1)} backLabel={tSetup("back")} />
 				</div>
 			)}
 
@@ -527,7 +522,12 @@ function StepFooter({
 	return (
 		<div className="flex items-center gap-3 w-full pt-2">
 			{onBack && (
-				<Button size="lg" variant="outline" onClick={onBack} disabled={isSubmitting}>
+				<Button
+					size="lg"
+					variant="outline"
+					onClick={onBack}
+					disabled={isSubmitting}
+				>
 					{backLabel}
 				</Button>
 			)}
@@ -645,18 +645,18 @@ function MotifCard({
 							className="ml-auto w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5"
 							style={{ backgroundColor: color }}
 						>
-						<svg
-							viewBox="0 0 12 12"
-							className="w-2.5 h-2.5 text-white"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth={2.5}
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							aria-hidden="true"
-						>
-							<polyline points="2,6 5,9 10,3" />
-						</svg>
+							<svg
+								viewBox="0 0 12 12"
+								className="w-2.5 h-2.5 text-white"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth={2.5}
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								aria-hidden="true"
+							>
+								<polyline points="2,6 5,9 10,3" />
+							</svg>
 						</div>
 					)}
 				</div>
@@ -671,18 +671,18 @@ function MotifCard({
 			{/* Good fit */}
 			<div className="px-4 py-3 space-y-1">
 				<div className="flex items-center gap-1.5 mb-1">
-				<svg
-					viewBox="0 0 12 12"
-					className="w-3 h-3 shrink-0"
-					fill="none"
-					stroke="#16A34A"
-					strokeWidth={2.5}
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					aria-hidden="true"
-				>
-					<polyline points="2,6 5,9 10,3" />
-				</svg>
+					<svg
+						viewBox="0 0 12 12"
+						className="w-3 h-3 shrink-0"
+						fill="none"
+						stroke="#16A34A"
+						strokeWidth={2.5}
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						aria-hidden="true"
+					>
+						<polyline points="2,6 5,9 10,3" />
+					</svg>
 					<span className="text-[10px] font-semibold uppercase tracking-wide text-green-700">
 						{tSetup("motifGoodFit")}
 					</span>
@@ -698,19 +698,19 @@ function MotifCard({
 			{/* Not for */}
 			<div className="px-4 py-3 mt-auto space-y-1">
 				<div className="flex items-center gap-1.5 mb-1">
-				<svg
-					viewBox="0 0 12 12"
-					className="w-3 h-3 shrink-0"
-					fill="none"
-					stroke="#DC2626"
-					strokeWidth={2.5}
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					aria-hidden="true"
-				>
-					<line x1="2" y1="2" x2="10" y2="10" />
-					<line x1="10" y1="2" x2="2" y2="10" />
-				</svg>
+					<svg
+						viewBox="0 0 12 12"
+						className="w-3 h-3 shrink-0"
+						fill="none"
+						stroke="#DC2626"
+						strokeWidth={2.5}
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						aria-hidden="true"
+					>
+						<line x1="2" y1="2" x2="10" y2="10" />
+						<line x1="10" y1="2" x2="2" y2="10" />
+					</svg>
 					<span className="text-[10px] font-semibold uppercase tracking-wide text-red-600">
 						{tSetup("motifSkipIf")}
 					</span>
