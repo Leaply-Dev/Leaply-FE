@@ -1,22 +1,25 @@
 "use client";
 
-import { FileEdit, Loader2, Sparkles } from "lucide-react";
+import { FileEdit, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
-import {
-	type SopPhase,
-	useSavePrompt,
-	useWorkspaceStatus,
-} from "@/lib/api/sop-workspace";
-import { IdeationPhase } from "./IdeationPhase";
+import { useWorkspaceStatus } from "@/lib/api/sop-workspace";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import { useGetIntake } from "@/lib/generated/api/endpoints/persona-lab-intake/persona-lab-intake";
+import type { PersonaIntakeResponse } from "@/lib/generated/api/models";
 import { WritingWorkspace } from "./WritingWorkspace";
+
+type UIPhase = "writing" | "completed";
+
+const PHASE_ORDER: Record<UIPhase, number> = {
+	writing: 0,
+	completed: 1,
+};
 
 interface SopWorkspaceProps {
 	applicationId: string;
@@ -30,74 +33,34 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 		error,
 		refetch,
 	} = useWorkspaceStatus(applicationId);
-	const savePromptMutation = useSavePrompt();
-	const [currentPhase, setCurrentPhase] = useState<SopPhase>("not_started");
+	const [currentPhase, setCurrentPhase] = useState<UIPhase>("writing");
 
-	// Sync phase from server.
+	const { data: intakeData, isLoading: isLoadingIntake } = useGetIntake();
+	const intake = intakeData
+		? unwrapResponse<PersonaIntakeResponse>(intakeData)
+		: null;
+	const intakeComplete = intake?.complete === true;
+
+	// Sync phase from server — never regress below what the user has already reached locally.
 	useEffect(() => {
 		if (!status) return;
 		const phase = status.sopPhase;
-		const hasPrompt = !!status.sopPrompt?.trim();
 
-		if (phase === "completed") {
-			setCurrentPhase("completed");
-			return;
-		}
-		if (phase === "not_started" && !hasPrompt) {
-			setCurrentPhase("not_started");
-			return;
-		}
+		const serverPhase: UIPhase =
+			phase === "completed" ? "completed" : "writing";
 
-		// Prompt captured but ideation not complete → go to ideation.
-		if (phase === "not_started" || phase === "ideation") {
-			setCurrentPhase("ideation");
-			return;
-		}
-		setCurrentPhase("writing");
+		setCurrentPhase((prev) =>
+			PHASE_ORDER[serverPhase] > PHASE_ORDER[prev] ? serverPhase : prev,
+		);
 	}, [status]);
 
-	const handlePhaseChange = (newPhase: SopPhase) => {
-		setCurrentPhase(newPhase);
-		refetch();
-	};
-
-	const handleStartWithPrompt = async (prompt?: string, wordLimit?: number) => {
-		if (prompt || wordLimit) {
-			await savePromptMutation.mutateAsync({
-				applicationId,
-				data: { prompt, wordLimit },
-			});
-		}
-		posthog.capture("sop_started", {
-			application_id: applicationId,
-			has_prompt: !!prompt,
-			word_limit: wordLimit,
-		});
-		handlePhaseChange("ideation");
-	};
-
-	if (isLoading) {
+	if (isLoading || isLoadingIntake) {
 		return (
-			<div className="h-full flex flex-col">
-				<div className="flex-1 min-h-0">
-					<Card className="max-w-xl mx-auto">
-						<CardHeader className="text-center pb-4">
-							<div className="flex justify-center">
-								<Skeleton className="h-8 w-48 rounded-lg" />
-							</div>
-						</CardHeader>
-						<CardContent className="space-y-6">
-							<div className="space-y-2">
-								<Skeleton className="h-4 w-32" />
-								<Skeleton className="h-[80px] w-full rounded-md" />
-							</div>
-							<div className="flex items-center gap-3">
-								<Skeleton className="h-4 w-24" />
-								<Skeleton className="h-10 w-24 rounded-md" />
-							</div>
-							<Skeleton className="h-11 w-full rounded-md" />
-						</CardContent>
-					</Card>
+			<div className="flex items-center justify-center h-full">
+				<div className="space-y-3 w-full max-w-xl">
+					<Skeleton className="h-8 w-48 mx-auto rounded-lg" />
+					<Skeleton className="h-[80px] w-full rounded-md" />
+					<Skeleton className="h-11 w-full rounded-md" />
 				</div>
 			</div>
 		);
@@ -112,131 +75,50 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 		);
 	}
 
-	return (
-		<div className="h-full flex flex-col">
-			{/* Phase Content */}
-			<div className="flex-1 min-h-0">
-				{currentPhase === "not_started" && (
-					<StartPrompt
-						currentPrompt={status?.sopPrompt}
-						currentWordLimit={status?.wordLimit}
-						onStart={handleStartWithPrompt}
-						isLoading={savePromptMutation.isPending}
-					/>
-				)}
-
-				{currentPhase === "ideation" && (
-					<IdeationPhase
-						applicationId={applicationId}
-						onContinue={() => handlePhaseChange("writing")}
-					/>
-				)}
-
-				{currentPhase === "writing" && (
-					<WritingWorkspace
-						applicationId={applicationId}
-						onBack={() => handlePhaseChange("not_started")}
-						onComplete={() => {
-							posthog.capture("sop_completed", {
-								application_id: applicationId,
-							});
-							handlePhaseChange("completed");
-						}}
-						sopPrompt={status?.sopPrompt}
-					/>
-				)}
-
-				{currentPhase === "completed" && (
-					<CompletedState onEdit={() => handlePhaseChange("writing")} />
-				)}
+	// Persona Lab not complete → block with a gate before ANY phase.
+	if (!intakeComplete) {
+		return (
+			<div className="flex items-center justify-center h-full">
+				<Card className="max-w-md w-full">
+					<CardHeader className="text-center pb-4">
+						<div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center mx-auto mb-3">
+							<Sparkles className="w-6 h-6 text-amber-500" />
+						</div>
+						<CardTitle className="text-lg">{t("personaLabRequired")}</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-4 text-center">
+						<p className="text-sm text-muted-foreground">
+							{t("personaLabRequiredDesc")}
+						</p>
+						<Button asChild className="w-full">
+							<Link href="/persona-lab/intake">{t("goToPersonaLab")}</Link>
+						</Button>
+					</CardContent>
+				</Card>
 			</div>
-		</div>
-	);
-}
-
-interface StartPromptProps {
-	currentPrompt?: string;
-	currentWordLimit?: number;
-	onStart: (prompt?: string, wordLimit?: number) => void;
-	isLoading?: boolean;
-}
-
-function StartPrompt({
-	currentPrompt,
-	currentWordLimit,
-	onStart,
-	isLoading,
-}: StartPromptProps) {
-	const t = useTranslations("sop");
-	const [promptText, setPromptText] = useState(currentPrompt || "");
-	const [wordLimitInput, setWordLimitInput] = useState(
-		currentWordLimit?.toString() || "",
-	);
-
-	const handleStart = () => {
-		onStart(
-			promptText.trim() || undefined,
-			wordLimitInput ? Number.parseInt(wordLimitInput, 10) : undefined,
 		);
-	};
+	}
 
-	return (
-		<Card className="max-w-xl mx-auto">
-			<CardHeader className="text-center pb-4">
-				<CardTitle className="flex items-center justify-center gap-2 text-lg">
-					<Sparkles className="w-5 h-5 text-primary" />
-					{t("title")}
-				</CardTitle>
-			</CardHeader>
-			<CardContent className="space-y-4">
-				{/* SOP Prompt Input */}
-				<div className="space-y-2">
-					<Label htmlFor="sop-prompt" className="text-sm font-medium">
-						{t("pastePrompt")}
-					</Label>
-					<Textarea
-						id="sop-prompt"
-						value={promptText}
-						onChange={(e) => setPromptText(e.target.value)}
-						placeholder={t("promptPlaceholder")}
-						className="min-h-[80px] resize-none text-sm"
-					/>
-					<p className="text-xs text-muted-foreground">{t("promptRequired")}</p>
-				</div>
+	if (currentPhase === "writing") {
+		return (
+			<WritingWorkspace
+				applicationId={applicationId}
+				onComplete={() => {
+					posthog.capture("sop_completed", {
+						application_id: applicationId,
+					});
+					setCurrentPhase("completed");
+				}}
+				sopPrompt={status?.sopPrompt}
+			/>
+		);
+	}
 
-				{/* Word Limit Input */}
-				<div className="flex items-center gap-3">
-					<Label htmlFor="word-limit" className="text-sm whitespace-nowrap">
-						{t("wordLimit")}
-					</Label>
-					<Input
-						id="word-limit"
-						type="number"
-						value={wordLimitInput}
-						onChange={(e) => setWordLimitInput(e.target.value)}
-						placeholder="500"
-						className="w-24"
-					/>
-					<span className="text-xs text-muted-foreground">{t("words")}</span>
-				</div>
+	if (currentPhase === "completed") {
+		return <CompletedState onEdit={() => setCurrentPhase("writing")} />;
+	}
 
-				{/* Start Button */}
-				<Button
-					onClick={handleStart}
-					disabled={isLoading || !promptText.trim()}
-					className="w-full"
-					size="lg"
-				>
-					{isLoading ? (
-						<Loader2 className="w-4 h-4 mr-2 animate-spin" />
-					) : (
-						<Sparkles className="w-4 h-4 mr-2" />
-					)}
-					{t("start")}
-				</Button>
-			</CardContent>
-		</Card>
-	);
+	return null;
 }
 
 interface CompletedStateProps {

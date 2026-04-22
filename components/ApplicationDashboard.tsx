@@ -2,10 +2,13 @@
 
 import {
 	Award,
+	BookOpen,
 	ExternalLink,
 	FileText,
 	MoreVertical,
+	PenSquare,
 	School,
+	Sparkles,
 	Trash2,
 } from "lucide-react";
 import Image from "next/image";
@@ -30,6 +33,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useWorkspaceStatus } from "@/lib/api/sop-workspace";
 import { FEATURED_UNIVERSITIES } from "@/lib/data/marketing-config";
 import type { ApplicationResponse } from "@/lib/generated/api/models";
 
@@ -43,28 +47,15 @@ export function ApplicationDashboard({
 	onDelete,
 }: ApplicationDashboardProps) {
 	const t = useTranslations("applications");
+	const tSetup = useTranslations("sop.setup");
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [isProgramDrawerOpen, setIsProgramDrawerOpen] = useState(false);
 
+	const { data: status } = useWorkspaceStatus(application?.id ?? "");
+
 	if (!application) {
-		return (
-			<div className="flex items-center justify-center h-full bg-muted/30">
-				<div className="text-center">
-					<FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-					<h3 className="text-xl font-semibold text-foreground mb-2">
-						{t("noApplicationSelected")}
-					</h3>
-					<p className="text-muted-foreground mb-4">{t("selectApplication")}</p>
-					<Button asChild>
-						<Link href="/explore">
-							{t("explorePrograms")}
-							<Award className="w-4 h-4 ml-2" />
-						</Link>
-					</Button>
-				</div>
-			</div>
-		);
+		return null;
 	}
 
 	const handleDelete = async () => {
@@ -89,30 +80,23 @@ export function ApplicationDashboard({
 					{/* Header */}
 					<div className="flex items-start justify-between mb-6 shrink-0">
 						<div className="flex items-center gap-4 min-w-0 flex-1">
-							{/* Logo */}
-							<div className="shrink-0 w-16 h-16 bg-white rounded-xl border border-border/50 shadow-sm flex items-center justify-center overflow-hidden p-2">
-								{universityLogo ? (
-									<div className="relative w-full h-full">
-										<Image
-											src={universityLogo}
-											alt={application.program?.universityName ?? "University"}
-											fill
-											className="object-contain"
-										/>
-									</div>
-								) : (
-									<School className="w-8 h-8 text-muted-foreground/50" />
-								)}
-							</div>
-
 							<div className="min-w-0 flex-1">
-								{/* Degree Name (Highlighted as Main Title) */}
+								{/* Essay Type (Highlighted as Main Title) */}
 								<h1 className="text-2xl font-bold text-foreground mb-1 truncate">
-									{application.program?.degreeName ||
-										application.program?.programName}
+									{status?.essayType
+										? tSetup(
+												`essayType.${status.essayType.toLowerCase()}` as Parameters<
+													typeof tSetup
+												>[0],
+											)
+										: application.program?.degreeName ||
+											application.program?.programName}
 								</h1>
-								{/* University Name (Subtitle) */}
+								{/* Degree & University Name (Subtitle) */}
 								<p className="text-lg text-muted-foreground truncate">
+									{application.program?.degreeName
+										? `${application.program.degreeName}, `
+										: ""}
 									{application.program?.universityName}
 								</p>
 							</div>

@@ -474,7 +474,11 @@
 			"deleteFailed": "Failed to delete application",
 			"deleteScholarshipFailed": "Failed to delete scholarship application",
 			"loadFailed": "Failed to load data"
-		}
+		},
+		"newEssayTitle": "New essay",
+		"setupInProgress": "Setup in progress...",
+		"newEssay": "New essay",
+		"noEssayYet": "No essay yet. Click \\\"New essay\\\" for a fresh start."
 	},
 	"tasks": {
 		"title": "Tasks",
@@ -1191,6 +1195,41 @@
 		}
 	},
 	"sop": {
+		"setup": {
+			"step1Title": "What type of essay are you writing?",
+			"step1Desc": "Each type has a different structure and purpose.",
+			"step2Title": "What is your narrative strategy?",
+			"step2Desc": "Choose the storytelling approach that best fits your journey.",
+			"continue": "Continue",
+			"back": "Back",
+			"startWriting": "Start Writing",
+			"essayType": {
+				"ps": "Personal Statement",
+				"psDesc": "Focused on personal identity, growth, and worldview. Common for undergrad, medicine, law, and humanities.",
+				"sop": "Statement of Purpose",
+				"sopDesc": "Focused on academic goals, research intent, and career trajectory. Standard for most master's and PhD programs."
+			},
+			"motif": {
+				"JOURNEY": "Transformation Journey",
+				"JOURNEY_desc": "An event changed you. You faced it, adapted, and became different.",
+				"JOURNEY_for": "Have a clear obstacle, failure, or cultural shock that reshaped who you are",
+				"MONTAGE": "Metaphorical Montage",
+				"MONTAGE_desc": "A small symbol — object, habit, space — threads together seemingly unrelated experiences.",
+				"MONTAGE_for": "Multi-talented, many interests, no single dramatic event stands out",
+				"INTERDISCIPLINARY": "Interdisciplinary Nexus",
+				"INTERDISCIPLINARY_desc": "You connect two seemingly opposing fields to solve a complex problem.",
+				"INTERDISCIPLINARY_for": "STEM candidate with humanistic depth, or social scientist with quantitative rigor",
+				"BRIDGE_BUILDER": "Community Bridge Builder",
+				"BRIDGE_BUILDER_desc": "Personal effort tied to cultural identity, in service of a larger community.",
+				"BRIDGE_BUILDER_for": "MBA, public policy, global health, leadership or advocacy stories",
+				"SPECIALIST": "Specialist Blueprint",
+				"SPECIALIST_desc": "Knowledge foundation → identified gap → research roadmap → fit with institution.",
+				"SPECIALIST_for": "PhD, research master's, deep expertise in a narrow domain",
+				"NARRATIVE_DRIVEN": "Narrative Driven",
+				"NARRATIVE_DRIVEN_desc": "Told story from your life, how you bypass struggle.",
+				"NARRATIVE_DRIVEN_for": "People who have struggle and passed."
+			}
+		},
 		"title": "Write SOP",
 		"pastePrompt": "Paste SOP prompt",
 		"promptPlaceholder": "E.g.: Describe your purpose for pursuing this graduate program...",
@@ -1253,7 +1292,8 @@
 		},
 		"personaLabRequired": "Persona Lab required",
 		"personaLabRequiredDesc": "You need to complete Persona Lab before generating essay angles.",
-		"goToPersonaLab": "Go to Persona Lab"
+		"goToPersonaLab": "Go to Persona Lab",
+		"target": "Target"
 	},
 	"compare": {
 		"title": "Compare programs",

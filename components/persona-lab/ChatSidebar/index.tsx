@@ -321,8 +321,7 @@ export function ChatSidebar() {
 			addGraphMessage({
 				id: graphData.message.id || `assistant-${Date.now()}`,
 				role: "assistant",
-				type:
-					(graphData.message.type as ConversationMessage["type"]) || "text",
+				type: (graphData.message.type as ConversationMessage["type"]) || "text",
 				content: graphData.message.content || "",
 				timestamp: graphData.message.timestamp || new Date().toISOString(),
 				status: "sent",

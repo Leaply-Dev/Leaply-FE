@@ -4,8 +4,8 @@ import { Award, FileText, GraduationCap, School, Search } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
-import { NewEssayDialog } from "@/components/essays/NewEssayDialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
 	Tooltip,
@@ -42,7 +42,6 @@ interface EssayListProps {
 	isLoading?: boolean;
 	withWrapper?: boolean;
 	collapsed?: boolean;
-	onCreated?: (args: { applicationId: string; kind: EssayItemKind }) => void;
 }
 
 function buildItems(
@@ -106,7 +105,6 @@ export function EssayList({
 	isLoading,
 	withWrapper = true,
 	collapsed = false,
-	onCreated,
 }: EssayListProps) {
 	const t = useTranslations("applications");
 	const [searchQuery, setSearchQuery] = useState("");
@@ -127,6 +125,20 @@ export function EssayList({
 		);
 	}, [items, searchQuery]);
 
+	const displayItems = useMemo(() => {
+		const result = [...filteredItems];
+		if (selectedId === "new" && !result.find((i) => i.id === "new")) {
+			result.unshift({
+				id: "new",
+				kind: "program",
+				title: t("newEssayTitle"),
+				subtitle: t("setupInProgress"),
+				status: "planning",
+			});
+		}
+		return result;
+	}, [filteredItems, selectedId, t]);
+
 	if (collapsed) {
 		if (isLoading) {
 			return (
@@ -143,7 +155,7 @@ export function EssayList({
 
 		return (
 			<div className="flex flex-col gap-2 items-center w-full px-2">
-				{filteredItems.map((item) => {
+				{displayItems.map((item) => {
 					const logo = item.logoUrl ?? getLogoByUniName(item.universityName);
 					const statusDot =
 						statusColors[item.status ?? "planning"] ?? "bg-muted";
@@ -201,7 +213,14 @@ export function EssayList({
 					<h2 className="text-lg font-semibold text-foreground">
 						{t("title")}
 					</h2>
-					<span className="text-sm text-muted-foreground">{items.length}</span>
+					<Button
+						size="sm"
+						className="gap-2"
+						onClick={() => onSelect("new", "program")}
+					>
+						<FileText className="w-4 h-4" />
+						{t("newEssay")}
+					</Button>
 				</div>
 
 				<div className="relative">
@@ -214,8 +233,6 @@ export function EssayList({
 						className="pl-9"
 					/>
 				</div>
-
-				<NewEssayDialog onCreated={onCreated} />
 			</div>
 
 			{/* List */}
@@ -228,16 +245,16 @@ export function EssayList({
 							</div>
 						))}
 					</div>
-				) : filteredItems.length === 0 ? (
+				) : displayItems.length === 0 ? (
 					<div className="p-6 text-center">
 						<FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
 						<p className="text-sm text-muted-foreground">
-							{searchQuery ? t("noApplicationsFound") : t("noApplicationsYet")}
+							{searchQuery ? t("noApplicationsFound") : t("noEssayYet")}
 						</p>
 					</div>
 				) : (
 					<div className="px-3 py-2 space-y-1">
-						{filteredItems.map((item) => {
+						{displayItems.map((item) => {
 							const logo =
 								item.logoUrl ?? getLogoByUniName(item.universityName);
 							const KindIcon = item.kind === "program" ? GraduationCap : Award;

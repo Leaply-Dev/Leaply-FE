@@ -4,8 +4,8 @@ import { Award, ExternalLink, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { SopWorkspace } from "@/components/applications/sop/SopWorkspace";
 import { ScholarshipDetailDrawer } from "@/components/explore/scholarship/ScholarshipDetailDrawer";
-import { EssayTab } from "@/components/scholarships/tabs/EssayTab";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -18,10 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
-import {
-	useGetApplication,
-	useGetDocuments,
-} from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
+import { useGetApplication } from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
 import type { ScholarshipApplicationResponse } from "@/lib/generated/api/models";
 
 interface ScholarshipDashboardProps {
@@ -46,21 +43,8 @@ export function ScholarshipDashboard({
 			},
 		});
 
-	// Fetch documents
-	const { data: documentsResponse } = useGetDocuments(applicationId ?? "", {
-		query: {
-			enabled: !!applicationId,
-		},
-	});
-
 	const application =
 		unwrapResponse<ScholarshipApplicationResponse>(applicationResponse);
-	const documents = unwrapResponse<{ documents?: unknown[] }>(
-		documentsResponse,
-	);
-	const documentsList = Array.isArray(documents)
-		? documents
-		: (documents?.documents ?? []);
 
 	// Handle delete
 	const handleDelete = async () => {
@@ -136,14 +120,14 @@ export function ScholarshipDashboard({
 	return (
 		<>
 			<div className="flex-1 overflow-y-auto bg-muted/30">
-				<div className="max-w-4xl mx-auto p-6">
+				<div className="h-full flex flex-col p-6">
 					{/* Header */}
-					<div className="flex items-start justify-between mb-6">
+					<div className="flex items-start justify-between mb-6 shrink-0">
 						<div className="min-w-0 flex-1">
 							<h1 className="text-2xl font-bold text-foreground mb-1 truncate">
 								{application.scholarship?.name}
 							</h1>
-							<p className="text-muted-foreground truncate">
+							<p className="text-lg text-muted-foreground truncate">
 								{application.scholarship?.sourceName}
 							</p>
 						</div>
@@ -200,27 +184,9 @@ export function ScholarshipDashboard({
 						</div>
 					</div>
 
-					<EssayTab
-						applicationId={applicationId}
-						documents={
-							documentsList as Parameters<typeof EssayTab>[0]["documents"]
-						}
-						application={application}
-					/>
-
-					{/* Timestamps */}
-					<div className="text-xs text-muted-foreground text-center mt-8">
-						{t("addedOn")}{" "}
-						{new Date(application.createdAt ?? "").toLocaleDateString("vi-VN")}
-						{application.updatedAt !== application.createdAt && (
-							<>
-								{" "}
-								• {t("lastUpdated")}{" "}
-								{new Date(application.updatedAt ?? "").toLocaleDateString(
-									"vi-VN",
-								)}
-							</>
-						)}
+					{/* SOP Workspace */}
+					<div className="flex-1 min-h-0">
+						<SopWorkspace applicationId={applicationId} />
 					</div>
 				</div>
 			</div>

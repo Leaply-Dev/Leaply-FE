@@ -5,6 +5,7 @@ import {
 	Check,
 	CheckCircle,
 	Circle,
+	FileText,
 	Loader2,
 	MessageSquare,
 	Sparkles,
@@ -12,6 +13,7 @@ import {
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { TipTapEditor } from "@/components/editor/TipTapEditor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -23,7 +25,6 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
 import {
 	type OutlineSectionDto,
 	type ReviewResponse,
@@ -40,7 +41,7 @@ import { cn } from "@/lib/utils";
 
 interface WritingWorkspaceProps {
 	applicationId: string;
-	onBack: () => void;
+	onBack?: () => void;
 	onComplete: () => void;
 	sopPrompt?: string;
 }
@@ -54,7 +55,9 @@ export function WritingWorkspace({
 	const t = useTranslations("sop");
 	const [selectedSectionIndex, setSelectedSectionIndex] = useState(0);
 	const [sectionContent, setSectionContent] = useState("");
+	const [wordCount, setWordCount] = useState(0);
 	const [showReview, setShowReview] = useState(false);
+	const [showFullEssay, setShowFullEssay] = useState(false);
 	const [reviewData, setReviewData] = useState<ReviewResponse | null>(null);
 
 	// Refs to prevent duplicate API calls
@@ -82,9 +85,22 @@ export function WritingWorkspace({
 	useEffect(() => {
 		const section = sections[selectedSectionIndex];
 		if (section) {
-			setSectionContent(section.content || "");
+			const content = section.content || "";
+			setSectionContent(content);
+			setWordCount(content.split(/\s+/).filter(Boolean).length);
 		}
-	}, [selectedSectionIndex, sections]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedSectionIndex]); // Only sync when index changes to avoid overwriting user input on data refresh
+
+	const handleSelectSection = (index: number) => {
+		setSelectedSectionIndex(index);
+		const section = sections[index];
+		if (section) {
+			const content = section.content || "";
+			setSectionContent(content);
+			setWordCount(content.split(/\s+/).filter(Boolean).length);
+		}
+	};
 
 	// Generate outline if not exists and ideation is complete (only once)
 	// biome-ignore lint/correctness/useExhaustiveDependencies: mutate function intentionally excluded to prevent infinite loop
@@ -151,7 +167,7 @@ export function WritingWorkspace({
 			toast.success(t("sectionComplete"));
 			// Move to next section if available
 			if (selectedSectionIndex < sections.length - 1) {
-				setSelectedSectionIndex(selectedSectionIndex + 1);
+				handleSelectSection(selectedSectionIndex + 1);
 			}
 		} catch {
 			toast.error(t("markDoneError"));
@@ -243,14 +259,6 @@ export function WritingWorkspace({
 
 	const currentOutlineSection = outlineSections[selectedSectionIndex];
 	const allDone = sections.every((s) => s.status === "done");
-	const wordCount = sectionContent.split(/\s+/).filter(Boolean).length;
-
-	// Calculate accumulated content from previous sections
-	const previousContent = sections
-		.slice(0, selectedSectionIndex)
-		.map((s) => s.content)
-		.filter(Boolean)
-		.join("\n\n");
 
 	return (
 		<div className="h-full flex flex-col lg:flex-row gap-4">
@@ -265,15 +273,17 @@ export function WritingWorkspace({
 							</CardTitle>
 						</div>
 						{/* Back Button moved to top */}
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={onBack}
-							className="w-full"
-						>
-							<ArrowLeft className="w-4 h-4 mr-2" />
-							{t("backToAngle")}
-						</Button>
+						{onBack && (
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={onBack}
+								className="w-full"
+							>
+								<ArrowLeft className="w-4 h-4 mr-2" />
+								{t("backToAngle")}
+							</Button>
+						)}
 					</CardHeader>
 					<CardContent className="px-2 pb-4 flex-1 min-h-0">
 						<ScrollArea className="h-full">
@@ -288,20 +298,38 @@ export function WritingWorkspace({
 											<button
 												key={section.key}
 												type="button"
-												onClick={() => setSelectedSectionIndex(index)}
+												onClick={() => handleSelectSection(index)}
 												className={cn(
 													"w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2",
 													isSelected
-														? "bg-primary/10 text-primary"
+														? "bg-primary text-primary-foreground font-medium shadow-sm"
 														: "hover:bg-muted",
 												)}
 											>
 												{isDone ? (
-													<Check className="w-4 h-4 text-green-600 shrink-0" />
+													<Check
+														className={cn(
+															"w-4 h-4 shrink-0",
+															isSelected
+																? "text-primary-foreground"
+																: "text-green-600",
+														)}
+													/>
 												) : (
-													<Circle className="w-4 h-4 text-muted-foreground shrink-0" />
+													<Circle
+														className={cn(
+															"w-4 h-4 shrink-0",
+															isSelected
+																? "text-primary-foreground/70"
+																: "text-muted-foreground",
+														)}
+													/>
 												)}
-												<span className={cn(isDone && "text-muted-foreground")}>
+												<span
+													className={cn(
+														isDone && !isSelected && "text-muted-foreground",
+													)}
+												>
 													{section.title}
 												</span>
 											</button>
@@ -318,160 +346,146 @@ export function WritingWorkspace({
 			<div className="flex-1 flex flex-col gap-4 min-w-0">
 				<Card className="flex-1 flex flex-col">
 					<CardHeader className="py-3 px-4 border-b shrink-0">
-						<div className="flex flex-col gap-4">
-							{/* Top Actions Row */}
-							<div className="flex items-center justify-between">
-								<div className="flex items-center gap-2">
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={handleSaveSection}
-										disabled={updateSection.isPending}
-									>
-										{updateSection.isPending && (
-											<Loader2 className="w-3 h-3 mr-2 animate-spin" />
-										)}
-										{t("saveDraft")}
-									</Button>
+						<div className="flex items-center justify-between">
+							<CardTitle className="text-base">
+								{currentOutlineSection?.title || t("section")}
+							</CardTitle>
+							<div className="flex items-center gap-4">
+								<span className="text-xs text-muted-foreground">
+									{currentOutlineSection?.wordTarget && (
+										<>
+											{t("target") || "Target"}:{" "}
+											{currentOutlineSection.wordTarget.min}-
+											{currentOutlineSection.wordTarget.max} {t("words")}
+										</>
+									)}
+								</span>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setShowFullEssay(true)}
+								>
+									<FileText className="w-4 h-4 mr-2" />
+									View Full Essay
+								</Button>
+							</div>
+						</div>
+					</CardHeader>
 
+					<CardContent className="flex-1 p-4 flex flex-col min-h-0">
+						<TipTapEditor
+							key={`section-${selectedSectionIndex}`}
+							initialContent={sections[selectedSectionIndex]?.content || ""}
+							onSave={async (content) => {
+								await updateSection.mutateAsync({
+									applicationId,
+									sectionIndex: selectedSectionIndex,
+									data: { content },
+								});
+								toast.success(t("savedDraft"));
+							}}
+							onChange={setSectionContent}
+							onWordCountChange={setWordCount}
+							className="flex-1 border-0 shadow-none rounded-none h-full"
+							customActions={
+								<>
 									<Button
 										size="sm"
+										variant="secondary"
 										onClick={handleMarkDone}
 										disabled={
 											markSectionDone.isPending || !sectionContent.trim()
 										}
 									>
 										{markSectionDone.isPending ? (
-											<Loader2 className="w-3 h-3 mr-2 animate-spin" />
+											<Loader2 className="w-4 h-4 mr-1 animate-spin" />
 										) : (
-											<Check className="w-3 h-3 mr-2" />
+											<Check className="w-4 h-4 mr-1" />
 										)}
 										{t("complete")}
 									</Button>
-								</div>
-
-								{/* Review Button moved to top */}
-								{allDone && (
 									<Button
 										size="sm"
 										onClick={handleReview}
-										disabled={review.isPending}
+										disabled={review.isPending || !allDone}
 										className="bg-purple-600 hover:bg-purple-700 text-white"
 									>
 										{review.isPending ? (
-											<Loader2 className="w-3 h-3 mr-2 animate-spin" />
+											<Loader2 className="w-4 h-4 mr-1 animate-spin" />
 										) : (
-											<Sparkles className="w-3 h-3 mr-2" />
+											<Sparkles className="w-4 h-4 mr-1" />
 										)}
 										{t("reviewWithAI")}
 									</Button>
-								)}
-							</div>
-
-							{/* Info Display */}
-							{(sopPrompt || selectedAngle) && (
-								<div className="bg-muted/50 p-3 rounded-md text-sm text-muted-foreground space-y-2">
-									{sopPrompt && (
-										<div>
-											<span className="font-semibold text-foreground">
-												{t("topic")}{" "}
-											</span>
-											{sopPrompt}
-										</div>
-									)}
-									{selectedAngle && (
-										<div>
-											<span className="font-semibold text-foreground">
-												{t("perspective")}{" "}
-											</span>
-											<span className="text-primary font-medium">
-												{selectedAngle.title}
-											</span>
-											{selectedAngle.hook && (
-												<span className="italic text-muted-foreground">
-													{" "}
-													- "{selectedAngle.hook}"
-												</span>
-											)}
-										</div>
-									)}
-								</div>
-							)}
-
-							<div className="flex items-center justify-between pt-2">
-								<CardTitle className="text-base">
-									{currentOutlineSection?.title || t("section")}
-								</CardTitle>
-								<span className="text-xs text-muted-foreground">
-									{wordCount} {t("words")}
-									{currentOutlineSection?.wordTarget && (
-										<>
-											{" "}
-											/ {currentOutlineSection.wordTarget.min}-
-											{currentOutlineSection.wordTarget.max}
-										</>
-									)}
-								</span>
-							</div>
-						</div>
-					</CardHeader>
-
-					<CardContent className="flex-1 p-4 flex flex-col min-h-0">
-						{/* Previous Content Display */}
-						{previousContent && (
-							<div className="mb-4 p-4 bg-muted/30 rounded-lg border border-border/50 text-sm text-muted-foreground whitespace-pre-wrap max-h-48 overflow-y-auto shrink-0">
-								{previousContent}
-							</div>
-						)}
-
-						<Textarea
-							value={sectionContent}
-							onChange={(e) => setSectionContent(e.target.value)}
-							placeholder={
-								currentOutlineSection?.tip
-									? `Tip: ${currentOutlineSection.tip}`
-									: t("writePlaceholder")
+								</>
 							}
-							className="flex-1 min-h-[200px] resize-none text-sm font-normal leading-relaxed"
 						/>
 					</CardContent>
 				</Card>
 			</div>
 
-			{/* Right Panel - Guiding Questions */}
-			<div className="lg:w-72 shrink-0">
-				<Card className="h-full">
-					<CardHeader className="py-3 px-4">
+			{/* Right Panel - Guiding Questions & Info */}
+			<div className="lg:w-72 shrink-0 flex flex-col gap-4">
+				{(sopPrompt || selectedAngle) && (
+					<Card>
+						<CardContent className="p-4 space-y-3">
+							{sopPrompt && (
+								<div className="text-sm">
+									<span className="font-semibold text-foreground block mb-1">
+										{t("topic")}
+									</span>
+									<span className="text-muted-foreground">{sopPrompt}</span>
+								</div>
+							)}
+							{selectedAngle && (
+								<div className="text-sm">
+									<span className="font-semibold text-foreground block mb-1">
+										{t("perspective")}
+									</span>
+									<span className="text-primary font-medium block">
+										{selectedAngle.title}
+									</span>
+									{selectedAngle.hook && (
+										<span className="italic text-muted-foreground block mt-1">
+											"{selectedAngle.hook}"
+										</span>
+									)}
+								</div>
+							)}
+						</CardContent>
+					</Card>
+				)}
+
+				<Card className="flex-1 flex flex-col min-h-0">
+					<CardHeader className="py-3 px-4 shrink-0">
 						<CardTitle className="text-sm font-medium flex items-center gap-2">
 							<MessageSquare className="w-4 h-4 text-amber-500" />
 							{t("guidingQuestions")}
 						</CardTitle>
 					</CardHeader>
-					<CardContent className="px-4 pb-4">
-						<ScrollArea className="h-[calc(100vh-24rem)]">
-							{currentOutlineSection?.guidingQuestions &&
-							currentOutlineSection.guidingQuestions.length > 0 ? (
-								<ul className="space-y-3">
-									{currentOutlineSection.guidingQuestions.map(
-										(question: string, idx: number) => (
-											<li
-												key={`question-${idx}`}
-												className="text-sm text-muted-foreground flex items-start gap-2"
-											>
-												<span className="text-primary font-medium shrink-0">
-													{idx + 1}.
-												</span>
-												<span>{question}</span>
-											</li>
-										),
-									)}
-								</ul>
-							) : (
-								<p className="text-sm text-muted-foreground italic">
-									{t("noQuestions")}
-								</p>
-							)}
-						</ScrollArea>
+					<CardContent className="px-4 pb-4 flex-1 overflow-y-auto min-h-0">
+						{currentOutlineSection?.guidingQuestions &&
+						currentOutlineSection.guidingQuestions.length > 0 ? (
+							<ul className="space-y-3">
+								{currentOutlineSection.guidingQuestions.map(
+									(question: string, idx: number) => (
+										<li
+											key={`question-${idx}`}
+											className="text-sm text-muted-foreground flex items-start gap-2"
+										>
+											<span className="text-primary font-medium shrink-0">
+												{idx + 1}.
+											</span>
+											<span>{question}</span>
+										</li>
+									),
+								)}
+							</ul>
+						) : (
+							<p className="text-sm text-muted-foreground italic">
+								{t("noQuestions")}
+							</p>
+						)}
 					</CardContent>
 				</Card>
 			</div>
@@ -549,6 +563,37 @@ export function WritingWorkspace({
 							</Button>
 						</div>
 					)}
+				</DialogContent>
+			</Dialog>
+
+			{/* Full Essay Dialog */}
+			<Dialog open={showFullEssay} onOpenChange={setShowFullEssay}>
+				<DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2">
+							<FileText className="w-5 h-5 text-primary" />
+							Full Essay
+						</DialogTitle>
+						<DialogDescription>
+							Preview of your essay across all sections
+						</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-6 py-4 prose prose-sm max-w-none dark:prose-invert">
+						{sections.map((section: any, idx: number) => (
+							<div key={`full-section-${idx}`}>
+								{section.content &&
+								section.content.trim() !== "" &&
+								section.content !== "<p></p>" ? (
+									<div dangerouslySetInnerHTML={{ __html: section.content }} />
+								) : (
+									<p className="text-muted-foreground italic">
+										[{outlineSections[idx]?.title || t("section")} not started
+										yet]
+									</p>
+								)}
+							</div>
+						))}
+					</div>
 				</DialogContent>
 			</Dialog>
 		</div>

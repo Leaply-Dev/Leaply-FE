@@ -12,9 +12,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { ApplicationDashboard } from "@/components/ApplicationDashboard";
+import { NewEssayWorkspace } from "@/components/applications/NewEssayWorkspace";
 import { type EssayItemKind, EssayList } from "@/components/essays/EssayList";
 import { ScholarshipDashboard } from "@/components/scholarships/ScholarshipDashboard";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,10 @@ export function ApplicationsClient() {
 
 	const urlTab = searchParams.get("tab") as MainTab | null;
 	const urlApplicationId = searchParams.get("id");
+
+	// Tracks when navigation was triggered internally (via handleSelect) so the
+	// deep-link effect doesn't revert the store before the URL has caught up.
+	const programmaticNavRef = useRef(false);
 
 	const {
 		selectedApplicationId,
@@ -121,6 +126,7 @@ export function ApplicationsClient() {
 
 	const handleSelect = useCallback(
 		(id: string, kind: EssayItemKind) => {
+			programmaticNavRef.current = true;
 			if (kind === "program") {
 				setSelectedApplicationId(id);
 				setSelectedScholarshipId(null);
@@ -135,6 +141,14 @@ export function ApplicationsClient() {
 
 	// Honour URL deep-link on mount / navigation
 	useEffect(() => {
+		// Skip sync when this render was triggered by our own handleSelect call.
+		// The URL update from router.replace is async — if we don't guard here, the
+		// effect sees the old urlApplicationId and reverts the store before the URL
+		// has a chance to update.
+		if (programmaticNavRef.current) {
+			programmaticNavRef.current = false;
+			return;
+		}
 		if (!urlApplicationId) return;
 		if (applications.find((app) => app.id === urlApplicationId)) {
 			if (selectedApplicationId !== urlApplicationId) {
@@ -169,6 +183,9 @@ export function ApplicationsClient() {
 		} else if (scholarshipApplications.length > 0) {
 			const firstId = scholarshipApplications[0].id ?? null;
 			if (firstId) handleSelect(firstId, "scholarship");
+		} else if (!isLoadingPrograms && !isLoadingScholarships) {
+			// Auto redirect to new essay if user has no applications
+			updateUrl("program", "new");
 		}
 	}, [
 		urlApplicationId,
@@ -176,7 +193,10 @@ export function ApplicationsClient() {
 		scholarshipApplications,
 		selectedApplicationId,
 		selectedScholarshipId,
+		isLoadingPrograms,
+		isLoadingScholarships,
 		handleSelect,
+		updateUrl,
 	]);
 
 	const selectedApplication =
@@ -216,26 +236,50 @@ export function ApplicationsClient() {
 		return false;
 	};
 
-	const handleCreated = ({
-		applicationId,
-		kind,
-	}: {
-		applicationId: string;
-		kind: EssayItemKind;
-	}) => {
-		handleSelect(applicationId, kind);
-	};
+	const handleCreated = useCallback(
+		({
+			applicationId,
+			kind,
+		}: {
+			applicationId: string;
+			kind: EssayItemKind;
+		}) => {
+			handleSelect(applicationId, kind);
+		},
+		[handleSelect],
+	);
+
+	const handleCancelNew = useCallback(() => {
+		if (applications.length > 0) {
+			const firstId = applications[0].id ?? null;
+			if (firstId) handleSelect(firstId, "program");
+		} else if (scholarshipApplications.length > 0) {
+			const firstId = scholarshipApplications[0].id ?? null;
+			if (firstId) handleSelect(firstId, "scholarship");
+		} else {
+			setSelectedApplicationId(null);
+			setSelectedScholarshipId(null);
+			updateUrl("program", null);
+		}
+	}, [
+		applications,
+		scholarshipApplications,
+		handleSelect,
+		updateUrl,
+		setSelectedApplicationId,
+		setSelectedScholarshipId,
+	]);
 
 	const apiError = programsError || scholarshipsError;
 	const isLoading = isLoadingPrograms || isLoadingScholarships;
 
 	return (
 		<>
-			<div className="p-4 lg:p-0">
-				<div className="flex min-h-[calc(100vh-16rem)]">
+			<div className="p-4 lg:p-0 h-[calc(100vh-4rem)]">
+				<div className="flex h-full">
 					{/* Desktop Sidebar */}
 					<div
-						className={`shrink-0 hidden lg:block h-[calc(100vh-5rem)] sticky top-0 transition-all duration-300 ${
+						className={`shrink-0 hidden lg:block h-full sticky top-0 transition-all duration-300 ${
 							sidebarCollapsed ? "w-16" : "w-full lg:w-80 xl:w-96"
 						}`}
 					>
@@ -285,7 +329,6 @@ export function ApplicationsClient() {
 										selectedId={selectedId}
 										onSelect={handleSelect}
 										isLoading={isLoading}
-										onCreated={handleCreated}
 									/>
 								</div>
 							)}
@@ -300,13 +343,17 @@ export function ApplicationsClient() {
 							selectedId={selectedId}
 							onSelect={handleSelect}
 							isLoading={isLoading}
-							onCreated={handleCreated}
 						/>
 					</div>
 
 					{/* Dashboard - Desktop only */}
-					<div className="hidden lg:block flex-1">
-						{activeKind === "program" ? (
+					<div className="hidden lg:block flex-1 h-full overflow-hidden">
+						{selectedId === "new" ? (
+							<NewEssayWorkspace
+								onCreated={handleCreated}
+								onCancel={handleCancelNew}
+							/>
+						) : activeKind === "program" ? (
 							<ApplicationDashboard
 								application={selectedApplication}
 								onDelete={handleDelete}

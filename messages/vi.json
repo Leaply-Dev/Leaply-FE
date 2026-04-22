@@ -474,7 +474,11 @@
 			"deleteFailed": "Xóa đơn thất bại",
 			"deleteScholarshipFailed": "Xóa đơn học bổng thất bại",
 			"loadFailed": "Không thể tải dữ liệu"
-		}
+		},
+		"newEssayTitle": "Bài luận mới",
+		"setupInProgress": "Đang khởi tạo...",
+		"newEssay": "Bài luận mới",
+		"noEssayYet": "Bạn chưa có bài luận. Bấm \\\"Tạo bài luận\\\" để bắt đầu."
 	},
 	"tasks": {
 		"title": "Công việc",
@@ -1191,6 +1195,40 @@
 		}
 	},
 	"sop": {
+		"setup": {
+			"step1Title": "Bạn đang viết loại bài luận nào?",
+			"step1Desc": "Mỗi loại có cấu trúc và mục tiêu khác nhau.",
+			"step2Title": "Chiến lược kể chuyện của bạn là gì?",
+			"step2Desc": "Chọn cách kể chuyện phù hợp nhất với hành trình của bạn.",
+			"continue": "Tiếp tục",
+			"back": "Quay lại",
+			"startWriting": "Bắt đầu viết",
+			"essayType": {
+				"ps": "Personal Statement",
+				"psDesc": "Tập trung vào bản sắc cá nhân, hành trình trưởng thành và thế giới quan. Phù hợp với cử nhân, y, luật và nhân văn.",
+				"sop": "Statement of Purpose",
+				"sopDesc": "Tập trung vào mục tiêu học thuật, nghiên cứu và lộ trình nghề nghiệp. Phù hợp với hầu hết chương trình Thạc sĩ và Tiến sĩ."
+			},
+			"motif": {
+				"JOURNEY": "Hành Trình Chuyển Hóa",
+				"JOURNEY_desc": "Một biến cố thay đổi bạn. Bạn đối mặt, thích nghi và trở nên khác đi.",
+				"JOURNEY_for": "Có trở ngại, thất bại hoặc cú sốc văn hóa định hình lại con người",
+				"MONTAGE": "Cắt Ghép Ẩn Dụ",
+				"MONTAGE_desc": "Một biểu tượng nhỏ — đồ vật, thói quen, không gian — kết nối nhiều câu chuyện rời rạc.",
+				"MONTAGE_for": "Đa tài, nhiều sở thích, không có một biến cố kịch tính nào nổi bật",
+				"INTERDISCIPLINARY": "Tư Duy Liên Ngành",
+				"INTERDISCIPLINARY_desc": "Bạn kết nối hai lĩnh vực tưởng chừng đối lập để giải quyết một bài toán phức tạp.",
+				"INTERDISCIPLINARY_for": "STEM muốn thể hiện chiều sâu nhân văn, hoặc ngược lại",
+				"BRIDGE_BUILDER": "Phụng sự Cộng Đồng",
+				"BRIDGE_BUILDER_desc": "Nỗ lực cá nhân gắn với bản sắc văn hóa để phục vụ cộng đồng lớn hơn.",
+				"BRIDGE_BUILDER_for": "MBA, chính sách công, y tế toàn cầu, có câu chuyện lãnh đạo hoặc vận động",
+				"SPECIALIST": "Kiến Trúc Học Thuật",
+				"SPECIALIST_desc": "Từ nền tảng kiến thức → nhận ra khoảng trống → vạch lộ trình nghiên cứu → phù hợp với trường.",
+				"SPECIALIST_for": "Tiến sĩ, Thạc sĩ nghiên cứu, có chuyên môn sâu trong một lĩnh vực hẹp",
+				"NARRATIVE_DRIVEN": "Hành trình tự sự",
+				"NARRATIVE_DRIVEN_for": "STEM muốn thể hiện chiều sâu nhân văn, hoặc ngược lại"
+			}
+		},
 		"title": "Viết SOP",
 		"pastePrompt": "Dán đề bài SOP",
 		"promptPlaceholder": "VD: Describe your purpose for pursuing this graduate program...",
@@ -1253,7 +1291,8 @@
 		},
 		"personaLabRequired": "Cần hoàn thành Persona Lab",
 		"personaLabRequiredDesc": "Bạn cần hoàn thành Persona Lab trước khi tạo góc viết SOP.",
-		"goToPersonaLab": "Đến Persona Lab"
+		"goToPersonaLab": "Đến Persona Lab",
+		"target": "Mục tiêu"
 	},
 	"compare": {
 		"title": "So sánh chương trình",

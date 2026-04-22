@@ -709,39 +709,6 @@ export function formatApplicationStatus(
 }
 
 // =============================================================================
-// SOP Status (with locale support)
-// =============================================================================
-
-const SOP_STATUS_LABELS: Record<Locale, Record<string, string>> = {
-	en: {
-		not_started: "Not Started",
-		drafting: "Drafting",
-		reviewing: "Reviewing",
-		completed: "Completed",
-	},
-	vi: {
-		not_started: "Chưa bắt đầu",
-		drafting: "Đang viết",
-		reviewing: "Đang xem xét",
-		completed: "Hoàn thành",
-	},
-};
-
-/**
- * Format SOP status enum to display label
- * @example formatSopStatus("drafting", "vi") → "Đang viết"
- * @example formatSopStatus("completed", "en") → "Completed"
- */
-export function formatSopStatus(
-	status?: string | null,
-	locale: Locale = "vi",
-): string {
-	if (!status) return locale === "vi" ? "Chưa bắt đầu" : "Not Started";
-	const labels = SOP_STATUS_LABELS[locale];
-	return labels[status.toLowerCase()] || formatSnakeCase(status);
-}
-
-// =============================================================================
 // Coverage Type (with locale support)
 // =============================================================================
 

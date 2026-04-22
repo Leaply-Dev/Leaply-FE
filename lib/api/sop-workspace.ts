@@ -99,50 +99,10 @@ export interface UpdateSectionResponse {
 	status: string;
 }
 
-export interface EvidenceCardDto {
-	nodeId: string;
-	title: string;
-	facts?: string[];
-	tags?: string[];
-	wordCountPotential?: string;
-}
-
-export interface EvidenceCardsResponse {
-	evidenceCards: EvidenceCardDto[];
-}
-
-export interface SuggestionDto {
-	type: string;
-	text: string;
-	reason?: string;
-}
-
 export interface PromptAlignmentDto {
 	score?: number;
 	feedback?: string;
 	missedElements?: string[];
-}
-
-export interface SectionFeedbackResponse {
-	round: number;
-	strengths?: string[];
-	suggestions?: SuggestionDto[];
-	questions?: string[];
-	promptAlignment?: PromptAlignmentDto;
-	wordCountStatus?: string;
-}
-
-export interface SectionSummaryDto {
-	sectionKey?: string;
-	title?: string;
-	wordCount: number;
-	status: string;
-}
-
-export interface FullEssayResponse {
-	compiledContent: string;
-	totalWordCount: number;
-	sectionSummary?: SectionSummaryDto[];
 }
 
 export interface ReviewResponse {
@@ -151,11 +111,6 @@ export interface ReviewResponse {
 	improvements?: string[];
 	consistencyIssues?: string[];
 	promptAlignment?: PromptAlignmentDto;
-}
-
-export interface CompileResponse {
-	content: string;
-	wordCount: number;
 }
 
 export interface SopWorkspaceStatusResponse {
@@ -168,13 +123,15 @@ export interface SopWorkspaceStatusResponse {
 	totalWordCount: number;
 	wordLimit?: number;
 	sopPrompt?: string;
+	essayType?: string;
+	narrativeMotif?: string;
 }
 
 // ============================================
 // Query Keys
 // ============================================
 
-export const sopWorkspaceKeys = {
+const sopWorkspaceKeys = {
 	all: ["sop-workspace"] as const,
 	status: (applicationId: string) =>
 		[...sopWorkspaceKeys.all, "status", applicationId] as const,
@@ -184,10 +141,6 @@ export const sopWorkspaceKeys = {
 		[...sopWorkspaceKeys.all, "outline", applicationId] as const,
 	sections: (applicationId: string) =>
 		[...sopWorkspaceKeys.all, "sections", applicationId] as const,
-	evidence: (applicationId: string, sectionIndex: number) =>
-		[...sopWorkspaceKeys.all, "evidence", applicationId, sectionIndex] as const,
-	fullEssay: (applicationId: string) =>
-		[...sopWorkspaceKeys.all, "full", applicationId] as const,
 };
 
 // ============================================
@@ -210,6 +163,8 @@ export function useWorkspaceStatus(applicationId: string) {
 export interface SavePromptRequest {
 	prompt?: string;
 	wordLimit?: number;
+	essayType?: string;
+	narrativeMotif?: string;
 }
 
 export function useSavePrompt() {
@@ -432,52 +387,6 @@ export function useMarkSectionDone() {
 	});
 }
 
-export function useEvidence(applicationId: string, sectionIndex: number) {
-	return useQuery({
-		queryKey: sopWorkspaceKeys.evidence(applicationId, sectionIndex),
-		queryFn: async () => {
-			const response = await customFetch<{
-				data: { data: EvidenceCardsResponse };
-			}>(
-				`/v1/applications/${applicationId}/sop/sections/${sectionIndex}/evidence`,
-			);
-			return response.data.data;
-		},
-	});
-}
-
-export function useSectionFeedback() {
-	return useMutation({
-		mutationFn: async ({
-			applicationId,
-			sectionIndex,
-		}: {
-			applicationId: string;
-			sectionIndex: number;
-		}) => {
-			const response = await customFetch<{
-				data: { data: SectionFeedbackResponse };
-			}>(
-				`/v1/applications/${applicationId}/sop/sections/${sectionIndex}/feedback`,
-				{ method: "POST" },
-			);
-			return response.data.data;
-		},
-	});
-}
-
-export function useFullEssay(applicationId: string) {
-	return useQuery({
-		queryKey: sopWorkspaceKeys.fullEssay(applicationId),
-		queryFn: async () => {
-			const response = await customFetch<{
-				data: { data: FullEssayResponse };
-			}>(`/v1/applications/${applicationId}/sop/full`);
-			return response.data.data;
-		},
-	});
-}
-
 export function useReview() {
 	return useMutation({
 		mutationFn: async (applicationId: string) => {
@@ -485,23 +394,6 @@ export function useReview() {
 				data: { data: ReviewResponse };
 			}>(`/v1/applications/${applicationId}/sop/review`, { method: "POST" });
 			return response.data.data;
-		},
-	});
-}
-
-export function useCompile() {
-	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: async (applicationId: string) => {
-			const response = await customFetch<{
-				data: { data: CompileResponse };
-			}>(`/v1/applications/${applicationId}/sop/compile`, { method: "POST" });
-			return response.data.data;
-		},
-		onSuccess: (_, applicationId) => {
-			queryClient.invalidateQueries({
-				queryKey: sopWorkspaceKeys.status(applicationId),
-			});
 		},
 	});
 }
