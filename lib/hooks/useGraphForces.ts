@@ -2,7 +2,10 @@ import * as d3Force from "d3-force";
 import { useEffect, useRef, useState } from "react";
 import type { ForceGraphMethods } from "react-force-graph-2d";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
-import type { PersonaGraphResponse, PersonaNodeDto } from "@/lib/generated/api/models";
+import type {
+	PersonaGraphResponse,
+	PersonaNodeDto,
+} from "@/lib/generated/api/models";
 import { useGetGraph } from "@/lib/hooks/persona";
 import { usePersonaStore } from "@/lib/store/personaStore";
 import {
@@ -44,7 +47,9 @@ export function useGraphForces() {
 
 	// Proactive refetch: when new messages arrive in store, refetch graph
 	// to catch async-extracted nodes from the backend's Call B
-	const graphMessageCount = usePersonaStore((state) => state.graphMessages.length);
+	const graphMessageCount = usePersonaStore(
+		(state) => state.graphMessages.length,
+	);
 	const lastMessageCountRef = useRef(graphMessageCount);
 	useEffect(() => {
 		if (graphMessageCount > lastMessageCountRef.current) {

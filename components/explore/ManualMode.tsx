@@ -6,6 +6,7 @@ import {
 	Check,
 	DollarSign,
 	GraduationCap,
+	Loader2,
 	Search,
 	Sparkles,
 	X,
