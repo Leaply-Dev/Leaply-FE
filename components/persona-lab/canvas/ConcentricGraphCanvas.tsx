@@ -383,11 +383,6 @@ export function ConcentricGraphCanvas({
 								</span>
 							</div>
 							<h3 className="font-bold text-base">{selectedNode.label}</h3>
-							{selectedGraphNode?.servesPillar && (
-								<div className="text-sm text-muted-foreground mt-1">
-									Serves: {selectedGraphNode.servesPillar}
-								</div>
-							)}
 						</div>
 						<Button
 							variant="ghost"
@@ -399,194 +394,71 @@ export function ConcentricGraphCanvas({
 						</Button>
 					</div>
 
-					{/* Type-specific content */}
-					<div className="space-y-3">
-						{/* ============================================
-						    New API Node Types (profile_summary, essay_angle, key_story, detail)
-						    ============================================ */}
+						{/* Unified minimal node content — all types share the same layout */}
+						<div className="space-y-3">
+							{selectedGraphNode && (
+								<>
+									{/* Content */}
+									<div className="p-3 bg-muted/50 rounded-md">
+										<p className="text-xs leading-relaxed">
+											{selectedGraphNode.content || "No content"}
+										</p>
+									</div>
 
-						{/* Profile Summary (Layer 0 - Center) */}
-						{selectedNode.type === "profile_summary" && selectedGraphNode && (
-							<>
-								<div className="p-3 bg-muted/50 rounded-md">
-									<p className="text-xs leading-relaxed">
-										{selectedGraphNode.content || "No content"}
-									</p>
-								</div>
-								{selectedGraphNode.tags &&
-									selectedGraphNode.tags.length > 0 && (
-										<div className="flex flex-wrap gap-1">
-											{selectedGraphNode.tags.map((tag) => (
-												<span
-													key={tag}
-													className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary"
-												>
-													{tag}
-												</span>
-											))}
-										</div>
-									)}
-							</>
-						)}
-
-						{/* Essay Angle (Layer 1) */}
-						{selectedNode.type === "essay_angle" && selectedGraphNode && (
-							<>
-								<div className="p-3 bg-muted/50 rounded-md">
-									<p className="text-xs leading-relaxed">
-										{selectedGraphNode.content || "No content"}
-									</p>
-								</div>
-								{selectedGraphNode.essayAngle && (
-									<div className="p-3 bg-violet-500/10 rounded-md">
-										<span className="text-xs font-semibold text-violet-600 block mb-1">
-											Essay Angle
-										</span>
-										<p className="text-xs text-muted-foreground">
+									{/* Takeaway / CTA (from essayAngle) */}
+									{selectedGraphNode.essayAngle && (
+										<div className="p-3 bg-amber-500/5 rounded-md border border-amber-500/15">
+										<p className="text-xs text-amber-700 leading-relaxed">
+											<span className="mr-1">💡</span>
 											{selectedGraphNode.essayAngle}
 										</p>
 									</div>
-								)}
-								{selectedGraphNode.bestFor &&
-									selectedGraphNode.bestFor.length > 0 && (
-										<div>
-											<span className="text-xs font-medium text-foreground block mb-1">
-												Best for:
-											</span>
+									)}
+
+									{/* Expand Button for story nodes with gaps */}
+									{selectedNode.type === "key_story" && selectedNodeStarGaps.length > 0 && (
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => handleExpandNode(selectedNode.id)}
+											disabled={expandNodeMutation.isPending}
+											className="w-full text-xs border-orange-500/30 hover:border-orange-500 hover:bg-orange-500/10"
+										>
+											{expandNodeMutation.isPending ? (
+												"Generating question..."
+											) : (
+												<>
+													<ChevronRight className="w-3 h-3 mr-1" />
+													Expand: Tell me more about{" "}
+													{selectedNodeStarGaps
+														.slice(0, 2)
+														.map((g) => STAR_LABELS[g].toLowerCase())
+														.join(", ")}
+												</>
+											)}
+										</Button>
+									)}
+
+									{/* Tags */}
+									{selectedGraphNode.tags &&
+										selectedGraphNode.tags.length > 0 && (
 											<div className="flex flex-wrap gap-1">
-												{selectedGraphNode.bestFor.map((type) => (
+												{selectedGraphNode.tags.map((tag) => (
 													<span
-														key={type}
-														className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary"
+														key={tag}
+														className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground"
 													>
-														{type.replace(/_/g, " ")}
+														{tag}
 													</span>
 												))}
 											</div>
-										</div>
-									)}
-							</>
-						)}
-
-						{/* Key Story (Layer 2) - with STAR structure */}
-						{selectedNode.type === "key_story" && selectedGraphNode && (
-							<>
-								<div className="p-3 bg-muted/50 rounded-md">
-									<p className="text-xs leading-relaxed">
-										{selectedGraphNode.content || "No content"}
-									</p>
-								</div>
-
-								{/* STAR Structure Panel */}
-								{selectedGraphNode.structuredContent && (
-									<div className="p-3 bg-emerald-500/5 rounded-md border border-emerald-500/20">
-										<span className="text-xs font-semibold text-emerald-600 block mb-2">
-											STAR Structure
-										</span>
-										<div className="space-y-2">
-											{(Object.keys(STAR_LABELS) as StarStructureKey[]).map(
-												(key) => {
-													const structuredContent =
-														selectedGraphNode.structuredContent as
-															| Record<string, string>
-															| undefined;
-													const value = structuredContent?.[key];
-													const hasGap = selectedNodeStarGaps.includes(key);
-													return (
-														<div
-															key={key}
-															className={cn("text-xs", hasGap && "opacity-50")}
-														>
-															<span
-																className={cn(
-																	"font-medium",
-																	hasGap
-																		? "text-orange-500"
-																		: "text-foreground",
-																)}
-															>
-																{STAR_LABELS[key]}:
-															</span>{" "}
-															<span className="text-muted-foreground">
-																{value || (
-																	<span className="italic text-orange-500">
-																		Missing - expand for details
-																	</span>
-																)}
-															</span>
-														</div>
-													);
-												},
-											)}
-										</div>
-									</div>
-								)}
-
-								{/* Expand Button for nodes with gaps */}
-								{selectedNodeStarGaps.length > 0 && (
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => handleExpandNode(selectedNode.id)}
-										disabled={expandNodeMutation.isPending}
-										className="w-full text-xs border-orange-500/30 hover:border-orange-500 hover:bg-orange-500/10"
-									>
-										{expandNodeMutation.isPending ? (
-											"Generating question..."
-										) : (
-											<>
-												<ChevronRight className="w-3 h-3 mr-1" />
-												Expand: Tell me more about{" "}
-												{selectedNodeStarGaps
-													.slice(0, 2)
-													.map((g) => STAR_LABELS[g].toLowerCase())
-													.join(", ")}
-											</>
 										)}
-									</Button>
+								</>
 								)}
+						</div>
 
-								{/* Tags */}
-								{selectedGraphNode.tags &&
-									selectedGraphNode.tags.length > 0 && (
-										<div className="flex flex-wrap gap-1">
-											{selectedGraphNode.tags.map((tag) => (
-												<span
-													key={tag}
-													className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary"
-												>
-													{tag}
-												</span>
-											))}
-										</div>
-									)}
-							</>
-						)}
-
-						{/* Detail (Layer 3) */}
-						{selectedNode.type === "detail" && selectedGraphNode && (
-							<>
-								<div className="p-3 bg-muted/50 rounded-md">
-									<p className="text-xs leading-relaxed">
-										{selectedGraphNode.content || "No content"}
-									</p>
-								</div>
-								{selectedGraphNode.wordCountPotential && (
-									<div className="text-xs">
-										<span className="font-medium text-foreground">
-											Word count potential:
-										</span>{" "}
-										<span className="text-muted-foreground">
-											{selectedGraphNode.wordCountPotential}
-										</span>
-									</div>
-								)}
-							</>
-						)}
 					</div>
-				</div>
-			)}
-
+				)}
 			{/* Stats Badge - only show when there are nodes */}
 			{!isEmpty && (
 				<div className="absolute bottom-4 right-4 bg-card/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg">

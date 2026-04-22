@@ -315,74 +315,27 @@ function NodeListItem({
 				{node.content || "No content"}
 			</p>
 
-			{/* Essay angle badge (for profile_summary nodes) */}
-			{node.essayAngle && (
-				<div
-					className="inline-flex items-center gap-1 mt-2 px-2 py-1 rounded-full text-xs font-medium"
-					style={{
-						backgroundColor: `${layerColor}15`,
-						color: layerColor,
-					}}
-				>
-					<Target className="w-3 h-3" />
-					{node.essayAngle}
+			{/* Takeaway / CTA (shown when expanded) */}
+			{isSelected && node.essayAngle && (
+				<div className="mt-2 p-2 bg-amber-500/5 rounded-md border border-amber-500/15">
+					<p className="text-xs text-amber-700 leading-relaxed">
+						<span className="mr-1">💡</span>
+						{node.essayAngle}
+					</p>
 				</div>
 			)}
 
-			{/* Pillar / subDimension / servesPillar */}
-			{isSelected &&
-				(node.pillar || node.subDimension || node.servesPillar) && (
-					<div className="mt-2 space-y-1">
-						{node.pillar && (
-							<div className="text-[10px] text-muted-foreground">
-								<span className="font-medium">Pillar:</span> {node.pillar}
-							</div>
-						)}
-						{node.subDimension && (
-							<div className="text-[10px] text-muted-foreground">
-								<span className="font-medium">Dimension:</span>{" "}
-								{node.subDimension}
-							</div>
-						)}
-						{node.servesPillar && (
-							<div className="text-[10px] text-muted-foreground">
-								<span className="font-medium">Serves:</span> {node.servesPillar}
-							</div>
-						)}
-					</div>
-				)}
-
-			{/* Tags */}
+			{/* Tags (shown when expanded) */}
 			{isSelected && node.tags && node.tags.length > 0 && (
 				<div className="flex flex-wrap gap-1 mt-2">
 					{node.tags.map((tag) => (
 						<span
 							key={tag}
-							className="text-[10px] px-1.5 py-0.5 rounded-full"
-							style={{
-								backgroundColor: `${layerColor}15`,
-								color: layerColor,
-							}}
+							className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground"
 						>
 							{tag}
 						</span>
 					))}
-				</div>
-			)}
-
-			{/* Best for indicator */}
-			{isSelected && node.bestFor && node.bestFor.length > 0 && (
-				<div className="mt-2 text-[10px] text-muted-foreground">
-					<span className="font-medium">Best for:</span>{" "}
-					{node.bestFor.join(", ")}
-				</div>
-			)}
-
-			{/* Word count potential */}
-			{isSelected && node.wordCountPotential && (
-				<div className="mt-1 text-[10px] text-muted-foreground">
-					<span className="font-medium">Word count:</span>{" "}
-					{node.wordCountPotential}
 				</div>
 			)}
 		</m.button>
