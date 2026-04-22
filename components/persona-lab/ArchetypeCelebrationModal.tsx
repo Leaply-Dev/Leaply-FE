@@ -157,7 +157,7 @@ export function ArchetypeCelebrationModal() {
 						exit={{ opacity: 0 }}
 					>
 						<m.div
-							className="bg-background rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative"
+							className="bg-background rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col relative"
 							initial={{ scale: 0.8, y: 50 }}
 							animate={{ scale: 1, y: 0 }}
 							exit={{ scale: 0.8, y: 50 }}
@@ -241,7 +241,7 @@ export function ArchetypeCelebrationModal() {
 							</div>
 
 							{/* Content */}
-							<div className="px-6 py-4">
+							<div className="px-6 py-4 overflow-y-auto">
 								{/* Rarity Badge */}
 								{rarityText && (
 									<m.div

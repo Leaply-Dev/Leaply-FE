@@ -63,7 +63,6 @@ import {
 	selectUnlockedMilestones,
 	usePersonaStore,
 } from "@/lib/store/personaStore";
-import { ArchetypeCelebrationModal } from "../ArchetypeCelebrationModal";
 import { ChatHeader } from "./ChatHeader";
 import { ChatMessage, TypingIndicator } from "./ChatMessage";
 import { GreetingReplyOption } from "./GreetingReplyOption";
@@ -401,8 +400,6 @@ export function ChatSidebar() {
 
 	return (
 		<div className="flex flex-col h-full min-h-0 overflow-hidden">
-			<ArchetypeCelebrationModal />
-
 			<ChatHeader
 				tierProgress={tierProgress}
 				pillarCoverage={pillarCoverage}

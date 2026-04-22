@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
+import { ArchetypeCelebrationModal } from "@/components/persona-lab/ArchetypeCelebrationModal";
 import { ChatSidebar } from "@/components/persona-lab/ChatSidebar";
 import { EditPersonaSetupButton } from "@/components/persona-lab/EditPersonaSetupButton";
 import { PersonaStateSync } from "@/components/persona-lab/PersonaStateSync";
@@ -123,6 +124,7 @@ export default function PersonaLabPage() {
 	return (
 		<PageTransition className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
 			<PersonaStateSync />
+			<ArchetypeCelebrationModal />
 			<div className="flex flex-1 min-h-0 h-full w-full bg-background overflow-hidden relative">
 				{/* Left Sidebar - Chat Interface */}
 				<m.aside
