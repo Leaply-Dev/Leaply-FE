@@ -174,10 +174,10 @@ export class ErrorBoundary extends Component<Props, State> {
 								If this problem persists, please copy the error details and
 								contact our support team at{" "}
 								<a
-									href="mailto:support@leaply.ai"
+									href="mailto:support@leaply.ai.vn"
 									className="underline hover:text-foreground"
 								>
-									support@leaply.ai
+									support@leaply.ai.vn
 								</a>
 							</p>
 						</CardContent>
