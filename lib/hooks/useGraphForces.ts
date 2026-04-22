@@ -1,7 +1,8 @@
 import * as d3Force from "d3-force";
 import { useEffect, useRef, useState } from "react";
 import type { ForceGraphMethods } from "react-force-graph-2d";
-import type { PersonaNodeDto } from "@/lib/generated/api/models";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import type { PersonaGraphResponse, PersonaNodeDto } from "@/lib/generated/api/models";
 import { useGetGraph } from "@/lib/hooks/persona";
 import { usePersonaStore } from "@/lib/store/personaStore";
 import {
@@ -22,8 +23,8 @@ export function useGraphForces() {
 		links: ForceGraphLink[];
 	}>({ nodes: [], links: [] });
 
-	// Fetch graph data from server to ensure sync on mount
-	const { data: graphResponse } = useGetGraph();
+	// Fetch graph data from server to ensure sync on mount/refetch
+	const { data: graphResponse, refetch: refetchGraph } = useGetGraph();
 
 	// Subscribe to API graph data from store
 	const apiGraphNodes = usePersonaStore((state) => state.apiGraphNodes);
@@ -31,15 +32,31 @@ export function useGraphForces() {
 
 	// Sync graph data from server on mount/refetch
 	// This ensures localStorage data is reconciled with server state
-	// Note: On success (status 200), data is PersonaGraphResponse with nodes/edges directly
+	// Note: response is double-wrapped (Orval → ApiResponse → PersonaGraphResponse)
 	useEffect(() => {
 		if (graphResponse?.status === 200) {
-			const graphData = graphResponse.data;
+			const graphData = unwrapResponse<PersonaGraphResponse>(graphResponse);
 			if (graphData?.nodes && graphData?.edges) {
 				usePersonaStore.getState().syncGraph(graphData.nodes, graphData.edges);
 			}
 		}
 	}, [graphResponse]);
+
+	// Proactive refetch: when new messages arrive in store, refetch graph
+	// to catch async-extracted nodes from the backend's Call B
+	const graphMessageCount = usePersonaStore((state) => state.graphMessages.length);
+	const lastMessageCountRef = useRef(graphMessageCount);
+	useEffect(() => {
+		if (graphMessageCount > lastMessageCountRef.current) {
+			// Delay refetch to give backend async extraction time
+			const timer = setTimeout(() => {
+				refetchGraph();
+			}, 2500);
+			lastMessageCountRef.current = graphMessageCount;
+			return () => clearTimeout(timer);
+		}
+		lastMessageCountRef.current = graphMessageCount;
+	}, [graphMessageCount, refetchGraph]);
 
 	// Transform API data to ForceGraph format when available
 	useEffect(() => {

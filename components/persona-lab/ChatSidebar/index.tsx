@@ -255,9 +255,14 @@ export function ChatSidebar() {
 							}
 						}
 
-						// Delayed graph refetch to catch async-extracted nodes
+						// Immediate graph refetch to catch any sync-extracted nodes
+						queryClient.refetchQueries({
+							queryKey: getGetGraphQueryKey(),
+						});
+
+						// Delayed graph refetch to catch async-extracted nodes (Call B)
 						setTimeout(() => {
-							queryClient.invalidateQueries({
+							queryClient.refetchQueries({
 								queryKey: getGetGraphQueryKey(),
 							});
 						}, 2500);
@@ -300,7 +305,7 @@ export function ChatSidebar() {
 						queryClient.invalidateQueries({
 							queryKey: getGetPersonaStateQueryKey(),
 						});
-						queryClient.invalidateQueries({
+						queryClient.refetchQueries({
 							queryKey: getGetGraphQueryKey(),
 						});
 					},
