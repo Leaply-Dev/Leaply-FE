@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
 	type OutlineSectionDto,
 	type ReviewResponse,
+	type SectionResponse,
 	useConfirmOutline,
 	useGenerateOutline,
 	useIdeation,
@@ -55,7 +56,7 @@ export function WritingWorkspace({
 	const t = useTranslations("sop");
 	const [selectedSectionIndex, setSelectedSectionIndex] = useState(0);
 	const [sectionContent, setSectionContent] = useState("");
-	const [wordCount, setWordCount] = useState(0);
+	const [_wordCount, setWordCount] = useState(0);
 	const [showReview, setShowReview] = useState(false);
 	const [showFullEssay, setShowFullEssay] = useState(false);
 	const [reviewData, setReviewData] = useState<ReviewResponse | null>(null);
@@ -82,6 +83,7 @@ export function WritingWorkspace({
 	);
 
 	// Sync section content when switching sections
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentionally only re-sync on index change to avoid overwriting user input on data refresh
 	useEffect(() => {
 		const section = sections[selectedSectionIndex];
 		if (section) {
@@ -89,8 +91,7 @@ export function WritingWorkspace({
 			setSectionContent(content);
 			setWordCount(content.split(/\s+/).filter(Boolean).length);
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedSectionIndex]); // Only sync when index changes to avoid overwriting user input on data refresh
+	}, [selectedSectionIndex]);
 
 	const handleSelectSection = (index: number) => {
 		setSelectedSectionIndex(index);
@@ -470,7 +471,7 @@ export function WritingWorkspace({
 								{currentOutlineSection.guidingQuestions.map(
 									(question: string, idx: number) => (
 										<li
-											key={`question-${idx}`}
+											key={question}
 											className="text-sm text-muted-foreground flex items-start gap-2"
 										>
 											<span className="text-primary font-medium shrink-0">
@@ -522,11 +523,8 @@ export function WritingWorkspace({
 										{t("strengths")}
 									</h4>
 									<ul className="space-y-1">
-										{reviewData.strengths.map((s, i) => (
-											<li
-												key={`review-strength-${i}`}
-												className="text-sm flex items-start gap-2"
-											>
+										{reviewData.strengths.map((s) => (
+											<li key={s} className="text-sm flex items-start gap-2">
 												<Check className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
 												<span>{s}</span>
 											</li>
@@ -543,11 +541,8 @@ export function WritingWorkspace({
 											{t("improvements")}
 										</h4>
 										<ul className="space-y-1">
-											{reviewData.improvements.map((s, i) => (
-												<li
-													key={`review-improvement-${i}`}
-													className="text-sm flex items-start gap-2"
-												>
+											{reviewData.improvements.map((s) => (
+												<li key={s} className="text-sm flex items-start gap-2">
 													<Circle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
 													<span>{s}</span>
 												</li>
@@ -579,20 +574,29 @@ export function WritingWorkspace({
 						</DialogDescription>
 					</DialogHeader>
 					<div className="space-y-6 py-4 prose prose-sm max-w-none dark:prose-invert">
-						{sections.map((section: any, idx: number) => (
-							<div key={`full-section-${idx}`}>
-								{section.content &&
+						{sections.map((section: SectionResponse, idx: number) => {
+							const hasContent =
+								section.content &&
 								section.content.trim() !== "" &&
-								section.content !== "<p></p>" ? (
-									<div dangerouslySetInnerHTML={{ __html: section.content }} />
-								) : (
-									<p className="text-muted-foreground italic">
-										[{outlineSections[idx]?.title || t("section")} not started
-										yet]
-									</p>
-								)}
-							</div>
-						))}
+								section.content !== "<p></p>";
+							return (
+								<div key={section.id}>
+									{hasContent ? (
+										// biome-ignore lint/security/noDangerouslySetInnerHtml: TipTap HTML output is trusted editor content
+										<div
+											dangerouslySetInnerHTML={{
+												__html: section.content ?? "",
+											}}
+										/>
+									) : (
+										<p className="text-muted-foreground italic">
+											[{outlineSections[idx]?.title || t("section")} not started
+											yet]
+										</p>
+									)}
+								</div>
+							);
+						})}
 					</div>
 				</DialogContent>
 			</Dialog>

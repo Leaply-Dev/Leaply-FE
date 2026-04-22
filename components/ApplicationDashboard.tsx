@@ -1,18 +1,6 @@
 "use client";
 
-import {
-	Award,
-	BookOpen,
-	ExternalLink,
-	FileText,
-	MoreVertical,
-	PenSquare,
-	School,
-	Sparkles,
-	Trash2,
-} from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
+import { ExternalLink, MoreVertical, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { SopTab } from "@/components/applications/tabs/SopTab";
@@ -69,7 +57,7 @@ export function ApplicationDashboard({
 		}
 	};
 
-	const universityLogo = FEATURED_UNIVERSITIES.find(
+	const _universityLogo = FEATURED_UNIVERSITIES.find(
 		(u) => u.name === application.program?.universityName,
 	)?.logo;
 

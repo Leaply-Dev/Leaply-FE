@@ -3,18 +3,7 @@
 import CharacterCount from "@tiptap/extension-character-count";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import {
-	Bold,
-	Heading2,
-	Heading3,
-	Italic,
-	List,
-	ListOrdered,
-	Loader2,
-	Redo,
-	Save,
-	Undo,
-} from "lucide-react";
+import { Loader2, Redo, Save, Undo } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

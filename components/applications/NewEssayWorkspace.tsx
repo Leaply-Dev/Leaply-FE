@@ -228,7 +228,7 @@ export function NewEssayWorkspace({
 				});
 			}
 
-		// Both program and scholarship use the same SOP workspace prompt + ideation flow
+			// Both program and scholarship use the same SOP workspace prompt + ideation flow
 			await saveProgramPrompt({
 				applicationId,
 				data: {
@@ -551,7 +551,12 @@ function SelectedTargetCard({
 	onChange,
 	changeLabel,
 	selectedLabel,
-}: any) {
+}: {
+	target: SelectedTarget;
+	onChange: () => void;
+	changeLabel: string;
+	selectedLabel: string;
+}) {
 	return (
 		<div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
 			<div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center shrink-0 overflow-hidden">
@@ -592,7 +597,16 @@ function SearchResults({
 	onSelect,
 	hintMsg,
 	emptyMsg,
-}: any) {
+}: {
+	kind: TargetKind;
+	debouncedSearch: string;
+	isLoading: boolean;
+	programs: ProgramListItemResponse[];
+	scholarships: ScholarshipListItemResponse[];
+	onSelect: (item: SelectedTarget) => void;
+	hintMsg: string;
+	emptyMsg: string;
+}) {
 	if (debouncedSearch.length < MIN_SEARCH_CHARS)
 		return (
 			<div className="text-xs text-muted-foreground px-1 py-3">{hintMsg}</div>
@@ -609,10 +623,10 @@ function SearchResults({
 	const items =
 		kind === "program"
 			? programs
-					.filter((p: any) => !!p.id)
-					.map((p: any) => ({
-						kind: "program",
-						id: p.id,
+					.filter((p) => !!p.id)
+					.map((p) => ({
+						kind: "program" as const,
+						id: p.id ?? "",
 						name: p.displayName || p.programName || "",
 						subtitle: [p.universityName, p.universityCountry]
 							.filter(Boolean)
@@ -620,10 +634,10 @@ function SearchResults({
 						logoUrl: p.universityLogoUrl,
 					}))
 			: scholarships
-					.filter((s: any) => !!s.id)
-					.map((s: any) => ({
-						kind: "scholarship",
-						id: s.id,
+					.filter((s) => !!s.id)
+					.map((s) => ({
+						kind: "scholarship" as const,
+						id: s.id ?? "",
 						name: s.name || "",
 						subtitle:
 							[s.sourceName, s.universityCountry].filter(Boolean).join(" • ") ||
@@ -640,7 +654,7 @@ function SearchResults({
 	return (
 		<ScrollArea className="max-h-56 rounded-md border">
 			<div className="p-1">
-				{items.map((item: any) => (
+				{items.map((item) => (
 					<button
 						type="button"
 						key={`${item.kind}-${item.id}`}
