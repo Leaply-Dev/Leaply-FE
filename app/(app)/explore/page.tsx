@@ -9,7 +9,7 @@ import { Award, GraduationCap } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense } from "react";
 import { PageTransition } from "@/components/PageTransition";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -118,23 +118,12 @@ function ExplorePageSkeleton() {
 	);
 }
 
-function FlippingWord({ words }: { words: string[] }) {
-	const [index, setIndex] = useState(0);
-
-	useEffect(() => {
-		if (words.length < 2) return;
-		const interval = setInterval(() => {
-			setIndex((i) => (i + 1) % words.length);
-		}, 2000);
-		return () => clearInterval(interval);
-	}, [words.length]);
+function FlippingWord({ activeTab }: { activeTab: string }) {
+	const word = activeTab === "scholarships" ? "học bổng" : "chương trình";
 
 	return (
-		<span
-			key={words[index]}
-			className="inline-block bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent animate-in fade-in duration-500 leading-[1.15] pb-1"
-		>
-			{words[index]}
+		<span className="inline-block bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent leading-[1.15] pb-1">
+			{word}
 		</span>
 	);
 }
@@ -163,7 +152,7 @@ function ExplorePageContent() {
 					<div className="container mx-auto px-6 pt-10 pb-5">
 						<h1 className="text-center text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-[1.2] pb-1">
 							{t("heroTitle")}{" "}
-							<FlippingWord words={[t("heroProgram"), t("heroScholarship")]} />
+							<FlippingWord activeTab={activeTab} />
 						</h1>
 
 						<div className="mt-8 flex justify-center">

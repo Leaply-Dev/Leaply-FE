@@ -27,7 +27,24 @@ export function useGraphForces() {
 	}>({ nodes: [], links: [] });
 
 	// Fetch graph data from server to ensure sync on mount/refetch
-	const { data: graphResponse, refetch: refetchGraph } = useGetGraph();
+	const { data: graphResponse } = useGetGraph({
+		query: {
+			staleTime: 0,
+			// Poll every 2s for 30s after the most recent message to catch
+			// async-extracted nodes from the backend's Call B.
+			// Function form is evaluated by RQ after each refetch, so it
+			// naturally stops once 30s have elapsed without new messages.
+			refetchInterval: () => {
+				const msgs = usePersonaStore.getState().graphMessages;
+				if (msgs.length === 0) return false;
+				const lastTime = new Date(
+					msgs[msgs.length - 1].timestamp,
+				).getTime();
+				const elapsed = Date.now() - lastTime;
+				return elapsed < 30000 ? 2000 : false;
+			},
+		},
+	});
 
 	// Subscribe to API graph data from store
 	const apiGraphNodes = usePersonaStore((state) => state.apiGraphNodes);
@@ -44,24 +61,6 @@ export function useGraphForces() {
 			}
 		}
 	}, [graphResponse]);
-
-	// Proactive refetch: when new messages arrive in store, refetch graph
-	// to catch async-extracted nodes from the backend's Call B
-	const graphMessageCount = usePersonaStore(
-		(state) => state.graphMessages.length,
-	);
-	const lastMessageCountRef = useRef(graphMessageCount);
-	useEffect(() => {
-		if (graphMessageCount > lastMessageCountRef.current) {
-			// Delay refetch to give backend async extraction time
-			const timer = setTimeout(() => {
-				refetchGraph();
-			}, 2500);
-			lastMessageCountRef.current = graphMessageCount;
-			return () => clearTimeout(timer);
-		}
-		lastMessageCountRef.current = graphMessageCount;
-	}, [graphMessageCount, refetchGraph]);
 
 	// Transform API data to ForceGraph format when available
 	useEffect(() => {
