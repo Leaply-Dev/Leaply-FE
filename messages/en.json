@@ -988,6 +988,8 @@
 		"story": "story",
 		"ready": "Ready!",
 		"onlyPercent": "Only {percent}% of students share this archetype",
+		"emergingProfile": "Emerging Profile...",
+		"profileDraftLabel": "Draft",
 		"intake": {
 			"title": "Persona Lab setup",
 			"subtitle": "A few quick questions so the AI can tailor the conversation to you.",

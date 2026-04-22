@@ -121,6 +121,8 @@ export function transformApiGraphData(
 		const nodeType = (node.type || "detail") as GraphNodeType;
 		const config = GRAPH_NODE_CONFIG[nodeType];
 		const layer = node.layer ?? 3;
+		const isDraft =
+			nodeType === "profile_summary" && (node.confidence ?? 0.9) < 0.9;
 		const radius = layerRadii[layer] || 300;
 
 		// Calculate angular position for even distribution

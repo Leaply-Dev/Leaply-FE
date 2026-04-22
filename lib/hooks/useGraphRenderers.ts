@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useCallback } from "react";
 import type { LinkObject, NodeObject } from "react-force-graph-2d";
 import { GRAPH_EDGE_CONFIG, getNodeConfig } from "@/lib/config/graphConfig";
@@ -12,6 +13,13 @@ type NodeType = "profile_summary" | "essay_angle" | "key_story" | "detail";
 
 // Alias for backwards compatibility
 type ForceGraphNode = ApiForceGraphNode;
+
+// Detect draft profile_summary nodes (confidence < 0.90)
+const isDraftProfile = (node: ForceGraphNode): boolean => {
+	return (
+		node.type === "profile_summary" && (node.data?.confidence ?? 0.9) < 0.9
+	);
+};
 
 // Helper function to draw rounded rectangles on canvas
 const roundRect = (
@@ -36,10 +44,10 @@ const roundRect = (
 };
 
 // Get label background color based on node type
-const getLabelBg = (type: string): string => {
+const getLabelBg = (type: string, isDraft?: boolean): string => {
 	switch (type) {
 		case "profile_summary":
-			return "rgba(245, 158, 11, 0.9)"; // amber
+			return isDraft ? "rgba(251, 191, 36, 0.7)" : "rgba(245, 158, 11, 0.9)"; // amber
 		case "essay_angle":
 			return "rgba(139, 92, 246, 0.9)"; // violet
 		case "key_story":
@@ -68,6 +76,8 @@ export function useGraphRenderers({
 	highlightLinks,
 	hiddenNodeTypes,
 }: UseGraphRenderersProps) {
+	const t = useTranslations("personaLab");
+
 	// Paint node on canvas
 	const paintNode = useCallback(
 		(node: NodeObject, ctx: CanvasRenderingContext2D, globalScale: number) => {
@@ -78,6 +88,7 @@ export function useGraphRenderers({
 			const isHidden = hiddenNodeTypes.has(graphNode.type as NodeType);
 			const isFaded = (selectedNode && !isHighlighted) || isHidden;
 			const config = getNodeConfig(graphNode.type as NodeType);
+			const isDraft = isDraftProfile(graphNode);
 			const isSkeleton = (graphNode.data as { isSkeleton?: boolean })
 				?.isSkeleton;
 
@@ -92,13 +103,19 @@ export function useGraphRenderers({
 			ctx.beginPath();
 			ctx.arc(node.x || 0, node.y || 0, graphNode.size, 0, 2 * Math.PI);
 
-			// Skeleton node: dashed border, no fill
-			if (isSkeleton) {
+			// Draft OR skeleton: dashed border, lower opacity, no solid fill
+			if (isSkeleton || isDraft) {
 				ctx.setLineDash([5 / globalScale, 3 / globalScale]);
-				ctx.strokeStyle = graphNode.color;
+				ctx.strokeStyle = isDraft ? "#fbbf24" : graphNode.color; // lighter amber for draft
 				ctx.lineWidth = 2 / globalScale;
 				ctx.stroke();
 				ctx.setLineDash([]);
+
+				// Optional: subtle pulsing fill for draft
+				if (isDraft) {
+					ctx.fillStyle = "rgba(251, 191, 36, 0.15)"; // very light amber
+					ctx.fill();
+				}
 			} else {
 				// Regular node: filled circle
 				ctx.fillStyle =
@@ -138,8 +155,10 @@ export function useGraphRenderers({
 
 			// Pillar badge — small coloured circle + letter in top-right.
 			// Profile summary (the centre) never gets a pillar; skip.
+			// Draft profile_summary also skips pillar badge.
 			if (
 				!isSkeleton &&
+				!isDraft &&
 				graphNode.pillar &&
 				graphNode.type !== "profile_summary"
 			) {
@@ -173,12 +192,18 @@ export function useGraphRenderers({
 			const shouldShowLabel = showLabels || isHovered || isSelected;
 
 			if (shouldShowLabel) {
+				// Override label for draft profiles
+				let labelText = graphNode.label;
+				if (isDraftProfile(graphNode)) {
+					labelText = t("emergingProfile") || "Đang hình thành...";
+				}
+
 				// Truncate long labels
 				const maxLength = 20;
 				const label =
-					graphNode.label.length > maxLength
-						? `${graphNode.label.slice(0, maxLength)}...`
-						: graphNode.label;
+					labelText.length > maxLength
+						? `${labelText.slice(0, maxLength)}...`
+						: labelText;
 
 				const fontSize = 12 / globalScale;
 				ctx.font = `${fontSize}px Inter, sans-serif`;
@@ -201,7 +226,7 @@ export function useGraphRenderers({
 
 				// Use node-type colored background
 				roundRect(ctx, labelX, labelY, labelW, labelH, radius);
-				ctx.fillStyle = getLabelBg(graphNode.type);
+				ctx.fillStyle = getLabelBg(graphNode.type, isDraft);
 				ctx.fill();
 
 				// Text - white for colored backgrounds, dark for amber
@@ -217,7 +242,7 @@ export function useGraphRenderers({
 				ctx.globalAlpha = 1.0;
 			}
 		},
-		[selectedNode, hoveredNode, showLabels, highlightNodes, hiddenNodeTypes],
+		[selectedNode, hoveredNode, showLabels, highlightNodes, hiddenNodeTypes, t],
 	);
 
 	// Paint link on canvas

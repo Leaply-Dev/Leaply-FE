@@ -14,6 +14,8 @@ export const GRAPH_NODE_CONFIG = {
 	profile_summary: {
 		color: "#f59e0b", // amber-500 - CENTER (vibrant like archetype)
 		hoverColor: "#d97706", // amber-600
+		draftColor: "#fbbf24", // lighter amber for draft border
+		draftSize: 20, // slightly smaller than final (24)
 		size: 24, // Largest - center node
 		layer: 0,
 		label: "Profile",

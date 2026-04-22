@@ -988,6 +988,8 @@
 		"story": "câu chuyện",
 		"ready": "Sẵn sàng!",
 		"onlyPercent": "Chỉ {percent}% học sinh có archetype này",
+		"emergingProfile": "Đang hình thành...",
+		"profileDraftLabel": "Bản nháp",
 		"intake": {
 			"title": "Thiết lập Persona Lab",
 			"subtitle": "Vài câu hỏi nhanh để AI hiểu bạn và đưa ra gợi ý sát với bạn hơn",
