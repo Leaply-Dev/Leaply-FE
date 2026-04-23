@@ -2,6 +2,7 @@
 
 import {
 	ArrowLeft,
+	BookOpen,
 	Check,
 	CheckCircle,
 	Circle,
@@ -12,7 +13,7 @@ import {
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { TipTapEditor } from "@/components/editor/TipTapEditor";
+import { TipTapEditor, type TipTapEditorHandle } from "@/components/editor/TipTapEditor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -34,10 +35,14 @@ import {
 	useMarkSectionDone,
 	useOutline,
 	useReview,
+	useSectionFeedback,
 	useSections,
 	useUpdateSection,
 } from "@/lib/api/sop-workspace";
 import { cn } from "@/lib/utils";
+import { ArchetypeReviewHeader } from "./ArchetypeReviewHeader";
+import { PersonaStoryDrawer } from "./PersonaStoryDrawer";
+import { VoiceHint } from "./VoiceHint";
 
 interface WritingWorkspaceProps {
 	applicationId: string;
@@ -59,10 +64,13 @@ export function WritingWorkspace({
 	const [showReview, setShowReview] = useState(false);
 	const [showFullEssay, setShowFullEssay] = useState(false);
 	const [reviewData, setReviewData] = useState<ReviewResponse | null>(null);
+	const [drawerOpen, setDrawerOpen] = useState(false);
+	const [voiceFeedback, setVoiceFeedback] = useState<import("@/lib/generated/api/models").SectionFeedbackResponse | null>(null);
 
 	// Refs to prevent duplicate API calls
 	const hasTriggeredGenerate = useRef(false);
 	const hasTriggeredConfirm = useRef(false);
+	const editorRef = useRef<TipTapEditorHandle>(null);
 
 	const { data: ideation } = useIdeation(applicationId);
 	const { data: outline, isLoading: outlineLoading } =
@@ -74,6 +82,7 @@ export function WritingWorkspace({
 	const updateSection = useUpdateSection();
 	const markSectionDone = useMarkSectionDone();
 	const review = useReview();
+	const sectionFeedback = useSectionFeedback();
 
 	const sections = sectionsData?.sections || [];
 	const outlineSections = outline?.sections || [];
@@ -165,6 +174,18 @@ export function WritingWorkspace({
 				sectionIndex: selectedSectionIndex,
 			});
 			toast.success(t("sectionComplete"));
+
+			// Trigger section feedback for voice hint
+			try {
+				const feedback = await sectionFeedback.mutateAsync({
+					applicationId,
+					sectionIndex: selectedSectionIndex,
+				});
+				setVoiceFeedback(feedback);
+			} catch {
+				// Feedback is optional — don't block on failure
+			}
+
 			// Move to next section if available
 			if (selectedSectionIndex < sections.length - 1) {
 				handleSelectSection(selectedSectionIndex + 1);
@@ -411,10 +432,15 @@ export function WritingWorkspace({
 								</ul>
 							</div>
 						)}
+						<VoiceHint
+							feedback={voiceFeedback}
+							onDismiss={() => setVoiceFeedback(null)}
+						/>
 					</CardHeader>
 
 					<CardContent className="flex-1 p-4 flex flex-col min-h-0">
 						<TipTapEditor
+							ref={editorRef}
 							key={`section-${selectedSectionIndex}`}
 							initialContent={sections[selectedSectionIndex]?.content || ""}
 							onSave={async (content) => {
@@ -436,11 +462,34 @@ export function WritingWorkspace({
 									</span>
 								) : null
 							}
+							customActions={
+								<Button
+									variant="outline"
+									size="sm"
+									className="h-7 text-xs gap-1.5"
+									onClick={() => setDrawerOpen(true)}
+								>
+									<BookOpen className="w-3 h-3" />
+									{t("storiesFromPersonaLab")}
+								</Button>
+							}
 							className="flex-1 border-0 shadow-none rounded-none h-full"
 						/>
 					</CardContent>
 				</Card>
 			</div>
+
+			{/* Persona Story Drawer */}
+			<PersonaStoryDrawer
+				open={drawerOpen}
+				onOpenChange={setDrawerOpen}
+				applicationId={applicationId}
+				sectionIndex={selectedSectionIndex}
+				linkedNodeIds={sections[selectedSectionIndex]?.linkedNodeIds}
+				onInsertContent={(text) => {
+					editorRef.current?.insertContent(text);
+				}}
+			/>
 
 			{/* Review Dialog */}
 			<Dialog open={showReview} onOpenChange={setShowReview}>
@@ -455,6 +504,8 @@ export function WritingWorkspace({
 
 					{reviewData && (
 						<div className="space-y-6 py-4">
+							<ArchetypeReviewHeader strengths={reviewData.strengths} />
+
 							{/* Overall Score */}
 							{reviewData.overallScore !== undefined && (
 								<div className="text-center">

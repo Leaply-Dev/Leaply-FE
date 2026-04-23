@@ -5,9 +5,21 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Loader2, Redo, Save, Undo } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+	forwardRef,
+	useCallback,
+	useEffect,
+	useImperativeHandle,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+export interface TipTapEditorHandle {
+	insertContent: (text: string) => void;
+}
 
 interface TipTapEditorProps {
 	initialContent?: string;
@@ -20,16 +32,20 @@ interface TipTapEditorProps {
 	customActions?: React.ReactNode;
 }
 
-export function TipTapEditor({
-	initialContent = "",
-	onSave,
-	onChange,
-	onWordCountChange,
-	debounceMs = 2000,
-	className,
-	footerMeta,
-	customActions,
-}: TipTapEditorProps) {
+export const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
+function TipTapEditor(
+	{
+		initialContent = "",
+		onSave,
+		onChange,
+		onWordCountChange,
+		debounceMs = 2000,
+		className,
+		footerMeta,
+		customActions,
+	},
+	ref,
+) {
 	const t = useTranslations("editor");
 	const locale = useLocale();
 	const timeFormatter = useMemo(
@@ -84,6 +100,15 @@ export function TipTapEditor({
 			}, debounceMs);
 		},
 	});
+
+	// Expose imperative handle for external content insertion
+	useImperativeHandle(ref, () => ({
+		insertContent: (text: string) => {
+			if (editor) {
+				editor.chain().focus().insertContent(text).run();
+			}
+		},
+	}), [editor]);
 
 	const handleSave = useCallback(
 		async (content: string) => {
@@ -235,4 +260,7 @@ export function TipTapEditor({
 			</div>
 		</div>
 	);
-}
+},
+);
+
+TipTapEditor.displayName = "TipTapEditor";

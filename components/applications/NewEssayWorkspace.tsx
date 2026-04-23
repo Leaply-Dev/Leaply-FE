@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
 	type AngleDto,
+	useArchetypeMotifSuggestions,
 	useGenerateIdeation,
 	useSavePrompt,
 	useUpdateIdeation,
@@ -58,6 +59,7 @@ import type {
 	ScholarshipListItemResponse,
 } from "@/lib/generated/api/models";
 import { cn } from "@/lib/utils";
+import { ArchetypeBadge } from "./sop/ArchetypeBadge";
 
 type TargetKind = "program" | "scholarship";
 
@@ -307,6 +309,7 @@ export function NewEssayWorkspace({
 	const { mutateAsync: saveProgramPrompt } = useSavePrompt();
 	const { mutateAsync: generateIdeation } = useGenerateIdeation();
 	const { mutateAsync: updateIdeation } = useUpdateIdeation();
+	const { data: motifSuggestionsData } = useArchetypeMotifSuggestions();
 
 	const { data: intakeData } = useGetIntake();
 	const intake = intakeData
@@ -596,8 +599,18 @@ export function NewEssayWorkspace({
 
 			{/* ── Step 3: Narrative motif / essay archetype ── */}
 			{step === 3 && (
-				<div className="flex flex-col items-center min-h-[60vh] max-w-6xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-300 py-4">
+				<div className="flex flex-col items-center min-h-[60vh] max-w-6xl mx-auto space-y-6 animate-in fade-in zoom-in-95 duration-300 py-4">
 					{stepHeading(tSetup("step2Title"), tSetup("step2Desc"))}
+
+					{motifSuggestionsData?.archetype && (
+						<div className="w-full px-1">
+							<ArchetypeBadge
+								data={motifSuggestionsData}
+								selectedEssayType={selectedEssayType}
+								selectedMotif={selectedMotif}
+							/>
+						</div>
+					)}
 
 					<div
 						className={cn(

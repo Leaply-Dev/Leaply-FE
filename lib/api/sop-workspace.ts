@@ -397,3 +397,72 @@ export function useReview() {
 		},
 	});
 }
+
+// ============================================
+// New hooks for Persona-Aware Essay Helper
+// ============================================
+
+export interface MotifSuggestion {
+	motif: string;
+	confidence: number;
+	reason: string;
+}
+
+export interface ArchetypeMotifSuggestionResponse {
+	archetype: {
+		type: string;
+		titleVi: string;
+		color: string;
+		essayStrengthsVi: string[];
+	} | null;
+	suggestions: {
+		ps: MotifSuggestion[];
+		sop: MotifSuggestion[];
+	} | null;
+}
+
+export function useArchetypeMotifSuggestions() {
+	return useQuery({
+		queryKey: ["persona", "archetype", "motif-suggestions"],
+		queryFn: async () => {
+			const response = await customFetch<{
+				data: { data: ArchetypeMotifSuggestionResponse | null };
+			}>("/v1/persona/archetype/motif-suggestions");
+			return response.data.data;
+		},
+		retry: false,
+	});
+}
+
+export function useEvidence(applicationId: string, sectionIndex: number) {
+	return useQuery({
+		queryKey: [...sopWorkspaceKeys.all, "evidence", applicationId, sectionIndex],
+		queryFn: async () => {
+			const response = await customFetch<{
+				data: { data: import("@/lib/generated/api/models").EvidenceCardsResponse };
+			}>(`/v1/applications/${applicationId}/sop/sections/${sectionIndex}/evidence`);
+			return response.data.data;
+		},
+		enabled: !!applicationId,
+		retry: false,
+	});
+}
+
+export function useSectionFeedback() {
+	return useMutation({
+		mutationFn: async ({
+			applicationId,
+			sectionIndex,
+		}: {
+			applicationId: string;
+			sectionIndex: number;
+		}) => {
+			const response = await customFetch<{
+				data: { data: import("@/lib/generated/api/models").SectionFeedbackResponse };
+			}>(`/v1/applications/${applicationId}/sop/sections/${sectionIndex}/feedback`, {
+				method: "POST",
+			});
+			return response.data.data;
+		},
+	});
+}
