@@ -1073,6 +1073,11 @@
 				"description": "Hiểu rõ điểm mạnh và câu chuyện của bạn trước khi chọn trường phù hợp.",
 				"cta": "Vào Persona Lab"
 			},
+			"profile": {
+				"title": "Cập nhật hồ sơ cá nhân",
+				"description": "Bổ sung thông tin hồ sơ để nhận gợi ý trường chính xác hơn.",
+				"cta": "Cập nhật hồ sơ"
+			},
 			"writing": {
 				"title": "Tiếp tục viết essay",
 				"description": "Hoàn thành bài luận cá nhân của bạn.",

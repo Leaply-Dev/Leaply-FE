@@ -1073,6 +1073,11 @@
 				"description": "Understand your strengths and story before choosing the right schools.",
 				"cta": "Go to Persona Lab"
 			},
+			"profile": {
+				"title": "Complete your profile",
+				"description": "Fill in your profile details to get more accurate school recommendations.",
+				"cta": "Update profile"
+			},
 			"writing": {
 				"title": "Continue your essay",
 				"description": "Pick up where you left off on your personal statement.",

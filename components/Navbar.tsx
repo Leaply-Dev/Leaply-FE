@@ -45,8 +45,8 @@ export function Navbar() {
 	const authNavLinks = [
 		{ href: "/dashboard", labelKey: "home" },
 		{ href: "/explore", labelKey: "explore" },
-		{ href: "/dashboard/applications", labelKey: "applications" },
 		{ href: "/persona-lab", labelKey: "personaLab" },
+		{ href: "/dashboard/applications", labelKey: "applications" },
 	];
 
 	// Get nav links based on auth state
