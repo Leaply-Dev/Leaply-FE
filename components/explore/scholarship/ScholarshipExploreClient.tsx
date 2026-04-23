@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ScholarshipCompareDialog } from "@/components/explore/scholarship/ScholarshipCompareDialog";
@@ -15,6 +16,7 @@ import type {
 
 export function ScholarshipExploreClient() {
 	const router = useRouter();
+	const tToast = useTranslations("explore.toast");
 
 	// Fetch existing scholarship applications to check if already applied
 	const { data: scholarshipAppsResponse } = useGetApplications();
@@ -35,14 +37,17 @@ export function ScholarshipExploreClient() {
 
 	const handleAddToDashboard = (scholarshipId: string) => {
 		if (applicationsByScholarshipId.has(scholarshipId)) {
-			toast.info("Học bổng đã có trong danh sách", {
-				description: "Bạn đã thêm học bổng này vào dashboard.",
+			toast.info(tToast("scholarshipAlreadyAddedTitle"), {
+				description: tToast("scholarshipAlreadyAddedDesc"),
 			});
 			return;
 		}
-		router.push(
-			`/dashboard/applications?tab=scholarships&id=new&scholarshipId=${scholarshipId}`,
-		);
+		const params = new URLSearchParams({
+			tab: "scholarships",
+			id: "new",
+			scholarshipId,
+		});
+		router.push(`/dashboard/applications?${params.toString()}`);
 	};
 
 	const handleManageApplication = (scholarshipId: string) => {
@@ -97,7 +102,6 @@ export function ScholarshipExploreClient() {
 					onAddToDashboard={handleAddToDashboard}
 					isScholarshipInDashboard={isScholarshipInDashboard}
 					onManageApplication={handleManageApplication}
-					addingScholarshipId={null}
 				/>
 			</div>
 

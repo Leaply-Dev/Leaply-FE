@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -152,20 +152,25 @@ export function NewEssayWorkspace({
 	const [wordLimit, setWordLimit] = useState("");
 
 	// Pre-select program when coming from Explore "Apply" button
+	// Prefill from URL should only run once — after the user interacts
+	// (changes kind, clears target, etc.), we must not re-populate from cached query data.
+	const didPrefillRef = useRef(false);
+
 	const { data: initialProgramData } = useGetProgramDetail(
 		initialProgramId ?? "",
 		{
 			query: {
-				enabled: !!initialProgramId && !selectedTarget,
+				enabled: !!initialProgramId && !didPrefillRef.current,
 				staleTime: 5 * 60 * 1000,
 			},
 		},
 	);
 
 	useEffect(() => {
-		if (!initialProgramId || selectedTarget) return;
+		if (!initialProgramId || didPrefillRef.current) return;
 		const program = unwrapResponse<ProgramDetailResponse>(initialProgramData);
 		if (program?.id) {
+			didPrefillRef.current = true;
 			setSelectedTarget({
 				kind: "program",
 				id: program.id,
@@ -176,25 +181,26 @@ export function NewEssayWorkspace({
 				logoUrl: program.universityLogoUrl,
 			});
 		}
-	}, [initialProgramData, initialProgramId, selectedTarget]);
+	}, [initialProgramData, initialProgramId]);
 
 	// Pre-select scholarship when coming from Explore "Apply" button
 	const { data: initialScholarshipData } = useGetScholarshipDetail(
 		initialScholarshipId ?? "",
 		{
 			query: {
-				enabled: !!initialScholarshipId && !selectedTarget,
+				enabled: !!initialScholarshipId && !didPrefillRef.current,
 				staleTime: 5 * 60 * 1000,
 			},
 		},
 	);
 
 	useEffect(() => {
-		if (!initialScholarshipId || selectedTarget) return;
+		if (!initialScholarshipId || didPrefillRef.current) return;
 		const scholarship = unwrapResponse<ScholarshipDetailResponse>(
 			initialScholarshipData,
 		);
 		if (scholarship?.id) {
+			didPrefillRef.current = true;
 			setKind("scholarship");
 			setSelectedTarget({
 				kind: "scholarship",
@@ -206,7 +212,7 @@ export function NewEssayWorkspace({
 				logoUrl: scholarship.universityLogoUrl,
 			});
 		}
-	}, [initialScholarshipData, initialScholarshipId, selectedTarget]);
+	}, [initialScholarshipData, initialScholarshipId]);
 
 	// Step 2 & 3 State
 	const [selectedEssayType, setSelectedEssayType] = useState<string | null>(
@@ -222,6 +228,18 @@ export function NewEssayWorkspace({
 	const [selectedAngleId, setSelectedAngleId] = useState<string | null>(null);
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	// Stable labels passed to AngleCard so it can later be wrapped in memo()
+	// without defeating reference equality.
+	const angleMatchLabels = useMemo<Record<string, string>>(
+		() => ({
+			STRONG: tSop("matchLevel.strong"),
+			MODERATE: tSop("matchLevel.moderate"),
+			WEAK: tSop("matchLevel.weak"),
+		}),
+		[tSop],
+	);
+	const angleFitLabel = tSetup("angleFitLabel");
 
 	// Debounce search
 	useEffect(() => {
@@ -630,12 +648,8 @@ export function NewEssayWorkspace({
 									angle={angle}
 									isSelected={selectedAngleId === angle.id}
 									onSelect={() => setSelectedAngleId(angle.id)}
-									fitLabel={tSetup("angleFitLabel")}
-									matchLabels={{
-										STRONG: tSop("matchLevel.strong"),
-										MODERATE: tSop("matchLevel.moderate"),
-										WEAK: tSop("matchLevel.weak"),
-									}}
+									fitLabel={angleFitLabel}
+									matchLabels={angleMatchLabels}
 								/>
 							))
 						)}

@@ -428,6 +428,11 @@
 			"program": "Program",
 			"scholarship": "Scholarship"
 		},
+		"essayBadge": {
+			"sop": "SOP",
+			"personalStatement": "Personal Statement",
+			"lor": "LOR"
+		},
 		"prompt": {
 			"header": "Essay prompt",
 			"empty": "No prompt yet. Click \"Edit\" to add the prompt and word limit.",
@@ -812,6 +817,10 @@
 			"required": "Required",
 			"exceedsRequirement": "Exceeds requirement",
 			"belowRequirement": "Below requirement"
+		},
+		"toast": {
+			"scholarshipAlreadyAddedTitle": "Scholarship already added",
+			"scholarshipAlreadyAddedDesc": "You have already added this scholarship to your dashboard."
 		}
 	},
 	"personaLab": {
@@ -1273,6 +1282,16 @@
 		"medium": "medium",
 		"high": "high"
 	},
+	"editor": {
+		"words": "{count, plural, =0 {# words} one {# word} other {# words}}",
+		"characters": "{count, plural, =0 {# characters} one {# character} other {# characters}}",
+		"unsaved": "Unsaved",
+		"savedAt": "Saved {time}",
+		"save": "Save",
+		"saving": "Saving",
+		"undo": "Undo (Ctrl+Z)",
+		"redo": "Redo (Ctrl+Shift+Z)"
+	},
 	"scholarships": {
 		"title": "Scholarships",
 		"noScholarshipSelected": "No scholarship selected",
@@ -1413,13 +1432,16 @@
 		"backToAngle": "Back to angle selection",
 		"outline": "Outline",
 		"saveDraft": "Save Draft",
+		"savingDraft": "Saving draft",
 		"complete": "Complete",
+		"completePart": "Complete part",
 		"reviewWithAI": "Review with AI",
 		"topic": "Topic:",
 		"perspective": "Perspective:",
 		"section": "Section",
 		"writePlaceholder": "Write this section content...",
 		"guidingQuestions": "Guiding Questions",
+		"suggestionLabel": "Suggestion {index}",
 		"noQuestions": "No guiding questions for this section.",
 		"reviewSop": "Review SOP",
 		"reviewDesc": "Overall assessment of your SOP",

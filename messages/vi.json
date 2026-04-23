@@ -428,6 +428,11 @@
 			"program": "Chương trình",
 			"scholarship": "Học bổng"
 		},
+		"essayBadge": {
+			"sop": "SOP",
+			"personalStatement": "Personal Statement",
+			"lor": "LOR"
+		},
 		"prompt": {
 			"header": "Đề bài luận",
 			"empty": "Chưa có đề bài. Nhấn \"Chỉnh sửa\" để thêm đề bài và giới hạn số từ.",
@@ -812,6 +817,10 @@
 			"required": "Yêu cầu",
 			"exceedsRequirement": "Vượt yêu cầu",
 			"belowRequirement": "Dưới yêu cầu"
+		},
+		"toast": {
+			"scholarshipAlreadyAddedTitle": "Học bổng đã có trong danh sách",
+			"scholarshipAlreadyAddedDesc": "Bạn đã thêm học bổng này vào dashboard."
 		}
 	},
 	"personaLab": {
@@ -1273,6 +1282,16 @@
 		"medium": "trung bình",
 		"high": "cao"
 	},
+	"editor": {
+		"words": "{count, plural, other {# từ}}",
+		"characters": "{count, plural, other {# ký tự}}",
+		"unsaved": "Chưa lưu",
+		"savedAt": "Đã lưu {time}",
+		"save": "Lưu",
+		"saving": "Đang lưu",
+		"undo": "Hoàn tác (Ctrl+Z)",
+		"redo": "Làm lại (Ctrl+Shift+Z)"
+	},
 	"scholarships": {
 		"title": "Học bổng",
 		"noScholarshipSelected": "Chưa chọn học bổng",
@@ -1413,13 +1432,16 @@
 		"backToAngle": "Quay lại chọn góc",
 		"outline": "Outline",
 		"saveDraft": "Lưu nháp",
+		"savingDraft": "Đang lưu nháp",
 		"complete": "Hoàn thành",
-		"reviewWithAI": "Review với AI",
+		"completePart": "Hoàn thành mục",
+		"reviewWithAI": "Review bài luận",
 		"topic": "Đề bài:",
 		"perspective": "Góc nhìn:",
 		"section": "Section",
 		"writePlaceholder": "Viết nội dung section này...",
 		"guidingQuestions": "Câu hỏi gợi ý",
+		"suggestionLabel": "Gợi ý {index}",
 		"noQuestions": "Không có câu hỏi gợi ý cho section này.",
 		"reviewSop": "Review SOP",
 		"reviewDesc": "Đánh giá tổng quan về bài SOP của bạn",

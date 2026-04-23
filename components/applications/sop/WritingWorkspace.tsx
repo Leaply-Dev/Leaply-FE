@@ -7,7 +7,6 @@ import {
 	Circle,
 	FileText,
 	Loader2,
-	MessageSquare,
 	Sparkles,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -237,42 +236,20 @@ export function WritingWorkspace({
 						</CardContent>
 					</Card>
 				</div>
-
-				{/* Right Panel Skeleton */}
-				<div className="lg:w-72 shrink-0">
-					<Card className="h-full">
-						<CardHeader className="py-3 px-4">
-							<Skeleton className="h-5 w-32" />
-						</CardHeader>
-						<CardContent className="px-4 pb-4 space-y-4">
-							{[1, 2, 3].map((i) => (
-								<div key={i} className="space-y-2">
-									<Skeleton className="h-4 w-full" />
-									<Skeleton className="h-4 w-3/4" />
-								</div>
-							))}
-						</CardContent>
-					</Card>
-				</div>
 			</div>
 		);
 	}
 
 	const currentOutlineSection = outlineSections[selectedSectionIndex];
 	const allDone = sections.every((s) => s.status === "done");
+	const guidingQuestions = currentOutlineSection?.guidingQuestions ?? [];
 
 	return (
 		<div className="h-full flex flex-col lg:flex-row gap-4">
 			{/* Left Panel - Outline Checklist */}
-			<div className="lg:w-64 shrink-0 flex flex-col gap-4">
+			<div className="lg:w-80 shrink-0 flex flex-col gap-4">
 				<Card className="h-full flex flex-col">
 					<CardHeader className="py-3 px-4 shrink-0 space-y-4">
-						<div className="flex items-center justify-between">
-							<CardTitle className="text-sm font-medium flex items-center gap-2">
-								<CheckCircle className="w-4 h-4 text-primary" />
-								{t("outline")}
-							</CardTitle>
-						</div>
 						{/* Back Button moved to top */}
 						{onBack && (
 							<Button
@@ -285,10 +262,37 @@ export function WritingWorkspace({
 								{t("backToAngle")}
 							</Button>
 						)}
+						{(sopPrompt || selectedAngle) && (
+							<div className="space-y-3">
+								{sopPrompt && (
+									<div className="text-sm">
+										<span className="font-semibold text-foreground block mb-1">
+											{t("topic")}
+										</span>
+										<span className="text-muted-foreground">{sopPrompt}</span>
+									</div>
+								)}
+								{selectedAngle && (
+									<div className="text-sm">
+										<span className="font-semibold text-foreground block mb-1">
+											{t("perspective")}
+										</span>
+										<span className="text-primary font-medium block">
+											{selectedAngle.title}
+										</span>
+										{selectedAngle.hook && (
+											<span className="italic text-muted-foreground block mt-1 text-justify">
+												"{selectedAngle.hook}"
+											</span>
+										)}
+									</div>
+								)}
+							</div>
+						)}
 					</CardHeader>
 					<CardContent className="px-2 pb-4 flex-1 min-h-0">
 						<ScrollArea className="h-full">
-							<div className="space-y-1 pr-2">
+							<div className="space-y-1">
 								{outlineSections.map(
 									(section: OutlineSectionDto, index: number) => {
 										const sectionData = sections[index];
@@ -340,6 +344,21 @@ export function WritingWorkspace({
 							</div>
 						</ScrollArea>
 					</CardContent>
+					<div className="px-4 pb-4 pt-3 border-t shrink-0">
+						<Button
+							size="sm"
+							onClick={handleReview}
+							disabled={review.isPending || !allDone}
+							className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+						>
+							{review.isPending ? (
+								<Loader2 className="w-4 h-4 mr-1 animate-spin" />
+							) : (
+								<Sparkles className="w-4 h-4 mr-1" />
+							)}
+							{t("reviewWithAI")}
+						</Button>
+					</div>
 				</Card>
 			</div>
 
@@ -352,15 +371,6 @@ export function WritingWorkspace({
 								{currentOutlineSection?.title || t("section")}
 							</CardTitle>
 							<div className="flex items-center gap-4">
-								<span className="text-xs text-muted-foreground">
-									{currentOutlineSection?.wordTarget && (
-										<>
-											{t("target") || "Target"}:{" "}
-											{currentOutlineSection.wordTarget.min}-
-											{currentOutlineSection.wordTarget.max} {t("words")}
-										</>
-									)}
-								</span>
 								<Button
 									variant="outline"
 									size="sm"
@@ -369,8 +379,38 @@ export function WritingWorkspace({
 									<FileText className="w-4 h-4 mr-2" />
 									{t("viewFullEssay")}
 								</Button>
+								<Button
+									size="sm"
+									onClick={handleMarkDone}
+									disabled={markSectionDone.isPending || !sectionContent.trim()}
+									className="bg-primary text-primary-foreground hover:bg-primary/90"
+								>
+									{markSectionDone.isPending ? (
+										<Loader2 className="w-4 h-4 mr-1 animate-spin" />
+									) : (
+										<Check className="w-4 h-4 mr-1" />
+									)}
+									{t("completePart")}
+								</Button>
 							</div>
 						</div>
+						{guidingQuestions.length > 0 && (
+							<div className="mt-3 space-y-3">
+								<ul className="space-y-2">
+									{guidingQuestions.map((question: string, idx: number) => (
+										<li
+											key={`${idx}-${question}`}
+											className="text-sm text-muted-foreground flex items-start gap-2"
+										>
+											<span className="text-primary font-medium shrink-0">
+												{t("suggestionLabel", { index: idx + 1 })}
+											</span>
+											<span>{question}</span>
+										</li>
+									))}
+								</ul>
+							</div>
+						)}
 					</CardHeader>
 
 					<CardContent className="flex-1 p-4 flex flex-col min-h-0">
@@ -387,106 +427,17 @@ export function WritingWorkspace({
 							}}
 							onChange={setSectionContent}
 							onWordCountChange={setWordCount}
-							className="flex-1 border-0 shadow-none rounded-none h-full"
-							customActions={
-								<>
-									<Button
-										size="sm"
-										variant="secondary"
-										onClick={handleMarkDone}
-										disabled={
-											markSectionDone.isPending || !sectionContent.trim()
-										}
-									>
-										{markSectionDone.isPending ? (
-											<Loader2 className="w-4 h-4 mr-1 animate-spin" />
-										) : (
-											<Check className="w-4 h-4 mr-1" />
-										)}
-										{t("complete")}
-									</Button>
-									<Button
-										size="sm"
-										onClick={handleReview}
-										disabled={review.isPending || !allDone}
-										className="bg-purple-600 hover:bg-purple-700 text-white"
-									>
-										{review.isPending ? (
-											<Loader2 className="w-4 h-4 mr-1 animate-spin" />
-										) : (
-											<Sparkles className="w-4 h-4 mr-1" />
-										)}
-										{t("reviewWithAI")}
-									</Button>
-								</>
+							footerMeta={
+								currentOutlineSection?.wordTarget ? (
+									<span>
+										{t("target") || "Target"}:{" "}
+										{currentOutlineSection.wordTarget.min}-
+										{currentOutlineSection.wordTarget.max} {t("words")}
+									</span>
+								) : null
 							}
+							className="flex-1 border-0 shadow-none rounded-none h-full"
 						/>
-					</CardContent>
-				</Card>
-			</div>
-
-			{/* Right Panel - Guiding Questions & Info */}
-			<div className="lg:w-72 shrink-0 flex flex-col gap-4">
-				{(sopPrompt || selectedAngle) && (
-					<Card>
-						<CardContent className="p-4 space-y-3">
-							{sopPrompt && (
-								<div className="text-sm">
-									<span className="font-semibold text-foreground block mb-1">
-										{t("topic")}
-									</span>
-									<span className="text-muted-foreground">{sopPrompt}</span>
-								</div>
-							)}
-							{selectedAngle && (
-								<div className="text-sm">
-									<span className="font-semibold text-foreground block mb-1">
-										{t("perspective")}
-									</span>
-									<span className="text-primary font-medium block">
-										{selectedAngle.title}
-									</span>
-									{selectedAngle.hook && (
-										<span className="italic text-muted-foreground block mt-1">
-											"{selectedAngle.hook}"
-										</span>
-									)}
-								</div>
-							)}
-						</CardContent>
-					</Card>
-				)}
-
-				<Card className="flex-1 flex flex-col min-h-0">
-					<CardHeader className="py-3 px-4 shrink-0">
-						<CardTitle className="text-sm font-medium flex items-center gap-2">
-							<MessageSquare className="w-4 h-4 text-amber-500" />
-							{t("guidingQuestions")}
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="px-4 pb-4 flex-1 overflow-y-auto min-h-0">
-						{currentOutlineSection?.guidingQuestions &&
-						currentOutlineSection.guidingQuestions.length > 0 ? (
-							<ul className="space-y-3">
-								{currentOutlineSection.guidingQuestions.map(
-									(question: string, idx: number) => (
-										<li
-											key={question}
-											className="text-sm text-muted-foreground flex items-start gap-2"
-										>
-											<span className="text-primary font-medium shrink-0">
-												{idx + 1}.
-											</span>
-											<span>{question}</span>
-										</li>
-									),
-								)}
-							</ul>
-						) : (
-							<p className="text-sm text-muted-foreground italic">
-								{t("noQuestions")}
-							</p>
-						)}
 					</CardContent>
 				</Card>
 			</div>
@@ -580,8 +531,8 @@ export function WritingWorkspace({
 							return (
 								<div key={section.id}>
 									{hasContent ? (
-										// biome-ignore lint/security/noDangerouslySetInnerHtml: TipTap HTML output is trusted editor content
 										<div
+											// biome-ignore lint/security/noDangerouslySetInnerHtml: TipTap HTML output is trusted editor content
 											dangerouslySetInnerHTML={{
 												__html: section.content ?? "",
 											}}

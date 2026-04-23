@@ -12,7 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ApplicationDashboard } from "@/components/ApplicationDashboard";
 import { NewEssayWorkspace } from "@/components/applications/NewEssayWorkspace";
@@ -100,6 +100,7 @@ export function ApplicationsClient() {
 	const { mutateAsync: deleteApp } = useDeleteApplication1();
 	const { mutateAsync: deleteScholarshipApp } =
 		useDeleteScholarshipApplication();
+	const [programDrawerOpen, setProgramDrawerOpen] = useState(false);
 
 	// Determine current kind: URL `tab` wins, fall back to whichever store has an id,
 	// and default to program when both lists are empty.
@@ -221,23 +222,6 @@ export function ApplicationsClient() {
 	const selectedApplication =
 		applications.find((app) => app.id === selectedApplicationId) ?? null;
 
-	const handleDelete = async () => {
-		if (selectedApplication?.id) {
-			try {
-				await deleteApp({ id: selectedApplication.id });
-				setSelectedApplicationId(null);
-				await queryClient.invalidateQueries({
-					queryKey: getGetApplications1QueryKey(),
-				});
-				return true;
-			} catch {
-				toast.error(t("toast.deleteFailed"));
-				return false;
-			}
-		}
-		return false;
-	};
-
 	const handleDeleteScholarship = async () => {
 		if (selectedScholarshipId) {
 			try {
@@ -254,6 +238,52 @@ export function ApplicationsClient() {
 		}
 		return false;
 	};
+
+	const handleDeleteItem = useCallback(
+		async (id: string, kind: EssayItemKind) => {
+			if (kind === "program") {
+				try {
+					await deleteApp({ id });
+					if (useApplicationStore.getState().selectedApplicationId === id) {
+						useApplicationStore.getState().setSelectedApplicationId(null);
+					}
+					await queryClient.invalidateQueries({
+						queryKey: getGetApplications1QueryKey(),
+					});
+				} catch {
+					toast.error(t("toast.deleteFailed"));
+				}
+				return;
+			}
+
+			try {
+				await deleteScholarshipApp({ applicationId: id });
+				if (
+					useScholarshipApplicationStore.getState().selectedApplicationId === id
+				) {
+					useScholarshipApplicationStore
+						.getState()
+						.setSelectedApplicationId(null);
+				}
+				await queryClient.invalidateQueries({
+					queryKey: getScholarshipApplicationsQueryKey(),
+				});
+			} catch {
+				toast.error(t("toast.deleteScholarshipFailed"));
+			}
+		},
+		[deleteApp, deleteScholarshipApp, queryClient, t],
+	);
+
+	const handleViewDetailsItem = useCallback(
+		(id: string, kind: EssayItemKind) => {
+			handleSelect(id, kind);
+			if (kind === "program") {
+				setProgramDrawerOpen(true);
+			}
+		},
+		[handleSelect],
+	);
 
 	const handleCreated = useCallback(
 		({
@@ -335,6 +365,8 @@ export function ApplicationsClient() {
 											scholarshipApplications={scholarshipApplications}
 											selectedId={selectedId}
 											onSelect={handleSelect}
+											onDeleteItem={handleDeleteItem}
+											onViewDetails={handleViewDetailsItem}
 											isLoading={isLoading}
 										/>
 									</div>
@@ -347,6 +379,8 @@ export function ApplicationsClient() {
 										scholarshipApplications={scholarshipApplications}
 										selectedId={selectedId}
 										onSelect={handleSelect}
+										onDeleteItem={handleDeleteItem}
+										onViewDetails={handleViewDetailsItem}
 										isLoading={isLoading}
 									/>
 								</div>
@@ -361,6 +395,8 @@ export function ApplicationsClient() {
 							scholarshipApplications={scholarshipApplications}
 							selectedId={selectedId}
 							onSelect={handleSelect}
+							onDeleteItem={handleDeleteItem}
+							onViewDetails={handleViewDetailsItem}
 							isLoading={isLoading}
 						/>
 					</div>
@@ -377,7 +413,8 @@ export function ApplicationsClient() {
 						) : activeKind === "program" ? (
 							<ApplicationDashboard
 								application={selectedApplication}
-								onDelete={handleDelete}
+								programDrawerOpen={programDrawerOpen}
+								onProgramDrawerOpenChange={setProgramDrawerOpen}
 							/>
 						) : (
 							<ScholarshipDashboard

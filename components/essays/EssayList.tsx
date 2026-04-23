@@ -1,11 +1,26 @@
 "use client";
 
-import { Award, FileText, GraduationCap, School, Search } from "lucide-react";
+import {
+	Award,
+	EllipsisVertical,
+	ExternalLink,
+	FileText,
+	GraduationCap,
+	School,
+	Search,
+	Trash2,
+} from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
 	Tooltip,
@@ -26,6 +41,7 @@ export interface UnifiedEssayItem {
 	kind: EssayItemKind;
 	title: string;
 	subtitle: string;
+	essayType: "sop" | "personalStatement" | "lor";
 	logoUrl?: string;
 	universityName?: string;
 	status?: string;
@@ -39,9 +55,30 @@ interface EssayListProps {
 	scholarshipApplications: ScholarshipApplicationResponse[];
 	selectedId: string | null;
 	onSelect: (id: string, kind: EssayItemKind) => void;
+	onDeleteItem?: (id: string, kind: EssayItemKind) => Promise<void> | void;
+	onViewDetails?: (id: string, kind: EssayItemKind) => void;
 	isLoading?: boolean;
 	withWrapper?: boolean;
 	collapsed?: boolean;
+}
+
+const LOR_PROMPT_KEYWORDS = [
+	"recommendation",
+	"reference letter",
+	"letter of recommendation",
+	"lor",
+];
+
+function inferEssayType(
+	kind: EssayItemKind,
+	essayPrompt?: string,
+): UnifiedEssayItem["essayType"] {
+	if (kind === "program") return "sop";
+	const prompt = (essayPrompt ?? "").toLowerCase();
+	if (LOR_PROMPT_KEYWORDS.some((kw) => prompt.includes(kw))) {
+		return "lor";
+	}
+	return "personalStatement";
 }
 
 function buildItems(
@@ -53,8 +90,16 @@ function buildItems(
 		.map<UnifiedEssayItem>((app) => ({
 			id: app.id ?? "",
 			kind: "program",
-			title: app.program?.universityName ?? "",
-			subtitle: app.program?.programName ?? "",
+			title:
+				[app.program?.degreeName, app.program?.programName]
+					.filter(Boolean)
+					.join(" - ") ||
+				app.program?.programName ||
+				app.program?.degreeName ||
+				app.program?.universityName ||
+				"",
+			subtitle: app.program?.universityName ?? "",
+			essayType: inferEssayType("program"),
 			universityName: app.program?.universityName,
 			logoUrl: app.program?.universityLogoUrl,
 			status: app.status,
@@ -70,6 +115,7 @@ function buildItems(
 			kind: "scholarship",
 			title: app.scholarship?.name ?? "",
 			subtitle: app.scholarship?.sourceName ?? "",
+			essayType: inferEssayType("scholarship", app.essayPrompt),
 			universityName: app.scholarship?.sourceName,
 			status: app.status,
 			deadline: app.targetDeadline ?? app.scholarship?.applicationDeadline,
@@ -103,6 +149,8 @@ export function EssayList({
 	scholarshipApplications,
 	selectedId,
 	onSelect,
+	onDeleteItem,
+	onViewDetails,
 	isLoading,
 	withWrapper = true,
 	collapsed = false,
@@ -134,6 +182,7 @@ export function EssayList({
 				kind: "program",
 				title: t("newEssayTitle"),
 				subtitle: t("setupInProgress"),
+				essayType: "sop",
 				status: "planning",
 			});
 		}
@@ -209,7 +258,7 @@ export function EssayList({
 	const content = (
 		<>
 			{/* Header */}
-			<div className="p-4 border-b border-border space-y-3">
+			<div className="p-4 border-border space-y-3">
 				<div className="flex items-center justify-between">
 					<h2 className="text-lg font-semibold text-foreground">
 						{t("title")}
@@ -261,76 +310,119 @@ export function EssayList({
 							const KindIcon = item.kind === "program" ? GraduationCap : Award;
 
 							return (
-								<button
-									type="button"
+								<div
 									key={`${item.kind}-${item.id}`}
-									onClick={() => onSelect(item.id, item.kind)}
 									className={cn(
-										"w-full p-3 text-left hover:bg-muted/50 transition-all rounded-xl border border-transparent group",
-										selectedId === item.id
-											? "bg-card border-border shadow-sm"
-											: "hover:border-border/50",
+										"relative group rounded-xl",
+										selectedId === item.id && "bg-card",
 									)}
 								>
-									<div className="flex items-start gap-3">
-										<div className="shrink-0 w-10 h-10 bg-white rounded-lg border border-border/50 shadow-sm flex items-center justify-center overflow-hidden p-1.5">
-											{logo ? (
-												<div className="relative w-full h-full">
-													<Image
-														src={logo}
-														alt={item.title}
-														fill
-														className="object-contain"
-													/>
-												</div>
-											) : item.kind === "program" ? (
-												<School className="w-5 h-5 text-muted-foreground/50" />
-											) : (
-												<Award className="w-5 h-5 text-muted-foreground/50" />
-											)}
-										</div>
+									<button
+										type="button"
+										onClick={() => onSelect(item.id, item.kind)}
+										className={cn(
+											"w-full p-3 text-left hover:bg-muted/50 transition-all rounded-xl border border-transparent",
+											selectedId === item.id
+												? "bg-card border-border shadow-sm"
+												: "hover:border-border/50",
+										)}
+									>
+										<div className="flex items-start gap-3">
+											<div className="shrink-0 w-10 h-10 bg-white rounded-lg border border-border/50 shadow-sm flex items-center justify-center overflow-hidden p-1.5">
+												{logo ? (
+													<div className="relative w-full h-full">
+														<Image
+															src={logo}
+															alt={item.title}
+															fill
+															className="object-contain"
+														/>
+													</div>
+												) : item.kind === "program" ? (
+													<School className="w-5 h-5 text-muted-foreground/50" />
+												) : (
+													<Award className="w-5 h-5 text-muted-foreground/50" />
+												)}
+											</div>
 
-										<div className="flex-1 min-w-0">
-											<h3 className="font-semibold text-foreground text-sm truncate leading-tight mb-1">
-												{item.title}
-											</h3>
-											<p className="text-xs text-muted-foreground truncate leading-tight">
-												{item.subtitle}
-											</p>
+											<div className="flex-1 min-w-0">
+												<h3 className="font-semibold text-foreground text-sm truncate leading-tight mb-1">
+													{item.title}
+												</h3>
+												<p className="text-xs text-muted-foreground truncate leading-tight">
+													{item.subtitle}
+												</p>
 
-											<div className="flex items-center gap-2 mt-2 flex-wrap">
-												<Badge
-													variant="outline"
-													className="text-[10px] font-normal gap-1 py-0 h-5"
-												>
-													<KindIcon className="w-3 h-3" />
-													{t(`kind.${item.kind}`)}
-												</Badge>
-												{item.status && (
+												<div className="flex items-center gap-2 mt-2 flex-wrap">
+													<Badge
+														variant="outline"
+														className="text-[10px] font-normal gap-1 py-0 h-5"
+													>
+														<KindIcon className="w-3 h-3" />
+														{t(`kind.${item.kind}`)}
+													</Badge>
 													<Badge
 														variant="secondary"
 														className="text-[10px] font-normal h-5"
 													>
-														{t(`status.${item.status}`)}
+														{t(`essayBadge.${item.essayType}`)}
 													</Badge>
+												</div>
+
+												{item.deadline && (
+													<div className="mt-1 text-[10px] text-muted-foreground">
+														{new Date(item.deadline).toLocaleDateString(
+															undefined,
+															{
+																month: "short",
+																day: "numeric",
+																year: "numeric",
+															},
+														)}
+													</div>
 												)}
 											</div>
-
-											{item.deadline && (
-												<div className="mt-1 text-[10px] text-muted-foreground">
-													{new Date(item.deadline).toLocaleDateString(
-														undefined,
-														{
-															month: "short",
-															day: "numeric",
-															year: "numeric",
-														},
-													)}
-												</div>
-											)}
 										</div>
-									</div>
-								</button>
+									</button>
+									{item.id !== "new" && (onDeleteItem || onViewDetails) ? (
+										<div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+											<DropdownMenu>
+												<DropdownMenuTrigger asChild>
+													<Button
+														type="button"
+														variant="ghost"
+														size="icon"
+														className="h-7 w-7"
+														onClick={(e) => e.stopPropagation()}
+													>
+														<EllipsisVertical className="w-4 h-4" />
+													</Button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="end">
+													{onViewDetails ? (
+														<DropdownMenuItem
+															onClick={() => onViewDetails(item.id, item.kind)}
+														>
+															<ExternalLink className="w-4 h-4 mr-2" />
+															{t("viewDetails")}
+														</DropdownMenuItem>
+													) : null}
+													{onDeleteItem ? (
+														<DropdownMenuItem
+															onClick={() => {
+																void onDeleteItem(item.id, item.kind);
+															}}
+															className="text-destructive focus:text-destructive"
+														>
+															<Trash2 className="w-4 h-4 mr-2" />
+															{t("remove")}
+														</DropdownMenuItem>
+													) : null}
+												</DropdownMenuContent>
+											</DropdownMenu>
+										</div>
+									) : null}
+								</div>
 							);
 						})}
 					</div>

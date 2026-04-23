@@ -55,7 +55,6 @@ interface ScholarshipManualModeProps {
 	onAddToDashboard?: (id: string) => void;
 	isScholarshipInDashboard?: (id: string) => boolean;
 	onManageApplication?: (id: string) => void;
-	addingScholarshipId?: string | null;
 }
 
 function ScholarshipCardSkeleton() {
@@ -109,7 +108,6 @@ export function ScholarshipManualMode({
 	onAddToDashboard,
 	isScholarshipInDashboard,
 	onManageApplication,
-	addingScholarshipId,
 }: ScholarshipManualModeProps) {
 	const t = useTranslations("explore");
 
@@ -497,7 +495,7 @@ export function ScholarshipManualMode({
 									? isScholarshipInDashboard?.(scholarship.id)
 									: false
 							}
-							isAdding={addingScholarshipId === scholarship.id}
+							isAdding={false}
 							onManage={onManageApplication}
 						/>
 					))}

@@ -4,7 +4,8 @@ import CharacterCount from "@tiptap/extension-character-count";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Loader2, Redo, Save, Undo } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +16,7 @@ interface TipTapEditorProps {
 	onWordCountChange?: (wordCount: number) => void;
 	debounceMs?: number;
 	className?: string;
+	footerMeta?: React.ReactNode;
 	customActions?: React.ReactNode;
 }
 
@@ -25,8 +27,19 @@ export function TipTapEditor({
 	onWordCountChange,
 	debounceMs = 2000,
 	className,
+	footerMeta,
 	customActions,
 }: TipTapEditorProps) {
+	const t = useTranslations("editor");
+	const locale = useLocale();
+	const timeFormatter = useMemo(
+		() =>
+			new Intl.DateTimeFormat(locale, {
+				hour: "2-digit",
+				minute: "2-digit",
+			}),
+		[locale],
+	);
 	const [isSaving, setIsSaving] = useState(false);
 	const [lastSaved, setLastSaved] = useState<Date | null>(null);
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -151,7 +164,7 @@ export function TipTapEditor({
 						onClick={() => editor.chain().focus().undo().run()}
 						disabled={!editor.can().undo()}
 						className="h-8 w-8"
-						title="Undo (Ctrl+Z)"
+						title={t("undo")}
 					>
 						<Undo className="h-4 w-4" />
 					</Button>
@@ -161,7 +174,7 @@ export function TipTapEditor({
 						onClick={() => editor.chain().focus().redo().run()}
 						disabled={!editor.can().redo()}
 						className="h-8 w-8"
-						title="Redo (Ctrl+Shift+Z)"
+						title={t("redo")}
 					>
 						<Redo className="h-4 w-4" />
 					</Button>
@@ -170,25 +183,27 @@ export function TipTapEditor({
 				{/* Save & Word count */}
 				<div className="flex items-center gap-3 shrink-0">
 					<div className="flex items-center gap-2 text-xs text-muted-foreground">
-						<span>{wordCount.toLocaleString()} từ</span>
+						<span>{t("words", { count: wordCount })}</span>
 						<span className="hidden sm:inline">
-							{characterCount.toLocaleString()} ký tự
+							{t("characters", { count: characterCount })}
 						</span>
+						{footerMeta && (
+							<>
+								<span className="hidden sm:inline text-border">|</span>
+								{footerMeta}
+							</>
+						)}
 					</div>
 
 					<div className="w-px h-6 bg-border mx-1 hidden sm:block" />
 
 					<div className="flex items-center gap-2">
 						{hasUnsavedChanges && (
-							<span className="text-xs text-amber-600">Chưa lưu</span>
+							<span className="text-xs text-amber-600">{t("unsaved")}</span>
 						)}
 						{lastSaved && !hasUnsavedChanges && (
 							<span className="text-xs text-muted-foreground hidden sm:inline">
-								Đã lưu{" "}
-								{lastSaved.toLocaleTimeString("vi-VN", {
-									hour: "2-digit",
-									minute: "2-digit",
-								})}
+								{t("savedAt", { time: timeFormatter.format(lastSaved) })}
 							</span>
 						)}
 						<Button
@@ -200,12 +215,12 @@ export function TipTapEditor({
 							{isSaving ? (
 								<>
 									<Loader2 className="h-4 w-4 mr-1 animate-spin" />
-									Đang lưu
+									{t("saving")}
 								</>
 							) : (
 								<>
 									<Save className="h-4 w-4 mr-1" />
-									Lưu
+									{t("save")}
 								</>
 							)}
 						</Button>
