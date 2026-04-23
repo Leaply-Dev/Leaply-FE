@@ -53,8 +53,6 @@ interface ScholarshipManualModeProps {
 	) => void;
 	isMaxReached: boolean;
 	onAddToDashboard?: (id: string) => void;
-	isScholarshipInDashboard?: (id: string) => boolean;
-	onManageApplication?: (id: string) => void;
 }
 
 function ScholarshipCardSkeleton() {
@@ -106,8 +104,6 @@ export function ScholarshipManualMode({
 	onToggleSelection,
 	isMaxReached,
 	onAddToDashboard,
-	isScholarshipInDashboard,
-	onManageApplication,
 }: ScholarshipManualModeProps) {
 	const t = useTranslations("explore");
 
@@ -490,13 +486,7 @@ export function ScholarshipManualMode({
 								setIsDetailDrawerOpen(true);
 							}}
 							onAddToDashboard={onAddToDashboard}
-							isInDashboard={
-								scholarship.id
-									? isScholarshipInDashboard?.(scholarship.id)
-									: false
-							}
 							isAdding={false}
-							onManage={onManageApplication}
 						/>
 					))}
 				</div>

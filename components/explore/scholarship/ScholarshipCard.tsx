@@ -1,8 +1,6 @@
 "use client";
 
 import {
-	AlertTriangle,
-	ArrowRight,
 	Award,
 	Building2,
 	Calendar,
@@ -11,8 +9,8 @@ import {
 	GraduationCap,
 	Loader2,
 	MapPin,
+	PenLine,
 	Plus,
-	Settings2,
 	Sparkles,
 	Target,
 	Users,
@@ -42,8 +40,6 @@ interface ScholarshipCardProps {
 	) => void;
 	isMaxReached?: boolean;
 	onAddToDashboard?: (id: string) => void;
-	isInDashboard?: boolean;
-	onManage?: (id: string) => void;
 	isAdding?: boolean;
 }
 
@@ -54,8 +50,6 @@ export function ScholarshipCard({
 	onToggleSelection,
 	isMaxReached,
 	onAddToDashboard,
-	isInDashboard,
-	onManage,
 	isAdding,
 }: ScholarshipCardProps) {
 	const t = useTranslations("explore");
@@ -282,27 +276,20 @@ export function ScholarshipCard({
 					disabled={isAdding}
 					onClick={(e) => {
 						e.stopPropagation();
-						if (isInDashboard && onManage) {
-							scholarship.id && onManage(scholarship.id);
-						} else {
+						if (!isAdding) {
 							scholarship.id && onAddToDashboard?.(scholarship.id);
 						}
 					}}
 				>
-					{isInDashboard ? (
-						<>
-							<Settings2 className="w-4 h-4" />
-							{t("table.manage")}
-						</>
-					) : isAdding ? (
+					{isAdding ? (
 						<>
 							<Loader2 className="w-4 h-4 animate-spin" />
 							{t("table.adding")}
 						</>
 					) : (
 						<>
+							<PenLine className="w-4 h-4" />
 							{t("table.apply")}
-							<ArrowRight className="w-4 h-4" />
 						</>
 					)}
 				</Button>

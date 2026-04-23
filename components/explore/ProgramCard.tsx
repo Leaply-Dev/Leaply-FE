@@ -1,7 +1,6 @@
 "use client";
 
 import {
-	ArrowRight,
 	Award,
 	Building2,
 	Calendar,
@@ -12,8 +11,8 @@ import {
 	Laptop,
 	Loader2,
 	MapPin,
+	PenLine,
 	Plus,
-	Settings2,
 } from "lucide-react";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
@@ -44,9 +43,7 @@ interface ProgramCardProps {
 	onToggleSelection?: (id: string, program?: ProgramListItemResponse) => void;
 	isMaxReached?: boolean;
 	onAddToDashboard?: (id: string) => void;
-	isInDashboard?: boolean;
 	isAdding?: boolean;
-	onManage?: (id: string) => void;
 }
 
 export function ProgramCard({
@@ -56,9 +53,7 @@ export function ProgramCard({
 	onToggleSelection,
 	isMaxReached,
 	onAddToDashboard,
-	isInDashboard,
 	isAdding,
-	onManage,
 }: ProgramCardProps) {
 	const t = useTranslations("explore");
 	const locale = useLocale() as Locale;
@@ -268,9 +263,7 @@ export function ProgramCard({
 					disabled={isAdding}
 					onClick={(e) => {
 						e.stopPropagation();
-						if (isInDashboard && onManage) {
-							program.id && onManage(program.id);
-						} else if (!isAdding) {
+						if (!isAdding) {
 							program.id && onAddToDashboard?.(program.id);
 						}
 					}}
@@ -280,15 +273,10 @@ export function ProgramCard({
 							<Loader2 className="w-4 h-4 animate-spin" />
 							{t("table.adding")}
 						</>
-					) : isInDashboard ? (
-						<>
-							<Settings2 className="w-4 h-4" />
-							{t("table.manage")}
-						</>
 					) : (
 						<>
+							<PenLine className="w-4 h-4" />
 							{t("table.apply")}
-							<ArrowRight className="w-4 h-4" />
 						</>
 					)}
 				</Button>

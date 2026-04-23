@@ -46,8 +46,6 @@ interface ManualModeProps {
 	onToggleSelection: (id: string, program?: ProgramListItemResponse) => void;
 	isMaxReached: boolean;
 	onAddToDashboard?: (id: string) => void;
-	isProgramInDashboard?: (id: string) => boolean;
-	onManageApplication?: (id: string) => void;
 }
 
 function ProgramCardSkeleton() {
@@ -98,8 +96,6 @@ export function ManualMode({
 	onToggleSelection,
 	isMaxReached,
 	onAddToDashboard,
-	isProgramInDashboard,
-	onManageApplication,
 }: ManualModeProps) {
 	const t = useTranslations("explore");
 
@@ -443,10 +439,6 @@ export function ManualMode({
 								setIsDetailDrawerOpen(true);
 							}}
 							onAddToDashboard={onAddToDashboard}
-							isInDashboard={
-								program.id ? isProgramInDashboard?.(program.id) : false
-							}
-							onManage={onManageApplication}
 						/>
 					))}
 				</div>

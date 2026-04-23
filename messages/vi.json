@@ -817,10 +817,6 @@
 			"required": "Yêu cầu",
 			"exceedsRequirement": "Vượt yêu cầu",
 			"belowRequirement": "Dưới yêu cầu"
-		},
-		"toast": {
-			"scholarshipAlreadyAddedTitle": "Học bổng đã có trong danh sách",
-			"scholarshipAlreadyAddedDesc": "Bạn đã thêm học bổng này vào dashboard."
 		}
 	},
 	"personaLab": {

@@ -7,26 +7,10 @@ import { CompareDialog } from "@/components/explore/CompareDrawer";
 import { CompareTray } from "@/components/explore/CompareTray";
 import { ManualMode } from "@/components/explore/ManualMode";
 import { PageTransition } from "@/components/PageTransition";
-import { unwrapResponse } from "@/lib/api/unwrapResponse";
-import { useGetApplications1 } from "@/lib/generated/api/endpoints/applications/applications";
-import type {
-	ApplicationListResponse,
-	ProgramListItemResponse,
-} from "@/lib/generated/api/models";
-import { useApplicationStore } from "@/lib/store/applicationStore";
+import type { ProgramListItemResponse } from "@/lib/generated/api/models";
 
 export function ExploreClient() {
 	const router = useRouter();
-	const { data: applicationsResponse } = useGetApplications1();
-	const { setSelectedApplicationId } = useApplicationStore();
-
-	// Get applications to check if program is already in dashboard
-	const appsData =
-		unwrapResponse<ApplicationListResponse>(applicationsResponse);
-	const applications = appsData?.applications ?? [];
-	const applicationsByProgramId = new Map(
-		applications.map((app) => [app.program?.id, app.id]),
-	);
 
 	const handleAddToDashboard = (programId: string) => {
 		posthog.capture("program_apply_clicked", {
@@ -35,18 +19,6 @@ export function ExploreClient() {
 		router.push(
 			`/dashboard/applications?tab=programs&id=new&programId=${programId}`,
 		);
-	};
-
-	const handleManageApplication = (programId: string) => {
-		const applicationId = applicationsByProgramId.get(programId);
-		if (applicationId) {
-			setSelectedApplicationId(applicationId);
-			router.push("/dashboard/applications");
-		}
-	};
-
-	const isProgramInDashboard = (programId: string) => {
-		return applicationsByProgramId.has(programId);
 	};
 
 	// Compare state
@@ -84,8 +56,6 @@ export function ExploreClient() {
 					onToggleSelection={toggleProgramSelection}
 					isMaxReached={isMaxReached}
 					onAddToDashboard={handleAddToDashboard}
-					isProgramInDashboard={isProgramInDashboard}
-					onManageApplication={handleManageApplication}
 				/>
 			</div>
 

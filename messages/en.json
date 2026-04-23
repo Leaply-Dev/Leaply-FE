@@ -691,7 +691,7 @@
 			"goodFit": "Good Fit",
 			"competitive": "Competitive",
 			"manage": "Manage",
-			"apply": "Apply",
+			"apply": "Write essay",
 			"adding": "Adding...",
 			"added": "Added",
 			"match": "Match"
@@ -817,10 +817,6 @@
 			"required": "Required",
 			"exceedsRequirement": "Exceeds requirement",
 			"belowRequirement": "Below requirement"
-		},
-		"toast": {
-			"scholarshipAlreadyAddedTitle": "Scholarship already added",
-			"scholarshipAlreadyAddedDesc": "You have already added this scholarship to your dashboard."
 		}
 	},
 	"personaLab": {
