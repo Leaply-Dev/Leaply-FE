@@ -199,11 +199,12 @@ export function WritingWorkspace({
 		try {
 			// Save current section first
 			await handleSaveSection();
+			setShowReview(true);
 			const result = await review.mutateAsync(applicationId);
 			setReviewData(result);
-			setShowReview(true);
 		} catch {
 			toast.error(t("reviewError"));
+			setShowReview(false);
 		}
 	};
 
@@ -217,6 +218,12 @@ export function WritingWorkspace({
 		sectionsLoading ||
 		generateOutline.isPending ||
 		confirmOutline.isPending;
+
+	const loadingMessage = generateOutline.isPending
+		? t("generatingOutline")
+		: confirmOutline.isPending
+			? t("confirmingOutline")
+			: t("loadingWorkspace");
 
 	if (isLoading) {
 		return (
@@ -252,8 +259,12 @@ export function WritingWorkspace({
 								<Skeleton className="h-4 w-24" />
 							</div>
 						</CardHeader>
-						<CardContent className="flex-1 p-4">
-							<Skeleton className="h-full w-full rounded-md" />
+						<CardContent className="flex-1 p-4 flex flex-col items-center justify-center gap-3">
+							<Loader2 className="w-6 h-6 animate-spin text-primary" />
+							<p className="text-sm text-muted-foreground animate-pulse text-center max-w-xs">
+								{loadingMessage}
+							</p>
+							<Skeleton className="h-full w-full rounded-md mt-4" />
 						</CardContent>
 					</Card>
 				</div>
@@ -436,6 +447,12 @@ export function WritingWorkspace({
 							feedback={voiceFeedback}
 							onDismiss={() => setVoiceFeedback(null)}
 						/>
+						{sectionFeedback.isPending && (
+							<div className="mt-2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 text-primary text-xs w-fit">
+								<Loader2 className="w-3 h-3 animate-spin" />
+								{t("analyzingWritingStyle")}
+							</div>
+						)}
 					</CardHeader>
 
 					<CardContent className="flex-1 p-4 flex flex-col min-h-0">
@@ -502,7 +519,17 @@ export function WritingWorkspace({
 						<DialogDescription>{t("reviewDesc")}</DialogDescription>
 					</DialogHeader>
 
-					{reviewData && (
+					{!reviewData ? (
+						<div className="flex flex-col items-center justify-center py-12 gap-3">
+							<Loader2 className="w-8 h-8 animate-spin text-primary" />
+							<p className="text-sm font-medium text-foreground">
+								{t("aiReviewing")}
+							</p>
+							<p className="text-xs text-muted-foreground">
+								{t("aiReviewingSubtitle")}
+							</p>
+						</div>
+					) : (
 						<div className="space-y-6 py-4">
 							<ArchetypeReviewHeader strengths={reviewData.strengths} />
 
