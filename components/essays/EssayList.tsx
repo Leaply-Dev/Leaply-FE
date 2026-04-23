@@ -192,11 +192,11 @@ export function EssayList({
 	if (collapsed) {
 		if (isLoading) {
 			return (
-				<div className="flex flex-col gap-2">
+				<div className="flex flex-col gap-3 items-center w-full px-2 pt-2 pb-4">
 					{[1, 2, 3].map((i) => (
 						<div
 							key={i}
-							className="animate-pulse h-10 w-10 bg-muted rounded-lg mx-auto"
+							className="animate-pulse h-9 w-9 bg-muted rounded-full mx-auto"
 						/>
 					))}
 				</div>
@@ -204,7 +204,7 @@ export function EssayList({
 		}
 
 		return (
-			<div className="flex flex-col gap-2 items-center w-full px-2">
+			<div className="flex flex-col gap-3 items-center w-full px-2 pt-2 pb-4">
 				{displayItems.map((item) => {
 					const logo = item.logoUrl ?? getLogoByUniName(item.universityName);
 					const statusDot =
@@ -216,43 +216,43 @@ export function EssayList({
 									type="button"
 									onClick={() => onSelect(item.id, item.kind)}
 									className={cn(
-										"relative w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200",
+										"relative w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200",
 										selectedId === item.id
-											? "bg-background shadow-md ring-2 ring-primary/20 scale-105"
-											: "hover:bg-muted hover:scale-105",
-									)}
-								>
+											? "bg-primary/10 ring-1 ring-primary/30"
+											: "hover:bg-muted",
+										)}
+									>
 									{logo ? (
-										<div className="relative w-7 h-7">
-											<Image
-												src={logo}
-												alt={item.title}
-												fill
-												className="object-contain"
+										<div className="relative w-6 h-6">
+										<Image
+											src={logo}
+											alt={item.title}
+											fill
+											className="object-contain"
 											/>
 										</div>
 									) : item.kind === "program" ? (
-										<School className="w-5 h-5 text-muted-foreground" />
+										<School className="w-4 h-4 text-muted-foreground" />
 									) : (
-										<Award className="w-5 h-5 text-muted-foreground" />
+										<Award className="w-4 h-4 text-muted-foreground" />
 									)}
 									<div
 										className={cn(
-											"absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-background",
+											"absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-card",
 											statusDot,
-										)}
-									/>
-								</button>
-							</TooltipTrigger>
-							<TooltipContent side="right" className="max-w-[220px]">
-								<p className="font-medium">{item.title}</p>
-								<p className="text-xs text-muted-foreground">{item.subtitle}</p>
-							</TooltipContent>
-						</Tooltip>
-					);
-				})}
-			</div>
-		);
+											)}
+										/>
+									</button>
+								</TooltipTrigger>
+								<TooltipContent side="right" className="max-w-[220px]">
+									<p className="font-medium">{item.title}</p>
+									<p className="text-xs text-muted-foreground">{item.subtitle}</p>
+								</TooltipContent>
+							</Tooltip>
+						);
+					})}
+				</div>
+			);
 	}
 
 	const content = (

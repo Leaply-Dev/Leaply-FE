@@ -339,7 +339,7 @@ export function ApplicationsClient() {
 										variant="ghost"
 										size="icon"
 										onClick={toggleSidebar}
-										className="absolute -right-3 top-6 z-10 h-6 w-6 rounded-full border bg-background shadow-sm hover:bg-muted"
+										className="absolute -right-3 top-3 z-10 h-6 w-6 rounded-full border bg-background shadow-sm hover:bg-muted"
 									>
 										{sidebarCollapsed ? (
 											<ChevronRight className="h-3 w-3" />
