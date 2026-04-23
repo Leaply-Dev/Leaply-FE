@@ -27,6 +27,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
+	type AngleDto,
 	useGenerateIdeation,
 	useSavePrompt,
 	useUpdateIdeation,
@@ -45,11 +46,15 @@ import {
 	getGetApplicationsQueryKey,
 	useCreateApplication,
 } from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
-import { useListScholarships } from "@/lib/generated/api/endpoints/scholarship-explore/scholarship-explore";
+import {
+	useGetScholarshipDetail,
+	useListScholarships,
+} from "@/lib/generated/api/endpoints/scholarship-explore/scholarship-explore";
 import type {
 	PersonaIntakeResponse,
 	ProgramDetailResponse,
 	ProgramListItemResponse,
+	ScholarshipDetailResponse,
 	ScholarshipListItemResponse,
 } from "@/lib/generated/api/models";
 import { cn } from "@/lib/utils";
@@ -68,6 +73,7 @@ interface NewEssayWorkspaceProps {
 	onCreated?: (args: { applicationId: string; kind: TargetKind }) => void;
 	onCancel?: () => void;
 	initialProgramId?: string;
+	initialScholarshipId?: string;
 }
 
 const MIN_SEARCH_CHARS = 2;
@@ -100,16 +106,41 @@ const MOTIF_COLORS: Record<string, string> = {
 	VISIONARY_BUILDER: "#8B5CF6",
 };
 
+const MATCH_LEVEL_ORDER: Record<string, number> = {
+	STRONG: 0,
+	MODERATE: 1,
+	WEAK: 2,
+};
+
+const MATCH_LEVEL_COLORS: Record<string, string> = {
+	STRONG: "#10B981",
+	MODERATE: "#F59E0B",
+	WEAK: "#9CA3AF",
+};
+
+function sortAndTrimAngles(angles: AngleDto[]): AngleDto[] {
+	return [...angles]
+		.sort((a, b) => {
+			const aOrd = MATCH_LEVEL_ORDER[a.matchLevel ?? "WEAK"] ?? 2;
+			const bOrd = MATCH_LEVEL_ORDER[b.matchLevel ?? "WEAK"] ?? 2;
+			if (aOrd !== bOrd) return aOrd - bOrd;
+			return (b.fitScore ?? 0) - (a.fitScore ?? 0);
+		})
+		.slice(0, 3);
+}
+
 export function NewEssayWorkspace({
 	onCreated,
 	onCancel,
 	initialProgramId,
+	initialScholarshipId,
 }: NewEssayWorkspaceProps) {
 	const tDialog = useTranslations("applications.newEssayDialog");
 	const tSetup = useTranslations("sop.setup");
+	const tSop = useTranslations("sop");
 	const queryClient = useQueryClient();
 
-	const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+	const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
 	// Step 1 State
 	const [kind, setKind] = useState<TargetKind>("program");
@@ -147,11 +178,48 @@ export function NewEssayWorkspace({
 		}
 	}, [initialProgramData, initialProgramId, selectedTarget]);
 
+	// Pre-select scholarship when coming from Explore "Apply" button
+	const { data: initialScholarshipData } = useGetScholarshipDetail(
+		initialScholarshipId ?? "",
+		{
+			query: {
+				enabled: !!initialScholarshipId && !selectedTarget,
+				staleTime: 5 * 60 * 1000,
+			},
+		},
+	);
+
+	useEffect(() => {
+		if (!initialScholarshipId || selectedTarget) return;
+		const scholarship = unwrapResponse<ScholarshipDetailResponse>(
+			initialScholarshipData,
+		);
+		if (scholarship?.id) {
+			setKind("scholarship");
+			setSelectedTarget({
+				kind: "scholarship",
+				id: scholarship.id,
+				name: scholarship.name || "",
+				subtitle: [scholarship.universityName, scholarship.universityCountry]
+					.filter(Boolean)
+					.join(" • "),
+				logoUrl: scholarship.universityLogoUrl,
+			});
+		}
+	}, [initialScholarshipData, initialScholarshipId, selectedTarget]);
+
 	// Step 2 & 3 State
 	const [selectedEssayType, setSelectedEssayType] = useState<string | null>(
 		null,
 	);
 	const [selectedMotif, setSelectedMotif] = useState<string | null>(null);
+
+	// Step 4 State — generated angle selection
+	const [createdApplicationId, setCreatedApplicationId] = useState<
+		string | null
+	>(null);
+	const [generatedAngles, setGeneratedAngles] = useState<AngleDto[]>([]);
+	const [selectedAngleId, setSelectedAngleId] = useState<string | null>(null);
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -163,6 +231,13 @@ export function NewEssayWorkspace({
 		return () => clearTimeout(timer);
 	}, [searchQuery]);
 
+	// Resets angle-related state when user changes target
+	const resetApplicationState = () => {
+		setCreatedApplicationId(null);
+		setGeneratedAngles([]);
+		setSelectedAngleId(null);
+	};
+
 	// Clear selection when switching target type
 	const handleKindChange = (next: TargetKind) => {
 		if (next === kind) return;
@@ -170,6 +245,7 @@ export function NewEssayWorkspace({
 		setSelectedTarget(null);
 		setSearchQuery("");
 		setDebouncedSearch("");
+		resetApplicationState();
 	};
 
 	const searchEnabled =
@@ -229,12 +305,13 @@ export function NewEssayWorkspace({
 
 	const handleEssayTypeSelect = (type: string) => {
 		setSelectedEssayType(type);
-		setSelectedMotif(null); // Clear motif when switching essay type
+		setSelectedMotif(null);
 		setStep(3);
 	};
 
-	const handleSubmit = async () => {
-		if (!selectedTarget) return;
+	// Step 3 submit: create app + save config + generate top-3 angles
+	const handleGenerateAngles = async () => {
+		if (!selectedTarget || !selectedMotif) return;
 		setIsSubmitting(true);
 
 		const parsedLimit = wordLimit.trim()
@@ -248,14 +325,19 @@ export function NewEssayWorkspace({
 				: undefined;
 
 		try {
-			let applicationId: string | undefined;
+			let appId: string;
 
-			if (selectedTarget.kind === "program") {
+			if (createdApplicationId) {
+				// Application already created (user went back from step 4 to change motif)
+				appId = createdApplicationId;
+			} else if (selectedTarget.kind === "program") {
 				const res = await createProgramApp({
 					data: { programId: selectedTarget.id },
 				});
-				applicationId = unwrapResponse<{ id?: string }>(res)?.id;
-				if (!applicationId) throw new Error("Missing application id");
+				const newId = unwrapResponse<{ id?: string }>(res)?.id;
+				if (!newId) throw new Error("Missing application id");
+				appId = newId;
+				setCreatedApplicationId(newId);
 				queryClient.invalidateQueries({
 					queryKey: getGetApplications1QueryKey(),
 				});
@@ -263,16 +345,18 @@ export function NewEssayWorkspace({
 				const res = await createScholarshipApp({
 					data: { scholarshipId: selectedTarget.id },
 				});
-				applicationId = unwrapResponse<{ id?: string }>(res)?.id;
-				if (!applicationId) throw new Error("Missing application id");
+				const newId = unwrapResponse<{ id?: string }>(res)?.id;
+				if (!newId) throw new Error("Missing application id");
+				appId = newId;
+				setCreatedApplicationId(newId);
 				queryClient.invalidateQueries({
 					queryKey: getGetApplicationsQueryKey(),
 				});
 			}
 
-			// Both program and scholarship use the same SOP workspace prompt + ideation flow
+			// Save essay config (idempotent PATCH — safe to repeat on re-generate)
 			await saveProgramPrompt({
-				applicationId,
+				applicationId: appId,
 				data: {
 					wordLimit: limit,
 					essayType: selectedEssayType ?? undefined,
@@ -280,29 +364,42 @@ export function NewEssayWorkspace({
 				},
 			});
 
+			// Generate angles and rank by match quality, keep top 3
+			const result = await generateIdeation(appId);
+			const sorted = sortAndTrimAngles(result.angles ?? []);
+			setGeneratedAngles(sorted);
+			setSelectedAngleId(null);
 			setStep(4);
-			const result = await generateIdeation(applicationId);
-			const angles = result.angles ?? [];
-			const best =
-				angles.find((a) => a.matchLevel === "STRONG") ??
-				angles.find((a) => a.matchLevel === "MODERATE") ??
-				angles[0];
-			if (best) {
-				await updateIdeation({
-					applicationId,
-					data: { selectedAngleId: best.id, tonePreference: "academic" },
-				});
-			}
-
-			onCreated?.({ applicationId, kind: selectedTarget.kind });
 		} catch (err) {
 			const message =
 				err instanceof Error && /409|exists|duplicate/i.test(err.message)
 					? tDialog("errorAlreadyExists")
 					: tDialog("errorCreate");
 			toast.error(message);
+		} finally {
 			setIsSubmitting(false);
-			setStep(3);
+		}
+	};
+
+	// Step 4 confirm: persist selected angle then route to writing workspace
+	const handleConfirmAngle = async () => {
+		if (!selectedAngleId || !createdApplicationId || !selectedTarget) return;
+		setIsSubmitting(true);
+		setStep(5);
+
+		try {
+			await updateIdeation({
+				applicationId: createdApplicationId,
+				data: { selectedAngleId, tonePreference: "academic" },
+			});
+			onCreated?.({
+				applicationId: createdApplicationId,
+				kind: selectedTarget.kind,
+			});
+		} catch {
+			toast.error(tDialog("errorCreate"));
+			setIsSubmitting(false);
+			setStep(4);
 		}
 	};
 
@@ -354,7 +451,10 @@ export function NewEssayWorkspace({
 								{selectedTarget ? (
 									<SelectedTargetCard
 										target={selectedTarget}
-										onChange={() => setSelectedTarget(null)}
+										onChange={() => {
+											setSelectedTarget(null);
+											resetApplicationState();
+										}}
 										changeLabel={tDialog("change")}
 										selectedLabel={tDialog("selected")}
 									/>
@@ -476,7 +576,7 @@ export function NewEssayWorkspace({
 				</div>
 			)}
 
-			{/* ── Step 3: Narrative motif ── */}
+			{/* ── Step 3: Narrative motif / essay archetype ── */}
 			{step === 3 && (
 				<div className="flex flex-col items-center min-h-[60vh] max-w-6xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-300 py-4">
 					{stepHeading(tSetup("step2Title"), tSetup("step2Desc"))}
@@ -505,16 +605,59 @@ export function NewEssayWorkspace({
 					<StepFooter
 						onBack={() => setStep(2)}
 						backLabel={tSetup("back")}
-						onNext={handleSubmit}
-						nextLabel={tSetup("startWriting")}
+						onNext={handleGenerateAngles}
+						nextLabel={tSetup("generateAngles")}
 						nextDisabled={!selectedMotif || isSubmitting}
 						isSubmitting={isSubmitting}
 					/>
 				</div>
 			)}
 
-			{/* ── Step 4: Generating ── */}
+			{/* ── Step 4: Essay angle selection ── */}
 			{step === 4 && (
+				<div className="flex flex-col items-center min-h-[60vh] max-w-5xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-300 py-4">
+					{stepHeading(tSetup("step3Title"), tSetup("step3Desc"))}
+
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full items-stretch">
+						{generatedAngles.length === 0 ? (
+							<div className="md:col-span-3 text-center py-12 text-muted-foreground">
+								<p>{tSetup("noAnglesGenerated")}</p>
+							</div>
+						) : (
+							generatedAngles.map((angle) => (
+								<AngleCard
+									key={angle.id}
+									angle={angle}
+									isSelected={selectedAngleId === angle.id}
+									onSelect={() => setSelectedAngleId(angle.id)}
+									fitLabel={tSetup("angleFitLabel")}
+									matchLabels={{
+										STRONG: tSop("matchLevel.strong"),
+										MODERATE: tSop("matchLevel.moderate"),
+										WEAK: tSop("matchLevel.weak"),
+									}}
+								/>
+							))
+						)}
+					</div>
+
+					<StepFooter
+						onBack={() => {
+							setGeneratedAngles([]);
+							setSelectedAngleId(null);
+							setStep(3);
+						}}
+						backLabel={tSetup("back")}
+						onNext={handleConfirmAngle}
+						nextLabel={tSetup("startWriting")}
+						nextDisabled={!selectedAngleId || isSubmitting}
+						isSubmitting={isSubmitting}
+					/>
+				</div>
+			)}
+
+			{/* ── Step 5: Setting up workspace ── */}
+			{step === 5 && (
 				<div className="flex items-center justify-center h-full min-h-[60vh]">
 					<div className="text-center max-w-sm">
 						<div className="relative w-16 h-16 mx-auto mb-6">
@@ -752,6 +895,116 @@ function MotifCard({
 					{tSetup(`motif.${motif}_not_for` as Parameters<typeof tSetup>[0])}
 				</p>
 			</div>
+		</button>
+	);
+}
+
+interface AngleCardProps {
+	angle: AngleDto;
+	isSelected: boolean;
+	onSelect: () => void;
+	fitLabel: string;
+	matchLabels: Record<string, string>;
+}
+
+function AngleCard({
+	angle,
+	isSelected,
+	onSelect,
+	fitLabel,
+	matchLabels,
+}: AngleCardProps) {
+	const level = angle.matchLevel ?? "WEAK";
+	const color = MATCH_LEVEL_COLORS[level] ?? "#9CA3AF";
+	const matchLabel = matchLabels[level] ?? level;
+
+	return (
+		<button
+			type="button"
+			onClick={onSelect}
+			className={cn(
+				"group relative flex flex-col text-left rounded-xl border-2 transition-all duration-200 overflow-hidden w-full",
+				"hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+				isSelected
+					? "border-transparent shadow-lg scale-[1.01]"
+					: "border-border bg-card hover:border-border/80",
+			)}
+			style={
+				isSelected
+					? {
+							borderColor: color,
+							boxShadow: `0 0 0 3px ${color}25, 0 4px 16px ${color}20`,
+						}
+					: undefined
+			}
+		>
+			{/* Accent top bar */}
+			<div className="h-1 w-full shrink-0" style={{ backgroundColor: color }} />
+
+			{/* Header */}
+			<div className="px-4 pt-4 pb-3 flex-1 flex flex-col">
+				{/* Match level badge + selection check */}
+				<div className="flex items-center gap-2 mb-3">
+					<span
+						className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full"
+						style={{ backgroundColor: `${color}20`, color }}
+					>
+						{matchLabel}
+					</span>
+					{isSelected && (
+						<div
+							className="ml-auto w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+							style={{ backgroundColor: color }}
+						>
+							<Check className="w-3 h-3 text-white" />
+						</div>
+					)}
+				</div>
+
+				{/* Title */}
+				<h3 className="font-bold text-sm leading-snug text-foreground mb-2">
+					{angle.title}
+				</h3>
+
+				{/* Hook */}
+				{angle.hook && (
+					<p className="text-xs italic text-muted-foreground leading-relaxed mt-auto">
+						&ldquo;{angle.hook}&rdquo;
+					</p>
+				)}
+			</div>
+
+			{/* Fit reason */}
+			{angle.fitReason && (
+				<>
+					<div className="mx-4 h-px bg-border" />
+					<div className="px-4 py-3">
+						<span
+							className="text-[10px] font-semibold uppercase tracking-wide"
+							style={{ color }}
+						>
+							{fitLabel}
+						</span>
+						<p className="text-xs text-muted-foreground leading-relaxed mt-1">
+							{angle.fitReason}
+						</p>
+					</div>
+				</>
+			)}
+
+			{/* Relevant tags */}
+			{angle.relevantTags && angle.relevantTags.length > 0 && (
+				<div className="px-4 pb-3 flex flex-wrap gap-1.5">
+					{angle.relevantTags.slice(0, 4).map((tag) => (
+						<span
+							key={tag}
+							className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
+						>
+							{tag}
+						</span>
+					))}
+				</div>
+			)}
 		</button>
 	);
 }

@@ -53,6 +53,7 @@ export function ApplicationsClient() {
 	const urlTab = searchParams.get("tab") as MainTab | null;
 	const urlApplicationId = searchParams.get("id");
 	const urlProgramId = searchParams.get("programId") ?? undefined;
+	const urlScholarshipId = searchParams.get("scholarshipId") ?? undefined;
 
 	// Tracks when navigation was triggered internally (via handleSelect) so the
 	// deep-link effect doesn't revert the store before the URL has caught up.
@@ -110,7 +111,11 @@ export function ApplicationsClient() {
 	}, [urlTab, selectedScholarshipId, selectedApplicationId]);
 
 	const selectedId =
-		activeKind === "program" ? selectedApplicationId : selectedScholarshipId;
+		urlApplicationId === "new"
+			? "new"
+			: activeKind === "program"
+				? selectedApplicationId
+				: selectedScholarshipId;
 
 	const updateUrl = useCallback(
 		(kind: EssayItemKind, id: string | null) => {
@@ -151,6 +156,18 @@ export function ApplicationsClient() {
 			return;
 		}
 		if (!urlApplicationId) return;
+		if (urlApplicationId === "new") {
+			if (urlTab === "scholarships") {
+				if (selectedScholarshipId !== "new") {
+					setSelectedScholarshipId("new");
+					setSelectedApplicationId(null);
+				}
+			} else if (selectedApplicationId !== "new") {
+				setSelectedApplicationId("new");
+				setSelectedScholarshipId(null);
+			}
+			return;
+		}
 		if (applications.find((app) => app.id === urlApplicationId)) {
 			if (selectedApplicationId !== urlApplicationId) {
 				setSelectedApplicationId(urlApplicationId);
@@ -166,6 +183,7 @@ export function ApplicationsClient() {
 		}
 	}, [
 		urlApplicationId,
+		urlTab,
 		applications,
 		scholarshipApplications,
 		selectedApplicationId,
@@ -354,6 +372,7 @@ export function ApplicationsClient() {
 								onCreated={handleCreated}
 								onCancel={handleCancelNew}
 								initialProgramId={urlProgramId}
+								initialScholarshipId={urlScholarshipId}
 							/>
 						) : activeKind === "program" ? (
 							<ApplicationDashboard

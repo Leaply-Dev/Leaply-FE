@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -8,22 +7,14 @@ import { ScholarshipCompareDialog } from "@/components/explore/scholarship/Schol
 import { ScholarshipCompareTray } from "@/components/explore/scholarship/ScholarshipCompareTray";
 import { ScholarshipManualMode } from "@/components/explore/scholarship/ScholarshipManualMode";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
-import {
-	getGetApplicationsQueryKey,
-	useCreateApplication,
-	useGetApplications,
-} from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
+import { useGetApplications } from "@/lib/generated/api/endpoints/scholarship-applications/scholarship-applications";
 import type {
 	ScholarshipApplicationListResponse,
 	ScholarshipListItemResponse,
 } from "@/lib/generated/api/models";
 
 export function ScholarshipExploreClient() {
-	const queryClient = useQueryClient();
 	const router = useRouter();
-	const [addingScholarshipId, setAddingScholarshipId] = useState<string | null>(
-		null,
-	);
 
 	// Fetch existing scholarship applications to check if already applied
 	const { data: scholarshipAppsResponse } = useGetApplications();
@@ -42,9 +33,6 @@ export function ScholarshipExploreClient() {
 		return map;
 	}, [scholarshipApplications]);
 
-	// Mutation for creating scholarship applications
-	const createApplicationMutation = useCreateApplication();
-
 	const handleAddToDashboard = (scholarshipId: string) => {
 		if (applicationsByScholarshipId.has(scholarshipId)) {
 			toast.info("Học bổng đã có trong danh sách", {
@@ -52,30 +40,8 @@ export function ScholarshipExploreClient() {
 			});
 			return;
 		}
-
-		setAddingScholarshipId(scholarshipId);
-
-		createApplicationMutation.mutate(
-			{ data: { scholarshipId } },
-			{
-				onSuccess: async () => {
-					await queryClient.invalidateQueries({
-						queryKey: getGetApplicationsQueryKey(),
-					});
-					toast.success("Đã thêm vào danh sách ứng tuyển", {
-						description: "Học bổng đã được thêm vào dashboard của bạn.",
-					});
-					router.push("/dashboard/applications?tab=scholarships");
-				},
-				onError: () => {
-					toast.error("Không thể thêm học bổng", {
-						description: "Vui lòng thử lại sau.",
-					});
-				},
-				onSettled: () => {
-					setAddingScholarshipId(null);
-				},
-			},
+		router.push(
+			`/dashboard/applications?tab=scholarships&id=new&scholarshipId=${scholarshipId}`,
 		);
 	};
 
@@ -131,7 +97,7 @@ export function ScholarshipExploreClient() {
 					onAddToDashboard={handleAddToDashboard}
 					isScholarshipInDashboard={isScholarshipInDashboard}
 					onManageApplication={handleManageApplication}
-					addingScholarshipId={addingScholarshipId}
+					addingScholarshipId={null}
 				/>
 			</div>
 

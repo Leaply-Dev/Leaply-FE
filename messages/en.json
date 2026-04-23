@@ -1326,6 +1326,11 @@
 			"motifSkipIf": "Skip if",
 			"settingUpTitle": "Setting up your workspace…",
 			"settingUpDesc": "Analysing your Persona Lab and crafting your essay angles",
+			"step3Title": "Your top 3 essay angles",
+			"step3Desc": "AI matched these to your Persona Lab profile. Pick the one that resonates most with your story.",
+			"generateAngles": "Generate angles",
+			"angleFitLabel": "Why it fits",
+			"noAnglesGenerated": "No angles could be generated. Try going back and selecting a different approach.",
 			"essayType": {
 				"ps": "Personal Statement",
 				"psDesc": "Focused on personal identity, growth, and worldview. Common for undergrad, medicine, law, and humanities.",
