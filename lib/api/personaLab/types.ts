@@ -28,8 +28,6 @@ export type SubDimension =
 	| "beneficiaries"
 	| "idea";
 
-export type Tier = "TIER_1" | "TIER_2" | "TIER_3";
-
 export interface TierProgressDto {
 	currentTier?: string;
 	tier1Completed?: number;
@@ -83,10 +81,3 @@ export type GraphMessageResponse = GeneratedGraphMessageResponse & {
 	nextQuestionIntent?: string;
 };
 
-/** Response from GET /api/v1/persona/milestones */
-export interface MilestonesResponse {
-	currentTier?: string;
-	unlocked?: string[];
-	totalNodes?: number;
-	keyStoryCount?: number;
-}

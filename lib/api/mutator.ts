@@ -78,5 +78,3 @@ export const customInstance = async <T>(
 		headers: response.headers,
 	} as T;
 };
-
-export default customInstance;

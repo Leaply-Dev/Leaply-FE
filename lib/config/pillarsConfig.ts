@@ -10,7 +10,6 @@
  */
 import type {
 	Pillar,
-	PillarCoverageDto,
 	SubDimension,
 } from "@/lib/api/personaLab/types";
 
@@ -49,18 +48,6 @@ export const PILLARS_CONFIG: Record<Pillar, PillarConfig> = {
 		subDimensions: [],
 	},
 };
-
-/** Letter-labelled pill drawn on top-right of a canvas node. Null pillar → no badge. */
-export const PILLAR_BADGE = {
-	null: { color: "#cbd5e1", textColor: "#0f172a", letter: "" },
-	pillar1: PILLARS_CONFIG.pillar1,
-	pillar2: PILLARS_CONFIG.pillar2,
-	origin: PILLARS_CONFIG.origin,
-} as const;
-
-export function getPillarConfig(pillar: Pillar): PillarConfig {
-	return PILLARS_CONFIG[pillar];
-}
 
 export function getSubDimensionLabel(
 	sd: SubDimension,
@@ -108,6 +95,3 @@ export function getSubDimensionCoverage(
 	return pillarMap[sd] ?? pillarMap[sd.toUpperCase()];
 }
 
-export function isPillar2Visible(coverage: PillarCoverageDto | null): boolean {
-	return Boolean(coverage?.pillar2Required);
-}

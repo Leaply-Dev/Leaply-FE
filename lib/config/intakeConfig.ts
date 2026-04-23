@@ -30,7 +30,7 @@ export interface IntakeOption {
 	labelVi: string;
 }
 
-export const SUB_FIELDS_BY_TARGET: Record<TargetFieldKey, IntakeOption[]> = {
+const SUB_FIELDS_BY_TARGET: Record<TargetFieldKey, IntakeOption[]> = {
 	cs_it: [
 		{
 			value: "ai_ml",

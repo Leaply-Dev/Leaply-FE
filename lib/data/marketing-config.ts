@@ -8,8 +8,6 @@ import {
 	Brain,
 	FileCheck,
 	Globe,
-	MapPin,
-	School,
 	Sparkles,
 	Target,
 	Users,
@@ -23,12 +21,6 @@ export interface FeaturedUniversity {
 	name: string;
 	location: string;
 	logo: string;
-}
-
-export interface Stat {
-	value: string;
-	labelKey: string;
-	icon: LucideIcon;
 }
 
 export interface Feature {
@@ -161,15 +153,6 @@ export const FEATURED_UNIVERSITIES: readonly FeaturedUniversity[] = [
 		location: "Australia",
 		logo: "/universities/usyd.png",
 	},
-] as const;
-
-/**
- * Platform statistics displayed on the landing page.
- */
-export const STATS: readonly Stat[] = [
-	{ value: "2,000+", labelKey: "statsStudents", icon: Users },
-	{ value: "1,500+", labelKey: "statsUniversities", icon: School },
-	{ value: "50+", labelKey: "statsCountries", icon: MapPin },
 ] as const;
 
 /**

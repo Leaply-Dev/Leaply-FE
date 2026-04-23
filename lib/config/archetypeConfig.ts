@@ -31,7 +31,7 @@ export interface ArchetypeConfig {
 	rarity: number; // Percentage of users with this archetype
 }
 
-export const ARCHETYPE_CONFIG: Record<ArchetypeKey, ArchetypeConfig> = {
+const ARCHETYPE_CONFIG: Record<ArchetypeKey, ArchetypeConfig> = {
 	innovator: {
 		title: "The Innovator",
 		titleVi: "Người Tiên Phong",
@@ -229,7 +229,3 @@ export function getArchetypeConfig(
 	return ARCHETYPE_CONFIG[normalizedType] ?? null;
 }
 
-/**
- * All archetype types for iteration
- */
-export const ARCHETYPE_TYPES = Object.keys(ARCHETYPE_CONFIG) as ArchetypeKey[];

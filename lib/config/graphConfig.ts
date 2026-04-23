@@ -165,36 +165,6 @@ export const GRAPH_EDGE_CONFIG = {
 	},
 } as const;
 
-// Helper to check if an edge type is a tension edge
-export function isTensionEdge(
-	edgeType: keyof typeof GRAPH_EDGE_CONFIG,
-): boolean {
-	return [
-		"contradicts",
-		"evolved_from",
-		"challenged_by",
-		"transformed",
-	].includes(edgeType);
-}
-
-// Coverage category colors for progress bar
-export const COVERAGE_COLORS = {
-	goals: "#8b5cf6", // violet-500
-	evidence: "#3b82f6", // blue-500
-	skills: "#10b981", // emerald-500
-	values: "#f59e0b", // amber-500
-	tensions: "#f97316", // orange-500
-} as const;
-
-// Coverage category labels
-export const COVERAGE_LABELS = {
-	goals: "Goals",
-	evidence: "Evidence",
-	skills: "Skills",
-	values: "Values",
-	tensions: "Tensions",
-} as const;
-
 // ============================================================================
 // Unified Node Configuration (combines legacy and new configs)
 // Use this when handling both old mock data and new API data

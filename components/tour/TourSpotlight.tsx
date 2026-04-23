@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useEffect, useState } from "react";
 
 interface TourSpotlightProps {
@@ -33,7 +33,7 @@ export function TourSpotlight({ targetRect }: TourSpotlightProps) {
 	return (
 		<div className="fixed inset-0 z-[60] pointer-events-auto">
 			{/* Top strip */}
-			<motion.div
+			<m.div
 				className="absolute left-0 right-0 bg-black/50"
 				initial={false}
 				animate={{ height: top }}
@@ -42,7 +42,7 @@ export function TourSpotlight({ targetRect }: TourSpotlightProps) {
 			/>
 
 			{/* Bottom strip */}
-			<motion.div
+			<m.div
 				className="absolute left-0 right-0 bg-black/50"
 				initial={false}
 				animate={{ height: Math.max(0, windowSize.height - bottom) }}
@@ -51,7 +51,7 @@ export function TourSpotlight({ targetRect }: TourSpotlightProps) {
 			/>
 
 			{/* Left strip */}
-			<motion.div
+			<m.div
 				className="absolute bg-black/50"
 				initial={false}
 				animate={{
@@ -64,7 +64,7 @@ export function TourSpotlight({ targetRect }: TourSpotlightProps) {
 			/>
 
 			{/* Right strip */}
-			<motion.div
+			<m.div
 				className="absolute bg-black/50"
 				initial={false}
 				animate={{
@@ -77,7 +77,7 @@ export function TourSpotlight({ targetRect }: TourSpotlightProps) {
 			/>
 
 			{/* Highlight border around target */}
-			<motion.div
+			<m.div
 				className="absolute pointer-events-none"
 				initial={false}
 				animate={{

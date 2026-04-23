@@ -526,6 +526,3 @@ export function ChatSidebar() {
 	);
 }
 
-export { ChatHeader } from "./ChatHeader";
-export { ChatMessage, TypingIndicator } from "./ChatMessage";
-export { MessageInput } from "./MessageInput";

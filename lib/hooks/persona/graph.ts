@@ -9,11 +9,9 @@ export type {
 	GetGraphQueryResult,
 } from "@/lib/generated/api/endpoints/persona-lab/persona-lab";
 export {
-	getGetCompactContextQueryKey,
 	getGetCoverageQueryKey,
 	// Query keys for cache management
 	getGetGraphQueryKey,
-	useGetCompactContext,
 	useGetCoverage,
 	// Queries
 	useGetGraph,

@@ -4,7 +4,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import customFetch from "./mutator";
+import { customInstance as customFetch } from "./mutator";
 
 // ============================================
 // Types

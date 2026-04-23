@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -166,7 +166,7 @@ export function TourTooltip({
 	const isLastStep = stepIndex === totalSteps - 1;
 
 	return (
-		<motion.div
+		<m.div
 			ref={tooltipRef}
 			className="fixed z-[70] pointer-events-auto"
 			initial={{ opacity: 0, y: 10, scale: 0.96 }}
@@ -234,6 +234,6 @@ export function TourTooltip({
 					</Button>
 				</div>
 			</div>
-		</motion.div>
+		</m.div>
 	);
 }

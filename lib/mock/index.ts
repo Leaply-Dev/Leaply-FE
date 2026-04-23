@@ -105,10 +105,3 @@ export function getScenarioState(
 	return { nodes, edges, coverage, messages };
 }
 
-/**
- * Get STAR gaps for a specific node by title
- */
-export function getStarGapsForNode(nodeTitle: string): string[] {
-	const story = keyStoriesData.find((s) => s.title === nodeTitle);
-	return story?.starGaps || [];
-}

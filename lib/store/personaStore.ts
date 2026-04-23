@@ -552,21 +552,8 @@ if (typeof window !== "undefined") {
 	});
 }
 
-// Selectors for common use cases
-export const selectViewMode = (state: PersonaStoreState) => state.viewMode;
 export const selectApiGraphNodes = (state: PersonaStoreState) =>
 	state.apiGraphNodes;
-export const selectApiGraphEdges = (state: PersonaStoreState) =>
-	state.apiGraphEdges;
-export const selectCoverage = (state: PersonaStoreState) => state.coverage;
-export const selectCompletionReady = (state: PersonaStoreState) =>
-	state.completionReady;
-export const selectTotalNodeCount = (state: PersonaStoreState) =>
-	state.totalNodeCount;
-export const selectStarGapsMap = (state: PersonaStoreState) =>
-	state.starGapsMap;
-export const selectGraphMessages = (state: PersonaStoreState) =>
-	state.graphMessages;
 
 // 2-Pillar tier selectors
 export const selectTierProgress = (state: PersonaStoreState) =>
@@ -577,23 +564,10 @@ export const selectPillarCoverage = (state: PersonaStoreState) =>
 // v2 server-computed selectors
 export const selectCurrentTier = (state: PersonaStoreState) =>
 	state.currentTier;
-export const selectLastTransitionMessage = (state: PersonaStoreState) =>
-	state.lastTransitionMessage;
 export const selectUnlockedMilestones = (state: PersonaStoreState) =>
 	state.unlockedMilestones;
 export const selectNextQuestionIntent = (state: PersonaStoreState) =>
 	state.nextQuestionIntent;
-
-export const selectArchetypeType = (state: PersonaStoreState) =>
-	state.archetypeType;
-export const selectArchetypePersonalizedSummary = (state: PersonaStoreState) =>
-	state.archetypePersonalizedSummary;
-export const selectArchetypeRarity = (state: PersonaStoreState) =>
-	state.archetypeRarity;
-export const selectArchetypeRevealed = (state: PersonaStoreState) =>
-	state.archetypeRevealed;
-export const selectShowArchetypeModal = (state: PersonaStoreState) =>
-	state.showArchetypeModal;
 
 // Re-export extended types from hand-written file
 export type {

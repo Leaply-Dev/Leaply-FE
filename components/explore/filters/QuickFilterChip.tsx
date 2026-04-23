@@ -21,7 +21,7 @@ interface QuickFilterChipProps {
  * Beautiful quick filter chip with icon and toggle state.
  * Extracted from the original FilterBar component aesthetic.
  */
-export function QuickFilterChip({
+function QuickFilterChip({
 	id,
 	label,
 	icon: Icon,

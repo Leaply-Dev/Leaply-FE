@@ -1,8 +1,7 @@
 /**
- * Custom FormData function for Orval v8
- * This ensures proper FormData handling for file uploads
+ * Custom FormData function for Orval v8.
+ * Keeps upload payload transformation consistent for generated clients.
  */
-
 export const customFormDataFn = <Body>(body: Body): FormData => {
 	const formData = new FormData();
 

@@ -10,7 +10,7 @@
  *
  * Backend enum: cs_it, business, finance, engineering, data_science, design, health, arts, media_communication, science, humanities, law, other
  */
-export const FIELD_LABEL_TO_KEY: Record<string, string> = {
+const FIELD_LABEL_TO_KEY: Record<string, string> = {
 	// Vietnamese labels
 	"Khoa học máy tính / IT": "cs_it",
 	"Kinh doanh / Quản trị": "business",
@@ -62,7 +62,7 @@ export const FIELD_LABEL_TO_KEY: Record<string, string> = {
  *
  * Backend enum: east_asia, southeast_asia, western_europe, central_europe, northern_europe, north_america, oceania
  */
-export const REGION_LABEL_TO_KEY: Record<string, string> = {
+const REGION_LABEL_TO_KEY: Record<string, string> = {
 	// Vietnamese labels
 	"Đông Á": "east_asia",
 	"Đông Nam Á": "southeast_asia",
@@ -99,37 +99,12 @@ export const REGION_LABEL_TO_KEY: Record<string, string> = {
  * Index 2: over_1b         (>1 tỷ)
  * Index 3: need_full_scholarship (Cần học bổng full)
  */
-export const BUDGET_INDEX_TO_KEY: string[] = [
+const BUDGET_INDEX_TO_KEY: string[] = [
 	"under_500m",
 	"500m_1b",
 	"over_1b",
 	"need_full_scholarship",
 ];
-
-/**
- * Maps budget display labels to backend BudgetRange enum values
- *
- * Backend enum: under_500m, 500m_1b, over_1b, need_full_scholarship
- */
-export const BUDGET_LABEL_TO_KEY: Record<string, string> = {
-	// Vietnamese labels
-	"<500 triệu": "under_500m",
-	"500 triệu - 1 tỷ": "500m_1b",
-	">1 tỷ": "over_1b",
-	"Cần học bổng full": "need_full_scholarship",
-
-	// English labels (for future i18n support)
-	"Under $50,000/year": "under_500m",
-	"$50,000 - $100,000/year": "500m_1b",
-	"Over $100,000/year": "over_1b",
-	"Need full scholarship": "need_full_scholarship",
-
-	// Also support direct enum keys (passthrough)
-	under_500m: "under_500m",
-	"500m_1b": "500m_1b",
-	over_1b: "over_1b",
-	need_full_scholarship: "need_full_scholarship",
-};
 
 export function mapFieldsToKeys(labels: string[]): string[] {
 	return labels
@@ -147,10 +122,6 @@ export function mapBudgetIndexToKey(index: number): string {
 	return BUDGET_INDEX_TO_KEY[index] ?? "500m_1b";
 }
 
-export function mapBudgetLabelToKey(label: string): string {
-	return BUDGET_LABEL_TO_KEY[label] ?? "500m_1b";
-}
-
 // ============================================
 // Reverse mappings (key → label for display)
 // ============================================
@@ -158,7 +129,7 @@ export function mapBudgetLabelToKey(label: string): string {
 /**
  * Maps backend enum keys to Vietnamese display labels
  */
-export const FIELD_KEY_TO_LABEL: Record<string, string> = {
+const FIELD_KEY_TO_LABEL: Record<string, string> = {
 	cs_it: "Khoa học máy tính / IT",
 	business: "Kinh doanh / Quản trị",
 	finance: "Kinh tế / Tài chính",
@@ -174,7 +145,7 @@ export const FIELD_KEY_TO_LABEL: Record<string, string> = {
 	other: "Khác / Chưa xác định",
 };
 
-export const REGION_KEY_TO_LABEL: Record<string, string> = {
+const REGION_KEY_TO_LABEL: Record<string, string> = {
 	east_asia: "Đông Á",
 	southeast_asia: "Đông Nam Á",
 	western_europe: "Tây Âu",
@@ -184,7 +155,7 @@ export const REGION_KEY_TO_LABEL: Record<string, string> = {
 	oceania: "Châu Đại Dương",
 };
 
-export const BUDGET_KEY_TO_LABEL: Record<string, string> = {
+const BUDGET_KEY_TO_LABEL: Record<string, string> = {
 	under_500m: "<500 triệu",
 	"500m_1b": "500 triệu - 1 tỷ",
 	over_1b: ">1 tỷ",

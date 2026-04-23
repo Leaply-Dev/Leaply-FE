@@ -21,19 +21,6 @@ export function PageTransition({ children, ...props }: PageTransitionProps) {
 	);
 }
 
-export function FadeIn({ children, ...props }: PageTransitionProps) {
-	return (
-		<m.div
-			initial={{ opacity: 0 }}
-			animate={{ opacity: 1 }}
-			transition={{ duration: 0.4, ease: "easeOut" }}
-			{...props}
-		>
-			{children}
-		</m.div>
-	);
-}
-
 export function SlideUp({
 	children,
 	delay = 0,

@@ -14,7 +14,7 @@ interface SelectedProgramChipProps {
 /**
  * Individual chip for a selected program in the compare tray
  */
-export function SelectedProgramChip({
+function SelectedProgramChip({
 	program,
 	onRemove,
 }: SelectedProgramChipProps) {

@@ -5,7 +5,6 @@ import { useLocale } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
-	ARCHETYPE_CONFIG,
 	getArchetypeConfig,
 	type ArchetypeKey,
 } from "@/lib/config/archetypeConfig";
@@ -42,11 +41,6 @@ export function ArchetypeBadge({
 	// Get suggestions for current essay type
 	const essayTypeKey = selectedEssayType === "sop" ? "sop" : "ps";
 	const suggestions = data.suggestions?.[essayTypeKey] ?? [];
-
-	// Build a set of recommended motif names for quick lookup
-	const recommendedMotifs = new Set(
-		suggestions.map((s) => s.motif),
-	);
 
 	// Check if currently selected motif is recommended
 	const selectedSuggestion = suggestions.find(

@@ -121,8 +121,6 @@ export function transformApiGraphData(
 		const nodeType = (node.type || "detail") as GraphNodeType;
 		const config = GRAPH_NODE_CONFIG[nodeType];
 		const layer = node.layer ?? 3;
-		const isDraft =
-			nodeType === "profile_summary" && (node.confidence ?? 0.9) < 0.9;
 		const radius = layerRadii[layer] || 300;
 
 		// Calculate angular position for even distribution
@@ -239,56 +237,3 @@ export function transformApiGraphData(
 	return { nodes: forceNodes, links: forceLinks };
 }
 
-/**
- * Groups nodes by layer for organized rendering.
- */
-export function groupNodesByLayer(
-	nodes: ApiForceGraphNode[],
-): Record<number, ApiForceGraphNode[]> {
-	const grouped: Record<number, ApiForceGraphNode[]> = {
-		0: [],
-		1: [],
-		2: [],
-		3: [],
-	};
-
-	for (const node of nodes) {
-		const layer = node.layer;
-		if (layer >= 0 && layer <= 3) {
-			grouped[layer].push(node);
-		}
-	}
-
-	return grouped;
-}
-
-/**
- * Gets radial position for a layer (used for concentric layout).
- */
-export function getLayerRadius(layer: number): number {
-	const radii: Record<number, number> = {
-		0: 0, // Center
-		1: 150, // Inner ring
-		2: 280, // Middle ring
-		3: 450, // Outer ring
-	};
-	return radii[layer] || 300;
-}
-
-/**
- * Filters tension edges from all edges.
- */
-export function getTensionEdges(
-	edges: ApiForceGraphLink[],
-): ApiForceGraphLink[] {
-	return edges.filter((edge) => edge.edgeType === "tension");
-}
-
-/**
- * Filters connection edges from all edges.
- */
-export function getConnectionEdges(
-	edges: ApiForceGraphLink[],
-): ApiForceGraphLink[] {
-	return edges.filter((edge) => edge.edgeType === "connection");
-}

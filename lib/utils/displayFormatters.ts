@@ -22,7 +22,7 @@ export type Locale = "en" | "vi";
  * @example "on_campus" → "On Campus"
  * @example "united_states" → "United States"
  */
-export function formatSnakeCase(value?: string | null): string {
+function formatSnakeCase(value?: string | null): string {
 	if (!value) return "N/A";
 	return value
 		.split("_")
@@ -57,12 +57,6 @@ export function formatCountryName(country?: string | null): string {
 // Delivery Mode
 // =============================================================================
 
-const DELIVERY_MODE_LABELS: Record<string, string> = {
-	on_campus: "On Campus",
-	online: "Online",
-	hybrid: "Hybrid",
-};
-
 const DELIVERY_MODE_LABELS_I18N: Record<Locale, Record<string, string>> = {
 	en: {
 		on_campus: "On Campus",
@@ -80,11 +74,6 @@ const DELIVERY_MODE_LABELS_I18N: Record<Locale, Record<string, string>> = {
  * Format delivery mode enum to display label
  * @example "on_campus" → "On Campus"
  */
-export function formatDeliveryMode(mode?: string | null): string {
-	if (!mode) return "N/A";
-	return DELIVERY_MODE_LABELS[mode.toLowerCase()] || formatSnakeCase(mode);
-}
-
 /**
  * Format delivery mode enum with locale support
  * @example formatDeliveryModeI18n("on_campus", "vi") → "Học tại cơ sở"
@@ -242,17 +231,6 @@ export function formatTuitionRange(
  * @example 45000 → "$45,000/yr"
  * @deprecated Use formatTuitionRange() for multi-currency support
  */
-export function formatTuitionPerYear(value?: number | null): string {
-	if (value === null || value === undefined) return "N/A";
-	// Format as USD currency
-	const formatted = new Intl.NumberFormat("en-US", {
-		style: "currency",
-		currency: "USD",
-		maximumFractionDigits: 0,
-	}).format(value);
-	return `${formatted}/yr`;
-}
-
 // =============================================================================
 // Duration
 // =============================================================================
@@ -263,28 +241,6 @@ export function formatTuitionPerYear(value?: number | null): string {
  * @example 18 → "1.5 years"
  * @example 6 → "6 months"
  */
-export function formatDuration(months?: number | null): string {
-	if (!months) return "N/A";
-
-	const years = Math.floor(months / 12);
-	const remainingMonths = months % 12;
-
-	if (years === 0) {
-		return `${remainingMonths} month${remainingMonths !== 1 ? "s" : ""}`;
-	}
-
-	if (remainingMonths === 0) {
-		return `${years} year${years > 1 ? "s" : ""}`;
-	}
-
-	// Show as X.5 years if roughly half
-	if (remainingMonths >= 5 && remainingMonths <= 7) {
-		return `${years}.5 years`;
-	}
-
-	return `${years}y ${remainingMonths}m`;
-}
-
 /**
  * Format duration in months with locale support
  * @example formatDurationI18n(24, "vi") → "2 năm"
@@ -373,7 +329,7 @@ export function isDeadlinePast(dateStr?: string | null): boolean {
  * @example getDaysUntilDeadline("2025-01-15") → 30
  * @example getDaysUntilDeadline("2024-01-01") → -180 (past)
  */
-export function getDaysUntilDeadline(deadline?: string | null): number | null {
+function getDaysUntilDeadline(deadline?: string | null): number | null {
 	if (!deadline) return null;
 	try {
 		const deadlineDate = new Date(deadline);
@@ -401,7 +357,7 @@ export interface DeadlineUrgency {
  * Get urgency level and styling for a deadline
  * @example getDeadlineUrgency("2025-01-01") → { level: "urgent", color: "text-destructive", daysUntil: 5 }
  */
-export function getDeadlineUrgency(deadline?: string | null): DeadlineUrgency {
+function getDeadlineUrgency(deadline?: string | null): DeadlineUrgency {
 	const daysUntil = getDaysUntilDeadline(deadline);
 
 	if (daysUntil === null) {
@@ -556,90 +512,38 @@ export function formatSourceType(type?: string | null): string {
 // Scholarship Coverage Type
 // -----------------------------------------------------------------------------
 
-const COVERAGE_TYPE_LABELS: Record<string, string> = {
-	full_funded: "Full Funded",
-	partial_funded: "Partial Funded",
-};
-
 /**
  * Format scholarship coverage type enum to display label
  * @example "full_funded" → "Full Funded"
  * @example "partial_funded" → "Partial Funded"
  */
-export function formatCoverageType(type?: string | null): string {
-	if (!type) return "N/A";
-	return COVERAGE_TYPE_LABELS[type.toLowerCase()] || formatSnakeCase(type);
-}
-
 // -----------------------------------------------------------------------------
 // Scholarship Coverage Duration
 // -----------------------------------------------------------------------------
-
-const COVERAGE_DURATION_LABELS: Record<string, string> = {
-	first_year: "First Year Only",
-	annual_renewable: "Annual (Renewable)",
-	full_program: "Full Program",
-	one_time: "One-time",
-	not_specified: "Not Specified",
-	other: "Other",
-};
 
 /**
  * Format scholarship coverage duration enum to display label
  * @example "annual_renewable" → "Annual (Renewable)"
  * @example "full_program" → "Full Program"
  */
-export function formatCoverageDuration(duration?: string | null): string {
-	if (!duration) return "N/A";
-	return (
-		COVERAGE_DURATION_LABELS[duration.toLowerCase()] ||
-		formatSnakeCase(duration)
-	);
-}
-
 // -----------------------------------------------------------------------------
 // Scholarship Eligibility Type
 // -----------------------------------------------------------------------------
-
-const ELIGIBILITY_TYPE_LABELS: Record<string, string> = {
-	merit: "Merit-based",
-	need_based: "Need-based",
-};
 
 /**
  * Format scholarship eligibility type enum to display label
  * @example "merit" → "Merit-based"
  * @example "need_based" → "Need-based"
  */
-export function formatEligibilityType(type?: string | null): string {
-	if (!type) return "N/A";
-	return ELIGIBILITY_TYPE_LABELS[type.toLowerCase()] || formatSnakeCase(type);
-}
-
 // -----------------------------------------------------------------------------
 // Scholarship Eligibility Focus
 // -----------------------------------------------------------------------------
-
-const ELIGIBILITY_FOCUS_LABELS: Record<string, string> = {
-	academic: "Academic",
-	holistic: "Holistic",
-	leadership: "Leadership",
-	research: "Research",
-	community_service: "Community Service",
-};
 
 /**
  * Format scholarship eligibility focus enum to display label
  * @example "community_service" → "Community Service"
  * @example "leadership" → "Leadership"
  */
-export function formatEligibilityFocus(focus?: string | null): string {
-	if (!focus) return "N/A";
-	return (
-		ELIGIBILITY_FOCUS_LABELS[focus.toLowerCase()] || formatSnakeCase(focus)
-	);
-}
-
 const ELIGIBILITY_FOCUS_LABELS_I18N: Record<Locale, Record<string, string>> = {
 	en: {
 		academic: "Academic",
@@ -676,26 +580,12 @@ export function formatEligibilityFocusI18n(
 // Scholarship Degree Level
 // -----------------------------------------------------------------------------
 
-const SCHOLARSHIP_DEGREE_LEVEL_LABELS: Record<string, string> = {
-	bachelor: "Bachelor's",
-	master: "Master's",
-	phd: "PhD",
-};
-
 /**
  * Format scholarship degree level enum to display label
  * Note: This is different from program DegreeType which uses "masters" (plural)
  * @example "master" → "Master's"
  * @example "phd" → "PhD"
  */
-export function formatScholarshipDegreeLevel(level?: string | null): string {
-	if (!level) return "N/A";
-	return (
-		SCHOLARSHIP_DEGREE_LEVEL_LABELS[level.toLowerCase()] ||
-		formatSnakeCase(level)
-	);
-}
-
 const SCHOLARSHIP_DEGREE_LEVEL_LABELS_I18N: Record<
 	Locale,
 	Record<string, string>
@@ -801,37 +691,11 @@ export function formatCoverageAmount(
 // Application Status (with locale support)
 // =============================================================================
 
-const APPLICATION_STATUS_LABELS: Record<Locale, Record<string, string>> = {
-	en: {
-		planning: "Planning",
-		writing: "Writing",
-		submitted: "Submitted",
-		accepted: "Accepted",
-		rejected: "Rejected",
-	},
-	vi: {
-		planning: "Đang chuẩn bị",
-		writing: "Đang viết",
-		submitted: "Đã nộp",
-		accepted: "Trúng tuyển",
-		rejected: "Không đạt",
-	},
-};
-
 /**
  * Format application status enum to display label
  * @example formatApplicationStatus("planning", "vi") → "Đang chuẩn bị"
  * @example formatApplicationStatus("submitted", "en") → "Submitted"
  */
-export function formatApplicationStatus(
-	status?: string | null,
-	locale: Locale = "vi",
-): string {
-	if (!status) return "N/A";
-	const labels = APPLICATION_STATUS_LABELS[locale];
-	return labels[status.toLowerCase()] || formatSnakeCase(status);
-}
-
 // =============================================================================
 // Coverage Type (with locale support)
 // =============================================================================
@@ -929,28 +793,3 @@ export function formatEligibilityTypeI18n(
 // Source Type (with locale support)
 // =============================================================================
 
-const SOURCE_TYPE_LABELS_I18N: Record<Locale, Record<string, string>> = {
-	en: {
-		university: "University",
-		government: "Government",
-		foundation: "Foundation",
-	},
-	vi: {
-		university: "Trường đại học",
-		government: "Chính phủ",
-		foundation: "Tổ chức/Quỹ",
-	},
-};
-
-/**
- * Format scholarship source type enum to display label with locale support
- * @example formatSourceTypeI18n("government", "vi") → "Chính phủ"
- */
-export function formatSourceTypeI18n(
-	type?: string | null,
-	locale: Locale = "vi",
-): string {
-	if (!type) return "N/A";
-	const labels = SOURCE_TYPE_LABELS_I18N[locale];
-	return labels[type.toLowerCase()] || formatSnakeCase(type);
-}

@@ -13,7 +13,7 @@ interface SelectedScholarshipChipProps {
 	onRemove: () => void;
 }
 
-export function SelectedScholarshipChip({
+function SelectedScholarshipChip({
 	scholarship,
 	onRemove,
 }: SelectedScholarshipChipProps) {

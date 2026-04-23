@@ -9,16 +9,6 @@
  * These utilities extract the actual data cleanly.
  */
 
-export type OrvalResponse<T> = {
-	data?: {
-		success?: boolean;
-		data?: T;
-		timestamp?: string;
-	};
-	status?: number;
-	headers?: Headers;
-};
-
 /**
  * Unwrap an Orval response to get the actual data.
  * Handles both double-wrapped and single-wrapped responses gracefully.
@@ -44,10 +34,3 @@ export function unwrapResponse<T>(response: unknown): T | undefined {
 	return orvalData as T;
 }
 
-/**
- * Type-safe version for when you know the response structure.
- * Useful in typed contexts where TypeScript can infer T.
- */
-export function unwrap<T>(response: OrvalResponse<T>): T | undefined {
-	return unwrapResponse<T>(response);
-}

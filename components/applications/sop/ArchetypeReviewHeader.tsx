@@ -3,7 +3,6 @@
 import { CheckCircle2, Circle, Sparkles } from "lucide-react";
 import { useLocale } from "next-intl";
 import {
-	ARCHETYPE_CONFIG,
 	getArchetypeConfig,
 	type ArchetypeKey,
 } from "@/lib/config/archetypeConfig";
