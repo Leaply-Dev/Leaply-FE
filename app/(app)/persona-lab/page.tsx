@@ -179,7 +179,7 @@ export default function PersonaLabPage() {
 					{/* Header with View Toggle */}
 					<div className="border-b border-border bg-card/80 backdrop-blur-sm px-6 py-3 shrink-0">
 						<div className="flex items-center justify-between">
-							<div>
+							<div data-tour="persona-canvas">
 								<h1 className="text-xl font-bold text-foreground">
 									{t("canvasTitle")}
 								</h1>

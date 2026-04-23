@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, LogOut, Menu, User, X } from "lucide-react";
+import { ChevronDown, HelpCircle, LogOut, Menu, User, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { performLogout } from "@/lib/auth/logout";
 import { useMounted } from "@/lib/hooks/useMounted";
 import { useUserStore } from "@/lib/store/userStore";
+import { useTourStore } from "@/lib/store/tourStore";
 import { cn } from "@/lib/utils";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
@@ -27,6 +28,7 @@ export function Navbar() {
 	// Use selector to subscribe to specific fields for optimal re-renders
 	const isAuthenticated = useUserStore((state) => state.isAuthenticated);
 	const profile = useUserStore((state) => state.profile);
+	const restartTour = useTourStore((state) => state.restart);
 
 	// Only use auth state after mount to avoid hydration mismatch
 	// Before mount, default to unauthenticated state
@@ -290,6 +292,17 @@ export function Navbar() {
 												<User className="w-4 h-4 mr-2" />
 												{t("profile")}
 											</Link>
+										</Button>
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => {
+												setMobileMenuOpen(false);
+												restartTour();
+											}}
+										>
+											<HelpCircle className="w-4 h-4 mr-2" />
+											{t("restartTour")}
 										</Button>
 										<Button
 											variant="ghost"

@@ -264,6 +264,7 @@ export function EssayList({
 						{t("title")}
 					</h2>
 					<Button
+						data-tour="essays-new"
 						size="sm"
 						className="gap-2"
 						onClick={() => onSelect("new", "program")}

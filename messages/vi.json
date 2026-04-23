@@ -10,7 +10,21 @@
 		"getStarted": "Bắt đầu",
 		"profile": "Tài khoản",
 		"logout": "Đăng xuất",
-		"goToDashboard": "Đến trang Quản lý"
+		"goToDashboard": "Đến trang Quản lý",
+		"restartTour": "Xem hướng dẫn"
+	},
+	"tour": {
+		"step1Title": "Khám phá cơ hội",
+		"step1Desc": "Bắt đầu từ đây! Duyệt 1,500+ chương trình và học bổng. Lọc theo ngân sách, địa điểm, hoặc để AI tìm những lựa chọn phù hợp nhất cho bạn.",
+		"step2Title": "Khám phá câu chuyện của bạn",
+		"step2Desc": "Hoàn thành các bài hướng dẫn để khám phá câu chuyện cá nhân và góc tiếp cận bài luận mà hội đồng tuyển sinh sẽ nhớ.",
+		"step3Title": "Viết bài luận",
+		"step3Desc": "Tạo bài luận được cá nhân hóa cho chương trình bạn chọn. Chúng mình sẽ gợi ý góc tiếp cận dựa trên dữ liệu từ Persona Lab.",
+		"next": "Tiếp theo",
+		"skip": "Bỏ qua",
+		"finish": "Bắt đầu",
+		"restart": "Xem lại hướng dẫn",
+		"progress": "Bước {current} / {total}"
 	},
 	"onboarding": {
 		"steps": {

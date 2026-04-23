@@ -10,7 +10,21 @@
 		"getStarted": "Get Started",
 		"profile": "Profile",
 		"logout": "Log out",
-		"goToDashboard": "Go to Dashboard"
+		"goToDashboard": "Go to Dashboard",
+		"restartTour": "Restart Tour"
+	},
+	"tour": {
+		"step1Title": "Explore Opportunities",
+		"step1Desc": "Start here! Browse 1,500+ programs and scholarships. Filter by budget, location, or let AI find your best matches.",
+		"step2Title": "Discover Your Story",
+		"step2Desc": "Complete guided tracks to uncover personal stories and essay angles that admissions officers remember.",
+		"step3Title": "Write Your Essay",
+		"step3Desc": "Create tailored essays for your chosen programs. We'll suggest angles using your Persona Lab insights.",
+		"next": "Next",
+		"skip": "Skip tour",
+		"finish": "Get Started",
+		"restart": "Restart tour",
+		"progress": "Step {current} of {total}"
 	},
 	"onboarding": {
 		"steps": {
