@@ -63,7 +63,7 @@ export function ApplicationDashboard({
 
 	return (
 		<>
-			<div className="flex-1 overflow-y-auto bg-muted/30">
+			<div className="h-full overflow-y-auto bg-muted/30">
 				<div className="h-full flex flex-col p-6">
 					{/* Header */}
 					<div className="flex items-start justify-between mb-6 shrink-0">

@@ -82,7 +82,7 @@ export function ScholarshipDashboard({
 	// Loading state
 	if (isLoadingApplication) {
 		return (
-			<div className="flex-1 overflow-y-auto bg-muted/30">
+			<div className="h-full overflow-y-auto bg-muted/30">
 				<div className="max-w-4xl mx-auto p-6 space-y-6">
 					<div className="flex justify-between items-start">
 						<div className="space-y-2">
