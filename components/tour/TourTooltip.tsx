@@ -1,6 +1,5 @@
 "use client";
 
-import { m } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -80,7 +79,13 @@ function getTooltipPosition(
 	};
 
 	// Try placement, flip if off-screen
-	const positions: TourStep["placement"][] = [placement, "bottom", "top", "right", "left"];
+	const positions: TourStep["placement"][] = [
+		placement,
+		"bottom",
+		"top",
+		"right",
+		"left",
+	];
 	for (const p of positions) {
 		const { t, l } = calcPosition(p);
 		if (
@@ -99,8 +104,14 @@ function getTooltipPosition(
 	// If none fit, just use the preferred and clamp
 	if (posTop === 0 && posLeft === 0) {
 		const { t, l } = calcPosition(placement);
-		posTop = Math.max(TOOLTIP_MARGIN, Math.min(t, window.innerHeight - tooltipHeight - TOOLTIP_MARGIN));
-		posLeft = Math.max(TOOLTIP_MARGIN, Math.min(l, window.innerWidth - tooltipWidth - TOOLTIP_MARGIN));
+		posTop = Math.max(
+			TOOLTIP_MARGIN,
+			Math.min(t, window.innerHeight - tooltipHeight - TOOLTIP_MARGIN),
+		);
+		posLeft = Math.max(
+			TOOLTIP_MARGIN,
+			Math.min(l, window.innerWidth - tooltipWidth - TOOLTIP_MARGIN),
+		);
 	}
 
 	// Arrow positioning
@@ -147,13 +158,23 @@ export function TourTooltip({
 }: TourTooltipProps) {
 	const t = useTranslations("tour");
 	const tooltipRef = useRef<HTMLDivElement>(null);
-	const [tooltipSize, setTooltipSize] = useState({ width: TOOLTIP_WIDTH, height: 200 });
+	const [tooltipSize, setTooltipSize] = useState({
+		width: TOOLTIP_WIDTH,
+		height: 200,
+	});
+	const [visible, setVisible] = useState(false);
 
 	useEffect(() => {
 		if (tooltipRef.current) {
 			const rect = tooltipRef.current.getBoundingClientRect();
 			setTooltipSize({ width: rect.width, height: rect.height });
 		}
+	}, [step.id]);
+
+	// Trigger enter animation after mount
+	useEffect(() => {
+		const timer = setTimeout(() => setVisible(true), 50);
+		return () => clearTimeout(timer);
 	}, [step.id]);
 
 	const { top, left, arrowClass, arrowStyle } = getTooltipPosition(
@@ -166,13 +187,14 @@ export function TourTooltip({
 	const isLastStep = stepIndex === totalSteps - 1;
 
 	return (
-		<m.div
+		<div
 			ref={tooltipRef}
-			className="fixed z-[70] pointer-events-auto"
-			initial={{ opacity: 0, y: 10, scale: 0.96 }}
-			animate={{ opacity: 1, y: 0, scale: 1 }}
-			exit={{ opacity: 0, y: 10, scale: 0.96 }}
-			transition={{ type: "spring", stiffness: 300, damping: 25 }}
+			className={cn(
+				"fixed z-[70] pointer-events-auto transition-all duration-300 ease-out",
+				visible
+					? "opacity-100 translate-y-0 scale-100"
+					: "opacity-0 translate-y-2 scale-95",
+			)}
 			style={{
 				top,
 				left,
@@ -234,6 +256,6 @@ export function TourTooltip({
 					</Button>
 				</div>
 			</div>
-		</m.div>
+		</div>
 	);
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -61,12 +60,14 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
 			try {
 				const response = await getStatus();
 				const status = unwrapResponse<OnboardingStatusResponse>(response);
+				console.log("[Tour] Backend status:", status);
 				if (status?.appTutorialCompleted) {
 					localStorage.setItem(TOUR_LOCAL_STORAGE_KEY, "true");
 					return;
 				}
 				setShouldAutoStart(true);
-			} catch {
+			} catch (err) {
+				console.log("[Tour] Backend check failed, allowing auto-start", err);
 				// If backend fails, still allow auto-start via local check
 				setShouldAutoStart(true);
 			}
@@ -78,8 +79,12 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
 	// Auto-start when conditions are met
 	useEffect(() => {
 		if (!shouldAutoStart || isActive) return;
+		console.log("[Tour] Auto-starting tour in 800ms");
 		// Small delay to let page settle
-		const timer = setTimeout(() => start(), 800);
+		const timer = setTimeout(() => {
+			console.log("[Tour] Calling start()");
+			start();
+		}, 800);
 		return () => clearTimeout(timer);
 	}, [shouldAutoStart, isActive, start]);
 
@@ -91,7 +96,12 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
 		}
 
 		const step = TOUR_STEPS[currentStepIndex];
-		if (!step) return;
+		if (!step) {
+			console.log("[Tour] No step found for index", currentStepIndex);
+			return;
+		}
+
+		console.log("[Tour] Step changed:", currentStepIndex, step.id, step.route);
 
 		// Cancel any pending retries
 		if (retryTimerRef.current) {
@@ -109,6 +119,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
 				pathname !== step.route && !pathname.startsWith(step.route);
 
 			if (needsNavigation) {
+				console.log("[Tour] Navigating to", step.route);
 				setIsNavigating(true);
 				setTargetRect(null);
 				router.push(step.route);
@@ -124,6 +135,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
 					const el = document.querySelector(step.targetSelector) as HTMLElement;
 					if (el) {
 						const rect = el.getBoundingClientRect();
+						console.log("[Tour] Target found:", step.targetSelector, rect);
 						setTargetRect(rect);
 						setIsNavigating(false);
 						// Scroll into view if needed
@@ -146,6 +158,10 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
 					if (tryFindTarget()) return;
 
 					if (retryCountRef.current >= TARGET_FIND_RETRIES) {
+						console.log(
+							"[Tour] Target not found after retries:",
+							step.targetSelector,
+						);
 						if (retryTimerRef.current) {
 							clearInterval(retryTimerRef.current);
 							retryTimerRef.current = null;
@@ -209,6 +225,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
 
 		if (currentStepIndex >= TOUR_STEPS.length - 1) {
 			// Finish tour
+			console.log("[Tour] Finishing tour");
 			handleSkip();
 			return;
 		}
@@ -217,7 +234,9 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
 	};
 
 	const handleSkip = async () => {
+		console.log("[Tour] Skipping tour");
 		skip();
+		setShouldAutoStart(false);
 		localStorage.setItem(TOUR_LOCAL_STORAGE_KEY, "true");
 		try {
 			await updateOnboarding({ appTutorialCompleted: true });
@@ -234,24 +253,20 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
 			{mounted &&
 				isActive &&
 				createPortal(
-					<AnimatePresence mode="wait">
-						{isActive && (
-							<div key="tour-overlay">
-								<TourSpotlight targetRect={targetRect} />
-								{step && (
-									<TourTooltip
-										key={step.id}
-										step={step}
-										stepIndex={currentStepIndex}
-										totalSteps={TOUR_STEPS.length}
-										targetRect={targetRect}
-										onNext={handleNext}
-										onSkip={handleSkip}
-									/>
-								)}
-							</div>
+					<div key="tour-overlay">
+						<TourSpotlight targetRect={targetRect} />
+						{step && (
+							<TourTooltip
+								key={step.id}
+								step={step}
+								stepIndex={currentStepIndex}
+								totalSteps={TOUR_STEPS.length}
+								targetRect={targetRect}
+								onNext={handleNext}
+								onSkip={handleSkip}
+							/>
 						)}
-					</AnimatePresence>,
+					</div>,
 					document.body,
 				)}
 		</>
