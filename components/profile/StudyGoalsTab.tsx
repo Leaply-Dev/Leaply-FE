@@ -180,6 +180,31 @@ export function StudyGoalsTab({ initialEditMode = false }: StudyGoalsTabProps) {
 		return t("noData");
 	};
 
+	const getProgramTypeLabel = (value?: string) => {
+		if (!value) return t("noData");
+		switch (value.toLowerCase()) {
+			case "full_time":
+				return "Full-time";
+			case "part_time":
+				return "Part-time";
+			case "online":
+				return "Online";
+			case "on_campus":
+				return "On campus";
+			case "hybrid":
+				return "Hybrid";
+			default:
+				return value
+					.split("_")
+					.map((part) =>
+						part.length > 0
+							? part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+							: part,
+					)
+					.join(" ");
+		}
+	};
+
 	const toggleField = (field: string) => {
 		setFormData((prev) => {
 			const isSelected = prev.fieldOfInterest.includes(field);
@@ -650,10 +675,12 @@ export function StudyGoalsTab({ initialEditMode = false }: StudyGoalsTabProps) {
 								</div>
 
 								{/* Additional Preferences */}
-								{(userData?.journeyType || userData?.campusSetting) && (
+								{(userData?.journeyType ||
+									userData?.programType ||
+									userData?.campusSetting) && (
 									<>
 										<Separator />
-										<div className="grid gap-4 sm:grid-cols-2">
+										<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 											{userData?.journeyType && (
 												<div className="flex items-start gap-3">
 													<div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
@@ -665,6 +692,21 @@ export function StudyGoalsTab({ initialEditMode = false }: StudyGoalsTabProps) {
 														</p>
 														<p className="font-medium">
 															{getJourneyLabel(userData.journeyType)}
+														</p>
+													</div>
+												</div>
+											)}
+											{userData?.programType && (
+												<div className="flex items-start gap-3">
+													<div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+														<BookOpen className="h-4 w-4 text-muted-foreground" />
+													</div>
+													<div>
+														<p className="text-sm text-muted-foreground">
+															{t("programType")}
+														</p>
+														<p className="font-medium">
+															{getProgramTypeLabel(userData.programType)}
 														</p>
 													</div>
 												</div>

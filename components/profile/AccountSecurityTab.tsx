@@ -40,11 +40,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import { performLogout } from "@/lib/auth/logout";
 import {
 	forgotPassword,
 	resendVerification,
 } from "@/lib/generated/api/endpoints/authentication/authentication";
-import { useGetMe } from "@/lib/generated/api/endpoints/user/user";
+import { useDeleteMe, useGetMe } from "@/lib/generated/api/endpoints/user/user";
 import type { UserMeResponse } from "@/lib/generated/api/models";
 
 export function AccountSecurityTab() {
@@ -53,9 +54,11 @@ export function AccountSecurityTab() {
 	// React Query
 	const { data: response, isLoading } = useGetMe();
 	const userData = unwrapResponse<UserMeResponse>(response);
+	const deleteMeMutation = useDeleteMe();
 
 	const [isResettingPassword, setIsResettingPassword] = useState(false);
 	const [isSendingVerification, setIsSendingVerification] = useState(false);
+	const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
@@ -95,6 +98,24 @@ export function AccountSecurityTab() {
 			toast.error(t("verificationError"));
 		} finally {
 			setIsSendingVerification(false);
+		}
+	};
+
+	const handleDeleteAccount = async () => {
+		if (deleteConfirmation !== "DELETE") return;
+
+		setIsDeletingAccount(true);
+		try {
+			await deleteMeMutation.mutateAsync();
+
+			toast.success(t("deleteAccountSuccess"));
+			performLogout({ redirect: "/?deleted=true" });
+		} catch {
+			toast.error(t("deleteAccountError"));
+		} finally {
+			setIsDeletingAccount(false);
+			setShowDeleteDialog(false);
+			setDeleteConfirmation("");
 		}
 	};
 
@@ -337,11 +358,9 @@ export function AccountSecurityTab() {
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2 text-destructive">
 						<AlertTriangle className="h-5 w-5" />
-						Danger Zone
+						{t("dangerZone")}
 					</CardTitle>
-					<CardDescription>
-						Irreversible and destructive actions
-					</CardDescription>
+					<CardDescription>{t("dangerZoneDescription")}</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<div className="flex items-center justify-between p-4 rounded-lg border border-destructive/30 bg-destructive/5">
@@ -350,69 +369,71 @@ export function AccountSecurityTab() {
 								<Trash2 className="h-5 w-5 text-destructive" />
 							</div>
 							<div>
-								<p className="font-medium">Delete Account</p>
+								<p className="font-medium">{t("deleteAccountTitle")}</p>
 								<p className="text-sm text-muted-foreground">
-									Permanently delete your account and all associated data
+									{t("deleteAccountDescription")}
 								</p>
 							</div>
 						</div>
 						<Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
 							<DialogTrigger asChild>
 								<Button variant="destructive" size="sm">
-									Delete Account
+									{t("deleteAccount")}
 								</Button>
 							</DialogTrigger>
 							<DialogContent>
 								<DialogHeader>
-									<DialogTitle>Are you absolutely sure?</DialogTitle>
+									<DialogTitle>{t("deleteAccountConfirmTitle")}</DialogTitle>
 									<DialogDescription>
-										This action cannot be undone. This will permanently delete
-										your account and remove all your data from our servers.
+										{t("deleteAccountConfirmDescription")}
 									</DialogDescription>
 								</DialogHeader>
 								<Alert variant="destructive">
 									<AlertTriangle className="h-4 w-4" />
-									<AlertTitle>Warning</AlertTitle>
+									<AlertTitle>{t("warning")}</AlertTitle>
 									<AlertDescription>
-										All your profile information, preferences, and saved data
-										will be permanently deleted.
+										{t("deleteAccountWarning")}
 									</AlertDescription>
 								</Alert>
 								<div className="space-y-2">
 									<Label htmlFor="delete-confirm">
-										Type <span className="font-mono font-bold">DELETE</span> to
-										confirm
+										{t("deleteAccountTypeConfirmPrefix")}{" "}
+										<span className="font-mono font-bold">DELETE</span>{" "}
+										{t("deleteAccountTypeConfirmSuffix")}
 									</Label>
 									<Input
 										id="delete-confirm"
 										value={deleteConfirmation}
 										onChange={(e) => setDeleteConfirmation(e.target.value)}
-										placeholder="DELETE"
+										placeholder={t("deleteAccountConfirmPlaceholder")}
 									/>
 								</div>
 								<DialogFooter>
 									<Button
 										variant="outline"
+										disabled={isDeletingAccount}
 										onClick={() => {
 											setShowDeleteDialog(false);
 											setDeleteConfirmation("");
 										}}
 									>
-										Cancel
+										{t("cancel")}
 									</Button>
 									<Button
 										variant="destructive"
-										disabled={deleteConfirmation !== "DELETE"}
-										onClick={() => {
-											// TODO: Implement account deletion endpoint - currently not available in API
-											toast.error(
-												"Account deletion is not yet available. Please contact support.",
-											);
-											setShowDeleteDialog(false);
-											setDeleteConfirmation("");
-										}}
+										disabled={
+											deleteConfirmation !== "DELETE" || isDeletingAccount
+										}
+										onClick={handleDeleteAccount}
 									>
-										Delete Account
+										{isDeletingAccount ? (
+											<>
+												<Loader2 className="h-4 w-4 animate-spin mr-2" />
+												{t("deletingAccount")}
+											</>
+										) : (
+											t("deleteAccount")
+										)}
 									</Button>
 								</DialogFooter>
 							</DialogContent>

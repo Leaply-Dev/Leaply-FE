@@ -5,6 +5,7 @@ import { AlertCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { OnboardingProgress } from "@/components/OnboardingProgress";
 import { PageTransition } from "@/components/PageTransition";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -15,10 +16,12 @@ import {
 	mapRegionsToKeys,
 } from "@/lib/constants/onboardingMappings";
 import {
+	getGetStatusQueryKey,
 	getStatus,
 	updateOnboarding,
 } from "@/lib/generated/api/endpoints/onboarding/onboarding";
 import {
+	getGetMeQueryKey,
 	getPreferences,
 	getProfile,
 } from "@/lib/generated/api/endpoints/user/user";
@@ -53,6 +56,7 @@ export function OnboardingClient({
 	constants,
 }: OnboardingClientProps) {
 	const router = useRouter();
+	const queryClient = useQueryClient();
 	const {
 		profile,
 		updateProfile,
@@ -177,6 +181,14 @@ export function OnboardingClient({
 	const handlePrefsChange = (updates: Partial<Preferences>) => {
 		setPrefs((prev) => ({ ...prev, ...updates }));
 	};
+
+	const invalidateOnboardingCaches = async (includeMe: boolean = false) => {
+		await queryClient.invalidateQueries({ queryKey: getGetStatusQueryKey() });
+		if (includeMe) {
+			await queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+		}
+	};
+
 	const handleStep1Next = async () => {
 		try {
 			// Update local store
@@ -198,6 +210,7 @@ export function OnboardingClient({
 					| "mba"
 					| "phd",
 			});
+			await invalidateOnboardingCaches(false);
 
 			posthog.capture("onboarding_step_completed", {
 				step: 1,
@@ -229,6 +242,7 @@ export function OnboardingClient({
 				targetFields: fieldKeys,
 				targetRegions: regionKeys,
 			});
+			await invalidateOnboardingCaches(false);
 
 			posthog.capture("onboarding_step_completed", {
 				step: 2,
@@ -262,6 +276,7 @@ export function OnboardingClient({
 				targetIntake: formattedTimeline,
 				budgetRange: budgetKey,
 			});
+			await invalidateOnboardingCaches(false);
 
 			posthog.capture("onboarding_step_completed", {
 				step: 3,
@@ -296,6 +311,7 @@ export function OnboardingClient({
 			await updateOnboarding({
 				direction: type === "exploring" ? "exploring" : "has_target",
 			});
+			await invalidateOnboardingCaches(true);
 
 			completeOnboarding();
 			posthog.capture("onboarding_completed", { journey_type: type });

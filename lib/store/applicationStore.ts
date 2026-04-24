@@ -7,6 +7,7 @@ interface ApplicationState {
 	sidebarCollapsed: boolean;
 	setSidebarCollapsed: (collapsed: boolean) => void;
 	toggleSidebar: () => void;
+	reset: () => void;
 }
 
 export const useApplicationStore = create<ApplicationState>()(
@@ -18,6 +19,11 @@ export const useApplicationStore = create<ApplicationState>()(
 			setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
 			toggleSidebar: () =>
 				set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+			reset: () =>
+				set({
+					selectedApplicationId: null,
+					sidebarCollapsed: false,
+				}),
 		}),
 		{
 			name: "application-store",
