@@ -8,10 +8,7 @@
  * Badge colors are deliberately separate from the layer palette so they read as
  * badges on top of layer-colored nodes, not as replacements for the fill.
  */
-import type {
-	Pillar,
-	SubDimension,
-} from "@/lib/api/personaLab/types";
+import type { Pillar, SubDimension } from "@/lib/api/personaLab/types";
 
 export interface PillarConfig {
 	label: string;
@@ -29,7 +26,7 @@ export const PILLARS_CONFIG: Record<Pillar, PillarConfig> = {
 		badgeColor: "#2563eb", // blue-600
 		badgeTextColor: "#ffffff",
 		badgeLetter: "1",
-		subDimensions: ["knowledge", "skill", "network", "opportunities"],
+		subDimensions: ["knowledge", "skill", "network", "opportunities", "funds"],
 	},
 	pillar2: {
 		label: "Essay story",
@@ -58,6 +55,7 @@ export function getSubDimensionLabel(
 		skill: { vi: "Kỹ năng", en: "Skill" },
 		network: { vi: "Mạng lưới", en: "Network" },
 		opportunities: { vi: "Cơ hội", en: "Opportunities" },
+		funds: { vi: "Tài chính / ngân sách", en: "Funds / budget" },
 		area: { vi: "Lĩnh vực", en: "Area" },
 		aspect: { vi: "Góc nhìn", en: "Aspect" },
 		beneficiaries: { vi: "Đối tượng thụ hưởng", en: "Beneficiaries" },
@@ -94,4 +92,3 @@ export function getSubDimensionCoverage(
 	if (!pillarMap) return undefined;
 	return pillarMap[sd] ?? pillarMap[sd.toUpperCase()];
 }
-

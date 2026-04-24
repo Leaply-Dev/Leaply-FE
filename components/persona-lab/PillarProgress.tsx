@@ -1,6 +1,13 @@
 "use client";
 
+import { Info } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type {
 	PillarCoverageDto,
 	SubDimension,
@@ -38,8 +45,9 @@ export function PillarProgress({
 		<div className="w-full space-y-3">
 			{/* Tier 1 Anchor row */}
 			<div className="flex items-center justify-between">
-				<span className="text-xs text-muted-foreground">
+				<span className="text-xs text-muted-foreground flex items-center gap-1">
 					{t("tier1Anchor")}
+					<InfoTooltip content={t("tier1AnchorHelp")} />
 				</span>
 				<span className="text-xs font-medium text-violet-600">
 					{t("tier1AnchorProgress", {
@@ -52,6 +60,7 @@ export function PillarProgress({
 			{/* Pillar 1 row */}
 			<PillarRow
 				title={PILLARS_CONFIG.pillar1[locale === "vi" ? "labelVi" : "label"]}
+				tooltip={t("pillar1Help")}
 				averageLabel={t("coverageLabel", { percent: pillar1Avg })}
 				average={pillar1Avg}
 				subDimensions={PILLARS_CONFIG.pillar1.subDimensions}
@@ -64,6 +73,7 @@ export function PillarProgress({
 			{pillar2Required && (
 				<PillarRow
 					title={PILLARS_CONFIG.pillar2[locale === "vi" ? "labelVi" : "label"]}
+					tooltip={t("pillar2Help")}
 					averageLabel={t("coverageLabel", { percent: pillar2Avg })}
 					average={pillar2Avg}
 					subDimensions={PILLARS_CONFIG.pillar2.subDimensions}
@@ -78,6 +88,7 @@ export function PillarProgress({
 
 interface PillarRowProps {
 	title: string;
+	tooltip: string;
 	averageLabel: string;
 	average: number;
 	subDimensions: SubDimension[];
@@ -88,6 +99,7 @@ interface PillarRowProps {
 
 function PillarRow({
 	title,
+	tooltip,
 	averageLabel,
 	average,
 	subDimensions,
@@ -98,8 +110,12 @@ function PillarRow({
 	return (
 		<div className="space-y-1.5">
 			<div className="flex items-center justify-between">
-				<span className="text-[11px] font-medium" style={{ color: barColor }}>
+				<span
+					className="text-[11px] font-medium flex items-center gap-1"
+					style={{ color: barColor }}
+				>
 					{title}
+					<InfoTooltip content={tooltip} />
 				</span>
 				<span className="text-[10px] text-muted-foreground">
 					{averageLabel}
@@ -145,6 +161,26 @@ function PillarRow({
 				})}
 			</div>
 		</div>
+	);
+}
+
+function InfoTooltip({ content }: { content: string }) {
+	return (
+		<TooltipProvider delayDuration={120}>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<button
+						type="button"
+						className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground/80"
+					>
+						<Info className="w-3 h-3" />
+					</button>
+				</TooltipTrigger>
+				<TooltipContent className="max-w-[220px] text-xs leading-relaxed">
+					{content}
+				</TooltipContent>
+			</Tooltip>
+		</TooltipProvider>
 	);
 }
 export type { PillarProgressProps };

@@ -138,6 +138,7 @@ export default function PersonaLabPage() {
 						"relative border-r border-border bg-card/50 backdrop-blur-sm hidden lg:flex flex-col overflow-hidden z-20",
 						isSidebarCollapsed ? "border-r-0" : "border-r",
 					)}
+					data-tour="persona-chat-panel"
 				>
 					<div className="w-[320px] h-full flex flex-col">
 						<ChatSidebar />
@@ -179,7 +180,7 @@ export default function PersonaLabPage() {
 					{/* Header with View Toggle */}
 					<div className="border-b border-border bg-card/80 backdrop-blur-sm px-6 py-3 shrink-0">
 						<div className="flex items-center justify-between">
-							<div data-tour="persona-canvas">
+							<div data-tour="persona-header">
 								<h1 className="text-xl font-bold text-foreground">
 									{t("canvasTitle")}
 								</h1>

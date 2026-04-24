@@ -347,37 +347,41 @@ export function ChatSidebar() {
 		],
 	);
 
-	const handleStartConversation = useCallback(async () => {
-		// Show user bubble immediately (cosmetic only — never POSTed to the backend)
-		addGraphMessage({
-			id: `user-start-${Date.now()}`,
-			role: "user",
-			type: "text",
-			content: t("greetingReplyOption"),
-			timestamp: new Date().toISOString(),
-			status: "sent",
-		});
-
-		const startTime = Date.now();
-		setThinkingStartTime(startTime);
-
-		const { data } = await triggerStartConversation();
-		setThinkingStartTime(null);
-
-		const graphData = unwrapResponse<GraphMessageResponse>(data);
-		if (graphData?.message) {
+	const handleStartConversation = useCallback(
+		async (starterMessage: string) => {
+			// Show user bubble immediately (cosmetic only — never POSTed to the backend)
 			addGraphMessage({
-				id: graphData.message.id || `assistant-${Date.now()}`,
-				role: "assistant",
-				type: (graphData.message.type as ConversationMessage["type"]) || "text",
-				content: graphData.message.content || "",
-				timestamp: graphData.message.timestamp || new Date().toISOString(),
+				id: `user-start-${Date.now()}`,
+				role: "user",
+				type: "text",
+				content: starterMessage,
+				timestamp: new Date().toISOString(),
 				status: "sent",
 			});
-		}
 
-		queryClient.invalidateQueries({ queryKey: getGetPersonaStateQueryKey() });
-	}, [triggerStartConversation, addGraphMessage, t, queryClient]);
+			const startTime = Date.now();
+			setThinkingStartTime(startTime);
+
+			const { data } = await triggerStartConversation();
+			setThinkingStartTime(null);
+
+			const graphData = unwrapResponse<GraphMessageResponse>(data);
+			if (graphData?.message) {
+				addGraphMessage({
+					id: graphData.message.id || `assistant-${Date.now()}`,
+					role: "assistant",
+					type:
+						(graphData.message.type as ConversationMessage["type"]) || "text",
+					content: graphData.message.content || "",
+					timestamp: graphData.message.timestamp || new Date().toISOString(),
+					status: "sent",
+				});
+			}
+
+			queryClient.invalidateQueries({ queryKey: getGetPersonaStateQueryKey() });
+		},
+		[triggerStartConversation, addGraphMessage, queryClient],
+	);
 
 	const handleReset = useCallback(() => {
 		setShowResetDialog(false);
@@ -535,7 +539,11 @@ export function ChatSidebar() {
 					/>
 				) : !hasSentFirstReply ? (
 					<GreetingReplyOption
-						label={t("greetingReplyOption")}
+						options={[
+							t("greetingReplyOption"),
+							t("greetingReplyOptionAcademic"),
+							t("greetingReplyOptionImpact"),
+						]}
 						onSelect={handleStartConversation}
 						disabled={isSending}
 					/>
@@ -550,4 +558,3 @@ export function ChatSidebar() {
 		</div>
 	);
 }
-

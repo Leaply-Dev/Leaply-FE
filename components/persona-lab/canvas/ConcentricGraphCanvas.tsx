@@ -4,19 +4,18 @@ import {
 	ChevronRight,
 	Eye,
 	EyeOff,
-	Info,
 	Maximize2,
-	MessageCircle,
 	ZoomIn,
 	ZoomOut,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import ForceGraph2D from "react-force-graph-2d";
+import { GraphEmptyState } from "@/components/persona-lab/GraphEmptyState";
+import { NodeTypeLegend } from "@/components/persona-lab/NodeTypeLegend";
 import { Button } from "@/components/ui/button";
 import type { PersonaNodeDto } from "@/lib/api/personaLab/types";
 import { getArchetypeConfig } from "@/lib/config/archetypeConfig";
 import { getNodeConfig } from "@/lib/config/graphConfig";
-import { PILLARS_CONFIG } from "@/lib/config/pillarsConfig";
 import { useExpandNode } from "@/lib/hooks/persona";
 import { useMockGraphData } from "@/lib/hooks/persona/useMockGraphData";
 import { useContainerDimensions } from "@/lib/hooks/useContainerDimensions";
@@ -30,9 +29,6 @@ import {
 } from "@/lib/store/personaStore";
 import { cn } from "@/lib/utils";
 import type { ApiForceGraphNode } from "@/lib/utils/graphTransform";
-
-// Node types in the graph (matching API)
-type NodeType = "profile_summary" | "essay_angle" | "key_story" | "detail";
 
 // Alias for backwards compatibility
 type ForceGraphNode = ApiForceGraphNode;
@@ -145,21 +141,13 @@ export function ConcentricGraphCanvas({
 	const isEmpty = graphData.nodes.length === 0;
 
 	return (
-		<div ref={containerRef} className={cn("relative h-full w-full", className)}>
+		<div
+			ref={containerRef}
+			className={cn("relative h-full w-full", className)}
+			data-tour="persona-graph"
+		>
 			{/* Empty State */}
-			{isEmpty && (
-				<div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
-					<div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-						<MessageCircle className="w-8 h-8 text-muted-foreground" />
-					</div>
-					<h3 className="text-lg font-semibold mb-2">
-						{t("emptyCanvasTitle")}
-					</h3>
-					<p className="text-sm text-muted-foreground max-w-xs">
-						{t("emptyCanvasDesc")}
-					</p>
-				</div>
-			)}
+			{isEmpty && <GraphEmptyState />}
 
 			{/* Force Graph */}
 			<ForceGraph2D
@@ -235,135 +223,10 @@ export function ConcentricGraphCanvas({
 
 			{/* Legend - only show when there are nodes */}
 			{!isEmpty && (
-				<div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm border border-border rounded-lg p-4 shadow-lg max-w-xs">
-					<h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-						<Info className="h-4 w-4" />
-						Graph Layers
-					</h3>
-					<div className="space-y-2.5 text-xs">
-						{/* Display hierarchical order of API node types */}
-						{(
-							[
-								{
-									type: "profile_summary",
-									layer: "Center",
-									desc: "Core identity",
-								},
-								{ type: "essay_angle", layer: "Inner", desc: "Essay themes" },
-								{ type: "key_story", layer: "Middle", desc: "Key narratives" },
-								{ type: "detail", layer: "Outer", desc: "Evidence" },
-							] as Array<{ type: NodeType; layer: string; desc: string }>
-						).map(({ type, layer, desc }) => {
-							const config = getNodeConfig(type);
-							const isHidden = hiddenNodeTypes.has(type);
-							return (
-								<button
-									key={type}
-									type="button"
-									className="flex items-start gap-2 w-full hover:bg-muted/50 rounded px-2 py-1.5 transition-colors"
-									onClick={() => toggleNodeTypeVisibility(type)}
-									title={
-										isHidden ? `Show ${config.label}` : `Hide ${config.label}`
-									}
-								>
-									<div
-										className="w-3 h-3 rounded-full shrink-0 mt-0.5"
-										style={{
-											backgroundColor: config.color,
-											opacity: isHidden ? 0.3 : 1,
-										}}
-									/>
-									<div className="flex-1 text-left">
-										<div className="flex items-center gap-1.5">
-											<span
-												className="font-medium text-foreground"
-												style={{ opacity: isHidden ? 0.5 : 1 }}
-											>
-												{config.label}
-											</span>
-											<span
-												className="text-[10px] text-muted-foreground/60"
-												style={{ opacity: isHidden ? 0.5 : 1 }}
-											>
-												({layer})
-											</span>
-										</div>
-										<div
-											className="text-[10px] text-muted-foreground mt-0.5"
-											style={{ opacity: isHidden ? 0.5 : 1 }}
-										>
-											{desc}
-										</div>
-									</div>
-									{isHidden ? (
-										<EyeOff className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
-									) : (
-										<Eye className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
-									)}
-								</button>
-							);
-						})}
-					</div>
-
-					{/* Pillar badges section */}
-					<div className="mt-4 pt-3 border-t border-border">
-						<div className="text-[11px] font-semibold text-foreground mb-2">
-							{t("pillarBadges")}
-						</div>
-						<div className="space-y-1.5">
-							{(["pillar1", "pillar2", "origin"] as const).map((p) => {
-								const cfg = PILLARS_CONFIG[p];
-								return (
-									<div key={p} className="flex items-center gap-2">
-										<div
-											className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
-											style={{
-												backgroundColor: cfg.badgeColor,
-												color: cfg.badgeTextColor,
-											}}
-										>
-											{cfg.badgeLetter}
-										</div>
-										<span className="text-[11px] text-foreground">
-											{cfg.label}
-										</span>
-									</div>
-								);
-							})}
-						</div>
-					</div>
-
-					<div className="mt-4 pt-3 border-t border-border">
-						<div className="text-xs text-muted-foreground space-y-2.5">
-							<div className="space-y-1">
-								<div className="flex items-center gap-2">
-									<div className="w-8 h-0.5 bg-blue-500/40" />
-									<span className="font-medium text-foreground">
-										Connection
-									</span>
-								</div>
-								<div className="text-[10px] ml-10">
-									Normal relationships (supports, builds on, enables)
-								</div>
-							</div>
-							<div className="space-y-1">
-								<div className="flex items-center gap-2">
-									<div
-										className="w-8 h-0.5 animate-pulse"
-										style={{
-											background:
-												"linear-gradient(90deg, #f97316 0%, rgba(249, 115, 22, 0.3) 50%, #f97316 100%)",
-										}}
-									/>
-									<span className="font-medium text-foreground">Tension</span>
-								</div>
-								<div className="text-[10px] ml-10">
-									Conflicts & evolution (contradicts, transforms)
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
+				<NodeTypeLegend
+					hiddenNodeTypes={hiddenNodeTypes}
+					onToggleNodeType={toggleNodeTypeVisibility}
+				/>
 			)}
 
 			{/* Selected Node Detail Panel */}
@@ -474,11 +337,15 @@ export function ConcentricGraphCanvas({
 			)}
 			{/* Stats Badge - only show when there are nodes */}
 			{!isEmpty && (
-				<div className="absolute bottom-4 right-4 bg-card/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg">
+				<div
+					className="absolute bottom-4 right-4 bg-card/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg max-w-[min(90vw,18rem)]"
+					title={t("graphStatsExplainer")}
+				>
 					<div className="text-xs text-muted-foreground">
-						<span className="font-medium">{graphData.nodes.length}</span> nodes
-						· <span className="font-medium">{graphData.links.length}</span>{" "}
-						connections
+						{t("graphStats", {
+							nodes: graphData.nodes.length,
+							links: graphData.links.length,
+						})}
 					</div>
 				</div>
 			)}

@@ -1,12 +1,16 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type {
 	PillarCoverageDto,
 	TierProgressDto,
 } from "@/lib/api/personaLab/types";
 import type { CoverageMetrics } from "@/lib/generated/api/models";
+import {
+	formatCurrentTierForUi,
+	formatNextQuestionIntentForUi,
+} from "@/lib/personaLab/formatProgressUi";
 import { MilestoneBadge } from "../MilestoneBadge";
 import { PillarProgress } from "../PillarProgress";
 
@@ -32,6 +36,9 @@ export function ChatHeader({
 	unlockedMilestones,
 }: ChatHeaderProps) {
 	const t = useTranslations("personaLab");
+	const locale = useLocale() as "en" | "vi";
+	const tierLabel = formatCurrentTierForUi(currentTier, t);
+	const nextLine = formatNextQuestionIntentForUi(nextQuestionIntent, locale, t);
 
 	return (
 		<div className="px-4 py-3 border-b border-border shrink-0">
@@ -47,14 +54,20 @@ export function ChatHeader({
 							{storyNodeCount}{" "}
 							{storyNodeCount === 1 ? t("story") : t("stories")}
 						</span>
-						{currentTier && (
-							<span className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-600 font-medium">
-								{t("tierLabel", { tier: currentTier })}
+						{tierLabel && (
+							<span
+								className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-600 font-medium"
+								title={t("badgeStageExplainer")}
+							>
+								{tierLabel}
 							</span>
 						)}
-						{nextQuestionIntent && (
-							<span className="text-[10px] text-muted-foreground">
-								{t("nextQuestionLabel", { intent: nextQuestionIntent })}
+						{nextLine && (
+							<span
+								className="text-[10px] text-muted-foreground"
+								title={t("badgeNextFocusExplainer")}
+							>
+								{nextLine}
 							</span>
 						)}
 						{completionReady && (
@@ -76,10 +89,12 @@ export function ChatHeader({
 			)}
 
 			{/* 2-Pillar tier + coverage progress */}
-			<PillarProgress
-				tierProgress={tierProgress}
-				pillarCoverage={pillarCoverage}
-			/>
+			<div data-tour="persona-progress">
+				<PillarProgress
+					tierProgress={tierProgress}
+					pillarCoverage={pillarCoverage}
+				/>
+			</div>
 		</div>
 	);
 }

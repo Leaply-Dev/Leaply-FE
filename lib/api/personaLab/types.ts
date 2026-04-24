@@ -23,6 +23,7 @@ export type SubDimension =
 	| "skill"
 	| "network"
 	| "opportunities"
+	| "funds"
 	| "area"
 	| "aspect"
 	| "beneficiaries"
@@ -80,4 +81,3 @@ export type GraphMessageResponse = GeneratedGraphMessageResponse & {
 	/** What the next question is about (for progress bar). */
 	nextQuestionIntent?: string;
 };
-

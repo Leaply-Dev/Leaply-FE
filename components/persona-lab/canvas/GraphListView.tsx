@@ -6,12 +6,12 @@ import {
 	ChevronDown,
 	ChevronRight,
 	FileText,
-	MessageCircle,
 	Monitor,
 	Sparkles,
 	Target,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { GraphEmptyState } from "@/components/persona-lab/GraphEmptyState";
 import type { PersonaNodeDto } from "@/lib/api/personaLab/types";
 import { LAYOUT_CONFIG } from "@/lib/hooks/useForceLayout";
 import { usePersonaStore } from "@/lib/store/personaStore";
@@ -138,23 +138,21 @@ export function GraphListView({ className }: GraphListViewProps) {
 					"flex flex-col items-center justify-center h-full p-8",
 					className,
 				)}
+				data-tour="persona-graph"
 			>
-				<div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-					<MessageCircle className="w-8 h-8 text-muted-foreground" />
-				</div>
-				<h3 className="text-lg font-semibold mb-2">Start a Conversation</h3>
-				<p className="text-sm text-muted-foreground text-center max-w-xs">
-					Share your stories in the chat to build your persona graph.
-				</p>
+				<GraphEmptyState absolute={false} />
 			</div>
 		);
 	}
 
 	return (
-		<div className={cn("flex flex-col h-full overflow-hidden", className)}>
+		<div
+			className={cn("flex flex-col h-full overflow-hidden", className)}
+			data-tour="persona-graph"
+		>
 			{/* Desktop prompt banner - only show on mobile */}
 			{isMobile && (
-				<div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-4 flex items-center gap-3">
+				<div className="bg-linear-to-r from-indigo-500 to-purple-600 text-white p-4 flex items-center gap-3">
 					<div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
 						<Monitor className="w-5 h-5" />
 					</div>

@@ -83,7 +83,10 @@ export function MessageInput({
 	// Show completion message instead of input when conversation is complete
 	if (completionMessage) {
 		return (
-			<div className="p-4 border-t border-border shrink-0">
+			<div
+				className="p-4 border-t border-border shrink-0"
+				data-tour="persona-chat-input"
+			>
 				<div className="flex flex-col items-center justify-center gap-3 bg-muted/30 p-4 rounded-xl border border-border text-center">
 					<Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
 					<span className="text-sm text-muted-foreground">
@@ -100,7 +103,10 @@ export function MessageInput({
 	}
 
 	return (
-		<div className="p-3 border-t border-border shrink-0">
+		<div
+			className="p-3 border-t border-border shrink-0"
+			data-tour="persona-chat-input"
+		>
 			<div className="flex items-end gap-2 bg-muted/30 p-2 rounded-xl border border-border focus-within:border-primary/50 transition-colors">
 				<textarea
 					ref={textareaRef}
