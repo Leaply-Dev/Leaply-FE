@@ -8,10 +8,8 @@ import { usePersonaStore } from "@/lib/store/personaStore";
 import type {
 	ApiForceGraphNode,
 	ForceGraphLink,
+	GraphNodeType,
 } from "@/lib/utils/graphTransform";
-
-// Node types in the graph (matching API)
-type NodeType = "profile_summary" | "essay_angle" | "key_story" | "detail";
 
 // Alias for backwards compatibility
 type ForceGraphNode = ApiForceGraphNode;
@@ -73,7 +71,7 @@ interface UseGraphRenderersProps {
 	showLabels: boolean;
 	highlightNodes: Set<string>;
 	highlightLinks: Set<string>;
-	hiddenNodeTypes: Set<NodeType>;
+	hiddenNodeTypes: Set<GraphNodeType>;
 }
 
 export function useGraphRenderers({
@@ -103,9 +101,9 @@ export function useGraphRenderers({
 			const isSelected = selectedNode?.id === graphNode.id;
 			const isHovered = hoveredNode?.id === graphNode.id;
 			const isHighlighted = highlightNodes.has(graphNode.id);
-			const isHidden = hiddenNodeTypes.has(graphNode.type as NodeType);
+			const isHidden = hiddenNodeTypes.has(graphNode.type);
 			const isFaded = (selectedNode && !isHighlighted) || isHidden;
-			const config = getNodeConfig(graphNode.type as NodeType);
+			const config = getNodeConfig(graphNode.type);
 			const isDraft = isDraftProfile(graphNode);
 			const isSkeleton = (graphNode.data as { isSkeleton?: boolean })
 				?.isSkeleton;
@@ -313,8 +311,8 @@ export function useGraphRenderers({
 					? (link.target as ForceGraphNode)
 					: null;
 			const isConnectedToHidden =
-				(sourceNode && hiddenNodeTypes.has(sourceNode.type as NodeType)) ||
-				(targetNode && hiddenNodeTypes.has(targetNode.type as NodeType));
+				(sourceNode && hiddenNodeTypes.has(sourceNode.type)) ||
+				(targetNode && hiddenNodeTypes.has(targetNode.type));
 
 			const isFaded = (selectedNode && !isHighlighted) || isConnectedToHidden;
 

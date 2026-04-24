@@ -250,7 +250,7 @@ export function ConcentricGraphCanvas({
 									}}
 								/>
 								<span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-									{selectedNode.type === "story"
+									{selectedNode.type === "key_story"
 										? (
 												(selectedNode.data as { story_type?: string })
 													?.story_type ?? "Story"

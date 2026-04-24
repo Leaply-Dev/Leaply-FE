@@ -7,7 +7,11 @@ import { GRAPH_EDGE_CONFIG, GRAPH_NODE_CONFIG } from "@/lib/config/graphConfig";
 import type { PersonaEdgeDto } from "@/lib/generated/api/models";
 
 // Node type for the graph (from API)
-type GraphNodeType = "profile_summary" | "essay_angle" | "key_story" | "detail";
+export type GraphNodeType =
+	| "profile_summary"
+	| "essay_angle"
+	| "key_story"
+	| "detail";
 
 // Edge label types
 type ConnectionEdgeLabel = "enables" | "builds_on" | "supports" | "complements";
@@ -42,7 +46,8 @@ export interface ForceGraphLink {
 // Transforms PersonaNodeDto[] and PersonaEdgeDto[] from API to ForceGraph format
 // ============================================================================
 
-export interface ApiForceGraphNode extends ForceGraphNode {
+export interface ApiForceGraphNode extends Omit<ForceGraphNode, "type"> {
+	type: GraphNodeType;
 	layer: number;
 	/** 2-Pillar scope: pillar1 (applicant), pillar2 (essay), origin (Tier 1). */
 	pillar: "pillar1" | "pillar2" | "origin" | null;

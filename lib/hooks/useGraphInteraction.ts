@@ -3,10 +3,8 @@ import type { ForceGraphMethods, NodeObject } from "react-force-graph-2d";
 import type {
 	ApiForceGraphNode,
 	ForceGraphLink,
+	GraphNodeType,
 } from "@/lib/utils/graphTransform";
-
-// Node types in the graph (matching API)
-type NodeType = "profile_summary" | "essay_angle" | "key_story" | "detail";
 
 // Alias for backwards compatibility
 type ForceGraphNode = ApiForceGraphNode;
@@ -27,7 +25,7 @@ export function useGraphInteraction({
 }: UseGraphInteractionProps) {
 	const [selectedNode, setSelectedNode] = useState<ForceGraphNode | null>(null);
 	const [hoveredNode, setHoveredNode] = useState<ForceGraphNode | null>(null);
-	const [hiddenNodeTypes, setHiddenNodeTypes] = useState<Set<NodeType>>(
+	const [hiddenNodeTypes, setHiddenNodeTypes] = useState<Set<GraphNodeType>>(
 		new Set(),
 	);
 	const [highlightNodes, setHighlightNodes] = useState<Set<string>>(new Set());
@@ -171,7 +169,7 @@ export function useGraphInteraction({
 	}, [selectedNode, fgRef]);
 
 	// Toggle node type visibility
-	const toggleNodeTypeVisibility = useCallback((type: NodeType) => {
+	const toggleNodeTypeVisibility = useCallback((type: GraphNodeType) => {
 		setHiddenNodeTypes((prev) => {
 			const next = new Set(prev);
 			if (next.has(type)) {
