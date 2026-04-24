@@ -20,8 +20,10 @@ import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ScholarshipListItemResponse } from "@/lib/generated/api/models";
+import { formatSnakeCaseLabel } from "@/lib/utils";
 import type { Locale } from "@/lib/utils/displayFormatters";
 import {
+	formatCountryName,
 	formatCoverageAmount,
 	formatCoverageTypeI18n,
 	formatDate,
@@ -115,7 +117,8 @@ export function ScholarshipCard({
 							<div className="flex items-center gap-1 mt-0.5">
 								<MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
 								<span className="text-xs text-muted-foreground truncate">
-									{scholarship.universityCity}, {scholarship.universityCountry}
+									{formatSnakeCaseLabel(scholarship.universityCity)},{" "}
+									{formatCountryName(scholarship.universityCountry)}
 								</span>
 							</div>
 						)}
@@ -181,7 +184,7 @@ export function ScholarshipCard({
 								<Building2 className="w-3.5 h-3.5 shrink-0" />
 								<span className="truncate">
 									{scholarship.eligibleFields.length === 1
-										? scholarship.eligibleFields[0]
+										? formatSnakeCaseLabel(scholarship.eligibleFields[0])
 										: t("card.nFields", {
 												count: scholarship.eligibleFields.length,
 											})}

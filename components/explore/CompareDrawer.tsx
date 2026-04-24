@@ -4,17 +4,12 @@ import {
 	AlertTriangle,
 	BookOpen,
 	Calendar,
-	CheckCircle2,
 	Clock,
 	DollarSign,
 	GraduationCap,
-	HelpCircle,
-	Info,
 	Languages,
 	MapPin,
 	Plus,
-	ThumbsUp,
-	TrendingUp,
 	Trophy,
 } from "lucide-react";
 import Image from "next/image";
@@ -60,49 +55,6 @@ interface EnglishRequirement {
 // Helper Functions
 // ============================================================================
 
-function MatchBadge({
-	fitCategory,
-	fitScore,
-}: {
-	fitCategory?: string;
-	fitScore?: number;
-}) {
-	const t = useTranslations("compare");
-	const score = fitScore ?? 0;
-	switch (fitCategory) {
-		case "safety":
-			return (
-				<Badge className="bg-green-100 text-green-700 border-green-200 gap-1">
-					<CheckCircle2 className="w-3 h-3" />
-					{t("highMatch")} ({score}%)
-				</Badge>
-			);
-		case "target":
-			return (
-				<Badge className="bg-blue-100 text-blue-700 border-blue-200 gap-1">
-					<ThumbsUp className="w-3 h-3" />
-					{t("goodMatch")} ({score}%)
-				</Badge>
-			);
-		case "reach":
-			return (
-				<Badge className="bg-orange-100 text-orange-700 border-orange-200 gap-1">
-					<TrendingUp className="w-3 h-3" />
-					{t("reach")} ({score}%)
-				</Badge>
-			);
-		case "unknown":
-			return (
-				<Badge className="bg-amber-100 text-amber-700 border-amber-200 gap-1">
-					<HelpCircle className="w-3 h-3" />
-					{t("insufficientData")}
-				</Badge>
-			);
-		default:
-			return null;
-	}
-}
-
 function getEnglishRequirement(
 	program: ProgramListItemResponse,
 ): EnglishRequirement {
@@ -124,26 +76,20 @@ function ProgramHeaderCell({ program }: { program: ProgramListItemResponse }) {
 	return (
 		<th className="p-4 text-left border-l border-border min-w-64">
 			<div className="space-y-3">
-				<div className="flex items-start justify-between gap-2">
-					<div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
-						{program.universityLogoUrl ? (
-							<Image
-								src={program.universityLogoUrl ?? ""}
-								alt={program.universityName ?? ""}
-								width={40}
-								height={40}
-								className="object-contain"
-							/>
-						) : (
-							<span className="text-sm font-bold text-primary">
-								{(program.universityName ?? "").charAt(0).toUpperCase()}
-							</span>
-						)}
-					</div>
-					<MatchBadge
-						fitCategory={program.fitCategory}
-						fitScore={program.fitScore}
-					/>
+				<div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+					{program.universityLogoUrl ? (
+						<Image
+							src={program.universityLogoUrl ?? ""}
+							alt={program.universityName ?? ""}
+							width={40}
+							height={40}
+							className="object-contain"
+						/>
+					) : (
+						<span className="text-sm font-bold text-primary">
+							{(program.universityName ?? "").charAt(0).toUpperCase()}
+						</span>
+					)}
 				</div>
 
 				<div>
@@ -312,33 +258,6 @@ function EnglishCell({ program }: { program: ProgramListItemResponse }) {
 	);
 }
 
-// AI-generated analysis from backend (future feature)
-function AnalysisCell({ program }: { program: ProgramListItemResponse }) {
-	const t = useTranslations("compare");
-	// Fit category-based simple insight
-	const getFitInsight = () => {
-		switch (program.fitCategory) {
-			case "safety":
-				return t("safeProgram");
-			case "target":
-				return t("targetProgram");
-			case "reach":
-				return t("reachProgram");
-			default:
-				return t("unknownProgram");
-		}
-	};
-
-	return (
-		<td className="p-4 border-l border-border align-top">
-			<div className="flex items-start gap-2 text-sm">
-				<Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-				<span className="text-muted-foreground">{getFitInsight()}</span>
-			</div>
-		</td>
-	);
-}
-
 function ActionsCell({
 	program,
 	onAddToDashboard,
@@ -476,23 +395,6 @@ export function CompareDialog({
 										<RowLabel icon={Languages} label={t("english")} />
 										{selectedProgramsList.map((program) => (
 											<EnglishCell key={program.id} program={program} />
-										))}
-									</tr>
-
-									<tr className="border-b border-border bg-blue-50/50">
-										<td className="p-4 align-top">
-											<div className="flex items-start gap-2 text-sm font-medium text-primary">
-												<Info className="w-4 h-4 mt-0.5" />
-												<div>
-													<p>{t("detailedAnalysis")}</p>
-													<p className="font-normal text-xs text-muted-foreground mt-1">
-														{t("compareYourProfile")}
-													</p>
-												</div>
-											</div>
-										</td>
-										{selectedProgramsList.map((program) => (
-											<AnalysisCell key={program.id} program={program} />
 										))}
 									</tr>
 

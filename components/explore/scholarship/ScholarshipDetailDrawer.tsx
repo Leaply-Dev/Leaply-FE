@@ -40,8 +40,10 @@ import type {
 	GpaGap,
 	ScholarshipDetailResponse,
 } from "@/lib/generated/api/models";
+import { formatSnakeCaseLabel } from "@/lib/utils";
 import type { Locale } from "@/lib/utils/displayFormatters";
 import {
+	formatCountryName,
 	formatCoverageAmount,
 	formatCoverageDurationI18n,
 	formatCoverageTypeI18n,
@@ -416,8 +418,9 @@ export function ScholarshipDetailDrawer({
 													<div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">
 														<MapPin className="w-3.5 h-3.5" />
 														<span>
-															{scholarship.universityCity},{" "}
-															{scholarship.universityCountry}
+															{formatSnakeCaseLabel(scholarship.universityCity)}
+															,{" "}
+															{formatCountryName(scholarship.universityCountry)}
 														</span>
 													</div>
 												)}
@@ -547,7 +550,7 @@ export function ScholarshipDetailDrawer({
 																variant="secondary"
 																className="text-xs"
 															>
-																{field}
+																{formatSnakeCaseLabel(field)}
 															</Badge>
 														))}
 													</div>
@@ -583,7 +586,9 @@ export function ScholarshipDetailDrawer({
 													<p className="text-sm text-muted-foreground">
 														{scholarship.nationalityEligible.includes("all")
 															? t("allNationalities")
-															: scholarship.nationalityEligible.join(", ")}
+															: scholarship.nationalityEligible
+																	.map((c) => formatCountryName(c))
+																	.join(", ")}
 													</p>
 												</div>
 											)}

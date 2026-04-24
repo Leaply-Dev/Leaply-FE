@@ -4,17 +4,12 @@ import {
 	AlertTriangle,
 	Award,
 	Calendar,
-	CheckCircle2,
 	DollarSign,
 	FileText,
 	GraduationCap,
-	HelpCircle,
-	Info,
 	Languages,
 	MapPin,
 	Plus,
-	ThumbsUp,
-	TrendingUp,
 } from "lucide-react";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
@@ -29,8 +24,10 @@ import {
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ScholarshipListItemResponse } from "@/lib/generated/api/models";
+import { formatSnakeCaseLabel } from "@/lib/utils";
 import type { Locale } from "@/lib/utils/displayFormatters";
 import {
+	formatCountryName,
 	formatCoverageAmount,
 	formatCoverageDurationI18n,
 	formatCoverageTypeI18n,
@@ -52,91 +49,28 @@ interface ScholarshipCompareDialogProps {
 }
 
 // ============================================================================
-// Helper Components (need translations passed in)
-// ============================================================================
-
-function getMatchBadge(
-	fitCategory: string | undefined,
-	fitScore: number | undefined,
-	labels: {
-		strongFit: string;
-		goodFit: string;
-		competitive: string;
-		incompleteData: string;
-	},
-) {
-	const score = fitScore ?? 0;
-	switch (fitCategory) {
-		case "safety":
-			return (
-				<Badge className="bg-green-100 text-green-700 border-green-200 gap-1">
-					<CheckCircle2 className="w-3 h-3" />
-					{labels.strongFit} ({score}%)
-				</Badge>
-			);
-		case "target":
-			return (
-				<Badge className="bg-blue-100 text-blue-700 border-blue-200 gap-1">
-					<ThumbsUp className="w-3 h-3" />
-					{labels.goodFit} ({score}%)
-				</Badge>
-			);
-		case "reach":
-			return (
-				<Badge className="bg-orange-100 text-orange-700 border-orange-200 gap-1">
-					<TrendingUp className="w-3 h-3" />
-					{labels.competitive} ({score}%)
-				</Badge>
-			);
-		case "unknown":
-			return (
-				<Badge className="bg-amber-100 text-amber-700 border-amber-200 gap-1">
-					<HelpCircle className="w-3 h-3" />
-					{labels.incompleteData}
-				</Badge>
-			);
-		default:
-			return null;
-	}
-}
-
-// ============================================================================
 // Sub-Components
 // ============================================================================
 
 function ScholarshipHeaderCell({
 	scholarship,
-	matchLabels,
 }: {
 	scholarship: ScholarshipListItemResponse;
-	matchLabels: {
-		strongFit: string;
-		goodFit: string;
-		competitive: string;
-		incompleteData: string;
-	};
 }) {
 	return (
 		<th className="p-4 text-left border-l border-border min-w-64">
 			<div className="space-y-3">
-				<div className="flex items-start justify-between gap-2">
-					<div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
-						{scholarship.universityLogoUrl ? (
-							<Image
-								src={scholarship.universityLogoUrl}
-								alt={scholarship.universityName || scholarship.sourceName || ""}
-								width={40}
-								height={40}
-								className="object-contain"
-							/>
-						) : (
-							<Award className="w-5 h-5 text-primary" />
-						)}
-					</div>
-					{getMatchBadge(
-						scholarship.fitCategory,
-						scholarship.fitScore,
-						matchLabels,
+				<div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+					{scholarship.universityLogoUrl ? (
+						<Image
+							src={scholarship.universityLogoUrl}
+							alt={scholarship.universityName || scholarship.sourceName || ""}
+							width={40}
+							height={40}
+							className="object-contain"
+						/>
+					) : (
+						<Award className="w-5 h-5 text-primary" />
 					)}
 				</div>
 
@@ -153,8 +87,8 @@ function ScholarshipHeaderCell({
 					<div className="flex items-center gap-1 text-sm text-muted-foreground">
 						<MapPin className="w-3.5 h-3.5" />
 						{scholarship.universityCity
-							? `${scholarship.universityCity}, ${scholarship.universityCountry}`
-							: scholarship.universityCountry}
+							? `${formatSnakeCaseLabel(scholarship.universityCity)}, ${formatCountryName(scholarship.universityCountry)}`
+							: formatCountryName(scholarship.universityCountry)}
 					</div>
 				)}
 			</div>
@@ -184,11 +118,23 @@ function CoverageCell({
 		return formatCoverageTypeI18n(scholarship.coverageType, locale);
 	};
 
+	const primaryCoverage = getCoverageDisplay();
+	const isFullFunded =
+		scholarship.coverageType?.toLowerCase() === "full_funded";
+	const coverageTypeLine = scholarship.coverageType
+		? formatCoverageTypeI18n(scholarship.coverageType, locale)
+		: "";
+	// Avoid "Toàn phần" + green badge "Toàn phần" when the headline is already the type label.
+	const primaryAlreadyShowsCoverageType =
+		coverageTypeLine.length > 0 &&
+		primaryCoverage.trim().toLowerCase() ===
+			coverageTypeLine.trim().toLowerCase();
+
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<div className="space-y-1">
-				<p className="font-semibold text-foreground">{getCoverageDisplay()}</p>
-				{scholarship.coverageType?.toLowerCase() === "full_funded" && (
+				<p className="font-semibold text-foreground">{primaryCoverage}</p>
+				{isFullFunded && !primaryAlreadyShowsCoverageType && (
 					<Badge className="bg-green-100 text-green-700 border-0 text-xs">
 						{fullFundedLabel}
 					</Badge>
@@ -263,15 +209,18 @@ function FieldsCell({
 	nMoreLabel: (n: number) => string;
 	allFieldsLabel: string;
 }) {
+	const formatFieldList = (fields: string[]) =>
+		fields.map((f) => formatSnakeCaseLabel(f)).join(", ");
+
 	return (
 		<td className="p-4 border-l border-border align-top">
 			{scholarship.eligibleFields && scholarship.eligibleFields.length > 0 ? (
 				<div className="text-sm">
 					{scholarship.eligibleFields.length <= 3 ? (
-						scholarship.eligibleFields.join(", ")
+						formatFieldList(scholarship.eligibleFields)
 					) : (
 						<>
-							{scholarship.eligibleFields.slice(0, 2).join(", ")}
+							{formatFieldList(scholarship.eligibleFields.slice(0, 2))}
 							<span className="text-muted-foreground">
 								{" "}
 								{nMoreLabel(scholarship.eligibleFields.length - 2)}
@@ -358,25 +307,6 @@ function EnglishCell({
 	);
 }
 
-function AnalysisCell({
-	scholarship,
-	analysisFn,
-}: {
-	scholarship: ScholarshipListItemResponse;
-	analysisFn: (cat?: string) => string;
-}) {
-	return (
-		<td className="p-4 border-l border-border align-top">
-			<div className="flex items-start gap-2 text-sm">
-				<Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-				<span className="text-muted-foreground">
-					{analysisFn(scholarship.fitCategory)}
-				</span>
-			</div>
-		</td>
-	);
-}
-
 function ActionsCell({
 	scholarship,
 	onAddToDashboard,
@@ -445,26 +375,6 @@ export function ScholarshipCompareDialog({
 	const t = useTranslations("compare");
 	const locale = useLocale() as Locale;
 
-	const matchLabels = {
-		strongFit: t("strongFitLabel"),
-		goodFit: t("goodFitLabel"),
-		competitive: t("competitiveLabel"),
-		incompleteData: t("incompleteDataLabel"),
-	};
-
-	const getFitAnalysis = (cat?: string) => {
-		switch (cat) {
-			case "safety":
-				return t("strongFitAnalysis");
-			case "target":
-				return t("goodFitAnalysis");
-			case "reach":
-				return t("reachAnalysis");
-			default:
-				return t("unknownAnalysis");
-		}
-	};
-
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange}>
 			<DrawerContent className="max-h-[90vh] p-0 gap-0 overflow-hidden">
@@ -488,7 +398,6 @@ export function ScholarshipCompareDialog({
 											<ScholarshipHeaderCell
 												key={scholarship.id}
 												scholarship={scholarship}
-												matchLabels={matchLabels}
 											/>
 										))}
 									</tr>
@@ -584,28 +493,6 @@ export function ScholarshipCompareDialog({
 												key={scholarship.id}
 												scholarship={scholarship}
 												notSpecifiedLabel={t("notSpecified")}
-											/>
-										))}
-									</tr>
-
-									{/* Fit Analysis Row */}
-									<tr className="border-b border-border bg-blue-50/50 dark:bg-blue-950/20">
-										<td className="p-4 align-top">
-											<div className="flex items-start gap-2 text-sm font-medium text-primary">
-												<Info className="w-4 h-4 mt-0.5" />
-												<div>
-													<p>{t("fitAnalysis")}</p>
-													<p className="font-normal text-xs text-muted-foreground mt-1">
-														{t("basedOnYourProfile")}
-													</p>
-												</div>
-											</div>
-										</td>
-										{selectedScholarshipsList.map((scholarship) => (
-											<AnalysisCell
-												key={scholarship.id}
-												scholarship={scholarship}
-												analysisFn={getFitAnalysis}
 											/>
 										))}
 									</tr>

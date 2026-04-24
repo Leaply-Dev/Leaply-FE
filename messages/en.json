@@ -550,8 +550,8 @@
 	"explore": {
 		"title": "Discover Your Perfect Match",
 		"heroTitle": "Find your dream",
-		"heroProgram": "Program",
-		"heroScholarship": "Scholarship",
+		"heroProgram": "program",
+		"heroScholarship": "scholarship",
 		"filters": {
 			"loading": "Loading...",
 			"showingResults": "Showing {count} of {total} results",

@@ -119,7 +119,9 @@ function ExplorePageSkeleton() {
 }
 
 function FlippingWord({ activeTab }: { activeTab: string }) {
-	const word = activeTab === "scholarships" ? "học bổng" : "chương trình";
+	const t = useTranslations("explore");
+	const word =
+		activeTab === "scholarships" ? t("heroScholarship") : t("heroProgram");
 
 	return (
 		<span className="inline-block bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent leading-[1.15] pb-1">

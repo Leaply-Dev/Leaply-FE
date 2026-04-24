@@ -17,3 +17,9 @@ export function formatTagLabel(tag: string): string {
 		})
 		.join(" ");
 }
+
+/** Only rewrite snake_case; leave values like "Boston, MA" or "USA" unchanged. */
+export function formatSnakeCaseLabel(value: string): string {
+	if (!value || !value.includes("_")) return value;
+	return formatTagLabel(value);
+}
