@@ -21,9 +21,9 @@ type ApiResponse<T> = {
 type Wrapped<T> = { data: ApiResponse<T>; status: number; headers: Headers };
 
 // === Query keys ===
-const getTierProgressQueryKey = () =>
+export const getTierProgressQueryKey = () =>
 	["/v1/persona/tier-progress"] as const;
-const getPillarCoverageQueryKey = () =>
+export const getPillarCoverageQueryKey = () =>
 	["/v1/persona/pillar-coverage"] as const;
 
 // === Raw fetchers ===

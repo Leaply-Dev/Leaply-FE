@@ -25,7 +25,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import {
 	type AngleDto,
 	useArchetypeMotifSuggestions,
@@ -62,6 +68,7 @@ import { cn } from "@/lib/utils";
 import { ArchetypeBadge } from "./sop/ArchetypeBadge";
 
 type TargetKind = "program" | "scholarship";
+type TargetFilter = "all" | TargetKind;
 
 interface SelectedTarget {
 	kind: TargetKind;
@@ -145,7 +152,7 @@ export function NewEssayWorkspace({
 	const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
 	// Step 1 State
-	const [kind, setKind] = useState<TargetKind>("program");
+	const [filter, setFilter] = useState<TargetFilter>("all");
 	const [searchQuery, setSearchQuery] = useState("");
 	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [selectedTarget, setSelectedTarget] = useState<SelectedTarget | null>(
@@ -203,7 +210,7 @@ export function NewEssayWorkspace({
 		);
 		if (scholarship?.id) {
 			didPrefillRef.current = true;
-			setKind("scholarship");
+			setFilter("scholarship");
 			setSelectedTarget({
 				kind: "scholarship",
 				id: scholarship.id,
@@ -258,34 +265,25 @@ export function NewEssayWorkspace({
 		setSelectedAngleId(null);
 	};
 
-	// Clear selection when switching target type
-	const handleKindChange = (next: TargetKind) => {
-		if (next === kind) return;
-		setKind(next);
-		setSelectedTarget(null);
-		setSearchQuery("");
-		setDebouncedSearch("");
-		resetApplicationState();
-	};
-
-	const searchEnabled =
-		!selectedTarget && debouncedSearch.length >= MIN_SEARCH_CHARS;
+	const searchEnabled = !selectedTarget;
+	const searchKeyword =
+		debouncedSearch.length >= MIN_SEARCH_CHARS ? debouncedSearch : undefined;
 
 	const programsQuery = useListPrograms(
-		{ search: debouncedSearch, size: PAGE_SIZE, page: 1 },
+		{ search: searchKeyword, size: PAGE_SIZE, page: 1 },
 		{
 			query: {
-				enabled: searchEnabled && kind === "program",
+				enabled: searchEnabled,
 				staleTime: 30_000,
 			},
 		},
 	);
 
 	const scholarshipsQuery = useListScholarships(
-		{ search: debouncedSearch, size: PAGE_SIZE, page: 1 },
+		{ search: searchKeyword, size: PAGE_SIZE, page: 1 },
 		{
 			query: {
-				enabled: searchEnabled && kind === "scholarship",
+				enabled: searchEnabled,
 				staleTime: 30_000,
 			},
 		},
@@ -299,10 +297,7 @@ export function NewEssayWorkspace({
 			scholarshipsQuery.data,
 		)?.data ?? [];
 
-	const isSearching =
-		kind === "program"
-			? programsQuery.isFetching
-			: scholarshipsQuery.isFetching;
+	const isSearching = programsQuery.isFetching || scholarshipsQuery.isFetching;
 
 	const { mutateAsync: createProgramApp } = useCreateApplication1();
 	const { mutateAsync: createScholarshipApp } = useCreateApplication();
@@ -445,28 +440,6 @@ export function NewEssayWorkspace({
 						<div className="space-y-6">
 							<div className="space-y-2">
 								<Label className="text-sm font-medium">
-									{tDialog("targetTypeLabel")}
-								</Label>
-								<ToggleGroup
-									type="single"
-									value={kind}
-									onValueChange={(v) => v && handleKindChange(v as TargetKind)}
-									variant="outline"
-									className="w-full"
-								>
-									<ToggleGroupItem value="program" className="flex-1 gap-2">
-										<GraduationCap className="w-4 h-4" />
-										{tDialog("targetType.program")}
-									</ToggleGroupItem>
-									<ToggleGroupItem value="scholarship" className="flex-1 gap-2">
-										<Award className="w-4 h-4" />
-										{tDialog("targetType.scholarship")}
-									</ToggleGroupItem>
-								</ToggleGroup>
-							</div>
-
-							<div className="space-y-2">
-								<Label className="text-sm font-medium">
 									{tDialog("searchLabel")}
 								</Label>
 								{selectedTarget ? (
@@ -481,27 +454,46 @@ export function NewEssayWorkspace({
 									/>
 								) : (
 									<>
-										<div className="relative">
-											<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-											<Input
-												autoFocus
-												value={searchQuery}
-												onChange={(e) => setSearchQuery(e.target.value)}
-												placeholder={
-													kind === "program"
-														? tDialog("searchProgramPlaceholder")
-														: tDialog("searchScholarshipPlaceholder")
-												}
-												className="pl-9"
-											/>
+										<div className="flex gap-2">
+											<div className="relative flex-1">
+												<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+												<Input
+													autoFocus
+													value={searchQuery}
+													onChange={(e) => setSearchQuery(e.target.value)}
+													placeholder={tDialog("searchTargetPlaceholder")}
+													className="pl-9"
+												/>
+											</div>
+											<Select
+												value={filter}
+												onValueChange={(v) => setFilter(v as TargetFilter)}
+											>
+												<SelectTrigger className="w-[160px]">
+													<SelectValue placeholder={tDialog("targetTypeLabel")} />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="all">
+														{tDialog("targetType.all")}
+													</SelectItem>
+													<SelectItem value="program">
+														{tDialog("targetType.program")}
+													</SelectItem>
+													<SelectItem value="scholarship">
+														{tDialog("targetType.scholarship")}
+													</SelectItem>
+												</SelectContent>
+											</Select>
 										</div>
 										<SearchResults
-											kind={kind}
+											filter={filter}
 											debouncedSearch={debouncedSearch}
 											isLoading={isSearching}
 											programs={programList}
 											scholarships={scholarshipList}
 											onSelect={setSelectedTarget}
+											programLabel={tDialog("targetType.program")}
+											scholarshipLabel={tDialog("targetType.scholarship")}
 											hintMsg={tDialog("searchHint")}
 											emptyMsg={tDialog("searchEmpty")}
 										/>
@@ -510,10 +502,8 @@ export function NewEssayWorkspace({
 							</div>
 
 							<div className="flex flex-col gap-3">
-								<Label htmlFor="essay-word-limit" className="text-sm">
-									{tDialog("wordLimitLabel")}
-								</Label>
-								<div className="flex items-center gap-3">
+								<div className="flex items-center gap-2 text-sm">
+									<span>{tDialog("wordLimitInlinePrefix")}</span>
 									<Input
 										id="essay-word-limit"
 										type="number"
@@ -522,11 +512,9 @@ export function NewEssayWorkspace({
 										value={wordLimit}
 										onChange={(e) => setWordLimit(e.target.value)}
 										placeholder={tDialog("wordLimitPlaceholder")}
-										className="w-28"
+										className="w-24"
 									/>
-									<span className="text-xs text-muted-foreground">
-										{tDialog("wordLimitSuffix")}
-									</span>
+									<span>{tDialog("wordLimitInlineSuffix")}</span>
 								</div>
 							</div>
 
@@ -1037,28 +1025,28 @@ function AngleCard({
 }
 
 function SearchResults({
-	kind,
+	filter,
 	debouncedSearch,
 	isLoading,
 	programs,
 	scholarships,
 	onSelect,
+	programLabel,
+	scholarshipLabel,
 	hintMsg,
 	emptyMsg,
 }: {
-	kind: TargetKind;
+	filter: TargetFilter;
 	debouncedSearch: string;
 	isLoading: boolean;
 	programs: ProgramListItemResponse[];
 	scholarships: ScholarshipListItemResponse[];
 	onSelect: (item: SelectedTarget) => void;
+	programLabel: string;
+	scholarshipLabel: string;
 	hintMsg: string;
 	emptyMsg: string;
 }) {
-	if (debouncedSearch.length < MIN_SEARCH_CHARS)
-		return (
-			<div className="text-xs text-muted-foreground px-1 py-3">{hintMsg}</div>
-		);
 	if (isLoading)
 		return (
 			<div className="space-y-2">
@@ -1068,35 +1056,38 @@ function SearchResults({
 			</div>
 		);
 
-	const items =
-		kind === "program"
-			? programs
-					.filter((p) => !!p.id)
-					.map((p) => ({
-						kind: "program" as const,
-						id: p.id ?? "",
-						name: p.displayName || p.programName || "",
-						subtitle: [p.universityName, p.universityCountry]
-							.filter(Boolean)
-							.join(" • "),
-						logoUrl: p.universityLogoUrl,
-					}))
-			: scholarships
-					.filter((s) => !!s.id)
-					.map((s) => ({
-						kind: "scholarship" as const,
-						id: s.id ?? "",
-						name: s.name || "",
-						subtitle:
-							[s.sourceName, s.universityCountry].filter(Boolean).join(" • ") ||
-							s.sourceName ||
-							"",
-						logoUrl: s.universityLogoUrl,
-					}));
+	const programItems = programs
+		.filter((p) => !!p.id)
+		.map((p) => ({
+			kind: "program" as const,
+			id: p.id ?? "",
+			name: p.displayName || p.programName || "",
+			subtitle: [p.universityName, p.universityCountry].filter(Boolean).join(" • "),
+			logoUrl: p.universityLogoUrl,
+		}));
+
+	const scholarshipItems = scholarships
+		.filter((s) => !!s.id)
+		.map((s) => ({
+			kind: "scholarship" as const,
+			id: s.id ?? "",
+			name: s.name || "",
+			subtitle:
+				[s.sourceName, s.universityCountry].filter(Boolean).join(" • ") ||
+				s.sourceName ||
+				"",
+			logoUrl: s.universityLogoUrl,
+		}));
+
+	const items = [...programItems, ...scholarshipItems].filter(
+		(item) => filter === "all" || item.kind === filter,
+	);
 
 	if (items.length === 0)
 		return (
-			<div className="text-xs text-muted-foreground px-1 py-3">{emptyMsg}</div>
+			<div className="text-xs text-muted-foreground px-1 py-3">
+				{debouncedSearch.length < MIN_SEARCH_CHARS ? hintMsg : emptyMsg}
+			</div>
 		);
 
 	return (
@@ -1124,7 +1115,12 @@ function SearchResults({
 							)}
 						</div>
 						<div className="min-w-0 flex-1">
-							<div className="text-sm font-medium truncate">{item.name}</div>
+							<div className="flex items-center gap-2">
+								<div className="text-sm font-medium truncate">{item.name}</div>
+								<span className="shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] text-muted-foreground">
+									{item.kind === "program" ? programLabel : scholarshipLabel}
+								</span>
+							</div>
 							<div className="text-xs text-muted-foreground truncate">
 								{item.subtitle}
 							</div>

@@ -428,7 +428,9 @@ export function useArchetypeMotifSuggestions() {
 			const response = await customFetch<{
 				data: { data: ArchetypeMotifSuggestionResponse | null };
 			}>("/v1/persona/archetype/motif-suggestions");
-			return response.data.data;
+			// React Query requires query functions to never resolve `undefined`.
+			// Backend may return an empty envelope when suggestions are unavailable.
+			return response?.data?.data ?? null;
 		},
 		retry: false,
 	});

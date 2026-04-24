@@ -403,9 +403,11 @@
       "next": "Next",
       "targetTypeLabel": "Target type",
       "targetType": {
+        "all": "All",
         "program": "Program",
         "scholarship": "Scholarship"
       },
+      "searchTargetPlaceholder": "Search programs or scholarships...",
       "searchLabel": "Search target",
       "searchProgramPlaceholder": "Search programs by name or university...",
       "searchScholarshipPlaceholder": "Search scholarships by name or sponsor...",
@@ -419,6 +421,8 @@
       "wordLimitLabel": "Word limit",
       "wordLimitPlaceholder": "500",
       "wordLimitSuffix": "words",
+      "wordLimitInlinePrefix": "My essay has a maximum of",
+      "wordLimitInlineSuffix": "words.",
       "cancel": "Cancel",
       "submit": "Create essay",
       "submitting": "Creating...",
@@ -745,6 +749,7 @@
     "confirmReset": "Yes, reset",
     "conversationComplete": "Conversation complete! Your persona is ready.",
     "conversationCompleteNote": "Continue exploring yourself in future updates.",
+    "goToEssayAssistant": "Go to Essay Assistant \u2192",
     "archetypeRevealed": "Archetype revealed!",
     "archetypeRevealedDesc": "Your persona profile is complete.",
     "goToApplications": "Continue to Essays",

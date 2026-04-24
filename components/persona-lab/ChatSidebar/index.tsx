@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
 import {
+	getPillarCoverageQueryKey,
+	getTierProgressQueryKey,
 	useGetPillarCoverage,
 	useGetTierProgress,
 } from "@/lib/api/personaLab/hooks";
@@ -264,6 +266,12 @@ export function ChatSidebar() {
 							queryClient.refetchQueries({
 								queryKey: getGetGraphQueryKey(),
 							});
+							queryClient.refetchQueries({
+								queryKey: getTierProgressQueryKey(),
+							});
+							queryClient.refetchQueries({
+								queryKey: getPillarCoverageQueryKey(),
+							});
 						}, 2500);
 
 						if (graphData?.completionReady) {
@@ -303,6 +311,12 @@ export function ChatSidebar() {
 						});
 						queryClient.invalidateQueries({
 							queryKey: getGetPersonaStateQueryKey(),
+						});
+						queryClient.invalidateQueries({
+							queryKey: getTierProgressQueryKey(),
+						});
+						queryClient.invalidateQueries({
+							queryKey: getPillarCoverageQueryKey(),
 						});
 						queryClient.refetchQueries({
 							queryKey: getGetGraphQueryKey(),
@@ -507,6 +521,8 @@ export function ChatSidebar() {
 						onSend={handleSendMessage}
 						disabled={true}
 						completionMessage={t("conversationCompleteNote")}
+						completionCtaLabel={t("goToEssayAssistant")}
+						completionCtaHref="/dashboard/applications"
 					/>
 				) : !hasSentFirstReply ? (
 					<GreetingReplyOption

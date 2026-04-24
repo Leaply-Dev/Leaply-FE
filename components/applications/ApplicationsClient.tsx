@@ -136,10 +136,8 @@ export function ApplicationsClient() {
 			programmaticNavRef.current = true;
 			if (kind === "program") {
 				setSelectedApplicationId(id);
-				setSelectedScholarshipId(null);
 			} else {
 				setSelectedScholarshipId(id);
-				setSelectedApplicationId(null);
 			}
 			updateUrl(kind, id);
 		},
@@ -161,25 +159,21 @@ export function ApplicationsClient() {
 			if (urlTab === "scholarships") {
 				if (selectedScholarshipId !== "new") {
 					setSelectedScholarshipId("new");
-					setSelectedApplicationId(null);
 				}
 			} else if (selectedApplicationId !== "new") {
 				setSelectedApplicationId("new");
-				setSelectedScholarshipId(null);
 			}
 			return;
 		}
 		if (applications.find((app) => app.id === urlApplicationId)) {
 			if (selectedApplicationId !== urlApplicationId) {
 				setSelectedApplicationId(urlApplicationId);
-				setSelectedScholarshipId(null);
 			}
 			return;
 		}
 		if (scholarshipApplications.find((app) => app.id === urlApplicationId)) {
 			if (selectedScholarshipId !== urlApplicationId) {
 				setSelectedScholarshipId(urlApplicationId);
-				setSelectedApplicationId(null);
 			}
 		}
 	}, [

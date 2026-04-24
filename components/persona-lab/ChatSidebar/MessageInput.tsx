@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowUp, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,8 @@ interface MessageInputProps {
 	 * Used when all parts are complete and archetype is revealed.
 	 */
 	completionMessage?: string;
+	completionCtaLabel?: string;
+	completionCtaHref?: string;
 }
 
 export function MessageInput({
@@ -26,6 +29,8 @@ export function MessageInput({
 	disabled = false,
 	placeholder,
 	completionMessage,
+	completionCtaLabel,
+	completionCtaHref,
 }: MessageInputProps) {
 	const t = useTranslations("personaLab");
 	const defaultPlaceholder = placeholder ?? t("shareYourStory");
@@ -79,11 +84,16 @@ export function MessageInput({
 	if (completionMessage) {
 		return (
 			<div className="p-4 border-t border-border shrink-0">
-				<div className="flex items-center justify-center gap-2 bg-muted/30 p-4 rounded-xl border border-border text-center">
+				<div className="flex flex-col items-center justify-center gap-3 bg-muted/30 p-4 rounded-xl border border-border text-center">
 					<Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
 					<span className="text-sm text-muted-foreground">
 						{completionMessage}
 					</span>
+					{completionCtaLabel && completionCtaHref ? (
+						<Button asChild size="sm" className="h-8 px-3 text-xs">
+							<Link href={completionCtaHref}>{completionCtaLabel}</Link>
+						</Button>
+					) : null}
 				</div>
 			</div>
 		);

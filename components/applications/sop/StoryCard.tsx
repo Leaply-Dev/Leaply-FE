@@ -54,6 +54,7 @@ export function StoryCard({ node, onCopy }: StoryCardProps) {
 
 	const displayTitle = node.title || (isVietnamese ? "Câu chuyện" : "Story");
 	const displayContent = node.content || "";
+	const isLongContent = displayContent.length > 500;
 
 	return (
 		<div className="rounded-lg border bg-card overflow-hidden">
@@ -123,7 +124,11 @@ export function StoryCard({ node, onCopy }: StoryCardProps) {
 			{/* Expanded content */}
 			{expanded && (
 				<div className="px-3 pb-3 space-y-2">
-					<p className="text-xs text-muted-foreground leading-relaxed line-clamp-6">
+					<p
+						className={`text-xs text-muted-foreground leading-relaxed ${
+							isLongContent ? "max-h-44 overflow-y-auto pr-1" : ""
+						}`}
+					>
 						{displayContent}
 					</p>
 					<Button
