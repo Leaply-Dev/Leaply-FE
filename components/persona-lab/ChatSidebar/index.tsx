@@ -1,30 +1,11 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
-import { RotateCcw } from "lucide-react";
+import { useIsMutating, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import posthog from "posthog-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Toggle } from "@/components/ui/toggle";
 import {
 	getPillarCoverageQueryKey,
 	getTierProgressQueryKey,
@@ -47,9 +28,7 @@ import {
 	getGetCoverageQueryKey,
 	getGetGraphQueryKey,
 	getGetPersonaStateQueryKey,
-	getStartConversationQueryKey,
 	useGenerateArchetype,
-	useResetConversation,
 	useSendGraphMessage,
 	useStartConversation,
 } from "@/lib/hooks/persona";
@@ -59,9 +38,7 @@ import {
 	type ConversationMessage,
 	selectApiGraphNodes,
 	selectCurrentTier,
-	selectNextQuestionIntent,
 	selectPillarCoverage,
-	selectTierProgress,
 	selectUnlockedMilestones,
 	usePersonaStore,
 } from "@/lib/store/personaStore";
@@ -74,7 +51,6 @@ export function ChatSidebar() {
 	const t = useTranslations("personaLab");
 	const queryClient = useQueryClient();
 	const scrollRef = useRef<HTMLDivElement>(null);
-	const [showResetDialog, setShowResetDialog] = useState(false);
 	const [thinkingStartTime, setThinkingStartTime] = useState<number | null>(
 		null,
 	);
@@ -88,16 +64,11 @@ export function ChatSidebar() {
 	const updateMessageStatus = usePersonaStore(
 		(state) => state.updateMessageStatus,
 	);
-	const clearGraphMessages = usePersonaStore(
-		(state) => state.clearGraphMessages,
-	);
 
 	const processGraphUpdate = usePersonaStore(
 		(state) => state.processGraphUpdate,
 	);
-	const clearApiGraph = usePersonaStore((state) => state.clearApiGraph);
 
-	const tierProgress = usePersonaStore(selectTierProgress);
 	const pillarCoverage = usePersonaStore(selectPillarCoverage);
 	const setTierProgress = usePersonaStore((state) => state.setTierProgress);
 	const setPillarCoverage = usePersonaStore((state) => state.setPillarCoverage);
@@ -106,13 +77,7 @@ export function ChatSidebar() {
 	const completionReady = usePersonaStore((state) => state.completionReady);
 
 	const currentTier = usePersonaStore(selectCurrentTier);
-	const nextQuestionIntent = usePersonaStore(selectNextQuestionIntent);
 	const unlockedMilestones = usePersonaStore(selectUnlockedMilestones);
-
-	const mockMode = usePersonaStore((state) => state.mockMode);
-	const mockScenario = usePersonaStore((state) => state.mockScenario);
-	const setMockMode = usePersonaStore((state) => state.setMockMode);
-	const setMockScenario = usePersonaStore((state) => state.setMockScenario);
 
 	const isHydrated = useIsHydrated();
 
@@ -149,12 +114,13 @@ export function ChatSidebar() {
 	const showGreeting = isHydrated && messages.length === 0;
 
 	const sendMessageMutation = useSendGraphMessage();
-	const resetMutation = useResetConversation();
 	const generateArchetypeMutation = useGenerateArchetype();
 	const { refetch: triggerStartConversation, isFetching: isStarting } =
 		useStartConversation({
 			query: { enabled: false, staleTime: Number.POSITIVE_INFINITY },
 		});
+	const resetInFlight =
+		useIsMutating({ mutationKey: ["resetConversation"] }) > 0;
 
 	const apiGraphNodes = usePersonaStore(selectApiGraphNodes);
 	const storyNodeCount = apiGraphNodes.filter(
@@ -383,37 +349,17 @@ export function ChatSidebar() {
 		[triggerStartConversation, addGraphMessage, queryClient],
 	);
 
-	const handleReset = useCallback(() => {
-		setShowResetDialog(false);
-		resetMutation.mutate(undefined, {
-			onSuccess: () => {
-				clearGraphMessages();
-				clearApiGraph();
-				// Remove persona state cache entirely so the stale cached messages
-				// can't be replayed into the store by the PersonaStateSync effect
-				// (which re-fires when coverage/graph invalidations settle).
-				queryClient.removeQueries({ queryKey: getGetPersonaStateQueryKey() });
-				queryClient.invalidateQueries({ queryKey: getGetCoverageQueryKey() });
-				queryClient.invalidateQueries({
-					queryKey: getStartConversationQueryKey(),
-				});
-			},
-		});
-	}, [resetMutation, clearApiGraph, clearGraphMessages, queryClient]);
-
 	const isSending =
-		sendMessageMutation.isPending || resetMutation.isPending || isStarting;
+		sendMessageMutation.isPending || resetInFlight || isStarting;
 	const error = sendMessageMutation.error?.message;
 
 	if (!isHydrated) {
 		return (
 			<div className="flex flex-col h-full">
 				<ChatHeader
-					tierProgress={tierProgress}
 					pillarCoverage={pillarCoverage}
 					completionReady={false}
 					currentTier={currentTier}
-					nextQuestionIntent={nextQuestionIntent}
 					unlockedMilestones={unlockedMilestones}
 				/>
 				<div className="flex-1 min-h-0 p-4 space-y-4">
@@ -428,85 +374,11 @@ export function ChatSidebar() {
 	return (
 		<div className="flex flex-col h-full min-h-0 overflow-hidden">
 			<ChatHeader
-				tierProgress={tierProgress}
 				pillarCoverage={pillarCoverage}
-				storyNodeCount={storyNodeCount}
 				completionReady={completionReady}
 				currentTier={currentTier}
-				nextQuestionIntent={nextQuestionIntent}
 				unlockedMilestones={unlockedMilestones}
 			/>
-
-			{process.env.NODE_ENV === "development" && (
-				<div className="border-b bg-muted/50 p-2">
-					<div className="flex items-center justify-between gap-3">
-						<div className="flex items-center gap-2">
-							<Toggle
-								pressed={mockMode}
-								onPressedChange={(pressed) => {
-									setMockMode(pressed);
-									if (!pressed) {
-										clearApiGraph();
-										clearGraphMessages();
-									}
-								}}
-								size="sm"
-								className="h-7"
-							>
-								Mock mode
-							</Toggle>
-						</div>
-						{mockMode && (
-							<Select value={mockScenario} onValueChange={setMockScenario}>
-								<SelectTrigger className="h-7 w-35 text-xs">
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="fresh-start">Fresh Start</SelectItem>
-									<SelectItem value="building-momentum">Building</SelectItem>
-									<SelectItem value="tension-discovery">Tensions</SelectItem>
-									<SelectItem value="completion-ready">Complete</SelectItem>
-								</SelectContent>
-							</Select>
-						)}
-					</div>
-				</div>
-			)}
-
-			<div className="px-3 py-2 border-b border-border flex justify-end">
-				<Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-					<DialogTrigger asChild>
-						<Button
-							variant="ghost"
-							size="sm"
-							className="text-xs text-muted-foreground hover:text-foreground"
-							disabled={isSending}
-						>
-							<RotateCcw className="w-3 h-3 mr-1" />
-							{t("resetData")}
-						</Button>
-					</DialogTrigger>
-					<DialogContent>
-						<DialogHeader>
-							<DialogTitle>{t("resetConfirmTitle")}</DialogTitle>
-							<DialogDescription>
-								{t("resetConfirmDescription")}
-							</DialogDescription>
-						</DialogHeader>
-						<DialogFooter>
-							<Button
-								variant="outline"
-								onClick={() => setShowResetDialog(false)}
-							>
-								{t("cancel")}
-							</Button>
-							<Button variant="destructive" onClick={handleReset}>
-								{t("confirmReset")}
-							</Button>
-						</DialogFooter>
-					</DialogContent>
-				</Dialog>
-			</div>
 
 			<ScrollArea className="flex-1 p-3" type="always">
 				<div className="space-y-3">

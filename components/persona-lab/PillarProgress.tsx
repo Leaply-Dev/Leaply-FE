@@ -11,7 +11,6 @@ import {
 import type {
 	PillarCoverageDto,
 	SubDimension,
-	TierProgressDto,
 } from "@/lib/api/personaLab/types";
 import {
 	averageCoverage,
@@ -23,19 +22,13 @@ import {
 import { cn } from "@/lib/utils";
 
 interface PillarProgressProps {
-	tierProgress: TierProgressDto | null | undefined;
 	pillarCoverage: PillarCoverageDto | null | undefined;
 }
 
-export function PillarProgress({
-	tierProgress,
-	pillarCoverage,
-}: PillarProgressProps) {
+export function PillarProgress({ pillarCoverage }: PillarProgressProps) {
 	const t = useTranslations("personaLab");
 	const locale = (useLocale() as "vi" | "en") === "vi" ? "vi" : "en";
 
-	const tier1Completed = tierProgress?.tier1Completed ?? 0;
-	const tier1Total = tierProgress?.tier1Total ?? 5;
 	const pillar2Required = Boolean(pillarCoverage?.pillar2Required);
 
 	const pillar1Avg = averageCoverage(pillarCoverage?.pillar1);
@@ -43,20 +36,6 @@ export function PillarProgress({
 
 	return (
 		<div className="w-full space-y-3">
-			{/* Tier 1 Anchor row */}
-			<div className="flex items-center justify-between">
-				<span className="text-xs text-muted-foreground flex items-center gap-1">
-					{t("tier1Anchor")}
-					<InfoTooltip content={t("tier1AnchorHelp")} />
-				</span>
-				<span className="text-xs font-medium text-violet-600">
-					{t("tier1AnchorProgress", {
-						completed: tier1Completed,
-						total: tier1Total,
-					})}
-				</span>
-			</div>
-
 			{/* Pillar 1 row */}
 			<PillarRow
 				title={PILLARS_CONFIG.pillar1[locale === "vi" ? "labelVi" : "label"]}

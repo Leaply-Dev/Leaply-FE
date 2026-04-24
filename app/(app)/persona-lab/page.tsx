@@ -16,6 +16,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { ArchetypeCelebrationModal } from "@/components/persona-lab/ArchetypeCelebrationModal";
 import { ChatSidebar } from "@/components/persona-lab/ChatSidebar";
 import { EditPersonaSetupButton } from "@/components/persona-lab/EditPersonaSetupButton";
+import { PersonaResetDataButton } from "@/components/persona-lab/PersonaResetDataButton";
 import { PersonaStateSync } from "@/components/persona-lab/PersonaStateSync";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -190,6 +191,7 @@ export default function PersonaLabPage() {
 							</div>
 
 							<div className="flex items-center gap-2">
+								<PersonaResetDataButton />
 								<EditPersonaSetupButton />
 								{/* View Mode Toggle */}
 								<div className="flex items-center bg-muted rounded-lg p-1">
