@@ -2,7 +2,7 @@
 
 import { BookOpen, FileText, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Drawer,
@@ -13,9 +13,8 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEvidence } from "@/lib/api/sop-workspace";
-import type { EvidenceCardDto } from "@/lib/generated/api/models";
-import { usePersonaStore } from "@/lib/store/personaStore";
 import type { PersonaNodeDto } from "@/lib/store/personaStore";
+import { usePersonaStore } from "@/lib/store/personaStore";
 import { EvidencePanel } from "./EvidencePanel";
 import { StoryCard } from "./StoryCard";
 
@@ -54,7 +53,14 @@ function resolveStories(
 function countStarElements(node: PersonaNodeDto): number {
 	const sc = node.structuredContent ?? {};
 	let count = 0;
-	for (const key of ["Situation", "Task", "Action", "Result", "Emotion", "Insight"]) {
+	for (const key of [
+		"Situation",
+		"Task",
+		"Action",
+		"Result",
+		"Emotion",
+		"Insight",
+	]) {
 		if (sc[key]) count++;
 	}
 	return count;
@@ -82,14 +88,22 @@ export function PersonaStoryDrawer({
 	);
 	const evidenceCards = evidenceData?.evidenceCards;
 
+	const handleInsertAndClose = useCallback(
+		(text: string) => {
+			onInsertContent(text);
+			onOpenChange(false);
+		},
+		[onInsertContent, onOpenChange],
+	);
+
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
-			<DrawerContent className="sm:max-w-md w-full h-full flex flex-col">
+			<DrawerContent className="flex h-full w-full min-w-0 flex-col sm:max-w-md">
 				<DrawerHeader className="shrink-0 pb-2">
 					<div className="flex items-center justify-between">
-						<DrawerTitle className="text-base flex items-center gap-2">
-							<BookOpen className="w-4 h-4 text-primary" />
-							{t("storiesFromPersonaLab")}
+						<DrawerTitle className="flex items-center gap-2 text-base">
+							<BookOpen className="h-4 w-4 text-primary" />
+							{t("personaMaterialDrawerTitle")}
 						</DrawerTitle>
 						<Button
 							variant="ghost"
@@ -102,21 +116,38 @@ export function PersonaStoryDrawer({
 					</div>
 				</DrawerHeader>
 
-				<Tabs defaultValue="stories" className="flex-1 flex flex-col min-h-0">
-					<TabsList className="mx-4 shrink-0">
-						<TabsTrigger value="stories" className="text-xs gap-1.5">
-							<BookOpen className="w-3 h-3" />
-							{t("storiesFromPersonaLab")}
-						</TabsTrigger>
-						<TabsTrigger value="evidence" className="text-xs gap-1.5">
-							<FileText className="w-3 h-3" />
-							{t("evidenceTab")}
-						</TabsTrigger>
-					</TabsList>
+				<Tabs
+					defaultValue="stories"
+					className="flex min-h-0 min-w-0 w-full flex-1 flex-col"
+				>
+					{/* Same horizontal padding as DrawerHeader (p-4) and ScrollArea (px-4); full-width segmented control, not two floating pills */}
+					<div className="shrink-0 px-4 pb-2">
+						<TabsList className="grid h-auto min-h-10 w-full grid-cols-2 gap-1 rounded-lg bg-muted p-1 text-muted-foreground">
+							<TabsTrigger
+								value="stories"
+								className="flex min-h-9 min-w-0 items-center justify-center gap-1.5 rounded-md px-2 py-2 text-xs font-medium leading-tight whitespace-normal"
+							>
+								<BookOpen className="h-3.5 w-3.5 shrink-0" />
+								<span className="wrap-break-word">
+									{t("personaStoriesTab")}
+								</span>
+							</TabsTrigger>
+							<TabsTrigger
+								value="evidence"
+								className="flex min-h-9 min-w-0 items-center justify-center gap-1.5 rounded-md px-2 py-2 text-xs font-medium leading-tight whitespace-normal"
+							>
+								<FileText className="h-3.5 w-3.5 shrink-0" />
+								<span className="wrap-break-word">{t("evidenceTab")}</span>
+							</TabsTrigger>
+						</TabsList>
+					</div>
 
-					<TabsContent value="stories" className="flex-1 min-h-0 m-0 mt-0">
-						<ScrollArea className="h-full px-4 pb-4">
-							<div className="space-y-3 pt-2">
+					<TabsContent
+						value="stories"
+						className="m-0 mt-0 flex min-h-0 min-w-0 flex-1 flex-col"
+					>
+						<ScrollArea className="h-full min-w-0 px-4 pb-4">
+							<div className="w-full min-w-0 max-w-full space-y-3 pt-2">
 								{stories.length === 0 ? (
 									<div className="text-center py-8 text-muted-foreground">
 										<BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -127,7 +158,7 @@ export function PersonaStoryDrawer({
 										<StoryCard
 											key={node.id}
 											node={node}
-											onCopy={onInsertContent}
+											onCopy={handleInsertAndClose}
 										/>
 									))
 								)}
@@ -135,13 +166,16 @@ export function PersonaStoryDrawer({
 						</ScrollArea>
 					</TabsContent>
 
-					<TabsContent value="evidence" className="flex-1 min-h-0 m-0 mt-0">
-						<ScrollArea className="h-full px-4 pb-4">
-							<div className="pt-2">
+					<TabsContent
+						value="evidence"
+						className="m-0 mt-0 flex min-h-0 min-w-0 flex-1 flex-col"
+					>
+						<ScrollArea className="h-full min-w-0 px-4 pb-4">
+							<div className="w-full min-w-0 max-w-full pt-2">
 								<EvidencePanel
 									evidenceCards={evidenceCards}
 									isLoading={evidenceLoading}
-									onCopy={onInsertContent}
+									onCopy={handleInsertAndClose}
 								/>
 							</div>
 						</ScrollArea>

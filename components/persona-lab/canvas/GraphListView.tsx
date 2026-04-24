@@ -15,7 +15,7 @@ import { GraphEmptyState } from "@/components/persona-lab/GraphEmptyState";
 import type { PersonaNodeDto } from "@/lib/api/personaLab/types";
 import { LAYOUT_CONFIG } from "@/lib/hooks/useForceLayout";
 import { usePersonaStore } from "@/lib/store/personaStore";
-import { cn } from "@/lib/utils";
+import { cn, formatTagLabel } from "@/lib/utils";
 
 // Layer type for the persona graph (0 = center, 3 = outermost)
 type GraphNodeLayer = 0 | 1 | 2 | 3;
@@ -331,7 +331,7 @@ function NodeListItem({
 							key={tag}
 							className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground"
 						>
-							{tag}
+							{formatTagLabel(tag)}
 						</span>
 					))}
 				</div>

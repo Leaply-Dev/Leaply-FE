@@ -24,7 +24,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Select,
 	SelectContent,
@@ -32,6 +31,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
 	type AngleDto,
 	useArchetypeMotifSuggestions,
@@ -64,7 +64,7 @@ import type {
 	ScholarshipDetailResponse,
 	ScholarshipListItemResponse,
 } from "@/lib/generated/api/models";
-import { cn } from "@/lib/utils";
+import { cn, formatTagLabel } from "@/lib/utils";
 import { ArchetypeBadge } from "./sop/ArchetypeBadge";
 
 type TargetKind = "program" | "scholarship";
@@ -470,7 +470,9 @@ export function NewEssayWorkspace({
 												onValueChange={(v) => setFilter(v as TargetFilter)}
 											>
 												<SelectTrigger className="w-[160px]">
-													<SelectValue placeholder={tDialog("targetTypeLabel")} />
+													<SelectValue
+														placeholder={tDialog("targetTypeLabel")}
+													/>
 												</SelectTrigger>
 												<SelectContent>
 													<SelectItem value="all">
@@ -1015,7 +1017,7 @@ function AngleCard({
 							key={tag}
 							className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
 						>
-							{tag}
+							{formatTagLabel(tag)}
 						</span>
 					))}
 				</div>
@@ -1062,7 +1064,9 @@ function SearchResults({
 			kind: "program" as const,
 			id: p.id ?? "",
 			name: p.displayName || p.programName || "",
-			subtitle: [p.universityName, p.universityCountry].filter(Boolean).join(" • "),
+			subtitle: [p.universityName, p.universityCountry]
+				.filter(Boolean)
+				.join(" • "),
 			logoUrl: p.universityLogoUrl,
 		}));
 

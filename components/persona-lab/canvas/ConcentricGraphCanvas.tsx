@@ -27,7 +27,7 @@ import {
 	type StarStructureKey,
 	usePersonaStore,
 } from "@/lib/store/personaStore";
-import { cn } from "@/lib/utils";
+import { cn, formatTagLabel } from "@/lib/utils";
 import type { ApiForceGraphNode } from "@/lib/utils/graphTransform";
 
 // Alias for backwards compatibility
@@ -325,7 +325,7 @@ export function ConcentricGraphCanvas({
 													key={tag}
 													className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground"
 												>
-													{tag}
+													{formatTagLabel(tag)}
 												</span>
 											))}
 										</div>
