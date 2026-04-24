@@ -301,6 +301,15 @@ export function ChatSidebar() {
 										toast.success(t("archetypeRevealed"), {
 											description: t("archetypeRevealedDesc"),
 										});
+
+										// Ensure center profile node and archetype-derived graph/state
+										// are refreshed after backend synthesis completes.
+										queryClient.invalidateQueries({
+											queryKey: getGetPersonaStateQueryKey(),
+										});
+										queryClient.refetchQueries({
+											queryKey: getGetGraphQueryKey(),
+										});
 									}
 								},
 							});

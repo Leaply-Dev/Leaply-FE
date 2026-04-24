@@ -10,10 +10,11 @@ import {
 	ZoomIn,
 	ZoomOut,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import ForceGraph2D from "react-force-graph-2d";
 import { Button } from "@/components/ui/button";
 import type { PersonaNodeDto } from "@/lib/api/personaLab/types";
+import { getArchetypeConfig } from "@/lib/config/archetypeConfig";
 import { getNodeConfig } from "@/lib/config/graphConfig";
 import { PILLARS_CONFIG } from "@/lib/config/pillarsConfig";
 import { useExpandNode } from "@/lib/hooks/persona";
@@ -58,6 +59,11 @@ export function ConcentricGraphCanvas({
 	className,
 }: ConcentricGraphCanvasProps) {
 	const t = useTranslations("personaLab");
+	const locale = useLocale();
+	const archetypeType = usePersonaStore((state) => state.archetypeType);
+	const archetypeConfig = archetypeType
+		? getArchetypeConfig(archetypeType)
+		: null;
 
 	// Load mock data when mock mode is enabled (development only)
 	useMockGraphData();
@@ -127,6 +133,13 @@ export function ConcentricGraphCanvas({
 		selectedNode && selectedNode.type === "key_story"
 			? getStarGapsForNode(selectedNode.id)
 			: [];
+
+	const selectedNodeTitle =
+		selectedNode?.type === "profile_summary" && archetypeConfig
+			? locale === "vi"
+				? archetypeConfig.titleVi
+				: archetypeConfig.title
+			: selectedNode?.label;
 
 	// Check if graph is empty (no nodes)
 	const isEmpty = graphData.nodes.length === 0;
@@ -382,7 +395,7 @@ export function ConcentricGraphCanvas({
 										: getNodeConfig(selectedNode.type).label}
 								</span>
 							</div>
-							<h3 className="font-bold text-base">{selectedNode.label}</h3>
+							<h3 className="font-bold text-base">{selectedNodeTitle}</h3>
 						</div>
 						<Button
 							variant="ghost"

@@ -441,6 +441,7 @@ export const usePersonaStore = create<PersonaStoreState>()(
 						// Get rarity from config since ArchetypeDto may not have it
 						archetypeUpdates.archetypeRarity = archetypeConfig?.rarity ?? null;
 						archetypeUpdates.archetypeRevealed = true;
+						archetypeUpdates.showArchetypeModal = true;
 					}
 
 					if (localSentMessages.length === 0 && serverMessages.length > 0) {

@@ -1,8 +1,10 @@
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useCallback } from "react";
 import type { LinkObject, NodeObject } from "react-force-graph-2d";
+import { getArchetypeConfig } from "@/lib/config/archetypeConfig";
 import { GRAPH_EDGE_CONFIG, getNodeConfig } from "@/lib/config/graphConfig";
 import { PILLARS_CONFIG } from "@/lib/config/pillarsConfig";
+import { usePersonaStore } from "@/lib/store/personaStore";
 import type {
 	ApiForceGraphNode,
 	ForceGraphLink,
@@ -14,11 +16,17 @@ type NodeType = "profile_summary" | "essay_angle" | "key_story" | "detail";
 // Alias for backwards compatibility
 type ForceGraphNode = ApiForceGraphNode;
 
-// Detect draft profile_summary nodes (confidence < 0.90)
+const hasResolvedProfileLabel = (node: ForceGraphNode): boolean => {
+	const label = (node.label ?? "").trim().toLowerCase();
+	return label.length > 0 && label !== "your profile" && label !== "profile";
+};
+
+// Detect draft profile_summary nodes.
+// A low confidence alone should not hide a resolved archetype label.
 const isDraftProfile = (node: ForceGraphNode): boolean => {
-	return (
-		node.type === "profile_summary" && (node.data?.confidence ?? 0.9) < 0.9
-	);
+	if (node.type !== "profile_summary") return false;
+	if (hasResolvedProfileLabel(node)) return false;
+	return (node.data?.confidence ?? 0.9) < 0.9;
 };
 
 // Helper function to draw rounded rectangles on canvas
@@ -77,6 +85,16 @@ export function useGraphRenderers({
 	hiddenNodeTypes,
 }: UseGraphRenderersProps) {
 	const t = useTranslations("personaLab");
+	const locale = useLocale();
+	const archetypeType = usePersonaStore((state) => state.archetypeType);
+	const archetypeConfig = archetypeType
+		? getArchetypeConfig(archetypeType)
+		: null;
+	const resolvedProfileTitle = archetypeConfig
+		? locale === "vi"
+			? archetypeConfig.titleVi
+			: archetypeConfig.title
+		: null;
 
 	// Paint node on canvas
 	const paintNode = useCallback(
@@ -193,8 +211,14 @@ export function useGraphRenderers({
 
 			if (shouldShowLabel) {
 				// Override label for draft profiles
-				let labelText = graphNode.label;
-				if (isDraftProfile(graphNode)) {
+				let labelText =
+					graphNode.type === "profile_summary" && resolvedProfileTitle
+						? resolvedProfileTitle
+						: graphNode.label;
+				if (
+					isDraftProfile(graphNode) &&
+					!(graphNode.type === "profile_summary" && resolvedProfileTitle)
+				) {
 					labelText = t("emergingProfile") || "Đang hình thành...";
 				}
 
@@ -242,7 +266,15 @@ export function useGraphRenderers({
 				ctx.globalAlpha = 1.0;
 			}
 		},
-		[selectedNode, hoveredNode, showLabels, highlightNodes, hiddenNodeTypes, t],
+		[
+			selectedNode,
+			hoveredNode,
+			showLabels,
+			highlightNodes,
+			hiddenNodeTypes,
+			t,
+			resolvedProfileTitle,
+		],
 	);
 
 	// Paint link on canvas
@@ -421,11 +453,15 @@ export function useGraphRenderers({
 	const nodeTooltip = useCallback((node: NodeObject) => {
 		const graphNode = node as unknown as ForceGraphNode;
 		const config = getNodeConfig(graphNode.type);
+		const tooltipLabel =
+			graphNode.type === "profile_summary" && resolvedProfileTitle
+				? resolvedProfileTitle
+				: graphNode.label;
 		return `<div style="background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px;">
-			<strong>${graphNode.label}</strong><br/>
+			<strong>${tooltipLabel}</strong><br/>
 			<span style="color: ${graphNode.color};">● ${config.label}</span>
 		</div>`;
-	}, []);
+	}, [resolvedProfileTitle]);
 
 	return {
 		paintNode,

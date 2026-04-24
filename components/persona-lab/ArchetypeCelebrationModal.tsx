@@ -102,7 +102,7 @@ export function ArchetypeCelebrationModal() {
 
 	const handleContinue = useCallback(() => {
 		setShowArchetypeModal(false);
-		router.push("/applications");
+		router.push("/dashboard/applications");
 	}, [setShowArchetypeModal, router]);
 
 	// Get localized content based on locale
