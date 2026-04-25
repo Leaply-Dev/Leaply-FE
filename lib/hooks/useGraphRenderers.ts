@@ -448,18 +448,21 @@ export function useGraphRenderers({
 	);
 
 	// Node tooltip
-	const nodeTooltip = useCallback((node: NodeObject) => {
-		const graphNode = node as unknown as ForceGraphNode;
-		const config = getNodeConfig(graphNode.type);
-		const tooltipLabel =
-			graphNode.type === "profile_summary" && resolvedProfileTitle
-				? resolvedProfileTitle
-				: graphNode.label;
-		return `<div style="background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px;">
+	const nodeTooltip = useCallback(
+		(node: NodeObject) => {
+			const graphNode = node as unknown as ForceGraphNode;
+			const config = getNodeConfig(graphNode.type);
+			const tooltipLabel =
+				graphNode.type === "profile_summary" && resolvedProfileTitle
+					? resolvedProfileTitle
+					: graphNode.label;
+			return `<div style="background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px;">
 			<strong>${tooltipLabel}</strong><br/>
 			<span style="color: ${graphNode.color};">● ${config.label}</span>
 		</div>`;
-	}, [resolvedProfileTitle]);
+		},
+		[resolvedProfileTitle],
+	);
 
 	return {
 		paintNode,

@@ -1,14 +1,14 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence } from "framer-motion";
 import { AlertCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import posthog from "posthog-js";
-import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 import { OnboardingProgress } from "@/components/OnboardingProgress";
 import { PageTransition } from "@/components/PageTransition";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { analytics } from "@/lib/analytics/analytics";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	mapBudgetIndexToKey,
@@ -69,6 +69,7 @@ export function OnboardingClient({
 	const [currentStep, setCurrentStep] = useState(0);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const startedTracked = useRef(false);
 
 	// Form State
 	const [basicInfo, setBasicInfo] = useState<BasicInfo>({
@@ -166,6 +167,10 @@ export function OnboardingClient({
 				setCurrentStep(0);
 			} finally {
 				setIsLoading(false);
+				if (!startedTracked.current) {
+					startedTracked.current = true;
+					analytics.track("onboarding_started", { journey_type: null });
+				}
 			}
 		};
 
@@ -182,7 +187,7 @@ export function OnboardingClient({
 		setPrefs((prev) => ({ ...prev, ...updates }));
 	};
 
-	const invalidateOnboardingCaches = async (includeMe: boolean = false) => {
+	const invalidateOnboardingCaches = async (includeMe = false) => {
 		await queryClient.invalidateQueries({ queryKey: getGetStatusQueryKey() });
 		if (includeMe) {
 			await queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
@@ -212,7 +217,7 @@ export function OnboardingClient({
 			});
 			await invalidateOnboardingCaches(false);
 
-			posthog.capture("onboarding_step_completed", {
+			analytics.track("onboarding_step_completed", {
 				step: 1,
 				step_name: "basic_info",
 			});
@@ -244,7 +249,7 @@ export function OnboardingClient({
 			});
 			await invalidateOnboardingCaches(false);
 
-			posthog.capture("onboarding_step_completed", {
+			analytics.track("onboarding_step_completed", {
 				step: 2,
 				step_name: "preferences",
 			});
@@ -278,7 +283,7 @@ export function OnboardingClient({
 			});
 			await invalidateOnboardingCaches(false);
 
-			posthog.capture("onboarding_step_completed", {
+			analytics.track("onboarding_step_completed", {
 				step: 3,
 				step_name: "plan",
 			});
@@ -314,7 +319,7 @@ export function OnboardingClient({
 			await invalidateOnboardingCaches(true);
 
 			completeOnboarding();
-			posthog.capture("onboarding_completed", { journey_type: type });
+			analytics.track("onboarding_completed", { journey_type: type });
 			setCurrentStep(4);
 			setError(null);
 		} catch (error) {

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, extname, join } from "node:path";
 
 const ROOTS = ["app", "components", "lib"];
@@ -32,7 +32,8 @@ function flatten(obj: unknown, prefix = "", acc = new Set<string>()) {
 	if (obj && typeof obj === "object" && !Array.isArray(obj)) {
 		for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
 			const next = prefix ? `${prefix}.${k}` : k;
-			if (v && typeof v === "object" && !Array.isArray(v)) flatten(v, next, acc);
+			if (v && typeof v === "object" && !Array.isArray(v))
+				flatten(v, next, acc);
 			else acc.add(next);
 		}
 	}
@@ -58,7 +59,10 @@ function dynamicCallRegex(binding: string) {
 	);
 }
 
-function tryResolveModuleFile(importerFile: string, modulePath: string): string | null {
+function tryResolveModuleFile(
+	importerFile: string,
+	modulePath: string,
+): string | null {
 	const base = modulePath.startsWith("@/")
 		? join(process.cwd(), modulePath.slice(2))
 		: join(dirname(importerFile), modulePath);
@@ -192,7 +196,10 @@ function buildFileHints(src: string, file: string): FileHints {
 			if (props) arrayProps.set(localName, props);
 			const objProps = extractObjectPropsByName(importedSource, importedName);
 			if (objProps) objectProps.set(localName, objProps);
-			const importedVals = extractArrayPropsByName(importedSource, importedName);
+			const importedVals = extractArrayPropsByName(
+				importedSource,
+				importedName,
+			);
 			if (importedVals && importedVals.size === 0) {
 				// no-op
 			}
@@ -236,7 +243,8 @@ function buildFileHints(src: string, file: string): FileHints {
 		const itemVar = m[2];
 		const synthetic = `__inline_${itemVar}`;
 		const values = new Set<string>();
-		for (const vm of rawValues.matchAll(/["'`]([^"'`]+)["'`]/g)) values.add(vm[1]);
+		for (const vm of rawValues.matchAll(/["'`]([^"'`]+)["'`]/g))
+			values.add(vm[1]);
 		if (values.size) arrayValues.set(synthetic, values);
 		if (!mapBindings.has(itemVar)) mapBindings.set(itemVar, new Set());
 		mapBindings.get(itemVar)?.add(synthetic);
@@ -249,12 +257,14 @@ function buildFileHints(src: string, file: string): FileHints {
 		const arrName = m[1];
 		const rawValues = m[2] ?? "";
 		const values = new Set<string>();
-		for (const vm of rawValues.matchAll(/["'`]([^"'`]+)["'`]/g)) values.add(vm[1]);
+		for (const vm of rawValues.matchAll(/["'`]([^"'`]+)["'`]/g))
+			values.add(vm[1]);
 		if (values.size) arrayValues.set(arrName, values);
 	}
 
 	// type === "x" / type === 1 constraints
-	const literalCompareRe = /(\w+)\s*===\s*(?:"([^"]+)"|'([^']+)'|`([^`]+)`|(\d+))/g;
+	const literalCompareRe =
+		/(\w+)\s*===\s*(?:"([^"]+)"|'([^']+)'|`([^`]+)`|(\d+))/g;
 	for (const m of src.matchAll(literalCompareRe)) {
 		const v = m[1];
 		const lit = m[2] ?? m[3] ?? m[4] ?? m[5] ?? "";
@@ -274,7 +284,14 @@ function buildFileHints(src: string, file: string): FileHints {
 		if (vals.size) varLiterals.set("motif", vals);
 	}
 
-	return { arrayProps, objectProps, arrayValues, aliases, mapBindings, varLiterals };
+	return {
+		arrayProps,
+		objectProps,
+		arrayValues,
+		aliases,
+		mapBindings,
+		varLiterals,
+	};
 }
 
 function resolveAliasTargets(
@@ -293,7 +310,11 @@ function resolveAliasTargets(
 	return out;
 }
 
-function resolveDynamicKeys(raw: string, ns: string, hints: FileHints): string[] {
+function resolveDynamicKeys(
+	raw: string,
+	ns: string,
+	hints: FileHints,
+): string[] {
 	const directProp = /^(\w+)\.(\w+)$/.exec(raw);
 	if (directProp) {
 		const itemVar = directProp[1];
@@ -339,7 +360,9 @@ function resolveDynamicKeys(raw: string, ns: string, hints: FileHints): string[]
 			}
 		}
 		if (!values?.size) return [];
-		return [...values].map((v) => (ns ? `${ns}.${prefix}.${v}.${suffix}` : `${prefix}.${v}.${suffix}`));
+		return [...values].map((v) =>
+			ns ? `${ns}.${prefix}.${v}.${suffix}` : `${prefix}.${v}.${suffix}`,
+		);
 	}
 	const templateVarWithPostfix =
 		/^([a-zA-Z0-9_.-]+)\.\$\{(\w+)\}([a-zA-Z0-9_.-]+)$/.exec(raw);
@@ -357,7 +380,9 @@ function resolveDynamicKeys(raw: string, ns: string, hints: FileHints): string[]
 			}
 		}
 		if (!values.size) return [];
-		return [...values].map((v) => (ns ? `${ns}.${prefix}.${v}${postfix}` : `${prefix}.${v}${postfix}`));
+		return [...values].map((v) =>
+			ns ? `${ns}.${prefix}.${v}${postfix}` : `${prefix}.${v}${postfix}`,
+		);
 	}
 	const charAtSlicePattern =
 		/^([a-zA-Z0-9_.-]+)\.\$\{(\w+)\.charAt\(0\)\.toUpperCase\(\)\s*\+\s*\2\.slice\(1\)\}$/.exec(
@@ -495,7 +520,9 @@ for (const file of files) {
 				}
 				continue;
 			}
-			const nullishStatus = /^\w+\.status\s*\?\?\s*["'`][^"'`]+["'`]$/.test(raw);
+			const nullishStatus = /^\w+\.status\s*\?\?\s*["'`][^"'`]+["'`]$/.test(
+				raw,
+			);
 			if (nullishStatus && ns) {
 				allNamespacePatterns.add(ns);
 				dynamicNamespaces.add(ns);
@@ -516,7 +543,9 @@ const en = flatten(JSON.parse(readFileSync(MESSAGES.en, "utf8")));
 const vi = flatten(JSON.parse(readFileSync(MESSAGES.vi, "utf8")));
 
 for (const p of prefixPatterns) {
-	const fullPrefix = p.namespace ? `${p.namespace}.${p.prefix}.` : `${p.prefix}.`;
+	const fullPrefix = p.namespace
+		? `${p.namespace}.${p.prefix}.`
+		: `${p.prefix}.`;
 	for (const key of en) {
 		if (!key.startsWith(fullPrefix)) continue;
 		if (p.suffix && !key.endsWith(`.${p.suffix}`)) continue;
@@ -536,7 +565,9 @@ const unused = [...en]
 	// infer per-key usage in that namespace.
 	.filter(
 		(k) =>
-			![...dynamicNamespaces].some((ns) => ns && (k === ns || k.startsWith(`${ns}.`))),
+			![...dynamicNamespaces].some(
+				(ns) => ns && (k === ns || k.startsWith(`${ns}.`)),
+			),
 	)
 	.sort();
 const missingEn = [...used].filter((k) => !en.has(k)).sort();
@@ -547,7 +578,11 @@ const viOnly = [...vi].filter((k) => !en.has(k)).sort();
 const log = (title: string, items: string[] | Dynamic[]) => {
 	console.log(`\n=== ${title} (${items.length}) ===`);
 	for (const it of items)
-		console.log(typeof it === "string" ? it : `${it.file}:${it.line}  ${it.binding}(\`${it.raw}\`)`);
+		console.log(
+			typeof it === "string"
+				? it
+				: `${it.file}:${it.line}  ${it.binding}(\`${it.raw}\`)`,
+		);
 };
 
 log("Unused keys (in en.json, not referenced)", unused);

@@ -3,8 +3,8 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type { TourStep } from "@/lib/store/tourStore";
+import { cn } from "@/lib/utils";
 
 interface TourTooltipProps {
 	step: TourStep;

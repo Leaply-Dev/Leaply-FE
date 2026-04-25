@@ -27,8 +27,12 @@ export function TourSpotlight({ targetRect }: TourSpotlightProps) {
 
 	// Always render the overlay, even if target isn't found yet
 	// This ensures the dark backdrop is visible immediately
-	const top = targetRect ? Math.max(0, targetRect.top - PADDING) : windowSize.height / 2;
-	const left = targetRect ? Math.max(0, targetRect.left - PADDING) : windowSize.width / 2;
+	const top = targetRect
+		? Math.max(0, targetRect.top - PADDING)
+		: windowSize.height / 2;
+	const left = targetRect
+		? Math.max(0, targetRect.left - PADDING)
+		: windowSize.width / 2;
 	const width = targetRect ? targetRect.width + PADDING * 2 : 0;
 	const height = targetRect ? targetRect.height + PADDING * 2 : 0;
 	const right = left + width;

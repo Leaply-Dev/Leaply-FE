@@ -99,10 +99,4 @@ function DrawerDescription({
 	);
 }
 
-export {
-	Drawer,
-	DrawerContent,
-	DrawerHeader,
-	DrawerTitle,
-	DrawerDescription,
-};
+export { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription };

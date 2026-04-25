@@ -3,8 +3,8 @@
 import { CheckCircle2, Circle, Sparkles } from "lucide-react";
 import { useLocale } from "next-intl";
 import {
-	getArchetypeConfig,
 	type ArchetypeKey,
+	getArchetypeConfig,
 } from "@/lib/config/archetypeConfig";
 import { usePersonaStore } from "@/lib/store/personaStore";
 
@@ -12,7 +12,9 @@ interface ArchetypeReviewHeaderProps {
 	strengths?: string[];
 }
 
-export function ArchetypeReviewHeader({ strengths }: ArchetypeReviewHeaderProps) {
+export function ArchetypeReviewHeader({
+	strengths,
+}: ArchetypeReviewHeaderProps) {
 	const locale = useLocale();
 	const isVietnamese = locale === "vi";
 	const archetypeType = usePersonaStore((state) => state.archetypeType);
@@ -50,9 +52,7 @@ export function ArchetypeReviewHeader({ strengths }: ArchetypeReviewHeaderProps)
 			<div className="flex items-center gap-2 mb-3">
 				<Sparkles className="w-4 h-4" style={{ color }} />
 				<h3 className="font-semibold text-sm" style={{ color }}>
-					{isVietnamese
-						? `Với tư cách là ${title}`
-							: `As a ${title}`}
+					{isVietnamese ? `Với tư cách là ${title}` : `As a ${title}`}
 				</h3>
 			</div>
 

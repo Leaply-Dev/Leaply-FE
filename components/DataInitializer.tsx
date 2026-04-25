@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
+import { useIdentifyOnMount } from "@/lib/analytics/use-identify-on-mount";
 import { initializeAppData } from "@/lib/initializeData";
 
-/**
- * Client component that initializes all app data on mount
- * This ensures mock data is loaded consistently across the app
- */
 export function DataInitializer() {
+	useIdentifyOnMount();
+
 	useEffect(() => {
 		initializeAppData();
 	}, []);

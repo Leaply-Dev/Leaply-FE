@@ -2,10 +2,10 @@
 
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import posthog from "posthog-js";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { analytics } from "@/lib/analytics/analytics";
 import { getUserFriendlyError, logError } from "@/lib/utils/errorUtils";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
@@ -24,7 +24,7 @@ export function GoogleLoginButton({
 
 	const handleGoogleLogin = async () => {
 		setIsLoading(true);
-		posthog.capture("google_oauth_initiated", { variant });
+		analytics.track("google_oauth_initiated", { variant });
 
 		try {
 			const response = await fetch(`${API_URL}/oauth/google/url`, {

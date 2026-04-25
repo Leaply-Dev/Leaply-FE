@@ -3,11 +3,11 @@
 import { FileEdit, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { analytics } from "@/lib/analytics/analytics";
 import { useWorkspaceStatus } from "@/lib/api/sop-workspace";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import { useGetIntake } from "@/lib/generated/api/endpoints/persona-lab-intake/persona-lab-intake";
@@ -104,7 +104,7 @@ export function SopWorkspace({ applicationId }: SopWorkspaceProps) {
 			<WritingWorkspace
 				applicationId={applicationId}
 				onComplete={() => {
-					posthog.capture("sop_completed", {
+					analytics.track("sop_completed", {
 						application_id: applicationId,
 					});
 					setCurrentPhase("completed");

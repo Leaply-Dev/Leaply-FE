@@ -50,4 +50,3 @@ export function createRegisterSchema(t: ValidationTranslate) {
 }
 
 export type RegisterFormData = z.infer<ReturnType<typeof createRegisterSchema>>;
-

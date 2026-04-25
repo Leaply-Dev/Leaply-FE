@@ -11,8 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { performLogout } from "@/lib/auth/logout";
 import { useMounted } from "@/lib/hooks/useMounted";
-import { useUserStore } from "@/lib/store/userStore";
 import { useTourStore } from "@/lib/store/tourStore";
+import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";

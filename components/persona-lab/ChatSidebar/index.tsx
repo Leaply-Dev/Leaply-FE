@@ -2,10 +2,10 @@
 
 import { useIsMutating, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import posthog from "posthog-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { analytics } from "@/lib/analytics/analytics";
 import {
 	getPillarCoverageQueryKey,
 	getTierProgressQueryKey,
@@ -137,7 +137,7 @@ export function ChatSidebar() {
 
 	const handleSendMessage = useCallback(
 		async (content: string) => {
-			posthog.capture("persona_lab_message_sent", {
+			analytics.track("persona_lab_message_sent", {
 				message_length: content.length,
 				story_node_count: storyNodeCount,
 			});
@@ -260,7 +260,7 @@ export function ChatSidebar() {
 											archetypeData.archetype.personalizedSummary,
 											archetypeData.archetype.rarity,
 										);
-										posthog.capture("archetype_revealed", {
+										analytics.track("archetype_revealed", {
 											archetype_type: archetypeData.archetype.type,
 											rarity: archetypeData.archetype.rarity,
 										});

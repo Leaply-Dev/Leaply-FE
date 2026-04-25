@@ -13,7 +13,10 @@ import {
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { TipTapEditor, type TipTapEditorHandle } from "@/components/editor/TipTapEditor";
+import {
+	TipTapEditor,
+	type TipTapEditorHandle,
+} from "@/components/editor/TipTapEditor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -65,7 +68,9 @@ export function WritingWorkspace({
 	const [showFullEssay, setShowFullEssay] = useState(false);
 	const [reviewData, setReviewData] = useState<ReviewResponse | null>(null);
 	const [drawerOpen, setDrawerOpen] = useState(false);
-	const [voiceFeedback, setVoiceFeedback] = useState<import("@/lib/generated/api/models").SectionFeedbackResponse | null>(null);
+	const [voiceFeedback, setVoiceFeedback] = useState<
+		import("@/lib/generated/api/models").SectionFeedbackResponse | null
+	>(null);
 
 	// Refs to prevent duplicate API calls
 	const hasTriggeredGenerate = useRef(false);

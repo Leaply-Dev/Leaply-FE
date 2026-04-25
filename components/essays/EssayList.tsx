@@ -220,15 +220,15 @@ export function EssayList({
 										selectedId === item.id
 											? "bg-primary/10 ring-1 ring-primary/30"
 											: "hover:bg-muted",
-										)}
-									>
+									)}
+								>
 									{logo ? (
 										<div className="relative w-6 h-6">
-										<Image
-											src={logo}
-											alt={item.title}
-											fill
-											className="object-contain"
+											<Image
+												src={logo}
+												alt={item.title}
+												fill
+												className="object-contain"
 											/>
 										</div>
 									) : item.kind === "program" ? (
@@ -240,19 +240,19 @@ export function EssayList({
 										className={cn(
 											"absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-card",
 											statusDot,
-											)}
-										/>
-									</button>
-								</TooltipTrigger>
-								<TooltipContent side="right" className="max-w-[220px]">
-									<p className="font-medium">{item.title}</p>
-									<p className="text-xs text-muted-foreground">{item.subtitle}</p>
-								</TooltipContent>
-							</Tooltip>
-						);
-					})}
-				</div>
-			);
+										)}
+									/>
+								</button>
+							</TooltipTrigger>
+							<TooltipContent side="right" className="max-w-[220px]">
+								<p className="font-medium">{item.title}</p>
+								<p className="text-xs text-muted-foreground">{item.subtitle}</p>
+							</TooltipContent>
+						</Tooltip>
+					);
+				})}
+			</div>
+		);
 	}
 
 	const content = (

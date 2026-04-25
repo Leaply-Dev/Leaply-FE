@@ -4,10 +4,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import posthog from "posthog-js";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { analytics } from "@/lib/analytics/analytics";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	essayTrackRequiresPillar2,
@@ -140,11 +140,9 @@ export function IntakeFormClient({ editMode = false }: IntakeFormClientProps) {
 		} catch {
 			return;
 		}
-		posthog.capture("persona_lab_intake_step_completed", {
-			section: currentSection,
-			section_name: ["scope", "track", "impact"][currentSection - 1],
-			essay_track: draft.essayTrack,
-			edit_mode: editMode,
+		analytics.track("persona_lab_intake_step_completed", {
+			step: currentSection,
+			step_name: ["scope", "track", "impact"][currentSection - 1],
 		});
 		const isLast = currentSection >= totalSections;
 		if (isLast) {
@@ -154,12 +152,8 @@ export function IntakeFormClient({ editMode = false }: IntakeFormClientProps) {
 			} catch {
 				return;
 			}
-			posthog.capture("persona_lab_intake_completed", {
-				essay_track: draft.essayTrack,
-				role_type: draft.roleType,
-				timeline: draft.timeline,
-				impact_area_count: draft.impactAreas?.length ?? 0,
-				edit_mode: editMode,
+			analytics.track("persona_lab_intake_completed", {
+				total_steps: totalSections,
 			});
 			if (editMode) {
 				router.push("/persona-lab");

@@ -438,11 +438,20 @@ export function useArchetypeMotifSuggestions() {
 
 export function useEvidence(applicationId: string, sectionIndex: number) {
 	return useQuery({
-		queryKey: [...sopWorkspaceKeys.all, "evidence", applicationId, sectionIndex],
+		queryKey: [
+			...sopWorkspaceKeys.all,
+			"evidence",
+			applicationId,
+			sectionIndex,
+		],
 		queryFn: async () => {
 			const response = await customFetch<{
-				data: { data: import("@/lib/generated/api/models").EvidenceCardsResponse };
-			}>(`/v1/applications/${applicationId}/sop/sections/${sectionIndex}/evidence`);
+				data: {
+					data: import("@/lib/generated/api/models").EvidenceCardsResponse;
+				};
+			}>(
+				`/v1/applications/${applicationId}/sop/sections/${sectionIndex}/evidence`,
+			);
 			return response.data.data;
 		},
 		enabled: !!applicationId,
@@ -460,10 +469,15 @@ export function useSectionFeedback() {
 			sectionIndex: number;
 		}) => {
 			const response = await customFetch<{
-				data: { data: import("@/lib/generated/api/models").SectionFeedbackResponse };
-			}>(`/v1/applications/${applicationId}/sop/sections/${sectionIndex}/feedback`, {
-				method: "POST",
-			});
+				data: {
+					data: import("@/lib/generated/api/models").SectionFeedbackResponse;
+				};
+			}>(
+				`/v1/applications/${applicationId}/sop/sections/${sectionIndex}/feedback`,
+				{
+					method: "POST",
+				},
+			);
 			return response.data.data;
 		},
 	});

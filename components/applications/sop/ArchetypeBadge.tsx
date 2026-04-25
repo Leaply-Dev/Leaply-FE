@@ -4,11 +4,11 @@ import { Sparkles, Star } from "lucide-react";
 import { useLocale } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import {
-	getArchetypeConfig,
-	type ArchetypeKey,
-} from "@/lib/config/archetypeConfig";
 import type { ArchetypeMotifSuggestionResponse } from "@/lib/api/sop-workspace";
+import {
+	type ArchetypeKey,
+	getArchetypeConfig,
+} from "@/lib/config/archetypeConfig";
 
 interface ArchetypeBadgeProps {
 	data: ArchetypeMotifSuggestionResponse;
@@ -43,9 +43,7 @@ export function ArchetypeBadge({
 	const suggestions = data.suggestions?.[essayTypeKey] ?? [];
 
 	// Check if currently selected motif is recommended
-	const selectedSuggestion = suggestions.find(
-		(s) => s.motif === selectedMotif,
-	);
+	const selectedSuggestion = suggestions.find((s) => s.motif === selectedMotif);
 
 	return (
 		<Card
@@ -65,9 +63,7 @@ export function ArchetypeBadge({
 				<div className="flex-1 min-w-0">
 					<div className="flex items-center gap-2 flex-wrap">
 						<h3 className="font-semibold text-sm" style={{ color }}>
-							{isVietnamese
-								? `Bạn là ${title}`
-								: `You are ${title}`}
+							{isVietnamese ? `Bạn là ${title}` : `You are ${title}`}
 						</h3>
 						{selectedSuggestion && (
 							<Badge
@@ -103,9 +99,7 @@ export function ArchetypeBadge({
 					</div>
 					{suggestions.length > 0 && !selectedMotif && (
 						<p className="text-xs text-muted-foreground mt-2">
-							{isVietnamese
-								? "Gợi ý phù hợp nhất: "
-								: "Top recommendations: "}
+							{isVietnamese ? "Gợi ý phù hợp nhất: " : "Top recommendations: "}
 							{suggestions
 								.slice(0, 2)
 								.map((s) => s.motif)

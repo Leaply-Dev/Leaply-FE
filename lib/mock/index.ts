@@ -104,4 +104,3 @@ export function getScenarioState(
 
 	return { nodes, edges, coverage, messages };
 }
-

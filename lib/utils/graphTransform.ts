@@ -241,4 +241,3 @@ export function transformApiGraphData(
 
 	return { nodes: forceNodes, links: forceLinks };
 }
-

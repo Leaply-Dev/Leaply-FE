@@ -4,7 +4,6 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { GoogleLoginButton } from "@/components/GoogleLoginButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -24,6 +23,7 @@ import {
 	FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { analytics } from "@/lib/analytics/analytics";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import { useLogin } from "@/lib/generated/api/endpoints/authentication/authentication";
 import type { AuthResponse } from "@/lib/generated/api/models";
@@ -86,10 +86,8 @@ export function LoginForm({
 			// Backend now sets HttpOnly cookies - we just update UI state
 			login(userProfile, authResponse.onboardingCompleted ?? false);
 
-			posthog.identify(userProfile.id, {
-				email: userProfile.email,
-			});
-			posthog.capture("user_logged_in", {
+			analytics.identify(userProfile.id, { email: userProfile.email });
+			analytics.track("user_logged_in", {
 				email: userProfile.email,
 				onboarding_completed: authResponse.onboardingCompleted ?? false,
 			});
@@ -104,7 +102,7 @@ export function LoginForm({
 			}
 		} catch (err) {
 			console.error("Login failed", err);
-			posthog.captureException(err);
+			analytics.captureException(err);
 
 			// Handle Zod validation errors
 			if (err && typeof err === "object" && "errors" in err) {

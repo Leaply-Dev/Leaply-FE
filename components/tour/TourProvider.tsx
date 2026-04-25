@@ -3,18 +3,18 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useUserStore } from "@/lib/store/userStore";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import {
 	getStatus,
 	updateOnboarding,
 } from "@/lib/generated/api/endpoints/onboarding/onboarding";
-import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import type { OnboardingStatusResponse } from "@/lib/generated/api/models";
 import {
 	TOUR_LOCAL_STORAGE_KEY,
 	TOUR_STEPS,
 	useTourStore,
 } from "@/lib/store/tourStore";
+import { useUserStore } from "@/lib/store/userStore";
 import { TourSpotlight } from "./TourSpotlight";
 import { TourTooltip } from "./TourTooltip";
 
@@ -173,7 +173,14 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
 			if (retryTimerRef.current) clearInterval(retryTimerRef.current);
 			if (navTimerRef.current) clearTimeout(navTimerRef.current);
 		};
-	}, [isActive, currentStepIndex, pathname, router, setTargetRect, setIsNavigating]);
+	}, [
+		isActive,
+		currentStepIndex,
+		pathname,
+		router,
+		setTargetRect,
+		setIsNavigating,
+	]);
 
 	// Keep target rect updated on scroll/resize
 	useEffect(() => {

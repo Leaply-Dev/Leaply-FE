@@ -4,14 +4,7 @@
  */
 
 import type { LucideIcon } from "lucide-react";
-import {
-	Brain,
-	FileCheck,
-	Globe,
-	Sparkles,
-	Target,
-	Users,
-} from "lucide-react";
+import { Brain, FileCheck, Globe, Sparkles, Target, Users } from "lucide-react";
 
 // ============================================================================
 // Types

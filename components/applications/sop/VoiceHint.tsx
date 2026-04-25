@@ -24,9 +24,7 @@ export function VoiceHint({ feedback, onDismiss }: VoiceHintProps) {
 
 	if (!feedback?.suggestions) return null;
 
-	const toneSuggestions = feedback.suggestions.filter(
-		(s) => s.type === "tone",
-	);
+	const toneSuggestions = feedback.suggestions.filter((s) => s.type === "tone");
 
 	if (toneSuggestions.length === 0) return null;
 
@@ -34,9 +32,7 @@ export function VoiceHint({ feedback, onDismiss }: VoiceHintProps) {
 		<div className="flex items-start gap-2 px-3 py-2 rounded-md bg-amber-50 border border-amber-200 text-sm">
 			<Lightbulb className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
 			<div className="flex-1 min-w-0">
-				<p className="text-amber-800">
-					{t("voiceHintText")}
-				</p>
+				<p className="text-amber-800">{t("voiceHintText")}</p>
 				<Popover open={open} onOpenChange={setOpen}>
 					<PopoverTrigger asChild>
 						<button
@@ -53,10 +49,7 @@ export function VoiceHint({ feedback, onDismiss }: VoiceHintProps) {
 							</h4>
 							<ul className="space-y-1.5">
 								{toneSuggestions.map((s, idx) => (
-									<li
-										key={idx}
-										className="text-xs text-muted-foreground"
-									>
+									<li key={idx} className="text-xs text-muted-foreground">
 										• {s.text}
 										{s.reason && (
 											<span className="block text-[10px] text-muted-foreground/70 mt-0.5">

@@ -53,6 +53,10 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api
 
 # Feature Flags
 NEXT_PUBLIC_USE_MOCK_DATA=false
+
+# Analytics (PostHog)
+NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=<token-from-posthog>
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
 **Environment Variables:**
@@ -61,6 +65,8 @@ NEXT_PUBLIC_USE_MOCK_DATA=false
 |----------|-------------|---------|
 | `NEXT_PUBLIC_API_URL` | Backend API URL | `http://localhost:8080/api` |
 | `NEXT_PUBLIC_USE_MOCK_DATA` | Use mock data instead of API | `false` |
+| `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` | PostHog project token | (from PostHog UI) |
+| `NEXT_PUBLIC_POSTHOG_HOST` | PostHog instance endpoint | `https://us.i.posthog.com` |
 
 ### 2. Install Dependencies
 
@@ -332,3 +338,4 @@ docker compose down
 - **Backend Setup (VPS)**: `/home/keishi/Code/Leaply/Leaply-BE/SETUP.md`
 - **Frontend CLAUDE.md**: Instructions for Claude Code assistant
 - **Persona Lab API**: `/home/keishi/Code/Leaply/Leaply-BE/docs/PERSONA_LAB_API.md`
+- **Analytics Dashboards**: `docs/analytics-dashboards.md` — PostHog configuration and dashboard recipes

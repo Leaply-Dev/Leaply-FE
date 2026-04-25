@@ -1,21 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import posthog from "posthog-js";
 import { useState } from "react";
 import { CompareDialog } from "@/components/explore/CompareDrawer";
 import { CompareTray } from "@/components/explore/CompareTray";
 import { ManualMode } from "@/components/explore/ManualMode";
 import { PageTransition } from "@/components/PageTransition";
+import { analytics } from "@/lib/analytics/analytics";
 import type { ProgramListItemResponse } from "@/lib/generated/api/models";
 
 export function ExploreClient() {
 	const router = useRouter();
 
 	const handleAddToDashboard = (programId: string) => {
-		posthog.capture("program_apply_clicked", {
-			program_id: programId,
-		});
+		analytics.track("program_apply_clicked", { program_id: programId });
 		router.push(
 			`/dashboard/applications?tab=programs&id=new&programId=${programId}`,
 		);
@@ -67,7 +65,7 @@ export function ExploreClient() {
 				onRemoveProgram={toggleProgramSelection}
 				onClearAll={() => setSelectedProgramsMap(new Map())}
 				onCompare={() => {
-					posthog.capture("program_compare_opened", {
+					analytics.track("program_compare_opened", {
 						program_count: selectedCount,
 					});
 					setIsCompareDialogOpen(true);

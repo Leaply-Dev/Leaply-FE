@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Stack
 
-Next.js 16 App Router, React 19, TypeScript 5.9, Tailwind CSS 4, shadcn/ui (New York), TanStack Query v5, Orval (API codegen), Zod 4, Zustand (auth), next-intl (i18n), Bun 1.3, Biome 2.3
+Next.js 16 App Router, React 19, TypeScript 5.9, Tailwind CSS 4, shadcn/ui (New York), TanStack Query v5, Orval (API codegen), Zod 4, Zustand (auth), next-intl (i18n), PostHog (analytics), Bun 1.3, Biome 2.3
 
 ## Commands
 
@@ -49,6 +49,12 @@ bunx shadcn@latest add   # Install shadcn component
 - **Library**: next-intl with cookie-based locale (`vi` default, `en` supported)
 - **Messages**: `messages/vi.json`, `messages/en.json`
 - **Config**: `i18n/request.ts`
+
+### Analytics
+- **Library**: PostHog (client-side SDK)
+- **Wrapper**: `lib/analytics/` — type-safe event tracking with `analytics.track()` and `analytics.identify()`
+- **Env vars**: `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`, `NEXT_PUBLIC_POSTHOG_HOST`
+- **Dashboards**: See `docs/analytics-dashboards.md` for PostHog configuration recipes
 
 ## Critical Rules
 
@@ -101,6 +107,7 @@ const { mutate } = useSaveProgram({
 - `lib/generated/api/zod/` - Zod validation schemas from OpenAPI (DO NOT EDIT)
 - `lib/api/mutator.ts` - Custom fetch wrapper with auth
 - `lib/api/unwrapResponse.ts` - Extract data from API response wrapper
+- `lib/analytics/` - PostHog event tracking (use `analytics.track()` instead of `posthog.capture()`)
 - `lib/hooks/use*.ts` - Custom hooks (only for complex business logic)
 - `lib/store/*.ts` - Zustand stores
 - `lib/validations/*.ts` - Custom Zod schemas for forms

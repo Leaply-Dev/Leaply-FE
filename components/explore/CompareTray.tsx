@@ -14,10 +14,7 @@ interface SelectedProgramChipProps {
 /**
  * Individual chip for a selected program in the compare tray
  */
-function SelectedProgramChip({
-	program,
-	onRemove,
-}: SelectedProgramChipProps) {
+function SelectedProgramChip({ program, onRemove }: SelectedProgramChipProps) {
 	return (
 		<Badge variant="secondary" className="gap-2 pr-1 text-sm py-1.5 px-3">
 			<span className="font-medium">

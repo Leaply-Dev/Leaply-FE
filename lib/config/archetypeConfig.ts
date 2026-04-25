@@ -228,4 +228,3 @@ export function getArchetypeConfig(
 	const normalizedType = type.toLowerCase() as ArchetypeKey;
 	return ARCHETYPE_CONFIG[normalizedType] ?? null;
 }
-

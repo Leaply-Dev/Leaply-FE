@@ -24,6 +24,7 @@ import { ProgramCard } from "@/components/explore/ProgramCard";
 import { ProgramDetailDrawer } from "@/components/explore/ProgramDetailDrawer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { analytics } from "@/lib/analytics/analytics";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
 import { useGetCurrentUser } from "@/lib/generated/api/endpoints/authentication/authentication";
 import {
@@ -220,6 +221,33 @@ export function ManualMode({
 			return result?.data ?? [];
 		});
 	}, [data]);
+
+	// Track search performed after results land, deduplicated by query key
+	const searchTrackedRef = useRef<string>("");
+	useEffect(() => {
+		if (isLoading) return;
+		const key = JSON.stringify(queryParams);
+		if (searchTrackedRef.current === key) return;
+		searchTrackedRef.current = key;
+		const totalResults =
+			data?.pages.reduce((acc, page) => {
+				const result = unwrapResponse<ProgramListResponse>(page);
+				return acc + (result?.pagination?.total ?? 0);
+			}, 0) ?? 0;
+		const activeFilterCount = Object.entries(queryParams).filter(
+			([k, v]) =>
+				k !== "sort" &&
+				k !== "size" &&
+				k !== "page" &&
+				v !== undefined &&
+				v !== "",
+		).length;
+		analytics.track("program_search_performed", {
+			query: queryParams.search ?? "",
+			filter_count: activeFilterCount,
+			results_count: totalResults,
+		});
+	}, [data, isLoading, queryParams]);
 
 	// Infinite scroll - intersection observer
 	const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -435,6 +463,11 @@ export function ManualMode({
 							onToggleSelection={onToggleSelection}
 							isMaxReached={isMaxReached}
 							onClick={(p) => {
+								if (p.id)
+									analytics.track("program_viewed", {
+										program_id: p.id,
+										source: "search",
+									});
 								setSelectedProgram(p);
 								setIsDetailDrawerOpen(true);
 							}}

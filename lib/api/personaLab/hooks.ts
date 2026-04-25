@@ -7,10 +7,7 @@
  */
 import { type UseQueryOptions, useQuery } from "@tanstack/react-query";
 import { customInstance } from "@/lib/api/mutator";
-import type {
-	PillarCoverageDto,
-	TierProgressDto,
-} from "./types";
+import type { PillarCoverageDto, TierProgressDto } from "./types";
 
 type ApiResponse<T> = {
 	status?: number;
@@ -63,4 +60,3 @@ export function useGetPillarCoverage<
 		...options?.query,
 	});
 }
-

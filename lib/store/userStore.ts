@@ -1,6 +1,7 @@
 import Cookies from "js-cookie";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { analytics } from "@/lib/analytics/analytics";
 
 /**
  * Simplified user store for cookie-based authentication.
@@ -175,6 +176,7 @@ export const useUserStore = create<UserState>()(
 			},
 
 			logout: () => {
+				analytics.reset();
 				Cookies.remove(AUTH_COOKIE_NAME, { path: "/" });
 
 				fetch(

@@ -92,9 +92,4 @@ function SheetTitle({
 	);
 }
 
-export {
-	Sheet,
-	SheetContent,
-	SheetFooter,
-	SheetTitle,
-};
+export { Sheet, SheetContent, SheetFooter, SheetTitle };

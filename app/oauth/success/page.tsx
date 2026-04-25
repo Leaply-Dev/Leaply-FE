@@ -7,8 +7,8 @@
 
 import { Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import posthog from "posthog-js";
 import { useEffect, useState } from "react";
+import { analytics } from "@/lib/analytics/analytics";
 import { useUserStore } from "@/lib/store/userStore";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
@@ -49,12 +49,12 @@ export default function OAuthSuccessPage() {
 					// Backend sets HttpOnly cookies - we just update UI state
 					login(userProfile, userContext.user.isOnboardingComplete);
 
-					posthog.identify(userProfile.id, {
+					analytics.identify(userProfile.id, {
 						email: userProfile.email,
 						name: userProfile.fullName,
 					});
-					posthog.capture("google_oauth_completed", {
-						email: userProfile.email,
+					analytics.track("google_oauth_completed", {
+						user_id: userProfile.id,
 						onboarding_completed: userContext.user.isOnboardingComplete,
 					});
 
@@ -84,7 +84,7 @@ export default function OAuthSuccessPage() {
 				}
 			} catch (error) {
 				console.error("OAuth verification failed:", error);
-				posthog.captureException(error);
+				analytics.captureException(error);
 				setStatus("error");
 				// Redirect to login with error after a short delay
 				setTimeout(() => {
