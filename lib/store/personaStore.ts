@@ -316,7 +316,12 @@ export const usePersonaStore = create<PersonaStoreState>()(
 
 			// === 2-Pillar Tier Actions ===
 			setTierProgress: (progress: TierProgressDto | null) =>
-				set({ tierProgress: progress }),
+				set((state) => ({
+					tierProgress: progress,
+					// Sync currentTier from the fetched progress so the stepper reflects the
+					// correct step on initial load / page reload (not just after a message send).
+					currentTier: progress?.currentTier ?? state.currentTier,
+				})),
 
 			setPillarCoverage: (coverage: PillarCoverageDto | null) =>
 				set({ pillarCoverage: coverage }),

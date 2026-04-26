@@ -3,7 +3,7 @@ import { defineConfig } from "orval";
 export default defineConfig({
 	leaply: {
 		input: {
-			target: "https://api.leaply.ai.vn/api/api-docs",
+			target: "http://localhost:8080/api/api-docs",
 		},
 		output: {
 			mode: "tags-split",
