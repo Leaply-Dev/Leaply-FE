@@ -38,7 +38,8 @@ Thumbs.db
 *.tsbuildinfo
 
 # Local dev
-.vscode
+.vscode/
+.idea/
 .agent
 .serena
 
