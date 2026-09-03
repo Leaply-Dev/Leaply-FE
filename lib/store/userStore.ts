@@ -179,13 +179,10 @@ export const useUserStore = create<UserState>()(
 				analytics.reset();
 				Cookies.remove(AUTH_COOKIE_NAME, { path: "/" });
 
-				fetch(
-					`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api"}/v1/auth/logout`,
-					{
-						method: "POST",
-						credentials: "include",
-					},
-				).catch(() => {});
+				fetch(`${process.env.NEXT_PUBLIC_API_URL || ""}/api/v1/auth/logout`, {
+					method: "POST",
+					credentials: "include",
+				}).catch(() => {});
 
 				set({
 					profile: null,

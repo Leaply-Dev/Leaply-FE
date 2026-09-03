@@ -7,7 +7,19 @@ const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	skipTrailingSlashRedirect: true,
 	async rewrites() {
+		// Same-origin proxy to the Python backend so the session cookie stays
+		// same-site (no cross-origin CORS/SameSite issues in dev). Override the
+		// backend host with BACKEND_URL.
+		const backend = process.env.BACKEND_URL || "http://localhost:8000";
 		return [
+			{
+				source: "/api/:path*",
+				destination: `${backend}/api/:path*`,
+			},
+			{
+				source: "/media/:path*",
+				destination: `${backend}/media/:path*`,
+			},
 			{
 				source: "/ingest/static/:path*",
 				destination: "https://us-assets.i.posthog.com/static/:path*",

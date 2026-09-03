@@ -25,7 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { analytics } from "@/lib/analytics/analytics";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
-import { useRegister } from "@/lib/generated/api/endpoints/authentication/authentication";
+import { useAppsAccountsApiAuthRegister } from "@/lib/generated/api/endpoints/auth/auth";
 import type { AuthResponse } from "@/lib/generated/api/models";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
@@ -60,7 +60,7 @@ export function SignupForm({
 		[tValidation],
 	);
 	const login = useUserStore((state) => state.login);
-	const registerMutation = useRegister();
+	const registerMutation = useAppsAccountsApiAuthRegister();
 
 	const [formData, setFormData] = useState({
 		fullName: "",

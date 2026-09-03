@@ -2,27 +2,19 @@
 
 import {
 	AlertTriangle,
-	Award,
-	BookOpen,
+	Building2,
 	Calendar,
 	Check,
-	CheckCircle2,
-	ChevronDown,
-	Circle,
 	Clock,
 	DollarSign,
 	ExternalLink,
-	Globe,
 	GraduationCap,
-	Link2,
 	MapPin,
 	Plus,
 	Scale,
-	TrendingUp,
 } from "lucide-react";
 import Image from "next/image";
-import { useLocale, useTranslations } from "next-intl";
-import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,23 +25,16 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
-import { useGetProgramDetail } from "@/lib/generated/api/endpoints/explore/explore";
+import { useAppsCatalogApiGetProgramDetail } from "@/lib/generated/api/endpoints/explore/explore";
 import type {
-	BudgetGap,
-	EnglishGap,
-	GpaGap,
+	CostResponse,
+	DeadlineResponse,
+	FundingOptionResponse,
 	ProgramDetailResponse,
-	ProgramIntakeResponse,
 	ProgramListItemResponse,
+	ProvenanceResponse,
+	RequirementResponse,
 } from "@/lib/generated/api/models";
-import type { Locale } from "@/lib/utils/displayFormatters";
-import {
-	formatCurrencyWithCode,
-	formatDeliveryModeI18n,
-	formatDurationI18n,
-	formatLanguage,
-	formatTuitionRange,
-} from "@/lib/utils/displayFormatters";
 
 interface ProgramDetailDrawerProps {
 	programId: string | null;
@@ -62,390 +47,37 @@ interface ProgramDetailDrawerProps {
 	onAddToDashboard?: (id: string) => void;
 }
 
-/**
- * Get status styling based on gap status
- */
-function getGapStatusStyle(status?: string): {
-	border: string;
-	bg: string;
-	icon: "check" | "warning" | "neutral" | "trending";
-} {
-	switch (status) {
-		case "exceeds":
-			return {
-				border: "border-green-200",
-				bg: "bg-green-50",
-				icon: "trending",
-			};
-		case "meets":
-		case "within":
-			return {
-				border: "border-primary/30",
-				bg: "bg-primary/10",
-				icon: "check",
-			};
-		case "stretch":
-			return {
-				border: "border-yellow-200",
-				bg: "bg-yellow-50",
-				icon: "warning",
-			};
-		case "gap":
-		case "over":
-			return {
-				border: "border-orange-200",
-				bg: "bg-orange-50",
-				icon: "warning",
-			};
-		default:
-			return { border: "border-border", bg: "bg-muted/50", icon: "neutral" };
+/** Compact, readable rendering of a requirement's JSON value. */
+function formatReqValue(value: unknown): string {
+	if (value == null) return "";
+	if (typeof value === "object") {
+		const v = value as Record<string, unknown>;
+		if (v.overall != null) return `${v.overall}`;
+		if (v.min != null)
+			return v.scale != null ? `${v.min} / ${v.scale}` : `${v.min}`;
+		return Object.values(v).join(", ");
 	}
+	return String(value);
 }
 
-/**
- * Format delta value with sign
- */
-function formatDelta(delta?: number, unit?: string): string {
-	if (delta === undefined || delta === null) return "";
-	const sign = delta >= 0 ? "+" : "";
-	const formatted = Number.isInteger(delta)
-		? delta.toString()
-		: delta.toFixed(1);
-	return `${sign}${formatted}${unit || ""}`;
+function humanize(s: string): string {
+	return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-/**
- * Gap-based requirement check item using pre-computed gap data from API
- */
-function GapCheckItem({
-	label,
-	status,
-	userValue,
-	requiredValue,
-	delta,
-	userLabel,
-	requiredLabel,
-	note,
-}: {
-	label: string;
-	status?: string;
-	userValue?: number | string;
-	requiredValue?: number | string;
-	delta?: number;
-	userLabel?: string;
-	requiredLabel?: string;
-	note?: string;
-}) {
-	const style = getGapStatusStyle(status);
-	const hasData = status && status !== "unknown";
-
-	const renderIcon = () => {
-		switch (style.icon) {
-			case "check":
-				return (
-					<div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-						<Check className="w-3 h-3 text-primary-foreground" />
-					</div>
-				);
-			case "trending":
-				return (
-					<div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-						<TrendingUp className="w-3 h-3 text-white" />
-					</div>
-				);
-			case "warning":
-				return (
-					<div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
-						<AlertTriangle className="w-3 h-3 text-white" />
-					</div>
-				);
-			default:
-				return <Circle className="w-5 h-5 text-muted-foreground" />;
-		}
-	};
-
+/** Small "where did this come from?" source link. */
+function SourceLink({ provenance }: { provenance?: ProvenanceResponse }) {
+	if (!provenance?.sourceUrl) return null;
 	return (
-		<div className={`p-3 rounded-lg border ${style.border} ${style.bg}`}>
-			<div className="flex items-center justify-between">
-				<div className="flex items-center gap-3">
-					{renderIcon()}
-					<div>
-						<p className="font-medium text-foreground text-sm">{label}</p>
-						{hasData && userValue !== undefined && (
-							<p className="text-xs text-muted-foreground">
-								{userLabel}: {userValue}
-								{requiredValue !== undefined && (
-									<>
-										{" "}
-										<span className="text-muted-foreground/60">•</span>{" "}
-										{requiredLabel}: {requiredValue}
-									</>
-								)}
-							</p>
-						)}
-						{!hasData && requiredValue !== undefined && (
-							<p className="text-xs text-muted-foreground">
-								{requiredLabel}: {requiredValue}
-							</p>
-						)}
-					</div>
-				</div>
-				<div className="text-right">
-					{hasData && delta !== undefined && delta !== 0 && (
-						<span
-							className={`text-sm font-semibold font-num ${
-								delta >= 0 ? "text-green-600" : "text-orange-600"
-							}`}
-						>
-							{formatDelta(delta)}
-						</span>
-					)}
-					{note && (
-						<p className="text-xs text-muted-foreground mt-0.5">{note}</p>
-					)}
-				</div>
-			</div>
-		</div>
-	);
-}
-
-/**
- * English gap display component
- */
-function EnglishGapItem({
-	gap,
-	fallbackRequired,
-}: {
-	gap?: EnglishGap;
-	fallbackRequired?: number;
-}) {
-	const t = useTranslations("explore.programDetail");
-	if (!gap || gap.status === "unknown") {
-		// Fallback to showing just the requirement if available
-		if (fallbackRequired) {
-			return (
-				<GapCheckItem
-					label="IELTS"
-					requiredValue={`${fallbackRequired}+`}
-					requiredLabel={t("required")}
-				/>
-			);
-		}
-		return null;
-	}
-
-	const userDisplay = gap.userValue
-		? `${gap.userValue} (${gap.userType?.toUpperCase() || "IELTS"})`
-		: undefined;
-	const requiredDisplay = gap.requiredValue
-		? `${gap.requiredValue}+ (${gap.requiredType?.toUpperCase() || "IELTS"})`
-		: undefined;
-
-	return (
-		<GapCheckItem
-			label="English"
-			status={gap.status}
-			userValue={userDisplay}
-			requiredValue={requiredDisplay}
-			delta={gap.delta}
-			userLabel={t("you")}
-			requiredLabel={t("required")}
-			note={
-				gap.status === "exceeds"
-					? t("exceedsRequirement")
-					: gap.status === "gap"
-						? t("belowRequirement")
-						: undefined
-			}
-		/>
-	);
-}
-
-/**
- * GPA gap display component
- */
-function GpaGapItem({
-	gap,
-	fallbackRequired,
-}: {
-	gap?: GpaGap;
-	fallbackRequired?: number;
-}) {
-	const t = useTranslations("explore.programDetail");
-	if (!gap || gap.status === "unknown") {
-		if (fallbackRequired) {
-			return (
-				<GapCheckItem
-					label="GPA"
-					requiredValue={`${fallbackRequired}+`}
-					requiredLabel={t("required")}
-				/>
-			);
-		}
-		return null;
-	}
-
-	const userDisplay =
-		gap.userValue !== undefined
-			? `${gap.userValue.toFixed(2)}${gap.userScale ? ` / ${gap.userScale}` : ""}`
-			: undefined;
-	const requiredDisplay =
-		gap.requiredValue !== undefined
-			? `${gap.requiredValue}+${gap.requiredScale ? ` / ${gap.requiredScale}` : ""}`
-			: undefined;
-
-	return (
-		<GapCheckItem
-			label="GPA"
-			status={gap.status}
-			userValue={userDisplay}
-			requiredValue={requiredDisplay}
-			delta={gap.delta}
-			userLabel={t("you")}
-			requiredLabel={t("required")}
-			note={
-				gap.status === "exceeds"
-					? t("exceedsRequirement")
-					: gap.status === "gap"
-						? t("belowRequirement")
-						: undefined
-			}
-		/>
-	);
-}
-
-/**
- * Budget gap display component
- */
-function BudgetGapItem({
-	gap,
-	tuitionAnnual,
-}: {
-	gap?: BudgetGap;
-	tuitionAnnual?: number;
-}) {
-	const t = useTranslations("explore.programDetail");
-	if (!gap || gap.status === "unknown") {
-		return null;
-	}
-
-	const formatBudget = (value?: number) => {
-		if (!value) return undefined;
-		return `$${(value / 1000).toFixed(0)}k`;
-	};
-
-	const getNote = () => {
-		if (gap.status === "within") return t("withinBudget");
-		if (gap.status === "stretch") {
-			return gap.scholarshipAvailable
-				? t("stretchBudgetScholarship")
-				: t("stretchBudget");
-		}
-		if (gap.status === "over") {
-			const overAmount = gap.overBudgetUsd
-				? t("overBudgetAmount", {
-						amount: `$${(gap.overBudgetUsd / 1000).toFixed(0)}k`,
-					})
-				: t("overBudget");
-			return gap.scholarshipAvailable
-				? `${overAmount} - ${t("scholarshipsAvailable")}`
-				: overAmount;
-		}
-		return undefined;
-	};
-
-	return (
-		<GapCheckItem
-			label="Budget"
-			status={gap.status}
-			userValue={formatBudget(gap.userBudgetUsd)}
-			userLabel={t("you")}
-			requiredValue={formatBudget(gap.tuitionUsd || tuitionAnnual)}
-			requiredLabel={t("required")}
-			note={getNote()}
-		/>
-	);
-}
-
-function formatCurrency(value?: number): string {
-	if (!value) return "N/A";
-	return new Intl.NumberFormat("en-US", {
-		style: "currency",
-		currency: "USD",
-		maximumFractionDigits: 0,
-	}).format(value);
-}
-
-// TODO: Enable IntakeCard when backend supports detailed intake data (seasons, deadlines, etc.)
-function _IntakeCard({
-	intake,
-	isExpanded,
-	onToggle,
-}: {
-	intake: ProgramIntakeResponse;
-	isExpanded: boolean;
-	onToggle: () => void;
-}) {
-	return (
-		<div className="border border-border rounded-xl overflow-hidden">
-			<button
-				type="button"
-				onClick={onToggle}
-				className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
-			>
-				<div className="flex items-center gap-3">
-					<div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-						<Calendar className="w-5 h-5 text-primary" />
-					</div>
-					<div className="text-left">
-						<p className="font-semibold text-foreground">
-							{intake.seasonDisplay || intake.season || "N/A"}
-						</p>
-						<p className="text-xs text-muted-foreground">
-							Deadline: {intake.applicationDeadline || "N/A"}
-						</p>
-					</div>
-				</div>
-				<div className="flex items-center gap-2">
-					{intake.isActive && (
-						<Badge className="bg-primary/10 text-primary border-0">Open</Badge>
-					)}
-					<ChevronDown
-						className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`}
-					/>
-				</div>
-			</button>
-			{isExpanded && (
-				<div className="px-4 pb-4 pt-0 border-t border-border bg-muted/30">
-					<div className="pt-3 space-y-2 text-sm">
-						<div className="flex justify-between">
-							<span className="text-muted-foreground">Application Opens</span>
-							<span className="font-medium">
-								{intake.applicationStartDate || "N/A"}
-							</span>
-						</div>
-						<div className="flex justify-between">
-							<span className="text-muted-foreground">Early Deadline</span>
-							<span className="font-medium">
-								{intake.earlyDeadline || "N/A"}
-							</span>
-						</div>
-						<div className="flex justify-between">
-							<span className="text-muted-foreground">
-								Application Deadline
-							</span>
-							<span className="font-medium">
-								{intake.applicationDeadline || "N/A"}
-							</span>
-						</div>
-						<div className="flex justify-between">
-							<span className="text-muted-foreground">Classes Begin</span>
-							<span className="font-medium">{intake.startDate || "N/A"}</span>
-						</div>
-					</div>
-				</div>
-			)}
-		</div>
+		<a
+			href={provenance.sourceUrl}
+			target="_blank"
+			rel="noopener noreferrer"
+			title={provenance.excerpt || provenance.sourceUrl}
+			className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-primary"
+		>
+			<ExternalLink className="w-2.5 h-2.5" />
+			source
+		</a>
 	);
 }
 
@@ -457,24 +89,22 @@ export function ProgramDetailDrawer({
 	onAddToDashboard,
 }: ProgramDetailDrawerProps) {
 	const t = useTranslations("explore.programDetail");
-	const locale = useLocale() as Locale;
-	// TODO: Implement intake expansion UI when backend provides multiple intake periods
-	const [_expandedIntake, _setExpandedIntake] = useState<string | null>(null);
 
-	// Fetch detailed program data
 	const {
 		data: programDetail,
 		isLoading,
 		error,
-	} = useGetProgramDetail(programId || "", {
-		query: {
-			enabled: !!programId && open,
-			staleTime: 5 * 60 * 1000, // cache for 5 minutes
-		},
+	} = useAppsCatalogApiGetProgramDetail(programId || "", {
+		query: { enabled: !!programId && open, staleTime: 5 * 60 * 1000 },
 	});
 
 	const program = unwrapResponse<ProgramDetailResponse>(programDetail);
-	const req = program?.requirements;
+	const inst = program?.institution;
+	const requirements: RequirementResponse[] = program?.requirements ?? [];
+	const costs: CostResponse[] = program?.costs ?? [];
+	const funding: FundingOptionResponse[] = program?.funding ?? [];
+	const deadlines: DeadlineResponse[] = program?.deadlines ?? [];
+	const completeness = Math.round((program?.completenessScore ?? 0) * 100);
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
@@ -485,10 +115,7 @@ export function ProgramDetailDrawer({
 				<SheetTitle className="sr-only">Program Details</SheetTitle>
 				{isLoading ? (
 					<div className="flex-1 flex items-center justify-center">
-						<div className="flex flex-col items-center gap-3">
-							<div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-							<p className="text-sm text-muted-foreground">{t("loading")}</p>
-						</div>
+						<div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
 					</div>
 				) : error || !program ? (
 					<div className="flex-1 flex items-center justify-center p-6 text-center">
@@ -497,9 +124,6 @@ export function ProgramDetailDrawer({
 								<AlertTriangle className="w-6 h-6 text-destructive" />
 							</div>
 							<h3 className="text-lg font-semibold">{t("failedToLoad")}</h3>
-							<p className="text-sm text-muted-foreground max-w-xs mx-auto">
-								{error instanceof Error ? error.message : t("failedToLoadDesc")}
-							</p>
 							<Button onClick={() => onOpenChange(false)} variant="outline">
 								{t("close")}
 							</Button>
@@ -513,313 +137,199 @@ export function ProgramDetailDrawer({
 								<header className="space-y-4">
 									<div className="flex items-start gap-4">
 										<div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center shrink-0 border border-border overflow-hidden">
-											{program.universityLogoUrl ? (
+											{inst?.logoUrl ? (
 												<Image
-													src={program.universityLogoUrl}
-													alt={program.universityName || "University"}
+													src={inst.logoUrl}
+													alt={inst.name}
 													width={64}
 													height={64}
 													className="object-contain"
 												/>
 											) : (
-												<GraduationCap className="w-8 h-8 text-primary" />
+												<Building2 className="w-6 h-6 text-muted-foreground" />
 											)}
 										</div>
 										<div className="flex-1 min-w-0">
-											<h1 className="text-xl font-bold text-foreground leading-tight">
-												{program.programName || "N/A"}
-											</h1>
-											<p className="text-sm font-medium text-muted-foreground mt-1">
-												{program.universityName || "N/A"}
-											</p>
-											<div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">
-												<MapPin className="w-3.5 h-3.5" />
-												<span>
-													{program.universityCity || "N/A"},{" "}
-													{program.universityCountry || "N/A"}
-												</span>
+											<h2 className="font-bold text-lg leading-snug">
+												{program.name}
+											</h2>
+											<p className="text-sm font-medium">{inst?.name}</p>
+											<div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground">
+												<MapPin className="w-3 h-3 shrink-0" />
+												{inst?.city ? `${inst.city}, ` : ""}
+												{inst?.countryCode}
 											</div>
 										</div>
 									</div>
 
-									{/* Ranking Badges */}
-									<div className="flex flex-wrap gap-2">
-										{program.rankingQsDisplay && (
-											<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium font-num">
-												<Award className="w-3 h-3 mr-1" />
-												QS #{program.rankingQsDisplay}
+									<div className="flex flex-wrap gap-1.5">
+										<Badge variant="outline" className="gap-1 text-xs">
+											<GraduationCap className="w-3 h-3" />
+											{humanize(program.degreeLevel)}
+										</Badge>
+										{program.durationMonthsMin != null && (
+											<Badge variant="outline" className="gap-1 text-xs">
+												<Clock className="w-3 h-3" />
+												{program.durationMonthsMin} mo
 											</Badge>
 										)}
-										{program.rankingTimesDisplay && (
-											<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium font-num">
-												<Award className="w-3 h-3 mr-1" />
-												Times #{program.rankingTimesDisplay}
+										{program.deliveryModes?.map((m) => (
+											<Badge key={m} variant="outline" className="text-xs">
+												{humanize(m)}
 											</Badge>
-										)}
-										{program.fitScore && (
-											<Badge className="bg-primary/10 text-primary border-0 px-2.5 py-0.5 text-xs font-medium font-num">
-												{program.fitScore}% Match
-											</Badge>
-										)}
+										))}
+										<Badge className="bg-primary/10 text-primary border-0 text-xs">
+											{completeness}% complete
+										</Badge>
 									</div>
+
+									{program.programCategories?.length ? (
+										<div className="flex flex-wrap gap-1">
+											{program.programCategories.map((c) => (
+												<span
+													key={c}
+													className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
+												>
+													{c}
+												</span>
+											))}
+										</div>
+									) : null}
 								</header>
 
-								{/* Info Grid */}
-								<section className="grid grid-cols-3 gap-3">
-									<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
-										<Clock className="w-5 h-5 text-primary mx-auto mb-2" />
-										<p className="text-xs text-muted-foreground">
-											{t("duration")}
-										</p>
-										<p className="font-semibold text-sm text-foreground mt-0.5 font-num">
-											{formatDurationI18n(program.durationMonths, locale)}
-										</p>
-									</div>
-									<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
-										<BookOpen className="w-5 h-5 text-primary mx-auto mb-2" />
-										<p className="text-xs text-muted-foreground">
-											{t("studyMode")}
-										</p>
-										<p className="font-semibold text-sm text-foreground mt-0.5">
-											{formatDeliveryModeI18n(program.deliveryMode, locale)}
-										</p>
-									</div>
-									<div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
-										<Globe className="w-5 h-5 text-primary mx-auto mb-2" />
-										<p className="text-xs text-muted-foreground">
-											{t("language")}
-										</p>
-										<p className="font-semibold text-sm text-foreground mt-0.5">
-											{formatLanguage(program.language)}
-										</p>
-									</div>
-								</section>
+								{program.description && (
+									<p className="text-sm text-muted-foreground leading-relaxed">
+										{program.description}
+									</p>
+								)}
 
-								{/* Tuition Fees */}
-								<section className="bg-primary/5 rounded-xl p-4 border border-primary/20">
-									<div className="flex items-center gap-2 mb-3">
-										<DollarSign className="w-5 h-5 text-primary" />
-										<h3 className="font-semibold text-foreground">
-											{t("tuitionFees")}
+								{/* Requirements */}
+								{requirements.length > 0 && (
+									<section className="space-y-2">
+										<h3 className="font-semibold text-sm">
+											Entry requirements
 										</h3>
-									</div>
-									<div className="grid grid-cols-3 gap-4">
-										<div>
-											<p className="text-xs text-muted-foreground">
-												{t("perYear")}
-											</p>
-											<p className="text-lg font-bold text-foreground font-num">
-												{formatTuitionRange(
-													program.tuition?.annualMin,
-													program.tuition?.annualMax,
-													program.tuition?.currency || "USD",
-													locale,
-												)}
-											</p>
-										</div>
-										<div>
-											<p className="text-xs text-muted-foreground">
-												{t("totalProgram")}
-											</p>
-											<p className="text-lg font-bold text-foreground font-num">
-												{program.tuition?.total
-													? formatCurrencyWithCode(
-															program.tuition.total,
-															program.tuition?.currency || "USD",
-														)
-													: "N/A"}
-											</p>
-										</div>
-										<div>
-											<p className="text-xs text-muted-foreground">
-												{t("appFee")}
-											</p>
-											<p className="text-lg font-bold text-foreground font-num">
-												{formatCurrency(program.applicationFeeUsd)}
-											</p>
-										</div>
-									</div>
-									{program.tuition?.notes && (
-										<p className="text-xs text-muted-foreground mt-2">
-											{program.tuition.notes}
-										</p>
-									)}
-									{program.scholarshipAvailable && (
-										<p className="text-xs text-primary mt-2">
-											✓ {t("scholarshipAvailable")}
-										</p>
-									)}
-								</section>
-
-								{/* Requirements Section - Using pre-computed gap data from API */}
-								<section>
-									<div className="flex items-center gap-2 mb-3">
-										<CheckCircle2 className="w-5 h-5 text-primary" />
-										<h3 className="font-semibold text-foreground">
-											{t("entryRequirements")}
-										</h3>
-									</div>
-									<div className="space-y-2">
-										{/* GPA - using gap data */}
-										<GpaGapItem
-											gap={program.gpaGap}
-											fallbackRequired={req?.gpaMinimum}
-										/>
-
-										{/* English - using gap data */}
-										<EnglishGapItem
-											gap={program.englishGap}
-											fallbackRequired={req?.ieltsMinimum}
-										/>
-
-										{/* Budget - using gap data */}
-										<BudgetGapItem
-											gap={program.budgetGap}
-											tuitionAnnual={program.tuition?.annualMin}
-										/>
-
-										{/* TOEFL - show if required and no English gap (fallback) */}
-										{req?.toeflMinimum && !program.englishGap && (
-											<GapCheckItem
-												label="TOEFL"
-												requiredValue={`${req.toeflMinimum}+`}
-											/>
-										)}
-
-										{/* GRE - show if required */}
-										{req?.greMinimum && (
-											<GapCheckItem
-												label="GRE"
-												requiredValue={`${req.greMinimum}+`}
-											/>
-										)}
-
-										{/* GMAT - show if required */}
-										{req?.gmatMinimum && (
-											<GapCheckItem
-												label="GMAT"
-												requiredValue={`${req.gmatMinimum}+`}
-											/>
-										)}
-
-										{/* Additional Requirements */}
-										{req?.documents && req.documents.length > 0 && (
-											<div className="p-3 rounded-lg border border-border bg-muted/50">
-												<p className="font-medium text-foreground text-sm mb-2">
-													{t("additionalRequirements")}
-												</p>
-												<ul className="text-xs text-muted-foreground space-y-1">
-													{req.documents.map((doc: string) => (
-														<li key={doc}>• {doc}</li>
-													))}
-												</ul>
+										{requirements.map((r) => (
+											<div
+												key={r.type}
+												className="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-border text-sm"
+											>
+												<span className="flex items-center gap-2">
+													<Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+													{r.label || humanize(r.type)}
+												</span>
+												<span className="flex items-center gap-2 text-muted-foreground">
+													{formatReqValue(r.value)}
+													<SourceLink provenance={r.provenance} />
+												</span>
 											</div>
-										)}
+										))}
+									</section>
+								)}
 
-										{/* Work Experience */}
-										{req?.workExperienceYears && (
-											<div className="flex items-center justify-between p-3 rounded-lg border border-primary/20 bg-primary/5">
-												<p className="font-medium text-foreground text-sm">
-													{t("workExperience")}
-												</p>
-												<Badge className="bg-primary text-primary-foreground border-0 font-num">
-													{req.workExperienceYears}+ years
-												</Badge>
+								{/* Costs */}
+								{costs.length > 0 && (
+									<section className="space-y-2">
+										<h3 className="font-semibold text-sm">Tuition & costs</h3>
+										{costs.map((c) => (
+											<div
+												key={c.costType}
+												className="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-border text-sm"
+											>
+												<span className="flex items-center gap-2">
+													<DollarSign className="w-3.5 h-3.5 shrink-0" />
+													{humanize(c.costType)}
+												</span>
+												<span className="flex items-center gap-2 text-muted-foreground">
+													{c.amountUsdMin != null
+														? `~$${c.amountUsdMin.toLocaleString()}${c.period ? `/${c.period.replace("per_", "")}` : ""}`
+														: `${c.amountMin ?? ""} ${c.currency ?? ""}`}
+													<SourceLink provenance={c.provenance} />
+												</span>
 											</div>
-										)}
-									</div>
-									{req?.notes && (
-										<p className="text-xs text-muted-foreground mt-3">
-											{req.notes}
-										</p>
-									)}
-								</section>
+										))}
+									</section>
+								)}
 
-								{/* External Links Section */}
-								{(program.programUrl ||
-									program.admissionsUrl ||
-									program.universityWebsiteUrl) && (
-									<section>
-										<div className="flex items-center gap-2 mb-3">
-											<Link2 className="w-5 h-5 text-primary" />
-											<h3 className="font-semibold text-foreground">
-												{t("externalLinks")}
-											</h3>
-										</div>
-										<div className="space-y-2">
-											{program.programUrl && (
-												<a
-													href={program.programUrl}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/50 hover:bg-muted transition-colors group"
-												>
-													<div className="flex items-center gap-3">
-														<GraduationCap className="w-5 h-5 text-primary" />
-														<span className="text-sm font-medium text-foreground">
-															{t("programPage")}
-														</span>
-													</div>
-													<ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-												</a>
-											)}
-											{program.admissionsUrl && (
-												<a
-													href={program.admissionsUrl}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/50 hover:bg-muted transition-colors group"
-												>
-													<div className="flex items-center gap-3">
-														<CheckCircle2 className="w-5 h-5 text-primary" />
-														<span className="text-sm font-medium text-foreground">
-															{t("admissionsInfo")}
-														</span>
-													</div>
-													<ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-												</a>
-											)}
-											{program.universityWebsiteUrl && (
-												<a
-													href={program.universityWebsiteUrl}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/50 hover:bg-muted transition-colors group"
-												>
-													<div className="flex items-center gap-3">
-														<Globe className="w-5 h-5 text-primary" />
-														<span className="text-sm font-medium text-foreground">
-															{t("universityWebsite")}
-														</span>
-													</div>
-													<ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-												</a>
-											)}
-										</div>
+								{/* Funding */}
+								{funding.length > 0 && (
+									<section className="space-y-2">
+										<h3 className="font-semibold text-sm">Funding</h3>
+										{funding.map((f) => (
+											<div
+												key={f.name}
+												className="p-2.5 rounded-lg border border-border text-sm space-y-1"
+											>
+												<div className="flex items-center justify-between gap-2">
+													<span className="font-medium">{f.name}</span>
+													<SourceLink provenance={f.provenance} />
+												</div>
+												<div className="flex flex-wrap gap-1">
+													{f.automaticConsideration && (
+														<Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-0 text-[10px]">
+															Automatic
+														</Badge>
+													)}
+													{f.coversTuition && (
+														<Badge variant="outline" className="text-[10px]">
+															Tuition
+														</Badge>
+													)}
+													{f.coversLiving && (
+														<Badge variant="outline" className="text-[10px]">
+															Living
+														</Badge>
+													)}
+												</div>
+											</div>
+										))}
+									</section>
+								)}
+
+								{/* Deadlines */}
+								{deadlines.length > 0 && (
+									<section className="space-y-2">
+										<h3 className="font-semibold text-sm">Deadlines</h3>
+										{deadlines.map((d) => (
+											<div
+												key={`${d.deadlineType}-${d.name}`}
+												className="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-border text-sm"
+											>
+												<span className="flex items-center gap-2">
+													<Calendar className="w-3.5 h-3.5 shrink-0" />
+													{d.name || humanize(d.deadlineType)}
+												</span>
+												<span className="flex items-center gap-2 text-muted-foreground">
+													{d.date || "—"}
+													<SourceLink provenance={d.provenance} />
+												</span>
+											</div>
+										))}
 									</section>
 								)}
 							</div>
 						</ScrollArea>
 
-						{/* Sticky Footer */}
-						<SheetFooter className="border-t border-border p-4 bg-background">
-							<div className="flex gap-3 w-full">
+						<SheetFooter className="flex-row gap-2 p-4 border-t">
+							{onCompare && (
 								<Button
 									variant="outline"
-									className="flex-1 gap-2"
-									onClick={() => program?.id && onCompare?.(program.id)}
+									className="flex-1 gap-1"
+									onClick={() => onCompare(program.id, program)}
 								>
 									<Scale className="w-4 h-4" />
 									{t("compare")}
 								</Button>
+							)}
+							{onAddToDashboard && (
 								<Button
-									className="flex-2 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-									onClick={() => program?.id && onAddToDashboard?.(program.id)}
+									className="flex-1 gap-1"
+									onClick={() => onAddToDashboard(program.id)}
 								>
 									<Plus className="w-4 h-4" />
-									{t("apply")}
+									{t("addToDashboard")}
 								</Button>
-							</div>
+							)}
 						</SheetFooter>
 					</>
 				)}

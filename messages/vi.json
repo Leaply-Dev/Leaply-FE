@@ -4,6 +4,8 @@
 		"features": "Tính năng",
 		"about": "Về chúng mình",
 		"explore": "Khám phá",
+		"personaLabs": "Persona Labs",
+		"strategy": "Chiến lược",
 		"applications": "Bài luận",
 		"personaLab": "Persona Lab",
 		"login": "Đăng nhập",
@@ -17,7 +19,7 @@
 		"step1Title": "Chào mừng đến Persona Lab",
 		"step1Desc": "Đây là không gian khám phá câu chuyện của bạn. Bạn sẽ trò chuyện, xây đồ thị trải nghiệm và mở khóa archetype cá nhân.",
 		"step2Title": "Trò chuyện với mentor",
-		"step2Desc": "Trả lời tự nhiên ở khung chat. Mentor sẽ hỏi sâu hơn để biến trải nghiệm thành chất liệu bài luận mạnh.",
+		"step2Desc": "Trả lờì tự nhiên ở khung chat. Mentor sẽ hỏi sâu hơn để biến trải nghiệm thành chất liệu bài luận mạnh.",
 		"step3Title": "Bắt đầu bằng gợi ý nhanh",
 		"step3Desc": "Chọn một chip gợi ý hoặc tự nhập tin nhắn đầu tiên để mở cuộc trò chuyện có hướng dẫn.",
 		"step4Title": "Theo dõi đồ thị phát triển",
@@ -29,6 +31,73 @@
 		"finish": "Bắt đầu",
 		"restart": "Xem lại hướng dẫn",
 		"progress": "Bước {current} / {total}"
+	},
+	"personaLabs": {
+		"title": "Persona Labs",
+		"subtitle": "Khám phá câu chuyện và giá trị cốt lõi của bạn qua bộ câu hỏi cố định.",
+		"form": {
+			"submit": "Lưu persona",
+			"saving": "Đang lưu...",
+			"saved": "Lưu thành công!",
+			"error": "Có lỗi xảy ra. Vui lòng thử lại.",
+			"requiredHint": "* Bắt buộc",
+			"sections": {
+				"preferences": "Sở thích",
+				"values": "Giá trị",
+				"constraints": "Ràng buộc",
+				"motivations": "Động lực"
+			}
+		},
+		"comingSoonTitle": "Sắp ra mắt",
+		"comingSoonDescription": "Tính năng Persona Labs đang được hoàn thiện. Quay lại sau nhé!",
+		"startButton": "Bắt đầu khám phá"
+	},
+	"strategy": {
+		"title": "Chiến lược du học",
+		"subtitle": "Gợi ý lộ trình, chương trình và học bổng phù hợp với profile của bạn.",
+		"loading": "Đang tải chiến lược...",
+		"error": {
+			"title": "Không thể tải chiến lược",
+			"description": "Không thể tải chiến lược du học của bạn. Vui lòng thử lại.",
+			"retry": "Thử lại"
+		},
+		"empty": {
+			"title": "Chưa có chiến lược",
+			"description": "Hoàn thiện hồ sơ và sở thích để nhận chiến lược cá nhân hóa."
+		},
+		"summaryTitle": "Tổng quan",
+		"programsTitle": "Chương trình gợi ý",
+		"safetyTitle": "Trường an toàn",
+		"targetTitle": "Trường mục tiêu",
+		"reachTitle": "Trường thách thức",
+		"noPrograms": "Chưa có chương trình nào.",
+		"scholarshipsTitle": "Học bổng gợi ý",
+		"eligible": "Đủ điều kiện",
+		"notEligible": "Chưa đủ điều kiện",
+		"coverage": "Mức hỗ trợ",
+		"provider": "Nhà tài trợ",
+		"noScholarships": "Chưa có học bổng gợi ý.",
+		"optionsTitle": "Phương án chiến lược",
+		"riskLevel": "Mức độ rủi ro",
+		"fundingPlan": "Kế hoạch tài chính",
+		"noOptions": "Chưa có phương án chiến lược.",
+		"actionPlanTitle": "Kế hoạch hành động",
+		"step": "Bước {order}",
+		"timeframe": "Thời gian",
+		"noActionPlan": "Chưa có bước hành động nào.",
+		"fitScore": "Độ phù hợp",
+		"tuition": "Học phí",
+		"why": "Tại sao phù hợp với bạn",
+		"save": "Lưu",
+		"unsave": "Bỏ lưu",
+		"saving": "Đang lưu...",
+		"comingSoonTitle": "Sắp ra mắt",
+		"comingSoonDescription": "Tính năng Chiến lược đang được hoàn thiện. Quay lại sau nhé!",
+		"generateButton": "Tạo chiến lược",
+		"analyzing": "Đang phân tích chiến lược của bạn...",
+		"analyzingDescription": "Việc này có thể mất một chút thời gian trong lần phân tích đầu tiên.",
+		"regenerate": "Phân tích lại",
+		"regenerating": "Đang phân tích lại..."
 	},
 	"onboarding": {
 		"steps": {

@@ -1,7 +1,7 @@
 "use client";
 
+import { useQueries } from "@tanstack/react-query";
 import {
-	AlertTriangle,
 	BookOpen,
 	Calendar,
 	Clock,
@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
-import { Badge } from "@/components/ui/badge";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Drawer,
@@ -24,14 +24,17 @@ import {
 	DrawerTitle,
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { ProgramListItemResponse } from "@/lib/generated/api/models";
-import type { Locale } from "@/lib/utils/displayFormatters";
+import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import { getAppsCatalogApiGetProgramDetailQueryOptions } from "@/lib/generated/api/endpoints/explore/explore";
+import type {
+	ProgramDetailResponse,
+	ProgramListItemResponse,
+} from "@/lib/generated/api/models";
 import {
 	formatCountryName,
-	formatDeliveryModeI18n,
-	formatDurationI18n,
-	formatTuitionRange,
 	getDeadlineInfo,
+	formatTuitionRange,
+	type Locale,
 } from "@/lib/utils/displayFormatters";
 
 // ============================================================================
@@ -43,217 +46,197 @@ interface CompareDialogProps {
 	onOpenChange: (open: boolean) => void;
 	selectedProgramsList: ProgramListItemResponse[];
 	onRemoveProgram: (id: string) => void;
-	onAddToDashboard: (id: string) => void;
-}
-
-interface EnglishRequirement {
-	type: "IELTS" | "TOEFL" | null;
-	score: number | null;
+	onAddToDashboard?: (id: string) => void;
 }
 
 // ============================================================================
 // Helper Functions
 // ============================================================================
 
-function getEnglishRequirement(
-	program: ProgramListItemResponse,
-): EnglishRequirement {
-	// Prefer IELTS if available, otherwise TOEFL
-	if (program.ieltsMinimum) {
-		return { type: "IELTS", score: program.ieltsMinimum };
-	}
-	if (program.toeflMinimum) {
-		return { type: "TOEFL", score: program.toeflMinimum };
-	}
-	return { type: null, score: null };
-}
-
 // ============================================================================
 // Sub-Components
 // ============================================================================
 
+const NA = (
+	<td className="p-4 border-l border-border align-top">
+		<span className="text-muted-foreground">—</span>
+	</td>
+);
+
+const LOADING = (
+	<td className="p-4 border-l border-border align-top">
+		<span className="text-muted-foreground text-sm animate-pulse">…</span>
+	</td>
+);
+
+/** Compact, readable rendering of a requirement's JSON value (mirrors ProgramDetailDrawer). */
+function formatReqValue(value: unknown): string {
+	if (value == null) return "";
+	if (typeof value === "object") {
+		const v = value as Record<string, unknown>;
+		if (v.overall != null) return `${v.overall}`;
+		if (v.min != null)
+			return v.scale != null ? `${v.min} / ${v.scale}` : `${v.min}`;
+		return Object.values(v).join(", ");
+	}
+	return String(value);
+}
+
+function findRequirement(
+	detail: ProgramDetailResponse | undefined,
+	typeSubstrings: string[],
+) {
+	return detail?.requirements?.find((r) =>
+		typeSubstrings.some((s) => r.type?.toLowerCase().includes(s)),
+	);
+}
+
 function ProgramHeaderCell({ program }: { program: ProgramListItemResponse }) {
+	const inst = program.institution;
 	return (
 		<th className="p-4 text-left border-l border-border min-w-64">
 			<div className="space-y-3">
 				<div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
-					{program.universityLogoUrl ? (
+					{inst?.logoUrl ? (
 						<Image
-							src={program.universityLogoUrl ?? ""}
-							alt={program.universityName ?? ""}
+							src={inst.logoUrl}
+							alt={inst.name}
 							width={40}
 							height={40}
 							className="object-contain"
 						/>
 					) : (
 						<span className="text-sm font-bold text-primary">
-							{(program.universityName ?? "").charAt(0).toUpperCase()}
+							{(inst?.name ?? "").charAt(0).toUpperCase()}
 						</span>
 					)}
 				</div>
 
 				<div>
-					<h3 className="font-semibold text-foreground">
-						{program.programName}
-					</h3>
-					<p className="text-sm text-muted-foreground">
-						{program.universityName}
-					</p>
+					<h3 className="font-semibold text-foreground">{program.name}</h3>
+					<p className="text-sm text-muted-foreground">{inst?.name}</p>
 				</div>
 
 				<div className="flex items-center gap-1 text-sm text-muted-foreground">
 					<MapPin className="w-3.5 h-3.5" />
-					{formatCountryName(program.universityCountry)}
+					{formatCountryName(inst?.countryCode)}
 				</div>
 			</div>
 		</th>
 	);
 }
 
-function TuitionCell({ program }: { program: ProgramListItemResponse }) {
-	const t = useTranslations("compare");
-	const locale = useLocale() as Locale;
+// Tuition / gpa / english / deadline need the full program detail (not on the
+// lean list item) — fetched per selected program, see detailsById below.
+function TuitionCell({
+	detail,
+	isLoading,
+}: {
+	detail?: ProgramDetailResponse;
+	isLoading: boolean;
+}) {
+	if (isLoading) return LOADING;
+	const tuition = detail?.costs?.find((c) => c.costType === "tuition");
+	if (!tuition) return NA;
+	const value =
+		tuition.amountUsdMin != null || tuition.amountUsdMax != null
+			? formatTuitionRange(tuition.amountUsdMin, tuition.amountUsdMax, "USD")
+			: formatTuitionRange(
+					tuition.amountMin,
+					tuition.amountMax,
+					tuition.currency ?? "USD",
+				);
 	return (
 		<td className="p-4 border-l border-border align-top">
-			<div className="space-y-1">
-				<p className="font-semibold text-foreground">
-					{program.tuitionAnnualMin
-						? formatTuitionRange(
-								program.tuitionAnnualMin,
-								program.tuitionAnnualMax,
-								program.tuitionCurrency || "USD",
-								locale,
-							)
-						: "N/A"}
-				</p>
-				{program.scholarshipAvailable && (
-					<p className="text-sm text-green-600">✓ {t("hasScholarship")}</p>
-				)}
-				{!program.scholarshipAvailable && (
-					<p className="text-sm text-muted-foreground italic">
-						{t("noScholarshipThisTerm")}
-					</p>
-				)}
-			</div>
+			<span className="text-foreground">{value}</span>
 		</td>
 	);
 }
 
-function RankingCell({ program }: { program: ProgramListItemResponse }) {
-	return (
-		<td className="p-4 border-l border-border align-top">
-			{program.rankingQsDisplay ? (
-				<div className="flex flex-col gap-1.5">
-					{program.rankingQsDisplay && (
-						<div className="flex items-center gap-2">
-							<Badge
-								variant="outline"
-								className="font-semibold text-purple-700 border-purple-300 bg-purple-50 dark:bg-purple-950/30"
-							>
-								QS #{program.rankingQsDisplay}
-							</Badge>
-						</div>
-					)}
-					{/* {program.rankingTimesDisplay && (
-						<div className="flex items-center gap-2">
-							<Badge
-								variant="outline"
-								className="font-semibold text-amber-700 border-amber-300 bg-amber-50 dark:bg-amber-950/30"
-							>
-								Times #{program.rankingTimesDisplay}
-							</Badge>
-						</div>
-					)} */}
-				</div>
-			) : (
-				<span className="text-muted-foreground">N/A</span>
-			)}
-		</td>
-	);
+// No ranking field is exposed on the program detail API yet — stays NA until
+// the backend surfaces institution ranking data on this endpoint.
+function RankingCell(_: { program: ProgramListItemResponse }) {
+	return NA;
 }
+
 function DegreeDeliveryCell({ program }: { program: ProgramListItemResponse }) {
-	const locale = useLocale() as Locale;
 	return (
 		<td className="p-4 border-l border-border align-top">
-			<div className="space-y-1">
-				<div className="flex items-center gap-2 text-sm text-muted-foreground">
-					<span>
-						{[
-							program.degreeName,
-							formatDeliveryModeI18n(program.deliveryMode, locale),
-						]
-							.filter((v) => v && v !== "N/A")
-							.join(" • ")}
-					</span>
-				</div>
-			</div>
+			<span className="text-sm text-muted-foreground">
+				{program.degreeLevel?.replace(/_/g, " ")}
+			</span>
 		</td>
 	);
 }
 
 function DurationCell({ program }: { program: ProgramListItemResponse }) {
-	const locale = useLocale() as Locale;
+	const months = program.durationMonthsMin ?? program.durationMonthsMax;
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<span className="text-foreground">
-				{formatDurationI18n(program.durationMonths, locale)}
+				{months != null ? `${months} mo` : "—"}
 			</span>
 		</td>
 	);
 }
-function DeadlineCell({ program }: { program: ProgramListItemResponse }) {
-	const deadline = getDeadlineInfo(program.nextDeadline, "vi");
+
+function DeadlineCell({
+	detail,
+	isLoading,
+	locale,
+}: {
+	detail?: ProgramDetailResponse;
+	isLoading: boolean;
+	locale: Locale;
+}) {
+	if (isLoading) return LOADING;
+	const deadline =
+		detail?.deadlines?.find((d) => d.deadlineType === "admission") ??
+		detail?.deadlines?.[0];
+	if (!deadline?.date) return NA;
+	const info = getDeadlineInfo(deadline.date, locale);
 	return (
 		<td className="p-4 border-l border-border align-top">
-			<div className="space-y-1">
-				<p className="font-semibold text-foreground">{deadline.text}</p>
-				{deadline.daysLeft && (
-					<p className={`text-sm flex items-center gap-1 ${deadline.color}`}>
-						{deadline.isUrgent && <AlertTriangle className="w-3.5 h-3.5" />}
-						{deadline.daysLeft}
-					</p>
-				)}
-			</div>
+			<span className="text-foreground">{info.text}</span>
 		</td>
 	);
 }
 
-function GpaCell({ program }: { program: ProgramListItemResponse }) {
-	if (program.gpaGap?.requiredValue) {
-		return (
-			<td className="p-4 border-l border-border align-top">
-				<p className="font-semibold text-foreground">
-					{program.gpaGap.requiredValue}
-					{program.gpaGap.requiredScale
-						? ` / ${program.gpaGap.requiredScale}`
-						: ""}
-				</p>
-			</td>
-		);
-	}
+function GpaCell({
+	detail,
+	isLoading,
+}: {
+	detail?: ProgramDetailResponse;
+	isLoading: boolean;
+}) {
+	if (isLoading) return LOADING;
+	const req = findRequirement(detail, ["gpa", "cgpa"]);
+	if (!req) return NA;
 	return (
 		<td className="p-4 border-l border-border align-top">
-			<span className="text-muted-foreground">N/A</span>
+			<span className="text-foreground">
+				{formatReqValue(req.value)}
+				{req.unit ? ` ${req.unit}` : ""}
+			</span>
 		</td>
 	);
 }
 
-function EnglishCell({ program }: { program: ProgramListItemResponse }) {
-	const req = getEnglishRequirement(program);
-
-	if (!req.type || !req.score) {
-		return (
-			<td className="p-4 border-l border-border align-top">
-				<span className="text-muted-foreground">N/A</span>
-			</td>
-		);
-	}
-
+function EnglishCell({
+	detail,
+	isLoading,
+}: {
+	detail?: ProgramDetailResponse;
+	isLoading: boolean;
+}) {
+	if (isLoading) return LOADING;
+	const req = findRequirement(detail, ["ielts", "toefl", "teps", "toeic"]);
+	if (!req) return NA;
 	return (
 		<td className="p-4 border-l border-border align-top">
-			<p className="font-semibold text-foreground">
-				{req.type} {req.score}
-			</p>
+			<span className="text-foreground">
+				{req.label || req.type}: {formatReqValue(req.value)}
+			</span>
 		</td>
 	);
 }
@@ -264,22 +247,24 @@ function ActionsCell({
 	onRemoveProgram,
 }: {
 	program: ProgramListItemResponse;
-	onAddToDashboard: (id: string) => void;
+	onAddToDashboard?: (id: string) => void;
 	onRemoveProgram: (id: string) => void;
 }) {
 	const t = useTranslations("compare");
 	return (
 		<td className="p-4 border-l border-border align-top">
 			<div className="space-y-3">
-				<Button
-					className="w-full"
-					onClick={(e) => {
-						e.stopPropagation();
-						program.id && onAddToDashboard(program.id);
-					}}
-				>
-					{t("applyScholarship")}
-				</Button>
+				{onAddToDashboard && (
+					<Button
+						className="w-full"
+						onClick={(e) => {
+							e.stopPropagation();
+							program.id && onAddToDashboard(program.id);
+						}}
+					>
+						{t("applyScholarship")}
+					</Button>
+				)}
 				<button
 					type="button"
 					onClick={() => onRemoveProgram(program.id ?? "")}
@@ -321,6 +306,27 @@ export function CompareDialog({
 	onAddToDashboard,
 }: CompareDialogProps) {
 	const t = useTranslations("compare");
+	const locale = useLocale() as Locale;
+
+	const detailQueries = useQueries({
+		queries: selectedProgramsList.map((program) => ({
+			...getAppsCatalogApiGetProgramDetailQueryOptions(program.id ?? ""),
+			enabled: open && !!program.id,
+		})),
+	});
+
+	const detailsById = useMemo(() => {
+		const map = new Map<string, ProgramDetailResponse>();
+		detailQueries.forEach((query, index) => {
+			const id = selectedProgramsList[index]?.id;
+			const detail = unwrapResponse<ProgramDetailResponse>(query.data);
+			if (id && detail) map.set(id, detail);
+		});
+		return map;
+	}, [detailQueries, selectedProgramsList]);
+
+	const isLoadingDetails = detailQueries.some((query) => query.isLoading);
+
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange}>
 			<DrawerContent className="max-h-[90vh] p-0 gap-0 overflow-hidden">
@@ -349,7 +355,11 @@ export function CompareDialog({
 									<tr className="border-b border-border">
 										<RowLabel icon={DollarSign} label={t("tuitionPerYear")} />
 										{selectedProgramsList.map((program) => (
-											<TuitionCell key={program.id} program={program} />
+											<TuitionCell
+												key={program.id}
+												detail={detailsById.get(program.id ?? "")}
+												isLoading={isLoadingDetails}
+											/>
 										))}
 									</tr>
 
@@ -380,21 +390,34 @@ export function CompareDialog({
 											label={t("applicationDeadline")}
 										/>
 										{selectedProgramsList.map((program) => (
-											<DeadlineCell key={program.id} program={program} />
+											<DeadlineCell
+												key={program.id}
+												detail={detailsById.get(program.id ?? "")}
+												isLoading={isLoadingDetails}
+												locale={locale}
+											/>
 										))}
 									</tr>
 
 									<tr className="border-b border-border">
 										<RowLabel icon={GraduationCap} label={t("gpaRequired")} />
 										{selectedProgramsList.map((program) => (
-											<GpaCell key={program.id} program={program} />
+											<GpaCell
+												key={program.id}
+												detail={detailsById.get(program.id ?? "")}
+												isLoading={isLoadingDetails}
+											/>
 										))}
 									</tr>
 
 									<tr className="border-b border-border">
 										<RowLabel icon={Languages} label={t("english")} />
 										{selectedProgramsList.map((program) => (
-											<EnglishCell key={program.id} program={program} />
+											<EnglishCell
+												key={program.id}
+												detail={detailsById.get(program.id ?? "")}
+												isLoading={isLoadingDetails}
+											/>
 										))}
 									</tr>
 

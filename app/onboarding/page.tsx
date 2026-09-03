@@ -182,7 +182,7 @@ export default function OnboardingPage() {
 			iconName: "compass" as const,
 			title: t("step3.exploring.title"),
 			description: t("step3.exploring.description"),
-			redirect: "/persona-lab",
+			redirect: "/explore",
 			color: "chart-2",
 		},
 		{

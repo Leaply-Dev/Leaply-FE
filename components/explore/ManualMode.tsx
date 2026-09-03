@@ -26,16 +26,17 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { analytics } from "@/lib/analytics/analytics";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
-import { useGetCurrentUser } from "@/lib/generated/api/endpoints/authentication/authentication";
+import { useAppsAccountsApiAuthMe } from "@/lib/generated/api/endpoints/auth/auth";
 import {
-	getListProgramsQueryKey,
-	listPrograms,
+	appsCatalogApiListPrograms,
+	getAppsCatalogApiListProgramsQueryKey,
 } from "@/lib/generated/api/endpoints/explore/explore";
 import type {
-	ListProgramsParams,
+	AppsCatalogApiListProgramsParams,
 	ProgramListItemResponse,
 	ProgramListResponse,
 } from "@/lib/generated/api/models";
+import { useCompareStore } from "@/lib/store/compareStore";
 
 const PAGE_SIZE = 20;
 
@@ -43,9 +44,7 @@ const PAGE_SIZE = 20;
 type ProgramQuickFilter = "budget" | "testscore" | "deadline" | "scholarship";
 
 interface ManualModeProps {
-	selectedPrograms: Set<string>;
-	onToggleSelection: (id: string, program?: ProgramListItemResponse) => void;
-	isMaxReached: boolean;
+	onRegisterProgram?: (program: ProgramListItemResponse) => void;
 	onAddToDashboard?: (id: string) => void;
 }
 
@@ -93,12 +92,14 @@ interface ServerFilterState {
  * Shows ALL programs with optional filtering
  */
 export function ManualMode({
-	selectedPrograms,
-	onToggleSelection,
-	isMaxReached,
+	onRegisterProgram,
 	onAddToDashboard,
 }: ManualModeProps) {
 	const t = useTranslations("explore");
+
+	const selectedIds = useCompareStore((state) => state.selectedIds);
+	const toggleSelection = useCompareStore((state) => state.toggle);
+	const isMaxReached = useCompareStore((state) => state.isFull)();
 
 	// Detail drawer state
 	const [selectedProgram, setSelectedProgram] =
@@ -106,11 +107,11 @@ export function ManualMode({
 	const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
 
 	// User auth state for automatic sorting
-	const { data: userResponse } = useGetCurrentUser();
+	const { data: userResponse } = useAppsAccountsApiAuthMe();
 	const isAuthenticated = !!userResponse;
 
 	// Auto-determine sort based on auth state (preference for auth, ranking_qs for guest)
-	const sortBy = isAuthenticated ? "preference" : "ranking_qs";
+	const _sortBy = isAuthenticated ? "preference" : "ranking_qs";
 
 	// Search state (with debounce)
 	const [searchQuery, setSearchQuery] = useState("");
@@ -164,30 +165,16 @@ export function ManualMode({
 	}, [searchQuery]);
 
 	// Build query params from filters including quick filters
-	const queryParams = useMemo((): ListProgramsParams => {
-		const params: ListProgramsParams = {
-			sort: sortBy,
+	const queryParams = useMemo((): AppsCatalogApiListProgramsParams => {
+		const params: AppsCatalogApiListProgramsParams = {
 			size: PAGE_SIZE,
 		};
 
 		if (debouncedSearch) params.search = debouncedSearch;
 		if (filters.regions) params.regions = filters.regions;
-		if (filters.tuitionMax) params.tuitionMax = filters.tuitionMax;
-
-		// Quick filter: scholarship
-		if (filters.quickFilters.includes("scholarship")) {
-			params.scholarshipOnly = true;
-		}
-
-		// Quick filter: deadline > 60 days
-		if (filters.quickFilters.includes("deadline")) {
-			params.deadlineWithin = 60;
-		} else if (filters.deadlineWithin) {
-			params.deadlineWithin = filters.deadlineWithin;
-		}
 
 		return params;
-	}, [sortBy, debouncedSearch, filters]);
+	}, [debouncedSearch, filters]);
 
 	// Infinite query for programs
 	const {
@@ -199,9 +186,15 @@ export function ManualMode({
 		isError,
 		error,
 	} = useInfiniteQuery({
-		queryKey: [...getListProgramsQueryKey(queryParams), "infinite"],
+		queryKey: [
+			...getAppsCatalogApiListProgramsQueryKey(queryParams),
+			"infinite",
+		],
 		queryFn: async ({ pageParam = 1 }) => {
-			const response = await listPrograms({ ...queryParams, page: pageParam });
+			const response = await appsCatalogApiListPrograms({
+				...queryParams,
+				page: pageParam,
+			});
 			return response;
 		},
 		getNextPageParam: (lastPage) => {
@@ -459,8 +452,11 @@ export function ManualMode({
 						<ProgramCard
 							key={program.id}
 							program={program}
-							isSelected={selectedPrograms.has(program.id || "")}
-							onToggleSelection={onToggleSelection}
+							isSelected={selectedIds.has(program.id || "")}
+							onToggleSelection={(id) => {
+								onRegisterProgram?.(program);
+								toggleSelection(id);
+							}}
 							isMaxReached={isMaxReached}
 							onClick={(p) => {
 								if (p.id)
@@ -519,7 +515,8 @@ export function ManualMode({
 				open={isDetailDrawerOpen}
 				onOpenChange={setIsDetailDrawerOpen}
 				onCompare={(id) => {
-					onToggleSelection(id, selectedProgram || undefined);
+					if (selectedProgram) onRegisterProgram?.(selectedProgram);
+					toggleSelection(id);
 					setIsDetailDrawerOpen(false);
 				}}
 				onAddToDashboard={onAddToDashboard}

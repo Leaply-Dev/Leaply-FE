@@ -1,17 +1,17 @@
 "use client";
 
-import { ChevronDown, HelpCircle, LogOut, Menu, User, X } from "lucide-react";
+import { ChevronDown, LogOut, Menu, User, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { LanguageSwitcher } from "@/components/app/LanguageSwitcher";
+import { NavTabs } from "@/components/app/NavTabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { performLogout } from "@/lib/auth/logout";
 import { useMounted } from "@/lib/hooks/useMounted";
-import { useTourStore } from "@/lib/store/tourStore";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +28,6 @@ export function Navbar() {
 	// Use selector to subscribe to specific fields for optimal re-renders
 	const isAuthenticated = useUserStore((state) => state.isAuthenticated);
 	const profile = useUserStore((state) => state.profile);
-	const restartTour = useTourStore((state) => state.restart);
 
 	// Only use auth state after mount to avoid hydration mismatch
 	// Before mount, default to unauthenticated state
@@ -44,16 +43,6 @@ export function Navbar() {
 		{ href: "/about", labelKey: "about" },
 	];
 
-	const authNavLinks = [
-		{ href: "/dashboard", labelKey: "home" },
-		{ href: "/explore", labelKey: "explore" },
-		{ href: "/persona-lab", labelKey: "personaLab" },
-		{ href: "/dashboard/applications", labelKey: "applications" },
-	];
-
-	// Get nav links based on auth state
-	const navLinks = showAuthUI ? authNavLinks : publicNavLinks;
-
 	// Close dropdown when clicking outside
 	useEffect(() => {
 		function handleClickOutside(event: MouseEvent) {
@@ -67,17 +56,6 @@ export function Navbar() {
 		document.addEventListener("mousedown", handleClickOutside);
 		return () => document.removeEventListener("mousedown", handleClickOutside);
 	}, []);
-
-	// Get user initials for avatar
-	const getInitials = (name?: string) => {
-		if (!name) return "U";
-		return name
-			.split(" ")
-			.map((n) => n[0])
-			.join("")
-			.toUpperCase()
-			.slice(0, 2);
-	};
 
 	// Get avatar source
 	const getAvatarSrc = (avatarNum: number | null | undefined) => {
@@ -107,7 +85,7 @@ export function Navbar() {
 				<div className="flex items-center justify-between h-16">
 					{/* Logo */}
 					<Link
-						href={showAuthUI ? "/dashboard" : "/"}
+						href={showAuthUI ? "/explore" : "/"}
 						className="flex items-center gap-2"
 					>
 						<Image
@@ -121,24 +99,28 @@ export function Navbar() {
 
 					{/* Desktop Navigation */}
 					<div className="hidden md:flex items-center gap-6">
-						{navLinks.map((link) => {
-							const isActive =
-								link.href === "/" || link.href === "/dashboard"
-									? pathname === link.href
-									: pathname === link.href || pathname?.startsWith(link.href);
-							return (
-								<Link
-									key={link.href}
-									href={link.href}
-									className={cn(
-										"text-sm font-medium transition-colors hover:text-primary",
-										isActive ? "text-primary" : "text-foreground",
-									)}
-								>
-									{t(link.labelKey)}
-								</Link>
-							);
-						})}
+						{showAuthUI ? (
+							<NavTabs />
+						) : (
+							publicNavLinks.map((link) => {
+								const isActive =
+									link.href === "/"
+										? pathname === link.href
+										: pathname === link.href || pathname?.startsWith(link.href);
+								return (
+									<Link
+										key={link.href}
+										href={link.href}
+										className={cn(
+											"text-sm font-medium transition-colors hover:text-primary",
+											isActive ? "text-primary" : "text-foreground",
+										)}
+									>
+										{t(link.labelKey)}
+									</Link>
+								);
+							})
+						)}
 					</div>
 
 					{/* Auth Buttons / Avatar + Language Switcher */}
@@ -185,7 +167,7 @@ export function Navbar() {
 										</div>
 										<div className="py-1">
 											<Link
-												href="/dashboard/profile"
+												href="/profile"
 												className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
 												onClick={() => setAvatarDropdownOpen(false)}
 											>
@@ -240,25 +222,30 @@ export function Navbar() {
 				{mobileMenuOpen && (
 					<div className="md:hidden py-4 border-t border-border">
 						<div className="flex flex-col gap-4">
-							{navLinks.map((link) => {
-								const isActive =
-									link.href === "/" || link.href === "/dashboard"
-										? pathname === link.href
-										: pathname === link.href || pathname?.startsWith(link.href);
-								return (
-									<Link
-										key={link.href}
-										href={link.href}
-										className={cn(
-											"text-sm font-medium",
-											isActive ? "text-primary" : "text-foreground",
-										)}
-										onClick={() => setMobileMenuOpen(false)}
-									>
-										{t(link.labelKey)}
-									</Link>
-								);
-							})}
+							{showAuthUI ? (
+								<NavTabs mobile onClick={() => setMobileMenuOpen(false)} />
+							) : (
+								publicNavLinks.map((link) => {
+									const isActive =
+										link.href === "/"
+											? pathname === link.href
+											: pathname === link.href ||
+												pathname?.startsWith(link.href);
+									return (
+										<Link
+											key={link.href}
+											href={link.href}
+											className={cn(
+												"text-sm font-medium",
+												isActive ? "text-primary" : "text-foreground",
+											)}
+											onClick={() => setMobileMenuOpen(false)}
+										>
+											{t(link.labelKey)}
+										</Link>
+									);
+								})
+							)}
 							<div className="pt-4 border-t border-border flex flex-col gap-2">
 								{showAuthUI ? (
 									<>
@@ -284,9 +271,9 @@ export function Navbar() {
 												</p>
 											</div>
 										</div>
-										<Button variant="outline" type="button" size="sm" asChild>
+										<Button variant="outline" size="sm" asChild>
 											<Link
-												href="/dashboard/profile"
+												href="/profile"
 												onClick={() => setMobileMenuOpen(false)}
 											>
 												<User className="w-4 h-4 mr-2" />
@@ -295,17 +282,6 @@ export function Navbar() {
 										</Button>
 										<Button
 											variant="outline"
-											size="sm"
-											onClick={() => {
-												setMobileMenuOpen(false);
-												restartTour();
-											}}
-										>
-											<HelpCircle className="w-4 h-4 mr-2" />
-											{t("restartTour")}
-										</Button>
-										<Button
-											variant="ghost"
 											size="sm"
 											onClick={() => {
 												setMobileMenuOpen(false);

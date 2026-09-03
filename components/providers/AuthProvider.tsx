@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { z } from "zod";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
-import { getCurrentUser } from "@/lib/generated/api/endpoints/authentication/authentication";
+import { appsAccountsApiAuthMe } from "@/lib/generated/api/endpoints/auth/auth";
 import type { UserContextResponse } from "@/lib/generated/api/models";
 import { useUserStore } from "@/lib/store/userStore";
 
@@ -27,10 +27,10 @@ const AuthStateCookieSchema = z.object({
  * Routes that require authentication
  */
 const PROTECTED_ROUTES = [
-	"/dashboard",
-	"/persona-lab",
 	"/onboarding",
 	"/explore",
+	"/persona-labs",
+	"/strategy",
 ];
 
 function isProtectedRoute(pathname: string): boolean {
@@ -92,17 +92,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			}
 
 			try {
-				const response = await getCurrentUser();
+				const response = await appsAccountsApiAuthMe();
 				const userContext = unwrapResponse<UserContextResponse>(response);
 
-				if (userContext?.user) {
+				if (userContext?.userId) {
 					login(
 						profile || {
-							id: userContext.user.id ?? "",
-							email: userContext.user.email ?? "",
-							fullName: "",
+							id: userContext.userId,
+							email: userContext.email ?? "",
+							fullName: userContext.profile?.fullName ?? "",
 						},
-						userContext.user.isOnboardingComplete,
+						userContext.profile?.onboardingCompleted ?? false,
 					);
 				}
 

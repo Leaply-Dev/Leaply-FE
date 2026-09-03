@@ -25,7 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { analytics } from "@/lib/analytics/analytics";
 import { unwrapResponse } from "@/lib/api/unwrapResponse";
-import { useLogin } from "@/lib/generated/api/endpoints/authentication/authentication";
+import { useAppsAccountsApiAuthLogin } from "@/lib/generated/api/endpoints/auth/auth";
 import type { AuthResponse } from "@/lib/generated/api/models";
 import { useUserStore } from "@/lib/store/userStore";
 import { cn } from "@/lib/utils";
@@ -39,7 +39,7 @@ export function LoginForm({
 	const searchParams = useSearchParams();
 	const t = useTranslations("auth");
 	const login = useUserStore((state) => state.login);
-	const loginMutation = useLogin();
+	const loginMutation = useAppsAccountsApiAuthLogin();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState<string | null>(null);
@@ -96,7 +96,7 @@ export function LoginForm({
 			await new Promise((resolve) => setTimeout(resolve, 200));
 
 			if (authResponse.onboardingCompleted) {
-				router.push("/dashboard");
+				router.push("/explore");
 			} else {
 				router.push("/onboarding");
 			}

@@ -72,7 +72,7 @@ export function Navbar() {
 						<LanguageSwitcher />
 						{showAuthUI ? (
 							<Button size="sm" asChild>
-								<Link href="/dashboard">{tNav("goToDashboard")}</Link>
+								<Link href="/explore">{tNav("goToDashboard")}</Link>
 							</Button>
 						) : (
 							<>
@@ -130,7 +130,7 @@ export function Navbar() {
 								{showAuthUI ? (
 									<Button size="sm" className="w-full" asChild>
 										<Link
-											href="/dashboard"
+											href="/explore"
 											onClick={() => setMobileMenuOpen(false)}
 										>
 											{tNav("goToDashboard")}

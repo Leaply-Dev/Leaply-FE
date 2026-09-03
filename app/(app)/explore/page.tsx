@@ -1,36 +1,22 @@
 /**
- * @fileoverview Explore page with Programs and Scholarships tabs.
- * Dynamically loads search clients based on user selection and manages tab navigation via URL params.
+ * @fileoverview Explore page — program catalog and compare.
+ * The scholarship explore tab was removed; scholarships now appear inside the
+ * Chiến lược tab.
  */
 
 "use client";
 
-import { Award, GraduationCap } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Suspense } from "react";
 import { PageTransition } from "@/components/PageTransition";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Dynamic import for ExploreClient (405 lines - large component with complex state)
+// Dynamic import for ExploreClient (large client component with complex state)
 const ExploreClient = dynamic(
 	() =>
 		import("@/components/explore/ExploreClient").then(
 			(mod) => mod.ExploreClient,
-		),
-	{
-		ssr: false, // Client-side only due to auth and complex state management
-		loading: () => <ExplorePageSkeleton />,
-	},
-);
-
-// Dynamic import for ScholarshipExploreClient
-const ScholarshipExploreClient = dynamic(
-	() =>
-		import("@/components/explore/scholarship/ScholarshipExploreClient").then(
-			(mod) => mod.ScholarshipExploreClient,
 		),
 	{
 		ssr: false,
@@ -118,76 +104,22 @@ function ExplorePageSkeleton() {
 	);
 }
 
-function FlippingWord({ activeTab }: { activeTab: string }) {
-	const t = useTranslations("explore");
-	const word =
-		activeTab === "scholarships" ? t("heroScholarship") : t("heroProgram");
-
-	return (
-		<span className="inline-block bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent leading-[1.15] pb-1">
-			{word}
-		</span>
-	);
-}
-
 function ExplorePageContent() {
-	const router = useRouter();
-	const searchParams = useSearchParams();
-	const activeTab = searchParams.get("tab") || "programs";
 	const t = useTranslations("explore");
-
-	const handleTabChange = (value: string) => {
-		const params = new URLSearchParams(searchParams.toString());
-		params.set("tab", value);
-		router.push(`/explore?${params.toString()}`, { scroll: false });
-	};
 
 	return (
 		<PageTransition className="flex flex-col min-h-screen">
-			<Tabs
-				value={activeTab}
-				onValueChange={handleTabChange}
-				className="w-full"
-			>
-				{/* Hero header with animated title + centered tab switcher */}
-				<div className="border-b border-border bg-background">
-					<div className="container mx-auto px-6 pt-10 pb-5">
-						<h1
-							data-tour="explore-hero"
-							className="text-center text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-[1.2] pb-1"
-						>
-							{t("heroTitle")} <FlippingWord activeTab={activeTab} />
-						</h1>
-
-						<div className="mt-8 flex justify-center">
-							<TabsList className="h-11 gap-1 bg-muted/60 p-1 rounded-full">
-								<TabsTrigger
-									value="programs"
-									className="h-9 rounded-full px-5 data-[state=active]:bg-card data-[state=active]:shadow-sm gap-2 font-medium text-sm"
-								>
-									<GraduationCap className="w-4 h-4" />
-									<span>{t("tabs.programs")}</span>
-								</TabsTrigger>
-								<TabsTrigger
-									value="scholarships"
-									className="h-9 rounded-full px-5 data-[state=active]:bg-card data-[state=active]:shadow-sm gap-2 font-medium text-sm"
-								>
-									<Award className="w-4 h-4" />
-									<span>{t("tabs.scholarships")}</span>
-								</TabsTrigger>
-							</TabsList>
-						</div>
-					</div>
+			<div className="border-b border-border bg-background">
+				<div className="container mx-auto px-6 pt-10 pb-5">
+					<h1 className="text-center text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-[1.2] pb-1">
+						{t("heroTitle")}{" "}
+						<span className="inline-block bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent leading-[1.15] pb-1">
+							{t("heroProgram")}
+						</span>
+					</h1>
 				</div>
-
-				<TabsContent value="programs" className="mt-0 border-0 p-0">
-					<ExploreClient />
-				</TabsContent>
-
-				<TabsContent value="scholarships" className="mt-0 border-0 p-0">
-					<ScholarshipExploreClient />
-				</TabsContent>
-			</Tabs>
+			</div>
+			<ExploreClient />
 		</PageTransition>
 	);
 }

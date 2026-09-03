@@ -1,6 +1,9 @@
 import { performLogout } from "../auth/logout";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+// Empty = relative same-origin calls (proxied to the backend via next.config
+// rewrites), so the session cookie stays same-site. Set NEXT_PUBLIC_API_URL to
+// an absolute origin only for direct cross-origin calls.
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 /**
  * Custom fetch instance for Orval-generated hooks.

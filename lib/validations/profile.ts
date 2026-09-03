@@ -1,14 +1,14 @@
 import { z } from "zod";
 import {
-	UpdatePreferencesBody,
-	UpdateProfileBody,
+	AppsAccountsApiUserUpdatePreferencesBody,
+	AppsAccountsApiUserUpdateProfileBody,
 } from "@/lib/generated/api/zod/user/user.zod";
 
 /**
  * Profile form validation schema
  * Extends the generated API schema with UI-specific requirements
  */
-export const profileSchema = UpdateProfileBody.extend({
+export const profileSchema = AppsAccountsApiUserUpdateProfileBody.extend({
 	fullName: z
 		.string()
 		.min(1, "Full name is required")
@@ -44,12 +44,13 @@ export type ProfileFormData = z.infer<typeof profileSchema>;
  * Preferences form validation schema
  * Extends the generated API schema with UI-specific requirements
  */
-export const preferencesSchema = UpdatePreferencesBody.extend({
-	fieldOfInterest: z.array(z.string()).max(3, "Select up to 3 fields"),
-	preferredRegions: z.array(z.string()),
-	// Helper fields for UI that map to intendedStartTerm
-	intendedStartYear: z.string().optional(),
-	intendedStartTerm: z.string().optional(),
-});
+export const preferencesSchema =
+	AppsAccountsApiUserUpdatePreferencesBody.extend({
+		fieldOfInterest: z.array(z.string()).max(3, "Select up to 3 fields"),
+		preferredRegions: z.array(z.string()),
+		// Helper fields for UI that map to intendedStartTerm
+		intendedStartYear: z.string().optional(),
+		intendedStartTerm: z.string().optional(),
+	});
 
 export type PreferencesFormData = z.infer<typeof preferencesSchema>;

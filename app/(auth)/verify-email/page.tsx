@@ -19,7 +19,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { useResendVerification } from "@/lib/generated/api/endpoints/authentication/authentication";
+import { useAppsAccountsApiAuthResendVerification } from "@/lib/generated/api/endpoints/auth/auth";
 import { useVerifyEmail } from "@/lib/hooks/useVerifyEmail";
 import { useUserStore } from "@/lib/store/userStore";
 
@@ -39,7 +39,7 @@ export default function VerifyEmailPage() {
 	} = useVerifyEmail(token);
 
 	// Mutation for resending verification
-	const resendMutation = useResendVerification();
+	const resendMutation = useAppsAccountsApiAuthResendVerification();
 
 	const [countdown, setCountdown] = useState(60);
 
@@ -72,7 +72,7 @@ export default function VerifyEmailPage() {
 	};
 
 	const handleGoToDashboard = () => {
-		router.push("/dashboard");
+		router.push("/explore");
 	};
 
 	// Render based on state (using TanStack Query states)
@@ -237,7 +237,7 @@ export default function VerifyEmailPage() {
 					<p className="px-6 text-center text-sm text-muted-foreground">
 						{t("alreadyVerified")}{" "}
 						<Link
-							href="/dashboard"
+							href="/explore"
 							className="underline underline-offset-4 hover:text-primary"
 						>
 							{t("continueToApp")}

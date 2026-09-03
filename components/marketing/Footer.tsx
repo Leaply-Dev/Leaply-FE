@@ -31,13 +31,11 @@ export function Footer() {
 	const footerLinks = {
 		[t("categories.product")]: [
 			{ label: t("links.exploreUniversities"), href: "/explore" },
-			{ label: t("links.personaLab"), href: "/persona-lab" },
-			{ label: t("links.aiAssistant"), href: "/chatbot" },
-			{ label: t("links.dashboard"), href: "/dashboard" },
+			{ label: t("links.personaLabs"), href: "/persona-labs" },
 		],
 		[t("categories.resources")]: [
-			{ label: t("links.applicationGuide"), href: "/dashboard/resources" },
-			{ label: t("links.scholarships"), href: "/dashboard/resources" },
+			{ label: t("links.applicationGuide"), href: "#" },
+			{ label: t("links.scholarships"), href: "/strategy" },
 			{ label: t("links.faqs"), href: "#" },
 		],
 		[t("categories.company")]: [

@@ -183,6 +183,8 @@ export function formatCurrencyWithCode(
 	return `${symbol}${formatted} ${currency.toUpperCase()}`;
 }
 
+export const formatCurrencyAmount = formatCurrencyWithCode;
+
 /**
  * Format tuition range with currency support
  * @example (30000, 35000, "USD") → "$30,000 - $35,000 USD/yr"

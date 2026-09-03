@@ -43,6 +43,10 @@ export interface PersonaLabIntakeCompletedProps {
 	total_steps?: number;
 }
 
+export interface PersonaSavedProps {
+	is_complete: boolean;
+}
+
 export interface PersonaLabMessageSentProps {
 	message_length: number;
 	story_node_count?: number;
@@ -79,11 +83,12 @@ export interface ProgramSearchPerformedProps {
 
 export interface ProgramSavedProps {
 	program_id: string;
-	source?: "search" | "compare" | "detail";
+	source?: "search" | "compare" | "detail" | "strategy";
 }
 
 export interface ProgramUnsavedProps {
 	program_id: string;
+	source?: "search" | "compare" | "detail" | "strategy";
 }
 
 export interface ProgramViewedProps {
@@ -103,6 +108,14 @@ export interface ScholarshipUnbookmarkedProps {
 	scholarship_id: string;
 }
 
+export interface StrategyViewedProps {
+	has_data: boolean;
+}
+
+export type StrategyRegenerateClickedProps = Record<string, never>;
+
+export type ProfileUpdatedProps = Record<string, never>;
+
 // ─── Event registry ───────────────────────────────────────────────────────────
 
 export interface EventRegistry {
@@ -115,6 +128,7 @@ export interface EventRegistry {
 	onboarding_completed: OnboardingCompletedProps;
 	persona_lab_intake_step_completed: PersonaLabIntakeStepCompletedProps;
 	persona_lab_intake_completed: PersonaLabIntakeCompletedProps;
+	persona_saved: PersonaSavedProps;
 	persona_lab_message_sent: PersonaLabMessageSentProps;
 	archetype_revealed: ArchetypeRevealedProps;
 	sop_completed: SopCompletedProps;
@@ -127,6 +141,9 @@ export interface EventRegistry {
 	scholarship_viewed: ScholarshipViewedProps;
 	scholarship_bookmarked: ScholarshipBookmarkedProps;
 	scholarship_unbookmarked: ScholarshipUnbookmarkedProps;
+	strategy_viewed: StrategyViewedProps;
+	strategy_regenerate_clicked: StrategyRegenerateClickedProps;
+	profile_updated: ProfileUpdatedProps;
 }
 
 export type EventName = keyof EventRegistry;

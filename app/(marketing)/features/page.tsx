@@ -7,12 +7,8 @@ import {
 	CheckSquare,
 	FileText,
 	Globe,
-	Lightbulb,
-	MessageSquare,
-	PenTool,
 	Search,
 	Shield,
-	Sparkles,
 	Star,
 	Target,
 	TrendingUp,
@@ -97,31 +93,6 @@ const featureConfigs: FeatureConfig[] = [
 			},
 		],
 	},
-	{
-		id: "persona-lab",
-		titleKey: "personaLabTitle",
-		taglineKey: "personaLabTagline",
-		descKey: "personaLabDesc",
-		icon: Sparkles,
-		color: "bg-primary",
-		benefits: [
-			{
-				icon: Lightbulb,
-				titleKey: "personaLabBenefit1Title",
-				descKey: "personaLabBenefit1Desc",
-			},
-			{
-				icon: PenTool,
-				titleKey: "personaLabBenefit2Title",
-				descKey: "personaLabBenefit2Desc",
-			},
-			{
-				icon: MessageSquare,
-				titleKey: "personaLabBenefit3Title",
-				descKey: "personaLabBenefit3Desc",
-			},
-		],
-	},
 ];
 
 const additionalBenefitConfigs = [
@@ -191,7 +162,6 @@ function FeatureSection({
 														"w-6 h-6",
 														feature.id === "explore" && "text-blue-500",
 														feature.id === "applications" && "text-amber-500",
-														feature.id === "persona-lab" && "text-primary",
 													)}
 												/>
 											</div>

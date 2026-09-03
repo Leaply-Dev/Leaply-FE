@@ -77,7 +77,7 @@ export default function OAuthSuccessPage() {
 					if (needsOnboarding || !userContext.user.isOnboardingComplete) {
 						router.replace("/onboarding");
 					} else {
-						router.replace("/dashboard");
+						router.replace("/explore");
 					}
 				} else {
 					throw new Error("Invalid response");

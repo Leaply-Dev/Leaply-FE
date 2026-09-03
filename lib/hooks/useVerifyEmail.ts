@@ -6,7 +6,7 @@
  * for automatic deduplication in React Strict Mode to prevent duplicate calls
  */
 import { useQuery } from "@tanstack/react-query";
-import { verifyEmail } from "@/lib/generated/api/endpoints/authentication/authentication";
+import { appsAccountsApiAuthVerifyEmail } from "@/lib/generated/api/endpoints/auth/auth";
 
 /**
  * React Query hook for email verification with token
@@ -18,10 +18,10 @@ import { verifyEmail } from "@/lib/generated/api/endpoints/authentication/authen
  */
 export function useVerifyEmail(token: string | null) {
 	return useQuery({
-		queryKey: ["verifyEmail", token],
+		queryKey: ["appsAccountsApiAuthVerifyEmail", token],
 		queryFn: () => {
 			if (!token) throw new Error("Token is required");
-			return verifyEmail({ token });
+			return appsAccountsApiAuthVerifyEmail({ token });
 		},
 		enabled: !!token, // Only run if token exists
 		staleTime: Number.POSITIVE_INFINITY, // Never refetch (one-time verification)

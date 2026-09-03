@@ -1,12 +1,9 @@
 "use client";
 
 import {
-	Award,
 	Building2,
-	Calendar,
 	Check,
 	Clock,
-	DollarSign,
 	GraduationCap,
 	Laptop,
 	Loader2,
@@ -25,13 +22,8 @@ import type {
 import type { Locale } from "@/lib/utils/displayFormatters";
 import {
 	formatCountryName,
-	formatDate,
 	formatDegreeType,
-	formatDeliveryModeI18n,
 	formatDurationI18n,
-	formatIeltsRequirement,
-	formatTuitionRange,
-	isDeadlinePast,
 } from "@/lib/utils/displayFormatters";
 
 interface ProgramCardProps {
@@ -40,7 +32,7 @@ interface ProgramCardProps {
 	onSaveToggle?: (id: string) => void;
 	onClick?: (program: ProgramListItemResponse) => void;
 	isSelected?: boolean;
-	onToggleSelection?: (id: string, program?: ProgramListItemResponse) => void;
+	onToggleSelection?: (id: string) => void;
 	isMaxReached?: boolean;
 	onAddToDashboard?: (id: string) => void;
 	isAdding?: boolean;
@@ -58,9 +50,8 @@ export function ProgramCard({
 	const t = useTranslations("explore");
 	const locale = useLocale() as Locale;
 
-	// Check if deadline exists and is not past
-	const hasValidDeadline =
-		program.nextDeadline && !isDeadlinePast(program.nextDeadline);
+	const inst = program.institution;
+	const durationMonths = program.durationMonthsMin ?? program.durationMonthsMax;
 
 	return (
 		// biome-ignore lint/a11y/useSemanticElements: Cannot use <button> because it contains nested buttons
@@ -81,10 +72,10 @@ export function ProgramCard({
 				{/* University Info */}
 				<div className="flex items-center gap-3 mb-3">
 					<div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden border border-border">
-						{program.universityLogoUrl ? (
+						{inst.logoUrl ? (
 							<Image
-								src={program.universityLogoUrl}
-								alt={program.universityName || "University"}
+								src={inst.logoUrl}
+								alt={inst.name || "University"}
 								width={64}
 								height={64}
 								className="object-contain"
@@ -95,16 +86,16 @@ export function ProgramCard({
 					</div>
 					<div className="flex-1 min-w-0">
 						<h3 className="font-bold text-base text-foreground line-clamp-2 leading-snug">
-							{program.displayName || program.programName || "N/A"}
+							{program.name || "N/A"}
 						</h3>
 						<p className="font-medium text-sm text-foreground truncate">
-							{program.universityName || "N/A"}
+							{inst.name || "N/A"}
 						</p>
 						<div className="flex items-center gap-1 mt-0.5">
 							<MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
 							<span className="text-xs text-muted-foreground truncate">
-								{program.universityCity || "N/A"},{" "}
-								{formatCountryName(program.universityCountry)}
+								{inst.city ? `${inst.city}, ` : ""}
+								{formatCountryName(inst.countryCode)}
 							</span>
 						</div>
 					</div>
@@ -112,95 +103,47 @@ export function ProgramCard({
 
 				{/* Badges Row */}
 				<div className="flex flex-wrap gap-1.5 mb-3">
-					{program.rankingQsDisplay && (
-						<Badge className="bg-primary/10 text-primary border-0 text-xs gap-1">
-							<Award className="w-3 h-3" />
-							QS #{program.rankingQsDisplay}
-						</Badge>
-					)}
-
-					{program.fitScore && (
-						<Badge className="bg-primary/10 text-primary border-0 text-xs">
-							{program.fitScore}% {t("table.match")}
-						</Badge>
-					)}
-
-					{program.degreeType && (
+					{program.degreeLevel && (
 						<Badge
 							variant="outline"
 							className="text-xs gap-1 border-muted-foreground/30"
 						>
 							<GraduationCap className="w-3 h-3" />
-							{formatDegreeType(program.degreeType)}
+							{formatDegreeType(program.degreeLevel)}
 						</Badge>
 					)}
 
-					{program.scholarshipAvailable && (
-						<Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-0 text-xs">
-							{t("table.scholarship")}
+					{program.programCategories?.slice(0, 2).map((cat) => (
+						<Badge
+							key={cat}
+							className="bg-primary/10 text-primary border-0 text-xs"
+						>
+							{cat}
 						</Badge>
-					)}
+					))}
 				</div>
 
 				{/* Quick Info Grid */}
 				<div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs mb-3">
-					{/* Tuition */}
-					{program.tuitionAnnualMin && (
-						<div className="flex items-center gap-1.5 text-muted-foreground">
-							<DollarSign className="w-3.5 h-3.5 shrink-0" />
-							<span className="truncate">
-								{formatTuitionRange(
-									program.tuitionAnnualMin,
-									program.tuitionAnnualMax,
-									program.tuitionCurrency || "USD",
-									locale,
-								)}
-							</span>
-						</div>
-					)}
-
 					{/* Duration */}
-					{program.durationMonths && (
+					{durationMonths != null && (
 						<div className="flex items-center gap-1.5 text-muted-foreground">
 							<Clock className="w-3.5 h-3.5 shrink-0" />
 							<span className="truncate">
-								{formatDurationI18n(program.durationMonths, locale)}
+								{formatDurationI18n(durationMonths, locale)}
 							</span>
 						</div>
 					)}
 
-					{/* Delivery Mode */}
-					{program.deliveryMode && (
+					{/* Instruction languages */}
+					{program.instructionLanguages?.length ? (
 						<div className="flex items-center gap-1.5 text-muted-foreground">
 							<Laptop className="w-3.5 h-3.5 shrink-0" />
-							<span className="truncate">
-								{formatDeliveryModeI18n(program.deliveryMode, locale)}
+							<span className="truncate uppercase">
+								{program.instructionLanguages.join(", ")}
 							</span>
 						</div>
-					)}
-
-					{/* IELTS Requirement */}
-					{program.ieltsMinimum && (
-						<div className="flex items-center gap-1.5 text-muted-foreground">
-							<span className="w-3.5 h-3.5 shrink-0 text-[10px] font-bold text-center leading-[14px]">
-								IE
-							</span>
-							<span className="truncate">
-								{formatIeltsRequirement(program.ieltsMinimum)}
-							</span>
-						</div>
-					)}
-
-					{/* Next Deadline */}
-					{hasValidDeadline && (
-						<div className="flex items-center gap-1.5 text-muted-foreground col-span-2">
-							<Calendar className="w-3.5 h-3.5 shrink-0" />
-							<span className="truncate">
-								{t("table.deadline")}:{" "}
-								{formatDate(program.nextDeadline, { short: true })}
-							</span>
-						</div>
-					)}
+					) : null}
 				</div>
 			</div>
 
@@ -242,7 +185,7 @@ export function ProgramCard({
 					disabled={!isSelected && isMaxReached}
 					onClick={(e) => {
 						e.stopPropagation();
-						program.id && onToggleSelection?.(program.id, program);
+						program.id && onToggleSelection?.(program.id);
 					}}
 				>
 					{isSelected ? (

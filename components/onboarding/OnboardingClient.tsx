@@ -9,27 +9,19 @@ import { OnboardingProgress } from "@/components/OnboardingProgress";
 import { PageTransition } from "@/components/PageTransition";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { analytics } from "@/lib/analytics/analytics";
-import { unwrapResponse } from "@/lib/api/unwrapResponse";
+import {
+	useOnboardingStatus,
+	useUpdateOnboarding,
+	useUserPreferences,
+	useUserProfile,
+} from "@/lib/api/mappers";
 import {
 	mapBudgetIndexToKey,
 	mapFieldsToKeys,
 	mapRegionsToKeys,
 } from "@/lib/constants/onboardingMappings";
-import {
-	getGetStatusQueryKey,
-	getStatus,
-	updateOnboarding,
-} from "@/lib/generated/api/endpoints/onboarding/onboarding";
-import {
-	getGetMeQueryKey,
-	getPreferences,
-	getProfile,
-} from "@/lib/generated/api/endpoints/user/user";
-import type {
-	OnboardingDataResponse,
-	PreferencesResponse,
-	ProfileResponse,
-} from "@/lib/generated/api/models";
+import { getAppsProfilingApiGetStatusQueryKey } from "@/lib/generated/api/endpoints/onboarding/onboarding";
+import { getAppsAccountsApiUserGetMeQueryKey } from "@/lib/generated/api/endpoints/user/user";
 import { type JourneyType, useUserStore } from "@/lib/store/userStore";
 import { OnboardingHeader } from "./OnboardingHeader";
 import {
@@ -89,93 +81,80 @@ export function OnboardingClient({
 		null,
 	);
 
+	const { data: status, isLoading: statusLoading } = useOnboardingStatus();
+	const { data: profileData, isLoading: profileLoading } = useUserProfile();
+	const { data: preferencesData, isLoading: preferencesLoading } =
+		useUserPreferences();
+	const updateOnboarding = useUpdateOnboarding();
+
 	// --- Load Initial Data ---
 	useEffect(() => {
-		const loadOnboardingData = async () => {
-			try {
-				setIsLoading(true);
+		if (statusLoading || profileLoading || preferencesLoading) return;
 
-				// Get onboarding status to determine starting step
-				const statusResponse = await getStatus().catch(() => null);
-				const status = statusResponse
-					? unwrapResponse<OnboardingDataResponse>(statusResponse)
-					: { completedSteps: 0, isComplete: false };
+		try {
+			setIsLoading(true);
 
-				// If onboarding is complete, redirect to dashboard
-				if (status?.isComplete) {
-					completeOnboarding();
-					router.push("/dashboard");
-					return;
-				}
-
-				// Set the current step based on completed steps
-				// Ensure it's within bounds (0 to 4)
-				const startingStep = Math.min(
-					Math.max(status?.completedSteps || 0, 0),
-					4,
-				);
-				setCurrentStep(startingStep);
-
-				// Load user profile and preferences
-				const [profileResponse, preferencesResponse] = await Promise.all([
-					getProfile().catch(() => null),
-					getPreferences().catch(() => null),
-				]);
-				const profileData = profileResponse
-					? unwrapResponse<ProfileResponse>(profileResponse)
-					: null;
-				const preferencesData = preferencesResponse
-					? unwrapResponse<PreferencesResponse>(preferencesResponse)
-					: null;
-
-				// Populate form with existing data
-				if (profileData) {
-					setBasicInfo({
-						educationLevel: profileData.currentEducationLevel || "",
-						targetDegree: profileData.targetDegree || "",
-					});
-				}
-
-				if (preferencesData) {
-					// Parse timeline if it exists
-					const timeline = preferencesData.intendedStartTerm || "";
-					const parts = timeline.split(" ");
-					const year = parts[0] || "";
-					const term = parts.slice(1).join(" ") || "";
-
-					setPrefs({
-						fields: preferencesData.fieldOfInterest || [],
-						regions: preferencesData.preferredRegions || [],
-						startYear: year,
-						startTerm: term,
-						budgetIndex:
-							constants.budgetOptions.findIndex(
-								(opt) => opt.label === preferencesData.budgetLabel,
-							) === -1
-								? 1
-								: constants.budgetOptions.findIndex(
-										(opt) => opt.label === preferencesData.budgetLabel,
-									),
-					});
-				}
-			} catch (error) {
-				console.error(
-					"OnboardingClient: Critical failure loading data:",
-					error,
-				);
-				// Start from step 0 if there's an error
-				setCurrentStep(0);
-			} finally {
-				setIsLoading(false);
-				if (!startedTracked.current) {
-					startedTracked.current = true;
-					analytics.track("onboarding_started", { journey_type: null });
-				}
+			// If onboarding is complete, redirect to explore
+			if (status?.completed) {
+				completeOnboarding();
+				router.push("/explore");
+				return;
 			}
-		};
 
-		loadOnboardingData();
-	}, [router, completeOnboarding, constants.budgetOptions]);
+			// Set the current step based on completed steps
+			const startingStep = Math.min(Math.max(status?.currentStep || 0, 0), 4);
+			setCurrentStep(startingStep);
+
+			// Populate form with existing data
+			if (profileData) {
+				setBasicInfo({
+					educationLevel: profileData.currentEducationLevel || "",
+					targetDegree: profileData.targetDegree || "",
+				});
+			}
+
+			if (preferencesData) {
+				const timeline = preferencesData.intendedStartTerm || "";
+				const parts = timeline.split(" ");
+				const year = parts[0] || "";
+				const term = parts.slice(1).join(" ") || "";
+
+				setPrefs({
+					fields: preferencesData.fieldOfInterest || [],
+					regions: preferencesData.preferredRegions || [],
+					startYear: year,
+					startTerm: term,
+					budgetIndex:
+						constants.budgetOptions.findIndex(
+							(opt) => opt.label === preferencesData.budgetLabel,
+						) === -1
+							? 1
+							: constants.budgetOptions.findIndex(
+									(opt) => opt.label === preferencesData.budgetLabel,
+								),
+				});
+			}
+		} catch (error) {
+			console.error("OnboardingClient: Critical failure loading data:", error);
+			setCurrentStep(0);
+		} finally {
+			setIsLoading(false);
+			if (!startedTracked.current) {
+				startedTracked.current = true;
+				analytics.track("onboarding_started", { journey_type: null });
+			}
+		}
+	}, [
+		status,
+		statusLoading,
+		profileData,
+		profileLoading,
+		preferencesData,
+		preferencesLoading,
+		router,
+		completeOnboarding,
+		constants.budgetOptions,
+	]);
 
 	// --- Handlers ---
 
@@ -188,9 +167,13 @@ export function OnboardingClient({
 	};
 
 	const invalidateOnboardingCaches = async (includeMe = false) => {
-		await queryClient.invalidateQueries({ queryKey: getGetStatusQueryKey() });
+		await queryClient.invalidateQueries({
+			queryKey: getAppsProfilingApiGetStatusQueryKey(),
+		});
 		if (includeMe) {
-			await queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+			await queryClient.invalidateQueries({
+				queryKey: getAppsAccountsApiUserGetMeQueryKey(),
+			});
 		}
 	};
 
@@ -203,17 +186,19 @@ export function OnboardingClient({
 			});
 
 			// Update onboarding progress (this also persists profile data on backend)
-			await updateOnboarding({
-				currentLevel: basicInfo.educationLevel as
-					| "high_school"
-					| "undergrad"
-					| "graduate"
-					| "working",
-				targetDegree: basicInfo.targetDegree as
-					| "bachelors"
-					| "masters"
-					| "mba"
-					| "phd",
+			await updateOnboarding.mutateAsync({
+				data: {
+					currentLevel: basicInfo.educationLevel as
+						| "high_school"
+						| "undergrad"
+						| "graduate"
+						| "working",
+					targetDegree: basicInfo.targetDegree as
+						| "bachelors"
+						| "masters"
+						| "mba"
+						| "phd",
+				},
 			});
 			await invalidateOnboardingCaches(false);
 
@@ -243,9 +228,11 @@ export function OnboardingClient({
 			const regionKeys = mapRegionsToKeys(prefs.regions);
 
 			// Update onboarding progress with enum keys
-			await updateOnboarding({
-				targetFields: fieldKeys,
-				targetRegions: regionKeys,
+			await updateOnboarding.mutateAsync({
+				data: {
+					targetFields: fieldKeys,
+					targetRegions: regionKeys,
+				},
 			});
 			await invalidateOnboardingCaches(false);
 
@@ -277,9 +264,11 @@ export function OnboardingClient({
 			const budgetKey = mapBudgetIndexToKey(prefs.budgetIndex);
 
 			// Update onboarding progress with enum key
-			await updateOnboarding({
-				targetIntake: formattedTimeline,
-				budgetRange: budgetKey,
+			await updateOnboarding.mutateAsync({
+				data: {
+					targetIntake: formattedTimeline,
+					budgetRange: budgetKey,
+				},
 			});
 			await invalidateOnboardingCaches(false);
 
@@ -313,8 +302,10 @@ export function OnboardingClient({
 			});
 
 			// Mark onboarding as complete (this also persists journey selection)
-			await updateOnboarding({
-				direction: type === "exploring" ? "exploring" : "has_target",
+			await updateOnboarding.mutateAsync({
+				data: {
+					direction: type === "exploring" ? "exploring" : "has_target",
+				},
 			});
 			await invalidateOnboardingCaches(true);
 
@@ -332,7 +323,7 @@ export function OnboardingClient({
 
 	const handleCompletion = () => {
 		const redirectPath =
-			selectedJourney === "targeted" ? "/explore" : "/persona-lab";
+			selectedJourney === "targeted" ? "/explore" : "/explore";
 		router.push(`${redirectPath}`);
 	};
 

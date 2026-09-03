@@ -27,7 +27,7 @@ import {
 	FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { resetPassword } from "@/lib/generated/api/endpoints/authentication/authentication";
+import { appsAccountsApiAuthResetPassword } from "@/lib/generated/api/endpoints/auth/auth";
 import { cn } from "@/lib/utils";
 
 type ResetState = "form" | "submitting" | "success" | "error";
@@ -41,7 +41,7 @@ interface PasswordRequirement {
 export default function ResetPasswordPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const t = useTranslations("auth.resetPassword");
+	const t = useTranslations("auth.appsAccountsApiAuthResetPassword");
 
 	const token = searchParams.get("token");
 
@@ -108,7 +108,7 @@ export default function ResetPasswordPage() {
 		setError(null);
 
 		try {
-			await resetPassword({ token, newPassword });
+			await appsAccountsApiAuthResetPassword({ token, newPassword });
 			setState("success");
 		} catch (err) {
 			setState("error");
@@ -259,7 +259,7 @@ export default function ResetPasswordPage() {
 									className="w-full"
 									disabled={!isPasswordValid || !doPasswordsMatch}
 								>
-									{t("resetPassword")}
+									{t("appsAccountsApiAuthResetPassword")}
 								</Button>
 							</Field>
 						</FieldGroup>

@@ -3,7 +3,8 @@ import { defineConfig } from "orval";
 export default defineConfig({
 	leaply: {
 		input: {
-			target: "http://localhost:8080/api/api-docs",
+			// Python backend (Django Ninja) — Path A. Was Java :8080/api/api-docs.
+			target: "http://localhost:8000/api/v1/openapi.json",
 		},
 		output: {
 			mode: "tags-split",
@@ -59,7 +60,8 @@ export default defineConfig({
 	// Separate configuration for Zod schemas to avoid naming conflicts
 	leaplyZod: {
 		input: {
-			target: "https://api.leaply.ai.vn/api/api-docs",
+			// Python backend (Django Ninja) — Path A. Was https://api.leaply.ai.vn/api/api-docs.
+			target: "http://localhost:8000/api/v1/openapi.json",
 		},
 		output: {
 			mode: "tags-split",

@@ -4,6 +4,8 @@
 		"features": "Features",
 		"about": "About",
 		"explore": "Explore",
+		"personaLabs": "Persona Labs",
+		"strategy": "Strategy",
 		"applications": "Essays",
 		"personaLab": "Persona Lab",
 		"login": "Log in",
@@ -29,6 +31,73 @@
 		"finish": "Get Started",
 		"restart": "Restart tour",
 		"progress": "Step {current} of {total}"
+	},
+	"personaLabs": {
+		"title": "Persona Labs",
+		"subtitle": "Discover your story and core values through a fixed questionnaire.",
+		"form": {
+			"submit": "Save persona",
+			"saving": "Saving...",
+			"saved": "Saved successfully!",
+			"error": "Something went wrong. Please try again.",
+			"requiredHint": "* Required",
+			"sections": {
+				"preferences": "Preferences",
+				"values": "Values",
+				"constraints": "Constraints",
+				"motivations": "Motivations"
+			}
+		},
+		"comingSoonTitle": "Coming Soon",
+		"comingSoonDescription": "Persona Labs is being finalized. Check back soon!",
+		"startButton": "Start discovery"
+	},
+	"strategy": {
+		"title": "Study Abroad Strategy",
+		"subtitle": "Get suggested roadmap, programs, and scholarships matched to your profile.",
+		"loading": "Loading your strategy...",
+		"error": {
+			"title": "Failed to load strategy",
+			"description": "Could not load your study abroad strategy. Please try again.",
+			"retry": "Try again"
+		},
+		"empty": {
+			"title": "No strategy yet",
+			"description": "Complete your profile and preferences to get a personalized strategy."
+		},
+		"summaryTitle": "Summary",
+		"programsTitle": "Recommended Programs",
+		"safetyTitle": "Safety Schools",
+		"targetTitle": "Target Schools",
+		"reachTitle": "Reach Schools",
+		"noPrograms": "No programs in this bucket.",
+		"scholarshipsTitle": "Recommended Scholarships",
+		"eligible": "Eligible",
+		"notEligible": "Not eligible",
+		"coverage": "Coverage",
+		"provider": "Provider",
+		"noScholarships": "No scholarships recommended yet.",
+		"optionsTitle": "Strategy Options",
+		"riskLevel": "Risk level",
+		"fundingPlan": "Funding plan",
+		"noOptions": "No strategy options available.",
+		"actionPlanTitle": "Action Plan",
+		"step": "Step {order}",
+		"timeframe": "Timeframe",
+		"noActionPlan": "No action plan steps yet.",
+		"fitScore": "Fit",
+		"tuition": "Tuition",
+		"why": "Why this fits you",
+		"save": "Save",
+		"unsave": "Unsave",
+		"saving": "Saving...",
+		"comingSoonTitle": "Coming Soon",
+		"comingSoonDescription": "Strategy suggestions are being finalized. Check back soon!",
+		"generateButton": "Generate strategy",
+		"analyzing": "Analyzing your strategy...",
+		"analyzingDescription": "This can take a moment on the first analysis.",
+		"regenerate": "Re-analyze",
+		"regenerating": "Re-analyzing..."
 	},
 	"onboarding": {
 		"steps": {

@@ -47,7 +47,7 @@ export function OnboardingHeader() {
 		}
 	};
 
-	const getInitials = (name?: string) => {
+	const _getInitials = (name?: string) => {
 		if (!name) return "U";
 		const parts = name.trim().split(" ");
 		if (parts.length >= 2) {

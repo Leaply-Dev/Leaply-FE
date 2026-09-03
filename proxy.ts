@@ -8,7 +8,7 @@ const AuthStateCookieSchema = z.object({
 });
 
 // Routes that require authentication
-const PROTECTED_ROUTES = ["/dashboard", "/explore", "/persona-lab"];
+const PROTECTED_ROUTES = ["/explore", "/persona-labs", "/strategy", "/profile"];
 
 // Routes only for unauthenticated users
 const AUTH_ROUTES = ["/login", "/register"];
@@ -19,7 +19,11 @@ const ONBOARDING_ROUTES = ["/onboarding"];
 export function proxy(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 
-	// Check if the path is a protected route
+	// Redirect old dashboard URLs to explore before any auth checks
+	if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
+		return NextResponse.redirect(new URL("/explore", request.url));
+	}
+
 	const isProtectedRoute = PROTECTED_ROUTES.some(
 		(route) => pathname === route || pathname.startsWith(`${route}/`),
 	);
@@ -62,7 +66,7 @@ export function proxy(request: NextRequest) {
 	// Auth routes - redirect authenticated users away
 	if (isAuthRoute) {
 		if (isAuthenticated) {
-			const redirectPath = isOnboardingComplete ? "/dashboard" : "/onboarding";
+			const redirectPath = isOnboardingComplete ? "/explore" : "/onboarding";
 			return NextResponse.redirect(new URL(redirectPath, request.url));
 		}
 		return NextResponse.next();
@@ -74,8 +78,7 @@ export function proxy(request: NextRequest) {
 			return NextResponse.redirect(new URL("/login", request.url));
 		}
 		if (isOnboardingComplete) {
-			// Already completed onboarding → redirect to dashboard
-			return NextResponse.redirect(new URL("/dashboard", request.url));
+			return NextResponse.redirect(new URL("/explore", request.url));
 		}
 		return NextResponse.next();
 	}

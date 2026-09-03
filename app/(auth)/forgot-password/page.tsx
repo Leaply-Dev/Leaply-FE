@@ -21,12 +21,12 @@ import {
 } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { forgotPassword } from "@/lib/generated/api/endpoints/authentication/authentication";
+import { appsAccountsApiAuthForgotPassword } from "@/lib/generated/api/endpoints/auth/auth";
 
 type ForgotState = "form" | "sending" | "sent";
 
 export default function ForgotPasswordPage() {
-	const t = useTranslations("auth.forgotPassword");
+	const t = useTranslations("auth.appsAccountsApiAuthForgotPassword");
 
 	const [state, setState] = useState<ForgotState>("form");
 	const [email, setEmail] = useState("");
@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
 		setError(null);
 
 		try {
-			await forgotPassword({ email });
+			await appsAccountsApiAuthForgotPassword({ email });
 			setState("sent");
 		} catch (_err) {
 			// Always show success to prevent email enumeration
